@@ -1,0 +1,71 @@
+ipa	condition	qs	codepoints	letters	kind	example	authority
+p			U+E650	·Pea	consonant	pea	
+b			U+E651	·Bay	consonant	bay	
+t			U+E652	·Tea	consonant	tea	
+d			U+E653	·Day	consonant	day	
+k			U+E654	·Key	consonant	key	
+ɡ			U+E655	·Gay	consonant	gay	
+θ			U+E656	·Thaw	consonant	thaw	
+ð			U+E657	·They	consonant	they	
+f			U+E658	·Fee	consonant	fee	
+v			U+E659	·Vie	consonant	vie	
+s			U+E65A	·See	consonant	see	
+z			U+E65B	·Zoo	consonant	zoo	
+ʃ			U+E65C	·She	consonant	she	
+ʒ			U+E65D	·Zhivago	consonant	Zhivago	
+tʃ			U+E65E	·Cheer	consonant	cheer	
+dʒ			U+E65F	·Jay	consonant	jay	
+j			U+E660	·Ye	consonant	ye	
+w			U+E661	·Way	consonant	way	
+ʍ			U+E663	·Why	consonant	awhile	
+h			U+E662	·He	consonant	he	
+m			U+E665	·May	consonant	may	
+n			U+E666	·No	consonant	no	
+ŋ			U+E664	·Oolong	consonant	oolong	
+l			U+E667	·Low	consonant	low	
+r			U+E668	·Roe	consonant	roe	
+x			U+E669	·Loch	consonant	koch	
+ɬ			U+E66A	·Llan	consonant	llanfair	
+R			U+E668	·Roe	rhotic	baker	spell-all-rs
+ɪ			U+E670	·It	vowel	it	
+iː			U+E671	·Eat	vowel	eat	
+e			U+E672	·Et	vowel	et	
+eɪ			U+E673	·Eight	vowel	eight	
+æ			U+E674	·At	vowel	at	
+aɪ			U+E675	·I	vowel	eye	
+ɑː			U+E676	·Ah	vowel	ah	
+ɒ			U+E678	·Ox	vowel	ox	
+ɔː			U+E677	·Awe	vowel	awe	
+ɔɪ			U+E679	·Oy	vowel	oy	
+aʊ			U+E67B	·Out	vowel	out	
+əʊ			U+E67C	·Owe	vowel	owe	
+ʊ			U+E67D	·Foot	vowel	foot	
+uː			U+E67E	·Ooze	vowel	ooze	
+ʌ			U+E67A	·Utter	vowel	hut	vowels-plus-r
+ə			U+E67A	·Utter	vowel	upon	vowels-plus-r
+ɜː			U+E67A	·Utter	vowel	hurt	vowels-plus-r
+i			U+E670	·It	vowel	happy	terminal-y
+u			U+E67E	·Ooze	vowel	visual	terminal-al-el-le-il
+ɪə	stressed		U+E671 U+E67A	·Eat·Utter	sequence	career	terminal-ier-ior
+ɪə	unstressed		U+E670 U+E67A	·It·Utter	sequence	happier	terminal-ier-ior
+eə	pre-r		U+E673	·Eight	sequence	there	alphabet-chart
+eə	no-r		U+E672 U+E67A	·Et·Utter	sequence	yeah	
+ʊə			U+E67E U+E67A	·Ooze·Utter	sequence	moor	section-2
+aɪə	pre-r		U+E675	·I	sequence	mire	section-2
+aɪə	no-r		U+E675 U+E67A	·I·Utter	sequence	science	
+aʊə	pre-r		U+E67B	·Out	sequence	sour	section-2
+aʊə	no-r		U+E67B U+E67A	·Out·Utter	sequence	bowel	
+ˈ					marker		
+ˌ					marker		
+Ə			U+E67A	·Utter	tag	kisses	
+I			U+E670	·It	tag	banquet	
+Ɑː			U+E676	·Ah	tag	bath	
+Æ			U+E674	·At	tag	bath	
+Ð			U+E657	·They	word-sign	the	
+T			U+E652	·Tea	word-sign	to	
+N			U+E666	·No	word-sign	and	
+V			U+E659	·Vie	word-sign	of	
+F			U+E658	·Fee	word-sign	for	
+ 					structural		
+-					structural		
++					structural		
