@@ -66,7 +66,7 @@ Mechanical, per chunk, scanning left from the `ɪə`:
 Two recorded interpretations of issue #1's wording:
 
 - **ˌ counts as stress.** The issue's rule names only ˈ, but bacteriology `bækˌtɪəriˈɒlədʒi` and 73 similar occurrences put ˌ directly before the ɪə syllable; classifying them stressed preserves morphological families (bacteria → bacteriology, both ·Eat·Utter).
-- **Rule 3 generalizes "monosyllable."** A literal monosyllable test would flip the hero/weary/ theatre compounds to ·It·Utter, splitting them from their standalone forms.
+- **Rule 3 generalizes "monosyllable."** A literal monosyllable test would flip the hero/weary/theatre compounds to ·It·Utter, splitting them from their standalone forms.
 
 Corpus outcome: 1,202 stressed / 2,482 unstressed occurrences; the validator prints the full audit.
 
