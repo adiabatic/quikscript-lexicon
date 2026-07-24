@@ -33,17 +33,24 @@ schwa-less `ɪR`/`aɪR`/`aʊR` nonexistent).
 
 ## Tokenizer contract
 
-Tokens are matched greedily, longest first, over the quirk-normalized string. Two rules about
-stress marks, both load-bearing:
+Tokens are matched greedily, longest first, over the quirk-normalized string. Three rules,
+all load-bearing:
 
 - **A stress mark bounds vowel tokens.** coyote `kaɪˈəʊti` must parse as `aɪ·ˈ·əʊ`, never as an
   `aɪə` triphthong spanning the mark. This falls out of literal contiguous matching.
 - **A stress mark does not break vowel+r adjacency.** thereafter `ðeəˈrÆftəR` still counts its
   `eə` as pre-r (·Eight); the `pre-r`/`no-r` lookahead skips marks before testing for `r`/`R`.
+- **A schwa-final vowel token yields to a following GOAT vowel.** In bio `ˈbaɪəʊ`, diode,
+  flyover, heliograph (88 rows), the `ə` belongs to `əʊ`, so `aɪə`/`ɪə` decline to match when
+  `ʊ` follows and the split is `aɪ`+`əʊ` → ·I·Owe (the Shavian column concurs: 𐑲𐑴). The
+  validator enforces this with an əʊ-conservation check: every `əʊ` in the normalized text must
+  surface as an ·Owe token. No `eəʊ`/`ʊəʊ`/`aʊəʊ` exists in the corpus, so the rule only ever
+  fires on the bio class.
 
 Chunks are the `-`/space/`+`-separated spans of an entry; stress conditioning never crosses a
-chunk boundary. Stress marks and structural separators map to no letters (separators pass
-through as themselves).
+chunk boundary, and token matching cannot cross a separator — which is also what keeps hiatus
+sequences like angrier `ˈæŋɡrɪ+əR` from fusing into a spurious `ɪə`. Stress marks and structural
+separators map to no letters (separators pass through as themselves).
 
 ## The obvious rows
 
@@ -101,7 +108,7 @@ Two recorded interpretations of issue #1's wording:
 - **Rule 3 generalizes "monosyllable."** A literal monosyllable test would flip the hero/weary/
   theatre compounds to ·It·Utter, splitting them from their standalone forms.
 
-Corpus outcome: 1,203 stressed / 2,527 unstressed occurrences; the validator prints the full
+Corpus outcome: 1,202 stressed / 2,482 unstressed occurrences; the validator prints the full
 audit.
 
 ## Decision: weak u = ·Ooze (not ·Foot)
@@ -118,10 +125,12 @@ per issue #8 the senior column follows the IPA, so the lexicon will write
 ## Decision: non-rhotic aɪə/aʊə keep the schwa
 
 Issue #1 asked to "verify the handful of non-rhotic aɪə/aʊə (if any) get the same treatment" as
-the pre-r absorption. Verification overturned the premise: there are **549 aɪə and 51 aʊə
+the pre-r absorption. Verification overturned the premise: there are **518 aɪə and 51 aʊə
 non-rhotic occurrences** — science, client, quiet, diet, giant, lion, diary, trial, dial, bowel,
-towel, vowel, avowal, allowance — not a handful. The mapping absorbs the schwa **only before
-r/R**, keeping ·I·Utter / ·Out·Utter otherwise, because:
+towel, vowel, avowal, allowance — not a handful. (A further 31 raw `aɪəʊ` matches are bio-class
+words where the `ə` belongs to a following GOAT vowel; the tokenizer splits those as `aɪ`+`əʊ`
+per the contract above.) The mapping absorbs the schwa **only before r/R**, keeping ·I·Utter /
+·Out·Utter otherwise, because:
 
 - Every absorption example in the Manual is a vowel+R join (mire, sour, our, §II join tables).
   None of the candidate non-rhotic words appears with a spelling anywhere in the Manual (dial,
@@ -158,6 +167,8 @@ to-do list for upstream fixes.
 - aɪəR 515 / aʊəR 226: capital-R-only rows. Token-level pre-r counts are 655/270 because
   intervocalic lowercase r (firing, dowry) conditions the same absorption.
 - EAR "always ɪəR, never ɪR": confirmed — the validator forbids schwa-less `ɪR`/`aɪR`/`aʊR`.
+- GOAT conservation: all 10,506 `əʊ` in the normalized text tokenize as ·Owe — none is lost to
+  a neighboring triphthong token.
 
 ## Acceptance (issue #1)
 

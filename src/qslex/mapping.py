@@ -6,8 +6,26 @@ from pathlib import Path
 
 from qslex.csur import CODEPOINT_OF
 
-HEADER = ["ipa", "condition", "qs", "codepoints", "letters", "kind", "example", "authority"]
-KINDS = {"consonant", "rhotic", "vowel", "sequence", "marker", "tag", "word-sign", "structural"}
+HEADER = [
+    "ipa",
+    "condition",
+    "qs",
+    "codepoints",
+    "letters",
+    "kind",
+    "example",
+    "authority",
+]
+KINDS = {
+    "consonant",
+    "rhotic",
+    "vowel",
+    "sequence",
+    "marker",
+    "tag",
+    "word-sign",
+    "structural",
+}
 CONDITION_SETS = [{""}, {"stressed", "unstressed"}, {"pre-r", "no-r"}]
 
 
@@ -48,31 +66,43 @@ def load_mapping(path: Path | None = None) -> Mapping:
             raise ValueError(f"unexpected header in {path}: {header}")
         for lineno, row in enumerate(reader, start=2):
             if len(row) != len(HEADER):
-                raise ValueError(f"{path}:{lineno}: expected {len(HEADER)} fields, got {len(row)}")
+                raise ValueError(
+                    f"{path}:{lineno}: expected {len(HEADER)} fields, got {len(row)}"
+                )
             ipa, condition, qs, cps, letters, kind, example, authority = row
             names = tuple(n for n in letters.split("·") if n)
-            codepoints = tuple(int(c[2:], 16) for c in cps.split())
-            entry = MapEntry(ipa, condition, qs, codepoints, names, kind, example, authority)
+            codepoints = tuple(int(c.removeprefix("U+"), 16) for c in cps.split())
+            entry = MapEntry(
+                ipa, condition, qs, codepoints, names, kind, example, authority
+            )
             if kind not in KINDS:
                 raise ValueError(f"{path}:{lineno}: unknown kind {kind!r}")
             unknown = [n for n in names if n not in CODEPOINT_OF]
             if unknown:
                 raise ValueError(f"{path}:{lineno}: unknown letter names {unknown}")
             if codepoints != tuple(CODEPOINT_OF[n] for n in names):
-                raise ValueError(f"{path}:{lineno}: codepoints do not match letter names")
+                raise ValueError(
+                    f"{path}:{lineno}: codepoints do not match letter names"
+                )
             if qs != "".join(chr(c) for c in codepoints):
-                raise ValueError(f"{path}:{lineno}: qs string does not match codepoints")
+                raise ValueError(
+                    f"{path}:{lineno}: qs string does not match codepoints"
+                )
             entries.append(entry)
 
     lookup: dict[str, dict[str, MapEntry]] = {}
     for entry in entries:
         conditions = lookup.setdefault(entry.ipa, {})
         if entry.condition in conditions:
-            raise ValueError(f"duplicate mapping row for {entry.ipa!r} / {entry.condition!r}")
+            raise ValueError(
+                f"duplicate mapping row for {entry.ipa!r} / {entry.condition!r}"
+            )
         conditions[entry.condition] = entry
     for ipa, conditions in lookup.items():
         if set(conditions) not in CONDITION_SETS:
-            raise ValueError(f"incoherent condition set for {ipa!r}: {sorted(conditions)}")
+            raise ValueError(
+                f"incoherent condition set for {ipa!r}: {sorted(conditions)}"
+            )
 
     tokens = tuple(sorted(lookup, key=len, reverse=True))
     return Mapping(tuple(entries), lookup, tokens)

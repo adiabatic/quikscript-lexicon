@@ -34,7 +34,9 @@ def load_quirks(path: Path | None = None) -> tuple[QuirkRule, ...]:
             raise ValueError(f"unexpected header in {path}: {header}")
         for lineno, row in enumerate(reader, start=2):
             if len(row) != len(QUIRKS_HEADER):
-                raise ValueError(f"{path}:{lineno}: expected {len(QUIRKS_HEADER)} fields")
+                raise ValueError(
+                    f"{path}:{lineno}: expected {len(QUIRKS_HEADER)} fields"
+                )
             rule = QuirkRule(*row)
             if rule.scope not in SCOPES:
                 raise ValueError(f"{path}:{lineno}: unknown scope {rule.scope!r}")

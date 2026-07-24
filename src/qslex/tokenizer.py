@@ -19,7 +19,9 @@ class TokenizeError(ValueError):
     def __init__(self, ipa: str, position: int):
         self.ipa = ipa
         self.position = position
-        super().__init__(f"no token matches {ipa!r} at position {position} ({ipa[position:]!r})")
+        super().__init__(
+            f"no token matches {ipa!r} at position {position} ({ipa[position:]!r})"
+        )
 
 
 def tokenize(ipa: str, mapping: Mapping) -> list[Token]:
@@ -27,11 +29,15 @@ def tokenize(ipa: str, mapping: Mapping) -> list[Token]:
     position = 0
     while position < len(ipa):
         for candidate in mapping.tokens_by_length:
-            if ipa.startswith(candidate, position):
-                entry = _resolve(ipa, position, candidate, mapping)
-                tokens.append(Token(candidate, entry))
-                position += len(candidate)
-                break
+            if not ipa.startswith(candidate, position):
+                continue
+            following = position + len(candidate)
+            if candidate.endswith("ə") and ipa.startswith("ʊ", following):
+                continue
+            entry = _resolve(ipa, position, candidate, mapping)
+            tokens.append(Token(candidate, entry))
+            position = following
+            break
         else:
             raise TokenizeError(ipa, position)
     return tokens

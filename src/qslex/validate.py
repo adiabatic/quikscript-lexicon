@@ -27,7 +27,8 @@ EXPECTED_TOKEN_COUNTS = {
     ("eə", "no-r"): 3,
     ("ʊə", ""): 760,
     ("aɪə", "pre-r"): 655,
-    ("aɪə", "no-r"): 549,
+    ("aɪə", "no-r"): 518,
+    ("əʊ", ""): 10506,
     ("aʊə", "pre-r"): 270,
     ("aʊə", "no-r"): 51,
 }
@@ -49,12 +50,22 @@ def read_rows(path: Path) -> list[tuple[str, str, str, str, str]]:
         for line in f:
             fields = line.rstrip("\n").split("\t")
             if len(fields) >= 4:
-                rows.append((fields[0], fields[1], fields[2], fields[3], fields[4] if len(fields) > 4 else ""))
+                rows.append(
+                    (
+                        fields[0],
+                        fields[1],
+                        fields[2],
+                        fields[3],
+                        fields[4] if len(fields) > 4 else "",
+                    )
+                )
     return rows
 
 
 def main(argv: list[str] | None = None) -> int:
-    parser = argparse.ArgumentParser(description="Tokenize every ReadLex IPA string against the mapping")
+    parser = argparse.ArgumentParser(
+        description="Tokenize every ReadLex IPA string against the mapping"
+    )
     parser.add_argument(
         "readlex",
         nargs="?",
@@ -71,10 +82,16 @@ def main(argv: list[str] | None = None) -> int:
     residue: list[str] = []
     token_counts: collections.Counter[tuple[str, str]] = collections.Counter()
     quirk_hits: dict[int, set[str]] = collections.defaultdict(set)
-    iea_audit: dict[str, set[str]] = {"stressed": set(), "unstressed": set(), "unmarked-multinucleus": set()}
+    iea_audit: dict[str, set[str]] = {
+        "stressed": set(),
+        "unstressed": set(),
+        "unmarked-multinucleus": set(),
+    }
 
+    normalized_strings: list[str] = []
     for word, _shavian, _pos, raw_ipa, _freq in rows:
         ipa, applied = normalize(raw_ipa, quirk_rules)
+        normalized_strings.append(ipa)
         for index in applied:
             quirk_hits[index].add(word)
         try:
@@ -90,9 +107,12 @@ def main(argv: list[str] | None = None) -> int:
     for word, _shavian, _pos, raw_ipa, _freq in rows:
         ipa, _ = normalize(raw_ipa, quirk_rules)
         for chunk in re.split(r"[ +-]", ipa):
-            if "ɪə" in chunk and not any(mark in chunk for mark in STRESS_MARKS):
-                if len(re.findall(r"[ɪieæaɑɒɔʊuʌəɜːÆƏIⱭ]+", chunk)) > 1:
-                    iea_audit["unmarked-multinucleus"].add(word)
+            if (
+                "ɪə" in chunk
+                and not any(mark in chunk for mark in STRESS_MARKS)
+                and len(re.findall(r"[ɪieæaɑɒɔʊuʌəɜːÆƏIⱭ]+", chunk)) > 1
+            ):
+                iea_audit["unmarked-multinucleus"].add(word)
 
     print(f"rows tokenized: {len(rows)}")
     print(f"unmapped residue: {len(residue)}")
@@ -105,7 +125,9 @@ def main(argv: list[str] | None = None) -> int:
     for index, rule in enumerate(quirk_rules):
         words = quirk_hits.get(index, set())
         status = f"{len(words)} rows" if words else "UNUSED"
-        print(f"  [{rule.scope}] {rule.match!r} -> {rule.replacement!r}: {status} ({', '.join(sorted(words)[:8])})")
+        print(
+            f"  [{rule.scope}] {rule.match!r} -> {rule.replacement!r}: {status} ({', '.join(sorted(words)[:8])})"
+        )
         if not words:
             failures.append(f"quirk rule {rule.match!r} matched nothing")
 
@@ -116,6 +138,18 @@ def main(argv: list[str] | None = None) -> int:
         print(f"  {key[0]!r} {key[1] or '-'}: {actual} {marker}")
         if actual != expected:
             failures.append(f"count mismatch for {key}: {actual} != {expected}")
+
+    normalized_blob = "\n".join(normalized_strings)
+    goat_in_text = len(re.findall("əʊ", normalized_blob))
+    goat_tokens = token_counts.get(("əʊ", ""), 0)
+    conserved = "ok" if goat_in_text == goat_tokens else "MISMATCH"
+    print(
+        f"\nəʊ conservation: {goat_in_text} in normalized text, {goat_tokens} tokenized {conserved}"
+    )
+    if goat_in_text != goat_tokens:
+        failures.append(
+            f"əʊ not conserved: {goat_in_text} in text, {goat_tokens} tokenized"
+        )
 
     raw_blob = "\n".join(raw for _, _, _, raw, _ in rows)
     print("\nexpected raw pattern counts:")
@@ -143,10 +177,16 @@ def main(argv: list[str] | None = None) -> int:
         failures.append(f"mapping rows never exercised: {unused}")
 
     print("\nɪə stress conditioning:")
-    print(f"  stressed: {token_counts.get(('ɪə', 'stressed'), 0)} occurrences, {len(iea_audit['stressed'])} words")
-    print(f"  unstressed: {token_counts.get(('ɪə', 'unstressed'), 0)} occurrences, {len(iea_audit['unstressed'])} words")
+    print(
+        f"  stressed: {token_counts.get(('ɪə', 'stressed'), 0)} occurrences, {len(iea_audit['stressed'])} words"
+    )
+    print(
+        f"  unstressed: {token_counts.get(('ɪə', 'unstressed'), 0)} occurrences, {len(iea_audit['unstressed'])} words"
+    )
     unmarked = sorted(iea_audit["unmarked-multinucleus"])
-    print(f"  ɪə in unstressed-marked-less multi-nucleus chunks ({len(unmarked)}): {', '.join(unmarked[:30])}")
+    print(
+        f"  ɪə in unstressed-marked-less multi-nucleus chunks ({len(unmarked)}): {', '.join(unmarked[:30])}"
+    )
 
     print("\ntop token counts:")
     for (ipa, condition), count in token_counts.most_common(15):
