@@ -1,9 +1,19 @@
 import pytest
 
-from qslex import letters, load_mapping, load_quirks, normalize, tokenize
+from qslex import (
+    letters,
+    load_mapping,
+    load_overrides,
+    load_quirks,
+    normalize,
+    qs,
+    tokenize,
+)
+from qslex.tokenizer import TokenizeError
 
 MAPPING = load_mapping()
 QUIRKS = load_quirks()
+OVERRIDES = load_overrides(MAPPING)
 
 MANUAL_ANCHORED = [
     ("year", "jɪəR", "·Ye·Eat·Utter·Roe"),
@@ -24,8 +34,13 @@ MANUAL_ANCHORED = [
     ("hurt", "hɜːRt", "·He·Utter·Roe·Tea"),
     ("are", "ɑːR", "·Ah·Roe"),
     ("baker", "ˈbeɪkəR", "·Bay·Eight·Key·Utter·Roe"),
-    ("visual", "ˈvɪʒuəl", "·Vie·It·Zhivago·Ooze·Utter·Low"),
     ("loyal", "ˈlɔɪəl", "·Low·Oy·Utter·Low"),
+    ("india", "ˈɪndɪə", "·It·No·Day·It·Utter"),
+    ("area", "ˈeərɪə", "·Eight·Roe·It·Utter"),
+]
+
+MANUAL_MODERNISED = [
+    ("visual", "ˈvɪʒuəl", "·Vie·It·Zhivago·Ooze·Utter·Low"),
 ]
 
 RULE_EDGES = [
@@ -37,7 +52,6 @@ RULE_EDGES = [
     ("anti-hero", "ˈænti-hɪərəʊ", "·At·No·Tea·It-·He·Eat·Utter·Roe·Owe"),
     ("world-weary", "ˈwɜːRld-wɪəri", "·Way·Utter·Roe·Low·Day-·Way·Eat·Utter·Roe·It"),
     ("theatre", "ˈθɪətəR", "·Thaw·Eat·Utter·Tea·Utter·Roe"),
-    ("area", "ˈeərɪə", "·Eight·Roe·It·Utter"),
     ("player", "ˈpleɪəR", "·Pea·Low·Eight·Utter·Roe"),
     ("lawyer", "ˈlɔɪəR", "·Low·Oy·Utter·Roe"),
     ("science", "ˈsaɪəns", "·See·I·Utter·No·See"),
@@ -55,6 +69,23 @@ RULE_EDGES = [
     ("bath-flat", "bÆθ", "·Bay·At·Thaw"),
     ("the", "Ð", "·They"),
     ("awhile", "əˈʍaɪl", "·Utter·Why·I·Low"),
+]
+
+HIATUS_IS_NOT_SPELT = [
+    ("angrier", "ˈæŋɡrɪ+əR", "·At·Oolong·Gay·Roe·It·Utter·Roe"),
+    ("courtship", "ˈkɔːRt+ʃɪp", "·Key·Awe·Roe·Tea·She·It·Pea"),
+]
+
+STRESS_OVERRIDDEN = [
+    ("reindeer", "ˈreɪndɪəR", "·Roe·Eight·No·Day·Eat·Utter·Roe"),
+    ("atmosphere", "ˈætməsfɪəR", "·At·Tea·May·Utter·See·Fee·Eat·Utter·Roe"),
+    ("headgear", "ˈhedɡɪəR", "·He·Et·Day·Gay·Eat·Utter·Roe"),
+    ("windermere", "ˈwɪndəRmɪəR", "·Way·It·No·Day·Utter·Roe·May·Eat·Utter·Roe"),
+    ("hereafter", "hɪəˈrÆftəR", "·He·Eat·Utter·Roe·At·Fee·Tea·Utter·Roe"),
+    ("theoretical", "θɪəˈretɪkəl", "·Thaw·Eat·Utter·Roe·Et·Tea·It·Key·Utter·Low"),
+    ("nirvana", "nɪəRˈvɑːnə", "·No·Eat·Utter·Roe·Vie·Ah·No·Utter"),
+    ("compeer", "ˈkɒmpɪəR", "·Key·Ox·May·Pea·Eat·Utter·Roe"),
+    ("greybeard", "ˈɡreɪbɪəRd", "·Gay·Roe·Eight·Bay·Eat·Utter·Roe·Day"),
 ]
 
 QUIRK_ROWS = [
@@ -75,38 +106,115 @@ QUIRK_ROWS = [
     ),
     ("yevgeny", "yevˈɡeni", "·Ye·Et·Vie·Gay·Et·No·It"),
     ("drm", "ˈdiːɑrˈem", "·Day·Eat·Ah·Roe·Et·May"),
+    ("goulburn", "ˈɡəʊlbəːRn", "·Gay·Owe·Low·Bay·Utter·Roe·No"),
+    ("bimorphic", "̩ˌbaɪˈmɔːRfɪk", "·Bay·I·May·Awe·Roe·Fee·It·Key"),
+    ("teabag", "ˈtiːbæg", "·Tea·Eat·Bay·At·Gay"),
+    ("sweatshirt", "ˈswetʃɜːRt", "·See·Way·Et·Tea·She·Utter·Roe·Tea"),
+    ("wiltshire", "ˈwɪltʃəR", "·Way·It·Low·Tea·She·Utter·Roe"),
+    (
+        "somersetshire",
+        "ˈsʌməRsetʃəR",
+        "·See·Utter·May·Utter·Roe·See·Et·Tea·She·Utter·Roe",
+    ),
+    (
+        "ursae majoris",
+        "ˌɜːRsaɪ mədˈʒɔːRɪs",
+        "·Utter·Roe·See·I ·May·Utter·Jay·Awe·Roe·It·See",
+    ),
+    ("jonnie", "ˈdzɒni", "·Jay·Ox·No·It"),
+    ("whate'er", "ʍɒtˈe+əR", "·Why·Ox·Tea·Eight·Roe"),
+    ("whatsoe'er", "ˌʍɒtsəʊˈe+əR", "·Why·Ox·Tea·See·Owe·Eight·Roe"),
+    ("sierra leone", "sɪˌerə lɪˈəʊn", "·See·It·Eight·Roe·Utter ·Low·It·Owe·No"),
 ]
+
+ALL_CASES = (
+    MANUAL_ANCHORED
+    + MANUAL_MODERNISED
+    + RULE_EDGES
+    + HIATUS_IS_NOT_SPELT
+    + STRESS_OVERRIDDEN
+    + QUIRK_ROWS
+)
 
 
 def transcribe(ipa: str) -> str:
     normalized, _ = normalize(ipa, QUIRKS)
-    return letters(tokenize(normalized, MAPPING))
+    return letters(tokenize(normalized, MAPPING, OVERRIDES))
 
 
-@pytest.mark.parametrize("word,ipa,expected", MANUAL_ANCHORED + RULE_EDGES + QUIRK_ROWS)
-def test_transcription(word: str, ipa: str, expected: str):
+@pytest.mark.parametrize("word,ipa,expected", ALL_CASES)
+def test_transcription(word: str, ipa: str, expected: str) -> None:
     assert transcribe(ipa) == expected, word
 
 
-def test_mapping_self_consistency():
+@pytest.mark.parametrize("word,ipa,expected", ALL_CASES)
+def test_qs_agrees_with_letters(word: str, ipa: str, expected: str) -> None:
+    normalized, _ = normalize(ipa, QUIRKS)
+    tokens = tokenize(normalized, MAPPING, OVERRIDES)
+    rendered = "".join(
+        chr(c) if c else t
+        for token in tokens
+        for t, cps in [(token.ipa, token.entry.codepoints)]
+        for c in (cps or ([0] if token.entry.kind == "structural" else []))
+    )
+    assert qs(tokens) == rendered, word
+
+
+def test_no_structural_marker_reaches_the_output() -> None:
+    for _, ipa, expected in ALL_CASES:
+        assert "+" not in expected
+        assert "+" not in transcribe(ipa)
+
+
+def test_compound_elements_match_their_standalone_forms() -> None:
+    pairs = [
+        ("dɪəR", "ˈreɪndɪəR"),
+        ("sfɪəR", "ˈætməsfɪəR"),
+        ("ɡɪəR", "ˈhedɡɪəR"),
+        ("mɪəR", "ˈwɪndəRmɪəR"),
+        ("hɪəR", "hɪəˈrÆftəR"),
+    ]
+    for standalone, compound in pairs:
+        assert "·Eat·Utter·Roe" in transcribe(standalone)
+        assert "·Eat·Utter·Roe" in transcribe(compound)
+
+
+def test_manual_prescribed_unstressed_forms_are_not_overridden() -> None:
+    for ipa in ["ˈhæpɪəR", "ˈkærɪəR", "ˈsiːnɪəR", "ˈbærɪəR", "ˈfʌrɪəR"]:
+        assert "·It·Utter·Roe" in transcribe(ipa)
+
+
+def test_unmapped_symbol_raises() -> None:
+    with pytest.raises(TokenizeError) as caught:
+        tokenize("pȹt", MAPPING)
+    assert caught.value.position == 1
+
+
+def test_mapping_self_consistency() -> None:
     assert MAPPING.lookup["ɪə"]["stressed"].letters == ("Eat", "Utter")
     assert MAPPING.lookup["ɪə"]["unstressed"].letters == ("It", "Utter")
-    assert MAPPING.lookup["eə"]["pre-r"].qs == ""
+    assert MAPPING.lookup["eə"]["pre-r"].qs == chr(0xE673)
     assert MAPPING.lookup["u"][""].letters == ("Ooze",)
     assert MAPPING.lookup["ˈ"][""].letters == ()
     assert MAPPING.lookup["Ə"][""].kind == "tag"
     assert MAPPING.lookup["Ð"][""].kind == "word-sign"
+    assert MAPPING.lookup["+"][""].kind == "hiatus"
 
 
-def test_stress_marks_do_not_join_split_vowels():
+def test_stress_marks_do_not_join_split_vowels() -> None:
     normalized, _ = normalize("kaɪˈəʊti", QUIRKS)
-    tokens = [t.ipa for t in tokenize(normalized, MAPPING)]
+    tokens = [t.ipa for t in tokenize(normalized, MAPPING, OVERRIDES)]
     assert "aɪə" not in tokens
     assert "aɪ" in tokens and "əʊ" in tokens
 
 
-def test_stress_marks_do_not_break_vowel_r_context():
+def test_stress_marks_do_not_break_vowel_r_context() -> None:
     normalized, _ = normalize("ðeəˈrÆftəR", QUIRKS)
-    tokens = tokenize(normalized, MAPPING)
+    tokens = tokenize(normalized, MAPPING, OVERRIDES)
     eas = [t for t in tokens if t.ipa == "eə"]
     assert eas[0].entry.condition == "pre-r"
+
+
+def test_overrides_only_fire_on_their_own_string() -> None:
+    assert transcribe("ˈhedɡɪəR") == "·He·Et·Day·Gay·Eat·Utter·Roe"
+    assert transcribe("ˈhedɡɪəRz") == "·He·Et·Day·Gay·It·Utter·Roe·Zoo"

@@ -1,12 +1,15 @@
 from __future__ import annotations
 
+import collections
 from dataclasses import dataclass
 
 from qslex.mapping import MapEntry, Mapping
+from qslex.overrides import Override, Overrides
 
 STRESS_MARKS = frozenset("ˈˌ")
 CHUNK_SEPARATORS = frozenset(" -+")
 VOWEL_CHARS = frozenset("ɪieæaɑɒɔʊuʌəɜːÆƏIⱭ")
+NO_OVERRIDES: Overrides = {}
 
 
 @dataclass(frozen=True)
@@ -24,7 +27,11 @@ class TokenizeError(ValueError):
         )
 
 
-def tokenize(ipa: str, mapping: Mapping) -> list[Token]:
+def tokenize(
+    ipa: str, mapping: Mapping, overrides: Overrides = NO_OVERRIDES
+) -> list[Token]:
+    rules = overrides.get(ipa, ())
+    seen: collections.Counter[str] = collections.Counter()
     tokens: list[Token] = []
     position = 0
     while position < len(ipa):
@@ -34,7 +41,8 @@ def tokenize(ipa: str, mapping: Mapping) -> list[Token]:
             following = position + len(candidate)
             if candidate.endswith("ə") and ipa.startswith("ʊ", following):
                 continue
-            entry = _resolve(ipa, position, candidate, mapping)
+            seen[candidate] += 1
+            entry = _resolve(ipa, position, candidate, mapping, rules, seen[candidate])
             tokens.append(Token(candidate, entry))
             position = following
             break
@@ -43,16 +51,26 @@ def tokenize(ipa: str, mapping: Mapping) -> list[Token]:
     return tokens
 
 
-def _resolve(ipa: str, position: int, token: str, mapping: Mapping) -> MapEntry:
+def _resolve(
+    ipa: str,
+    position: int,
+    token: str,
+    mapping: Mapping,
+    rules: tuple[Override, ...],
+    occurrence: int,
+) -> MapEntry:
     conditions = mapping.lookup[token]
     if "" in conditions:
         return conditions[""]
+    for rule in rules:
+        if rule.token == token and rule.applies_to(occurrence):
+            return conditions[rule.condition]
     if "stressed" in conditions:
         return conditions["stressed" if _is_stressed(ipa, position) else "unstressed"]
-    return conditions["pre-r" if _pre_r(ipa, position + len(token)) else "no-r"]
+    return conditions["pre-r" if pre_r(ipa, position + len(token)) else "no-r"]
 
 
-def _pre_r(ipa: str, position: int) -> bool:
+def pre_r(ipa: str, position: int) -> bool:
     while position < len(ipa) and ipa[position] in STRESS_MARKS:
         position += 1
     return position < len(ipa) and ipa[position] in ("r", "R")
@@ -79,6 +97,8 @@ def _is_stressed(ipa: str, position: int) -> bool:
 def letters(tokens: list[Token]) -> str:
     parts: list[str] = []
     for token in tokens:
+        if token.entry.kind == "hiatus":
+            continue
         if token.entry.kind == "structural":
             parts.append(token.ipa)
         else:
@@ -89,6 +109,8 @@ def letters(tokens: list[Token]) -> str:
 def qs(tokens: list[Token]) -> str:
     parts: list[str] = []
     for token in tokens:
+        if token.entry.kind == "hiatus":
+            continue
         if token.entry.kind == "structural":
             parts.append(token.ipa)
         else:
