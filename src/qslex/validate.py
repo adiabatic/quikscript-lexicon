@@ -7,10 +7,25 @@ import sys
 from pathlib import Path
 
 from qslex.divergences import load_divergences
+from qslex.manual import load_examples
 from qslex.mapping import Mapping, load_mapping
 from qslex.overrides import Override, load_overrides
 from qslex.quirks import load_quirks, normalize
 from qslex.readlex import CORPUS_ROWS, CorpusError, Row, load_rows
+from qslex.rules import (
+    GATED_RULES,
+    RULES,
+    Context,
+    claims,
+    load_tables,
+    naive,
+    spell,
+    undecided_ess,
+    undecided_ful,
+    undecided_ing,
+    undecided_ligature,
+    undecided_prefix,
+)
 from qslex.tokenizer import (
     STRESS_MARKS,
     Token,
@@ -50,6 +65,42 @@ EXPECTED_TOKEN_COUNTS = {
     ("aʊə", "pre-r"): 270,
     ("aʊə", "no-r"): 51,
 }
+
+# Rows each orthographic rule actually rewrites. Sixteen of the Manual's rules are
+# satisfied by ReadLex's IPA already and ship as normalisers, so a zero here is a
+# statement, not a bug: it says the corpus never contradicts that rule.
+EXPECTED_RULE_CHANGES: dict[str, int] = {
+    "terminal-es-ed": 7839,
+    "terminal-ing": 10556,
+    "prefix-con-com": 1386,
+    "prefix-un": 0,
+    "prefix-an-al-ar": 0,
+    "prefix-ob-of": 0,
+    "prefix-be-de-re": 0,
+    "prefix-pre-pro": 0,
+    "prefix-per-pur": 0,
+    "prefix-in-en": 0,
+    "terminal-ally-able": 987,
+    "terminal-tion": 2733,
+    "terminal-ess-est": 1836,
+    "terminal-land-ment": 898,
+    "terminal-ent-ance": 0,
+    "terminal-us-ous": 1,
+    "terminal-ward": 72,
+    "terminal-ful": 0,
+    "terminal-ain": 21,
+    "terminal-age": 287,
+    "terminal-al-el-le-il": 3164,
+    "terminal-ia-ea": 13,
+    "terminal-ier-ior": 0,
+    "terminal-er": 0,
+    "terminal-y": 13,
+    "terminal-en-on": 18,
+}
+
+# Words the Manual spells out that ReadLex has no entry for, so the fixture records
+# them without being able to reproduce them.
+EXPECTED_MANUAL_ABSENT = 2
 
 EXPECTED_RAW_COUNTS = {
     "raw ʊə incl. inside aʊə and across əʊ+ə": (r"ʊə", 1229),
@@ -103,6 +154,8 @@ def main(argv: list[str] | None = None) -> int:
     quirk_rules = load_quirks()
     overrides = load_overrides(mapping)
     divergences = load_divergences()
+    tables = load_tables()
+    examples = load_examples()
     try:
         rows: tuple[Row, ...] = load_rows(
             args.readlex, verify=not args.no_verify_digest
@@ -125,6 +178,19 @@ def main(argv: list[str] | None = None) -> int:
     oracle = {"agree": 0, "disagree": 0, "silent": 0}
     unexpected: list[str] = []
     output_leaks: list[str] = []
+
+    rule_changes: collections.Counter[str] = collections.Counter()
+    rule_claims: collections.Counter[str] = collections.Counter()
+    rule_word_hits: set[tuple[str, str]] = set()
+    ligature_hits: set[tuple[str, str]] = set()
+    undecided: dict[str, set[str]] = collections.defaultdict(set)
+    stray_ligatures: list[str] = []
+    spellings: dict[str, dict[tuple[str, str], set[str]]] = {
+        "senior": collections.defaultdict(set),
+        "ligature": collections.defaultdict(set),
+    }
+
+    vvg = {row.word.lower() for row in rows if row.pos == "VVG"}
 
     normalized_strings: list[str] = []
     for row in rows:
@@ -151,6 +217,40 @@ def main(argv: list[str] | None = None) -> int:
             token_counts[(token.ipa, token.entry.condition)] += 1
             if token.ipa == "ɪə":
                 iea_audit[token.entry.condition].add(row.word)
+
+        word = row.word.lower()
+        context = Context(word, row.pos, ipa, tuple(tokens))
+        raw = naive(context)
+        result = spell(context, tables)
+        spellings["senior"][(word, row.pos)].add(result.senior)
+        spellings["ligature"][(word, row.pos)].add(result.ligature or result.senior)
+        for orthographic in RULES:
+            if orthographic.latin is None or claims(orthographic, context):
+                rule_claims[orthographic.id] += 1
+        for rule_id in result.applied:
+            rule_changes[rule_id] += 1
+            if (rule_id, word) in tables.words:
+                rule_word_hits.add((rule_id, word))
+        for rule_id in GATED_RULES:
+            if tables.skipped(rule_id, word):
+                rule_word_hits.add((rule_id, word))
+        if undecided_ing(word, vvg) and not tables.ruled("terminal-ing", word):
+            undecided["terminal-ing"].add(word)
+        if undecided_ess(context, raw, tables):
+            undecided["terminal-ess-est"].add(word)
+        if undecided_ful(context, raw, tables):
+            undecided["terminal-ful"].add(word)
+        if undecided_prefix(context, raw, tables):
+            undecided["prefix-be-de-re"].add(word)
+        why = undecided_ligature(context, raw, tables)
+        if why:
+            undecided[f"ligature/{why}"].add(word)
+        for key in ((word, row.pos), (word, "")):
+            if key in tables.ligatures:
+                ligature_hits.add(key)
+                break
+        if result.ligature and "x" not in word:
+            stray_ligatures.append(f"{word!r} has no x but got {result.ligature}")
 
         claimed = row.shavian.count(EAR)
         produced = stressed_rhotic_ears(ipa, tokens)
@@ -322,6 +422,81 @@ def main(argv: list[str] | None = None) -> int:
     print("\ntop token counts:")
     for (ipa, condition), count in token_counts.most_common(15):
         print(f"  {ipa!r} {condition or '-'}: {count}")
+
+    print("\northographic rules, rows rewritten:")
+    for orthographic in RULES:
+        changed = rule_changes.get(orthographic.id, 0)
+        pinned = EXPECTED_RULE_CHANGES.get(orthographic.id)
+        drift = "" if pinned is None or changed == pinned else f" MISMATCH ({pinned})"
+        claimed = rule_claims.get(orthographic.id, 0)
+        print(f"  {orthographic.id:22} {changed:6} of {claimed:6} claimed{drift}")
+        if not claimed:
+            failures.append(f"rule {orthographic.id} claims no word in the corpus")
+        if pinned is not None and changed != pinned:
+            failures.append(
+                f"rule {orthographic.id} rewrote {changed} rows, expected {pinned}"
+            )
+    unpinned = [r.id for r in RULES if r.id not in EXPECTED_RULE_CHANGES]
+    if unpinned:
+        failures.append(f"rules with no pinned rewrite count: {unpinned}")
+
+    print("\nundecided residue (must be ruled on in rule-words.tsv / x-ligatures.tsv):")
+    for label in sorted(undecided):
+        words = sorted(undecided[label])
+        print(f"  {label}: {len(words)}")
+        for word in words[:10]:
+            print(f"    {word}")
+        failures.append(f"{len(words)} undecided {label} words: {words[:10]}")
+    if not undecided:
+        print("  none")
+
+    print("\nrule-word rulings:")
+    for key in sorted(tables.words):
+        if key not in rule_word_hits:
+            failures.append(f"rule-word ruling {key} was never exercised")
+    print(f"  {len(tables.words)} rulings, {len(rule_word_hits)} exercised")
+
+    print("\nx-ligature rulings:")
+    unused_ligatures = sorted(set(tables.ligatures) - ligature_hits)
+    print(f"  {len(tables.ligatures)} rulings, {len(ligature_hits)} exercised")
+    if unused_ligatures:
+        failures.append(f"x-ligature rulings never exercised: {unused_ligatures}")
+    print(f"  ligatures on words with no x: {len(stray_ligatures)}")
+    for line in stray_ligatures[:10]:
+        print(f"    {line}")
+    if stray_ligatures:
+        failures.append(f"{len(stray_ligatures)} ligatures on words without an x")
+
+    absent = 0
+    unreproduced: list[str] = []
+    for example in examples:
+        candidates = {
+            value
+            for (word, pos), values in spellings[example.column].items()
+            if word == example.word and (not example.pos or pos == example.pos)
+            for value in values
+        }
+        if not candidates:
+            absent += 1
+            continue
+        if not any(example.matches(value) for value in candidates):
+            unreproduced.append(
+                f"{example.word!r} [{example.rule}] wants {example.kind} "
+                f"{example.spelling}, got {sorted(candidates)}"
+            )
+    print(f"\nManual example words: {len(examples)}")
+    print(f"  reproduced: {len(examples) - absent - len(unreproduced)}")
+    print(f"  not in ReadLex: {absent} (expected {EXPECTED_MANUAL_ABSENT})")
+    print(f"  NOT reproduced: {len(unreproduced)}")
+    for line in unreproduced[:20]:
+        print(f"    {line}")
+    if unreproduced:
+        failures.append(f"{len(unreproduced)} Manual spellings not reproduced")
+    if absent != EXPECTED_MANUAL_ABSENT:
+        failures.append(
+            f"{absent} Manual example words are missing from ReadLex, "
+            f"expected {EXPECTED_MANUAL_ABSENT}"
+        )
 
     if failures:
         print(f"\nFAILED: {len(failures)} problem(s)")

@@ -132,7 +132,7 @@ The original question was whether the handful of non-rhotic aɪə/aʊə (if any)
 
 ## What a segment mapping cannot do
 
-A total function from IPA segments to letters cannot see suffix identity, so several of the Manual's prescriptions are structurally out of reach here. They are listed so that nobody mistakes this table's silence for the Manual's. All belong to the rules layer.
+A total function from IPA segments to letters cannot see suffix identity, so several of the Manual's prescriptions are structurally out of reach here. They are listed so that nobody mistakes this table's silence for the Manual's. All belong to the rules layer, which is now built: see [`docs/orthographic-rules.md`](orthographic-rules.md).
 
 | Manual rule | Manual spelling | This mapping | Notes |
 |---|---|---|---|
@@ -142,7 +142,7 @@ A total function from IPA segments to letters cannot see suffix identity, so sev
 | [§ Terminal -tion][tion], [§ -land, -ment][land] | action = ·At·Key·She·No | ·At·Key·She·Utter·No | |
 | [§ Terminal -age][age] | manage = `-·Utter·Jay`, marriage = `-·It·Jay` after a -y root | ·It, since ReadLex writes plain `ɪ` — so the `I` tag does not catch it | |
 
-The pattern is consistent: Quikscript's terminal conventions are keyed to the *spelling* of the suffix, and the IPA column does not carry that information. The rules layer owns them; this mapping deliberately produces the segment-faithful form and lets that layer rewrite it.
+The pattern is consistent: Quikscript's terminal conventions are keyed to the *spelling* of the suffix, and the IPA column does not carry that information. The rules layer owns them; this mapping deliberately produces the segment-faithful form and lets that layer rewrite it. Two entries in the tagged pass-through table above resolve there too: `Ə` is dropped outright by [§ Terminal -es, -ed][esed], and `I` is normalised by whichever terminal claims the word.
 
 ## Quirk normalizations (→ upstream)
 
@@ -186,3 +186,4 @@ The pinned corpus counts live in [`src/qslex/validate.py`](../src/qslex/validate
 [tion]: https://adiabatic.github.io/abbots-morton-spaceport/the-manual.html#terminal-tion
 [land]: https://adiabatic.github.io/abbots-morton-spaceport/the-manual.html#terminal-land-ment
 [age]: https://adiabatic.github.io/abbots-morton-spaceport/the-manual.html#terminal-age
+[esed]: https://adiabatic.github.io/abbots-morton-spaceport/the-manual.html#terminal-es-ed

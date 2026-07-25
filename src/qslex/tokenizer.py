@@ -66,7 +66,7 @@ def _resolve(
         if rule.token == token and rule.applies_to(occurrence):
             return conditions[rule.condition]
     if "stressed" in conditions:
-        return conditions["stressed" if _is_stressed(ipa, position) else "unstressed"]
+        return conditions["stressed" if is_stressed(ipa, position) else "unstressed"]
     return conditions["pre-r" if pre_r(ipa, position + len(token)) else "no-r"]
 
 
@@ -76,7 +76,7 @@ def pre_r(ipa: str, position: int) -> bool:
     return position < len(ipa) and ipa[position] in ("r", "R")
 
 
-def _is_stressed(ipa: str, position: int) -> bool:
+def is_stressed(ipa: str, position: int) -> bool:
     start = position
     while start > 0 and ipa[start - 1] not in CHUNK_SEPARATORS:
         start -= 1

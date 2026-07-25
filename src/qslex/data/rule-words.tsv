@@ -1,0 +1,321 @@
+rule	word	decision	authority	note
+prefix-be-de-re	belem	skip	not-the-prefix	a Brazilian city, not the be- prefix
+prefix-be-de-re	belinda	skip	not-the-prefix	a given name, not the be- prefix
+prefix-be-de-re	berlin	skip	not-the-prefix	a placename, not the be- prefix
+prefix-be-de-re	bermuda	skip	not-the-prefix	a placename, not the be- prefix
+prefix-be-de-re	bermudan	skip	not-the-prefix	as bermuda
+prefix-be-de-re	bermudans	skip	not-the-prefix	as bermuda
+prefix-be-de-re	berserk	skip	not-the-prefix	from Old Norse berserkr, not the be- prefix
+prefix-be-de-re	beryllium	skip	not-the-prefix	from beryl, not the be- prefix
+prefix-be-de-re	denain	skip	not-the-prefix	a French placename, not the de- prefix
+prefix-be-de-re	denise	skip	not-the-prefix	a given name, not the de- prefix
+prefix-be-de-re	desantis	skip	not-the-prefix	a surname, not the de- prefix
+prefix-be-de-re	devos	skip	not-the-prefix	a surname, not the de- prefix
+prefix-be-de-re	rebecca	skip	not-the-prefix	a given name, not the re- prefix
+prefix-be-de-re	recherche	skip	not-the-prefix	a French loanword, not the re- prefix
+prefix-be-de-re	renee	skip	not-the-prefix	a given name, not the re- prefix
+prefix-be-de-re	retrousse	skip	not-the-prefix	a French loanword, not the re- prefix
+terminal-ess-est	afforest	skip	not-the-terminal	forest with a prefix; the -est is the root, not the superlative suffix
+terminal-ess-est	barrow-in-furness	skip	not-the-terminal	Furness is a placename; the -ness is not the suffix
+terminal-ess-est	burgess	apply	orthographic	no -ess morpheme, but Read keys this terminal to the Orthodox spelling, so it is written ·Et·See like fortress and mattress
+terminal-ess-est	deforest	skip	not-the-terminal	forest with a prefix
+terminal-ess-est	disafforest	skip	not-the-terminal	forest with prefixes
+terminal-ess-est	disforest	skip	not-the-terminal	forest with a prefix
+terminal-ess-est	dishonest	skip	not-the-terminal	honest with a prefix
+terminal-ess-est	earnest	skip	not-the-terminal	an adjective in its own right, not a superlative
+terminal-ess-est	ernest	skip	not-the-terminal	a given name
+terminal-ess-est	forest	skip	not-the-terminal	the -est is the root
+terminal-ess-est	guinness	skip	not-the-terminal	a surname and brand; the -ness is not the suffix
+terminal-ess-est	harvest	skip	not-the-terminal	the -est is the root
+terminal-ess-est	honest	skip	not-the-terminal	the -est is the root
+terminal-ess-est	immodest	skip	not-the-terminal	modest with a prefix
+terminal-ess-est	interest	skip	not-the-terminal	the -est is the root
+terminal-ess-est	modest	skip	not-the-terminal	an adjective in its own right, not a superlative
+terminal-ess-est	nighest	apply	superlative	a genuine superlative that ReadLex tags AV0/PRP, never AJS — the reason this rule is not gated on the AJS tag
+terminal-ess-est	overmodest	skip	not-the-terminal	modest with a prefix
+terminal-ess-est	rainforest	skip	not-the-terminal	forest in a compound
+terminal-ess-est	re-afforest	skip	not-the-terminal	forest with prefixes
+terminal-ess-est	reforest	skip	not-the-terminal	forest with a prefix
+terminal-ess-est	self-interest	skip	not-the-terminal	interest in a compound
+terminal-ess-est	soonest	apply	superlative	a genuine superlative that ReadLex tags AV0, never AJS
+terminal-ess-est	spring-mattress	apply	orthographic	as mattress; the terminal is keyed to the Orthodox spelling, not to a morpheme
+terminal-ess-est	tempest	skip	not-the-terminal	the -est is the root
+terminal-ess-est	waltham forest	skip	not-the-terminal	forest in a placename
+terminal-ful	cupful	skip	readlex-pos-defect	a noun measure that ReadLex tags AJ0; its ·Foot is the Manual's noun spelling and must stand
+terminal-ful	spadeful	skip	readlex-pos-defect	a noun measure that ReadLex tags AJ0; its ·Foot is the Manual's noun spelling and must stand
+terminal-ing	anything	skip	compound	any plus thing, and thing is a root as the Manual's things shows
+terminal-ing	appetizing	apply	stem	appetize plus -ing, lexicalised participial adjective
+terminal-ing	atheling	skip	ling-suffix	the diminutive -ling on athel (noble), so the vowel stays
+terminal-ing	athelings	skip	ling-suffix	plural of atheling, same -ling suffix
+terminal-ing	awning	skip	root	no stem awn in this sense, so the -ing is unanalysable
+terminal-ing	awnings	skip	root	plural of awning, same unanalysable root
+terminal-ing	balding	apply	stem	bald plus -ing, participial adjective on the verb bald
+terminal-ing	beading	apply	stem	bead plus -ing, deverbal noun
+terminal-ing	beagling	apply	stem	beagle plus -ing, the sport of hunting with beagles
+terminal-ing	being	apply	stem	be plus -ing
+terminal-ing	beings	apply	stem	be plus -ing plus -s, the affix reading the project already derives for beings
+terminal-ing	bing	skip	root	monosyllabic proper noun with no stem to strip
+terminal-ing	blithering	apply	stem	blither plus -ing, lexicalised participial adjective
+terminal-ing	boeing	skip	placename	proper noun, the company named for William Boeing
+terminal-ing	boing	skip	root	onomatopoeic monosyllable with no stem
+terminal-ing	boings	skip	root	plural of boing, same monosyllabic root
+terminal-ing	bring	skip	root	monosyllabic root verb, and the Manual's bringing keeps this vowel-i
+terminal-ing	brings	skip	root	inflection of bring, same root
+terminal-ing	bullring	skip	compound	bull plus ring, and ring is a root
+terminal-ing	bullrings	skip	compound	plural of bullring, final element ring is a root
+terminal-ing	cabbing	apply	stem	cab plus -ing, the activity of driving a cab
+terminal-ing	caravanning	apply	stem	caravan plus -ing
+terminal-ing	ceiling	skip	root	no living verb ceil, so the noun is left unanalysed as the conservative call
+terminal-ing	ceilings	skip	root	plural of ceiling, same conservative root call
+terminal-ing	changeling	skip	ling-suffix	the diminutive -ling on change
+terminal-ing	changelings	skip	ling-suffix	plural of changeling, same -ling suffix
+terminal-ing	chungking	skip	placename	Chinese city, now Chongqing
+terminal-ing	cling	skip	root	monosyllabic root verb
+terminal-ing	clings	skip	root	inflection of cling, same root
+terminal-ing	coaming	skip	root	nautical noun of obscure origin, there is no stem coam
+terminal-ing	coamings	skip	root	plural of coaming, same root
+terminal-ing	codling	skip	ling-suffix	the diminutive -ling, whether the young cod or the apple
+terminal-ing	codlings	skip	ling-suffix	plural of codling, same -ling suffix
+terminal-ing	coloring	apply	stem	color plus -ing
+terminal-ing	colorings	apply	stem	color plus -ing plus -s
+terminal-ing	conveyancing	apply	stem	conveyance plus -ing, an activity noun like caravanning
+terminal-ing	cowling	apply	stem	cowl plus -ing, the covering named from the noun cowl
+terminal-ing	cowlings	apply	stem	cowl plus -ing plus -s
+terminal-ing	cunning	apply	stem	lexicalised participle of the obsolete verb cun, to know
+terminal-ing	cunningly	apply	stem	cunning plus -ly, same base as cunning
+terminal-ing	darkling	skip	ling-suffix	the adverbial -ling on dark, not the participial affix
+terminal-ing	darling	skip	ling-suffix	the diminutive -ling on dear, Old English deorling
+terminal-ing	darlings	skip	ling-suffix	plural of darling, same -ling suffix
+terminal-ing	dayspring	skip	compound	day plus spring, and spring is a root
+terminal-ing	daysprings	skip	compound	plural of dayspring, final element spring is a root
+terminal-ing	doing	apply	stem	do plus -ing
+terminal-ing	doings	apply	stem	do plus -ing plus -s
+terminal-ing	dorking	skip	placename	Surrey town, and the fowl named after it
+terminal-ing	duckling	skip	ling-suffix	the diminutive -ling on duck
+terminal-ing	ducklings	skip	ling-suffix	plural of duckling, same -ling suffix
+terminal-ing	dumpling	skip	ling-suffix	the diminutive -ling, not the participial affix
+terminal-ing	dumplings	skip	ling-suffix	plural of dumpling, same -ling suffix
+terminal-ing	during	skip	root	grammaticalised preposition whose participle of the obsolete dure is opaque, so conservative
+terminal-ing	ealing	skip	placename	London district
+terminal-ing	earring	skip	compound	ear plus ring, and ring is a root
+terminal-ing	earrings	skip	compound	plural of earring, final element ring is a root
+terminal-ing	earthling	skip	ling-suffix	the diminutive -ling on earth
+terminal-ing	earthlings	skip	ling-suffix	plural of earthling, same -ling suffix
+terminal-ing	elden ring	skip	placename	game title, a proper noun ending in the root ring
+terminal-ing	electioneering	apply	stem	electioneer plus -ing
+terminal-ing	epping	skip	manual	the Manual writes it as root and not affix, keeping the vowel-i
+terminal-ing	everything	skip	compound	every plus thing, and thing is a root
+terminal-ing	excruciating	apply	stem	excruciate plus -ing, lexicalised participial adjective
+terminal-ing	excruciatingly	apply	stem	excruciating plus -ly, same base as excruciating
+terminal-ing	farthing	skip	root	opaque Old English fourth plus -ing, not the participial affix
+terminal-ing	farthings	skip	root	plural of farthing, same root
+terminal-ing	fledgeling	skip	ling-suffix	the diminutive -ling on fledge
+terminal-ing	fledgelings	skip	ling-suffix	plural of fledgeling, same -ling suffix
+terminal-ing	fledgling	skip	ling-suffix	the diminutive -ling on fledge
+terminal-ing	fledglings	skip	ling-suffix	plural of fledgling, same -ling suffix
+terminal-ing	fleeting	apply	stem	fleet plus -ing, lexicalised participial adjective
+terminal-ing	fleetingly	apply	stem	fleeting plus -ly, same base as fleeting
+terminal-ing	fleshings	apply	stem	flesh plus -ing plus -s, a garment noun formed on flesh
+terminal-ing	fling	skip	root	monosyllabic root verb
+terminal-ing	flings	skip	root	inflection of fling, same root
+terminal-ing	foundling	skip	ling-suffix	the diminutive -ling on found
+terminal-ing	foundlings	skip	ling-suffix	plural of foundling, same -ling suffix
+terminal-ing	gas-ring	skip	compound	gas plus ring, and ring is a root
+terminal-ing	gas-rings	skip	compound	plural of gas-ring, final element ring is a root
+terminal-ing	gloaming	skip	root	Old English glomung with no living verb gloam behind it
+terminal-ing	godalming	skip	placename	Surrey town
+terminal-ing	good-for-nothing	skip	compound	final element nothing ends in the root thing
+terminal-ing	good-for-nothings	skip	compound	plural, final element is still the root thing
+terminal-ing	gosling	skip	ling-suffix	the diminutive -ling on goose
+terminal-ing	goslings	skip	ling-suffix	plural of gosling, same -ling suffix
+terminal-ing	goulding	skip	placename	surname, a proper noun
+terminal-ing	gouldings	skip	placename	plural of the surname Goulding
+terminal-ing	grueling	apply	stem	gruel plus -ing, lexicalised participial adjective
+terminal-ing	gruelling	apply	stem	British spelling of grueling, same stem gruel
+terminal-ing	hairspring	skip	compound	hair plus spring, and spring is a root
+terminal-ing	hairsprings	skip	compound	plural of hairspring, final element spring is a root
+terminal-ing	hamstring	skip	compound	ham plus string, and string is a root
+terminal-ing	hamstrings	skip	compound	inflection of hamstring, final element string is a root
+terminal-ing	hastings	skip	placename	Sussex town, also a surname
+terminal-ing	hatchling	skip	ling-suffix	the diminutive -ling on hatch
+terminal-ing	havering	skip	placename	the London borough, which is how ReadLex tags this entry
+terminal-ing	having	apply	stem	have plus -ing
+terminal-ing	hayling	skip	placename	Hayling Island in Hampshire
+terminal-ing	heartstrings	skip	compound	heart plus strings, and string is a root
+terminal-ing	hireling	skip	ling-suffix	the agentive -ling on hire
+terminal-ing	hirelings	skip	ling-suffix	plural of hireling, same -ling suffix
+terminal-ing	hulking	apply	stem	hulk plus -ing, lexicalised participial adjective
+terminal-ing	hustings	skip	root	Old Norse hus-thing, so the final syllable is the root thing and not an affix
+terminal-ing	inkling	skip	root	only the obsolete inkle lies behind it, so left unanalysed as the conservative call
+terminal-ing	inklings	skip	root	plural of inkling, same conservative root call
+terminal-ing	inning	skip	root	Old English innung, with no living stem to strip
+terminal-ing	innings	skip	root	plural of inning, same root
+terminal-ing	inverkeithing	skip	placename	Fife town
+terminal-ing	kemsing	skip	placename	Kent village
+terminal-ing	kettering	skip	placename	Northamptonshire town
+terminal-ing	keyring	skip	compound	key plus ring, and ring is a root
+terminal-ing	keyrings	skip	compound	plural of keyring, final element ring is a root
+terminal-ing	king	skip	root	monosyllabic root noun with no stem to strip
+terminal-ing	kingly	skip	root	king plus -ly, so the -ing belongs to the root king
+terminal-ing	kings	skip	root	plural of king, same root
+terminal-ing	know-nothing	skip	compound	final element nothing ends in the root thing
+terminal-ing	know-nothings	skip	compound	plural, final element is still the root thing
+terminal-ing	kunming	skip	placename	Chinese city
+terminal-ing	lapwing	skip	compound	final element wing, which the Manual spells as a root
+terminal-ing	lapwings	skip	compound	plural of lapwing, final element wing is a root
+terminal-ing	leading-strings	skip	compound	final element strings is a root, and the medial leading- falls outside this rule
+terminal-ing	left-wing	skip	compound	final element wing, which the Manual spells as a root
+terminal-ing	left-wings	skip	compound	plural of left-wing, final element wing is a root
+terminal-ing	lemming	skip	root	Norwegian loan with no stem to strip
+terminal-ing	lemmings	skip	root	plural of lemming, same root
+terminal-ing	lettering	apply	stem	letter plus -ing
+terminal-ing	lightning	skip	root	lexicalised apart from the participle lightening, so treated as a root conservatively
+terminal-ing	lightnings	skip	root	plural of lightning, same conservative root call
+terminal-ing	ling	skip	root	monosyllabic root noun, the fish and the heather
+terminal-ing	lings	skip	root	plural of ling, same root
+terminal-ing	mainspring	skip	compound	main plus spring, and spring is a root
+terminal-ing	mainsprings	skip	compound	plural of mainspring, final element spring is a root
+terminal-ing	marbling	apply	stem	marble plus -ing
+terminal-ing	martling	skip	placename	proper noun, tagged NP0 in ReadLex
+terminal-ing	middling	skip	ling-suffix	the -ling suffix on mid, not the participial affix
+terminal-ing	middlings	skip	ling-suffix	plural of middling, same -ling suffix
+terminal-ing	misdoing	apply	stem	misdo plus -ing, parallel to the Manual's undoing
+terminal-ing	misdoings	apply	stem	mis- + doing; the Manual treats undoing the same way
+terminal-ing	morning	skip	root	opaque noun; no live verb *morn behind it
+terminal-ing	mornings	skip	root	plural of the opaque noun morning
+terminal-ing	mountaineering	apply	stem	stem mountaineer
+terminal-ing	mourning-ring	skip	compound	final element ring is a root
+terminal-ing	mourning-rings	skip	compound	final element ring is a root
+terminal-ing	nanking	skip	placename	Chinese city; final stress rules out an -ing affix
+terminal-ing	nanning	skip	placename	Chinese city Nanning, ReadLex NP0 ˌnænˈnɪŋ; final stress rules out an -ing affix
+terminal-ing	napkin-ring	skip	compound	final element ring is a root
+terminal-ing	napkin-rings	skip	compound	final element ring is a root
+terminal-ing	nosering	skip	compound	final element ring is a root
+terminal-ing	noserings	skip	compound	final element ring is a root
+terminal-ing	nothing	skip	compound	no + thing, and thing is a root
+terminal-ing	nothingness	skip	compound	nothing + -ness, so the /ŋ/ is still thing
+terminal-ing	nothings	skip	compound	no + thing, and thing is a root
+terminal-ing	notting	skip	placename	Notting Hill, London
+terminal-ing	nurseling	skip	ling-suffix	nurse + -ling diminutive, not the -ing affix
+terminal-ing	nurselings	skip	ling-suffix	nurse + -ling diminutive, not the -ing affix
+terminal-ing	nursling	skip	ling-suffix	nurse + -ling diminutive, not the -ing affix
+terminal-ing	nurslings	skip	ling-suffix	nurse + -ling diminutive, not the -ing affix
+terminal-ing	offing	skip	root	opaque nautical noun, as in the offing
+terminal-ing	offspring	skip	compound	final element spring is a root
+terminal-ing	overweening	apply	stem	stem overween; lexicalised as an adjective but still participial
+terminal-ing	pease-pudding	skip	compound	final element pudding is a root
+terminal-ing	pease-puddings	skip	compound	final element pudding is a root
+terminal-ing	ping	skip	root	onomatopoeic root, no stem to strip
+terminal-ing	pings	skip	root	onomatopoeic root, no stem to strip
+terminal-ing	plaything	skip	compound	final element thing is a root
+terminal-ing	playthings	skip	compound	final element thing is a root
+terminal-ing	plum-pudding	skip	compound	final element pudding is a root
+terminal-ing	plum-puddings	skip	compound	final element pudding is a root
+terminal-ing	prize-ring	skip	compound	final element ring is a root
+terminal-ing	prize-rings	skip	compound	final element ring is a root
+terminal-ing	pudding	skip	root	opaque noun; no stem *pudd exists
+terminal-ing	puddings	skip	root	opaque noun; no stem *pudd exists
+terminal-ing	quisling	skip	ling-suffix	eponym from Vidkun Quisling, read as -ling not -ing
+terminal-ing	quislings	skip	ling-suffix	eponym from Vidkun Quisling, read as -ling not -ing
+terminal-ing	racketeering	apply	stem	stem racketeer
+terminal-ing	raring	apply	stem	stem rare, the dialectal variant of rear; lexicalised in raring to go
+terminal-ing	ravening	apply	stem	stem raven, to devour; lexicalised as an adjective
+terminal-ing	redistricting	apply	stem	stem redistrict
+terminal-ing	redwing	skip	compound	final element wing, which the Manual spells as a root
+terminal-ing	redwings	skip	compound	final element wing, which the Manual spells as a root
+terminal-ing	riesling	skip	root	German wine name, wholly opaque in English
+terminal-ing	rieslings	skip	root	German wine name, wholly opaque in English
+terminal-ing	right-wing	skip	compound	final element wing, which the Manual spells as a root
+terminal-ing	right-wings	skip	compound	final element wing, which the Manual spells as a root
+terminal-ing	ring	skip	root	unanalysable noun and verb root
+terminal-ing	rings	skip	root	unanalysable noun and verb root
+terminal-ing	rosings	skip	placename	Rosings, the estate in Pride and Prejudice; ReadLex NP0
+terminal-ing	sapling	skip	ling-suffix	sap + -ling diminutive, not the -ing affix
+terminal-ing	saplings	skip	ling-suffix	sap + -ling diminutive, not the -ing affix
+terminal-ing	scandalmongering	apply	stem	stem scandalmonger
+terminal-ing	scantling	skip	ling-suffix	timber noun in -ling; there is no verb *scant + -ing
+terminal-ing	scantlings	skip	ling-suffix	timber noun in -ling; there is no verb *scant + -ing
+terminal-ing	scathing	apply	stem	stem scathe; lexicalised as an adjective but still participial
+terminal-ing	scathingly	apply	stem	stem scathe; -ly built on the participial adjective
+terminal-ing	sclerosing	apply	stem	stem sclerose
+terminal-ing	scripting	apply	stem	stem script
+terminal-ing	seal-ring	skip	compound	final element ring is a root
+terminal-ing	seal-rings	skip	compound	final element ring is a root
+terminal-ing	seedling	skip	ling-suffix	seed + -ling diminutive, not the -ing affix
+terminal-ing	seedlings	skip	ling-suffix	seed + -ling diminutive, not the -ing affix
+terminal-ing	sheet-lightning	skip	compound	final element lightning, an opaque noun with no verb *lightn
+terminal-ing	sheeting	apply	stem	stem sheet; ordinary nominal -ing on the noun
+terminal-ing	shilling	skip	root	opaque coin name; no stem *shill behind it
+terminal-ing	shillings	skip	root	opaque coin name; no stem *shill behind it
+terminal-ing	shingly	skip	root	shingle + -ly; the /ŋɡ/ belongs to the root
+terminal-ing	shirting	apply	stem	stem shirt; material noun in -ing, like sheeting
+terminal-ing	shoestring	skip	compound	final element string is a root
+terminal-ing	shoestrings	skip	compound	final element string is a root
+terminal-ing	sibling	skip	ling-suffix	sib + -ling, not the -ing affix
+terminal-ing	siblings	skip	ling-suffix	sib + -ling, not the -ing affix
+terminal-ing	signet-ring	skip	compound	final element ring is a root
+terminal-ing	signet-rings	skip	compound	final element ring is a root
+terminal-ing	sing	skip	root	verb root; the /ŋ/ is the stem itself
+terminal-ing	singly	skip	root	single + -ly; the /ŋɡ/ belongs to the root, and it is not from sing
+terminal-ing	sings	skip	root	verb root; the /ŋ/ is the stem itself
+terminal-ing	sining	skip	placename	Sining, the older romanisation of Xining; final stress rules out an affix
+terminal-ing	sling	skip	root	unanalysable noun and verb root
+terminal-ing	slings	skip	root	unanalysable noun and verb root
+terminal-ing	something	skip	compound	final element thing is a root
+terminal-ing	sourcing	apply	stem	stem source
+terminal-ing	spalding	skip	placename	Lincolnshire town and surname
+terminal-ing	spaulding	skip	placename	surname, a spelling variant of Spalding
+terminal-ing	spring	skip	root	unanalysable noun and verb root
+terminal-ing	springs	skip	root	unanalysable noun and verb root
+terminal-ing	starling	skip	ling-suffix	Old English stær + -ling, not the -ing affix
+terminal-ing	starlings	skip	ling-suffix	Old English stær + -ling, not the -ing affix
+terminal-ing	starveling	skip	ling-suffix	starve + -ling agentive, not the -ing affix
+terminal-ing	starvelings	skip	ling-suffix	starve + -ling agentive, not the -ing affix
+terminal-ing	sterling	skip	root	opaque currency noun, unanalysable in modern English
+terminal-ing	steyning	skip	placename	West Sussex town, said Stenning
+terminal-ing	sting	skip	root	unanalysable noun and verb root
+terminal-ing	stings	skip	root	unanalysable noun and verb root
+terminal-ing	stirling	skip	placename	Scottish city and surname
+terminal-ing	string	skip	root	unanalysable noun and verb root
+terminal-ing	strings	skip	root	unanalysable noun and verb root
+terminal-ing	swing	skip	root	unanalysable noun and verb root
+terminal-ing	swingeing	apply	stem	stem swinge, to strike hard; lexicalised as an adjective
+terminal-ing	swings	skip	root	unanalysable noun and verb root
+terminal-ing	tea-things	skip	compound	final element things, which the Manual spells as a root
+terminal-ing	thing	skip	root	base of the Manual's things, an unanalysable root
+terminal-ing	things	skip	manual	the Manual gives ·Thaw·It·Oolong·Zoo
+terminal-ing	ting	skip	root	onomatopoeic root, no stem to strip
+terminal-ing	tings	skip	root	onomatopoeic root, no stem to strip
+terminal-ing	tring	skip	placename	Hertfordshire town
+terminal-ing	trunking	apply	stem	stem trunk
+terminal-ing	tubing	apply	stem	stem tube
+terminal-ing	turing	skip	placename	surname, as in Alan Turing
+terminal-ing	unappetizing	apply	stem	stem appetize; un- built on the participial adjective
+terminal-ing	underling	skip	ling-suffix	under + -ling agentive, not the -ing affix
+terminal-ing	underlings	skip	ling-suffix	under + -ling agentive, not the -ing affix
+terminal-ing	unkingly	skip	root	un- + king + -ly; king is a root
+terminal-ing	viking	skip	placename	proper noun for the Norse raiders; no verb stem behind it
+terminal-ing	vikings	skip	placename	proper noun for the Norse raiders; no verb stem behind it
+terminal-ing	wapping	skip	placename	London district
+terminal-ing	water-wings	skip	compound	final element wings, from the Manual's root wing
+terminal-ing	weakling	skip	ling-suffix	weak + -ling, not the -ing affix
+terminal-ing	weaklings	skip	ling-suffix	weak + -ling, not the -ing affix
+terminal-ing	wedding-ring	skip	compound	final element ring is a root
+terminal-ing	wedding-rings	skip	compound	final element ring is a root
+terminal-ing	well-being	apply	stem	final element being = be + -ing; the Manual gives ·Bay·Oolong
+terminal-ing	well-doing	apply	stem	final element doing = do + -ing; the Manual gives ·Day·Oolong
+terminal-ing	wellbeing	apply	stem	final element being = be + -ing; the Manual gives ·Bay·Oolong
+terminal-ing	whiting	skip	root	opaque fish name, no longer read as white + -ing
+terminal-ing	wigging	apply	stem	stem wig, to scold; the doubled g marks the affix, as in the Manual's canning
+terminal-ing	wiggings	apply	stem	stem wig, to scold; the doubled g marks the affix, as in the Manual's canning
+terminal-ing	wing	skip	manual	the Manual gives ·Way·It·Oolong
+terminal-ing	wings	skip	root	plural of the Manual's root wing
+terminal-ing	worthing	skip	placename	West Sussex town
+terminal-ing	wring	skip	root	unanalysable verb root
+terminal-ing	wrings	skip	root	unanalysable verb root
+terminal-ing	wrongdoing	apply	stem	final element doing = do + -ing; the Manual gives ·Day·Oolong
+terminal-ing	wrongdoings	apply	stem	final element doing = do + -ing; the Manual gives ·Day·Oolong
+terminal-ing	wyoming	skip	placename	US state
+terminal-ing	yearling	skip	ling-suffix	year + -ling, not the -ing affix
+terminal-ing	yearlings	skip	ling-suffix	year + -ling, not the -ing affix
+terminal-ing	zing	skip	root	onomatopoeic root, no stem to strip
