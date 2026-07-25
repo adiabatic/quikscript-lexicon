@@ -12,7 +12,7 @@ from qslex.manual import SIGN_ANCHORS, load_examples
 from qslex.mapping import Mapping, load_mapping
 from qslex.overrides import Override, load_overrides
 from qslex.quirks import load_quirks, normalize
-from qslex.readlex import CORPUS_ROWS, CorpusError, Row, load_rows
+from qslex.readlex import CORPUS_HEADWORDS, CORPUS_ROWS, CorpusError, Row, load_rows
 from qslex.rules import (
     GATED_RULES,
     RULES,
@@ -35,6 +35,7 @@ from qslex.tokenizer import (
     pre_r,
     tokenize,
 )
+from qslex.variants import kept, load_var_tags
 from qslex.words import CORE_EIGHT, load_contractions
 
 EAR = "\U0001047d"
@@ -43,38 +44,42 @@ IT = "\U00010466"
 ARRAY = "\U0001047c"
 
 EXPECTED_TOKEN_COUNTS = {
-    ("R", ""): 27317,
-    ("Ə", ""): 7778,
-    ("I", ""): 616,
+    ("R", ""): 27512,
+    ("Ə", ""): 7846,
+    ("I", ""): 617,
     ("Æ", ""): 1707,
     ("Ɑː", ""): 1705,
-    ("ʍ", ""): 538,
+    ("ʍ", ""): 560,
     ("Ð", ""): 25,
-    ("T", ""): 32,
+    ("T", ""): 33,
     ("N", ""): 32,
     ("V", ""): 43,
-    ("F", ""): 24,
+    ("F", ""): 25,
     ("x", ""): 1,
     ("ɬ", ""): 1,
-    ("u", ""): 578,
-    ("tʃ", ""): 4355,
-    ("dʒ", ""): 5802,
+    ("u", ""): 580,
+    ("tʃ", ""): 4361,
+    ("dʒ", ""): 5827,
     ("eə", "no-r"): 3,
-    ("ʊə", ""): 760,
+    ("ʊə", ""): 762,
     ("aɪə", "pre-r"): 655,
-    ("aɪə", "no-r"): 518,
-    ("əʊ", ""): 10506,
+    ("aɪə", "no-r"): 523,
+    ("əʊ", ""): 10569,
     ("aʊə", "pre-r"): 270,
     ("aʊə", "no-r"): 51,
 }
 
-# Rows each orthographic rule actually rewrites. Sixteen of the Manual's rules are
-# satisfied by ReadLex's IPA already and ship as normalisers, so a zero here is a
-# statement, not a bug: it says the corpus never contradicts that rule.
+RRP_ROWS = 108425
+RRP_HEADWORDS = 56649
+
+# Rows each orthographic rule actually rewrites, counted over the rows the lexicon
+# spells rather than over the whole corpus. Sixteen of the Manual's rules are satisfied
+# by ReadLex's IPA already and ship as normalisers, so a zero here is a statement, not a
+# bug: it says the corpus never contradicts that rule.
 EXPECTED_RULE_CHANGES: dict[str, int] = {
-    "terminal-es-ed": 7839,
-    "terminal-ing": 10556,
-    "prefix-con-com": 1386,
+    "terminal-es-ed": 7678,
+    "terminal-ing": 10400,
+    "prefix-con-com": 1361,
     "prefix-un": 0,
     "prefix-an-al-ar": 0,
     "prefix-ob-of": 0,
@@ -82,17 +87,17 @@ EXPECTED_RULE_CHANGES: dict[str, int] = {
     "prefix-pre-pro": 0,
     "prefix-per-pur": 0,
     "prefix-in-en": 0,
-    "terminal-ally-able": 987,
-    "terminal-tion": 2733,
-    "terminal-ess-est": 1836,
-    "terminal-land-ment": 898,
+    "terminal-ally-able": 982,
+    "terminal-tion": 2728,
+    "terminal-ess-est": 1814,
+    "terminal-land-ment": 884,
     "terminal-ent-ance": 0,
     "terminal-us-ous": 1,
-    "terminal-ward": 72,
+    "terminal-ward": 70,
     "terminal-ful": 0,
     "terminal-ain": 21,
-    "terminal-age": 287,
-    "terminal-al-el-le-il": 3164,
+    "terminal-age": 277,
+    "terminal-al-el-le-il": 3136,
     "terminal-ia-ea": 13,
     "terminal-ier-ior": 0,
     "terminal-er": 0,
@@ -100,10 +105,11 @@ EXPECTED_RULE_CHANGES: dict[str, int] = {
     "terminal-en-on": 18,
 }
 
-# Rows each word sign or standard outline rewrites. Most of the Manual's Common words
-# are already what ReadLex's IPA gives, and five of the core eight arrive as upstream's
-# own Ð/T/N/V/F capitals, so a zero here says the corpus agrees with the Manual rather
-# than that the row is idle. Counts include the word inside a phrase entry.
+# Rows each word sign or standard outline rewrites, again over the rows the lexicon
+# spells. Most of the Manual's Common words are already what ReadLex's IPA gives, and
+# five of the core eight arrive as upstream's own Ð/T/N/V/F capitals, so a zero here
+# says the corpus agrees with the Manual rather than that the row is idle. Counts
+# include the word inside a phrase entry.
 EXPECTED_SIGN_CHANGES: dict[str, int] = {
     "after": 5,
     "always": 1,
@@ -129,7 +135,7 @@ EXPECTED_JUNIOR_DIVERGENCES = 5
 EXPECTED_MANUAL_ABSENT = 2
 
 EXPECTED_RAW_COUNTS = {
-    "raw ʊə incl. inside aʊə and across əʊ+ə": (r"ʊə", 1229),
+    "raw ʊə incl. inside aʊə and across əʊ+ə": (r"ʊə", 1231),
 }
 
 FORBIDDEN_RAW_PATTERNS = {
@@ -170,13 +176,15 @@ def stressed_rhotic_ears(ipa: str, tokens: list[Token]) -> int:
 
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(
-        description="Tokenize every ReadLex IPA string against the mapping"
+        description="Tokenize every ReadLex IPA string against the mapping, and hold "
+        "the rows the lexicon spells to the Manual"
     )
     parser.add_argument("readlex", nargs="?", type=Path, default=None)
     parser.add_argument("--no-verify-digest", action="store_true")
     args = parser.parse_args(argv)
 
     mapping: Mapping = load_mapping()
+    var_tags = load_var_tags()
     quirk_rules = load_quirks()
     overrides = load_overrides(mapping)
     divergences = load_divergences()
@@ -222,12 +230,31 @@ def main(argv: list[str] | None = None) -> int:
         "ligature": collections.defaultdict(set),
     }
 
-    vvg = {row.word.lower() for row in rows if row.pos == "VVG"}
+    try:
+        policy = [kept(var_tags, row.var) for row in rows]
+    except ValueError as error:
+        print(f"cannot apply the row policy: {error}")
+        return 1
+    vvg = {
+        row.word.lower()
+        for row, spells in zip(rows, policy, strict=True)
+        if row.pos == "VVG" and spells
+    }
     core_signs = {word: tables.signs[(word, "")].senior for word in CORE_EIGHT}
     unsigned = dataclasses.replace(tables, signs={})
 
+    var_rows: collections.Counter[str] = collections.Counter()
+    var_words: dict[str, set[str]] = collections.defaultdict(set)
+    rrp_rows = 0
+    rrp_headwords: set[str] = set()
+
     normalized_strings: list[str] = []
-    for row in rows:
+    for row, spells in zip(rows, policy, strict=True):
+        var_rows[row.var] += 1
+        var_words[row.var].add(row.word)
+        if spells:
+            rrp_rows += 1
+            rrp_headwords.add(row.headword)
         ipa, applied = normalize(row.ipa, quirk_rules)
         normalized_strings.append(ipa)
         for index in applied:
@@ -252,55 +279,56 @@ def main(argv: list[str] | None = None) -> int:
             if token.ipa == "ɪə":
                 iea_audit[token.entry.condition].add(row.word)
 
-        word = row.word.lower()
-        context = Context(word, row.pos, ipa, tuple(tokens))
-        raw = naive(context)
-        result = spell(context, tables)
-        spellings["senior"][(word, row.pos)].add(result.senior)
-        spellings["ligature"][(word, row.pos)].add(result.ligature or result.senior)
-        for orthographic in RULES:
-            if orthographic.latin is None or claims(orthographic, context):
-                rule_claims[orthographic.id] += 1
-        for rule_id in result.applied:
-            rule_changes[rule_id] += 1
-            if (rule_id, word) in tables.words:
-                rule_word_hits.add((rule_id, word))
-        for rule_id in GATED_RULES:
-            if tables.skipped(rule_id, word):
-                rule_word_hits.add((rule_id, word))
-        if undecided_ing(word, vvg) and not tables.ruled("terminal-ing", word):
-            undecided["terminal-ing"].add(word)
-        if undecided_ess(context, raw, tables):
-            undecided["terminal-ess-est"].add(word)
-        if undecided_ful(context, raw, tables):
-            undecided["terminal-ful"].add(word)
-        if undecided_prefix(context, raw, tables):
-            undecided["prefix-be-de-re"].add(word)
-        why = undecided_ligature(context, raw, tables)
-        if why:
-            undecided[f"ligature/{why}"].add(word)
-        for key in ((word, row.pos), (word, "")):
-            if key in tables.ligatures:
-                ligature_hits.add(key)
-                break
-        if result.ligature and "x" not in word:
-            stray_ligatures.append(f"{word!r} has no x but got {result.ligature}")
-        for touched in dict.fromkeys(result.signed):
-            sign_changes[touched] += 1
-        sign_hits.update(result.signs)
-        if word in core_signs and result.senior != core_signs[word]:
-            core_misses.append(
-                f"{word!r} [{row.pos}] is a core word sign, wanted "
-                f"{core_signs[word]}, got {result.senior}"
-            )
-        if result.junior:
-            junior_rows += 1
-            bare = spell(context, unsigned).senior
-            if result.junior != bare:
-                junior_drift.append(
-                    f"{word!r} [{row.pos}] declares Junior {result.junior}, but "
-                    f"leaving the sign unapplied gives {bare}"
+        if spells:
+            word = row.word.lower()
+            context = Context(word, row.pos, ipa, tuple(tokens))
+            raw = naive(context)
+            result = spell(context, tables)
+            spellings["senior"][(word, row.pos)].add(result.senior)
+            spellings["ligature"][(word, row.pos)].add(result.ligature or result.senior)
+            for orthographic in RULES:
+                if orthographic.latin is None or claims(orthographic, context):
+                    rule_claims[orthographic.id] += 1
+            for rule_id in result.applied:
+                rule_changes[rule_id] += 1
+                if (rule_id, word) in tables.words:
+                    rule_word_hits.add((rule_id, word))
+            for rule_id in GATED_RULES:
+                if tables.skipped(rule_id, word):
+                    rule_word_hits.add((rule_id, word))
+            if undecided_ing(word, vvg) and not tables.ruled("terminal-ing", word):
+                undecided["terminal-ing"].add(word)
+            if undecided_ess(context, raw, tables):
+                undecided["terminal-ess-est"].add(word)
+            if undecided_ful(context, raw, tables):
+                undecided["terminal-ful"].add(word)
+            if undecided_prefix(context, raw, tables):
+                undecided["prefix-be-de-re"].add(word)
+            why = undecided_ligature(context, raw, tables)
+            if why:
+                undecided[f"ligature/{why}"].add(word)
+            for key in ((word, row.pos), (word, "")):
+                if key in tables.ligatures:
+                    ligature_hits.add(key)
+                    break
+            if result.ligature and "x" not in word:
+                stray_ligatures.append(f"{word!r} has no x but got {result.ligature}")
+            for touched in dict.fromkeys(result.signed):
+                sign_changes[touched] += 1
+            sign_hits.update(result.signs)
+            if word in core_signs and result.senior != core_signs[word]:
+                core_misses.append(
+                    f"{word!r} [{row.pos}] is a core word sign, wanted "
+                    f"{core_signs[word]}, got {result.senior}"
                 )
+            if result.junior:
+                junior_rows += 1
+                bare = spell(context, unsigned).senior
+                if result.junior != bare:
+                    junior_drift.append(
+                        f"{word!r} [{row.pos}] declares Junior {result.junior}, but "
+                        f"leaving the sign unapplied gives {bare}"
+                    )
 
         claimed = row.shavian.count(EAR)
         produced = stressed_rhotic_ears(ipa, tokens)
@@ -341,6 +369,43 @@ def main(argv: list[str] | None = None) -> int:
         print(f"  {line}")
     if residue:
         failures.append(f"{len(residue)} rows with unmapped residue")
+
+    print("\nvariant tags:")
+    for tag, entry in sorted(var_tags.items(), key=lambda kv: -kv[1].rows):
+        actual = var_rows.get(tag, 0)
+        marker = "ok" if actual == entry.rows else f"MISMATCH (expected {entry.rows})"
+        print(
+            f"  {tag:9} -> {entry.canonical:9} {entry.policy:4} {actual:7} rows "
+            f"{marker}"
+        )
+        if actual != entry.rows:
+            failures.append(f"tag {tag!r} covers {actual} rows, expected {entry.rows}")
+        declared = set(entry.declared_words)
+        if not declared:
+            continue
+        undeclared = sorted(var_words[tag] - declared)
+        unseen = sorted(declared - var_words[tag])
+        if undeclared:
+            failures.append(f"tag {tag!r} touches undeclared words: {undeclared}")
+            print(f"    UNDECLARED: {', '.join(undeclared)}")
+        if unseen:
+            failures.append(f"tag {tag!r} declares words it no longer covers: {unseen}")
+            print(f"    DECLARED BUT UNMATCHED: {', '.join(unseen)}")
+    unruled = sorted(set(var_rows) - set(var_tags))
+    if unruled:
+        failures.append(f"variant tags with no row policy: {unruled}")
+    print(f"  rows the lexicon spells: {rrp_rows} (expected {RRP_ROWS})")
+    print(
+        f"  headwords they fall under: {len(rrp_headwords)} of {CORPUS_HEADWORDS} "
+        f"(expected {RRP_HEADWORDS})"
+    )
+    if rrp_rows != RRP_ROWS:
+        failures.append(f"{rrp_rows} rows survive the row policy, expected {RRP_ROWS}")
+    if len(rrp_headwords) != RRP_HEADWORDS:
+        failures.append(
+            f"{len(rrp_headwords)} headwords survive the row policy, "
+            f"expected {RRP_HEADWORDS}"
+        )
 
     print("\nquirk rule applications:")
     for index, quirk in enumerate(quirk_rules):

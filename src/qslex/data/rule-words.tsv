@@ -1,6 +1,7 @@
 rule	word	decision	authority	note
 prefix-be-de-re	belem	skip	not-the-prefix	a Brazilian city, not the be- prefix
 prefix-be-de-re	belinda	skip	not-the-prefix	a given name, not the be- prefix
+prefix-be-de-re	berkelium	skip	not-the-prefix	named for Berkeley, not the be- prefix
 prefix-be-de-re	berlin	skip	not-the-prefix	a placename, not the be- prefix
 prefix-be-de-re	bermuda	skip	not-the-prefix	a placename, not the be- prefix
 prefix-be-de-re	bermudan	skip	not-the-prefix	as bermuda

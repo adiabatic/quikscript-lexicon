@@ -1,0 +1,15 @@
+entry	reason	note
+&amp;	html-entity	not a lexicon entry at all; upstream carries it so the matcher keeps the entity whole when converting HTML
+&gt;	html-entity	as &amp;
+&lt;	html-entity	as &amp;
+cannot	tokenizer-split	a documented spaCy tokenizer exception, split into can + not
+gonna	tokenizer-split	a documented spaCy tokenizer exception, split into gon + na
+gotta	tokenizer-split	a documented spaCy tokenizer exception, split into got + ta
+wanna	tokenizer-split	a documented spaCy tokenizer exception, split into wan + na
+dunno	tokenizer-split	carried by upstream's list, which is the only evidence that spaCy splits it
+ferriers	tokenizer-split	as dunno
+haint	tokenizer-split	as dunno
+oughter	tokenizer-split	as dunno
+ow	tokenizer-split	as dunno
+scotus	tokenizer-split	as dunno
+whaddya	tokenizer-split	as dunno

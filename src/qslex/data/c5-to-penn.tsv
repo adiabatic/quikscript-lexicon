@@ -1,0 +1,31 @@
+c5	penn	evidence	note
+AJ0	JJ	upstream	adjective
+AJC	JJR	upstream	comparative adjective
+AJS	JJS	standard	superlative adjective; upstream never reaches one, because its only superlative heteronym is mushiest, whose second spelling it drops with the RRPVar tag
+AT0	DT	upstream	article
+AV0	RB	upstream	adverb
+CJS	IN	upstream	subordinating conjunction, which Penn folds into IN alongside the prepositions
+CJT	IN	standard	the conjunction that, which Penn also tags IN; upstream never reaches it, because Shavian spells both thats alike where the Manual contracts only the conjunction
+DT0	DT	standard	general determiner; reached for the same reason as CJT, from the other side of that
+ITJ	UH	upstream	interjection
+NN0	NN	upstream	number-neutral noun, folded onto NN with NN1
+NN1	NN	upstream	singular noun
+NN2	NNS	upstream	plural noun
+NP0	NNP	upstream	proper noun
+ORD	JJ	upstream	ordinal; Penn CD is for cardinals, and reproducing upstream's file forces JJ rather than CD
+PNP	PRP	upstream	personal pronoun
+PNQ	WP	upstream	wh-pronoun
+PRP	IN	upstream	preposition
+UNC	FW	upstream	unclassified, which reproducing upstream's file forces to foreign word
+VBB	VBP	upstream	base present of BE
+VDB	VBP	standard	base present of DO; upstream's file cannot separate it from VDI, whose spellings are identical throughout
+VDI	VB	standard	infinitive of DO; upstream's file cannot separate it from VDB
+VDZ	VBZ	upstream	-s form of DO
+VM0	MD	upstream	modal
+VVB	VBP	standard	base present; upstream's file cannot separate it from VVI, whose spellings are identical throughout
+VVD	VBD	standard	past tense; upstream's file cannot separate it from VVN
+VVG	VBG	upstream	-ing form
+VVI	VB	standard	infinitive; upstream's file cannot separate it from VVB
+VVN	VBN	standard	past participle; upstream's file cannot separate it from VVD
+VVZ	VBZ	upstream	-s form
+ZZ0	SYM	upstream	alphabetical symbol

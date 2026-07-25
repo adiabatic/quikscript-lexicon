@@ -29,6 +29,7 @@ from qslex.rules import (
     spell,
 )
 from qslex.tokenizer import Token, TokenizeError, is_stressed, letters, qs, tokenize
+from qslex.variants import VarTag, kept, load_var_tags, select
 from qslex.words import (
     CORE_EIGHT,
     Contraction,
@@ -66,8 +67,10 @@ __all__ = [
     "Tables",
     "Token",
     "TokenizeError",
+    "VarTag",
     "apply_signs",
     "is_stressed",
+    "kept",
     "letters",
     "load_contractions",
     "load_divergences",
@@ -78,6 +81,7 @@ __all__ = [
     "load_rows",
     "load_rule_words",
     "load_tables",
+    "load_var_tags",
     "load_word_signs",
     "load_x_ligatures",
     "naive",
@@ -87,6 +91,7 @@ __all__ = [
     "qs",
     "render",
     "render_qs",
+    "select",
     "sign_for",
     "spell",
     "tokenize",

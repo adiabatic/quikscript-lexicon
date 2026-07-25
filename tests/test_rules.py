@@ -12,8 +12,10 @@ from qslex import (
     load_quirks,
     load_rows,
     load_tables,
+    load_var_tags,
     normalize,
     render,
+    select,
     spell,
     tokenize,
 )
@@ -37,7 +39,7 @@ TABLES = load_tables()
 EXAMPLES = load_examples()
 
 BY_WORD: dict[str, list[Row]] = collections.defaultdict(list)
-for _row in load_rows():
+for _row in select(load_var_tags(), load_rows()):
     BY_WORD[_row.word.lower()].append(_row)
 
 

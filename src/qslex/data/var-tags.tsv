@@ -1,0 +1,9 @@
+tag	canonical	policy	rows	words	note
+RRP	RRP	keep	108409		rhotic RP, the standard ReadLex is transcribed in and the only accent this lexicon spells
+RRPVar	RRP	keep	12	again, against, antifa, estrogen, figurine, figurines, mushier, mushiest, mushy, stance, stances, vancouver	a second RRP pronunciation, not a second accent; the capital V is upstream inconsistency
+RRPvar	RRP	keep	4	berkelium, nobelium, oestrogen, titanium	the same tag again, lowercased
+TrapBath	TrapBath	drop	1697		the Æ half of the dual TRAP-BATH rows, whose Ɑː half is the RRP row it doubles
+GenAm	GenAm	drop	1081		General American
+Gen Am	GenAm	drop	2	dugong, dugongs	the same tag with a space in it
+GenAus	GenAus	drop	8		General Australian
+SSB	SSB	drop	1	pasta	Standard Southern British: ˈpæstə against the RRP row's ˈpɑːstə, so a TRAP-BATH variant wearing an accent label rather than the Æ capital
