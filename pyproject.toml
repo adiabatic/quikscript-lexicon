@@ -5,6 +5,8 @@ description = "IPA-to-Quikscript segment mapping and tokenizer for the Quikscrip
 authors = [
     { name = "Nathan Galt", email = "adiabatic@users.noreply.github.com" }
 ]
+license = "MIT"
+license-files = ["LICENSE.md"]
 requires-python = ">=3.13"
 dependencies = []
 
