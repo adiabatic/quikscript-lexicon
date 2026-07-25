@@ -1,10 +1,10 @@
 from __future__ import annotations
 
 import csv
-import re
 from dataclasses import dataclass
 from pathlib import Path
 
+from qslex.elements import elements
 from qslex.letters import Letter, Letters, names, parse, unknown_names
 from qslex.mapping import open_data
 
@@ -20,9 +20,6 @@ CONTRACTION_AUTHORITY = "senior-contractions"
 
 # The core eight the Manual sanctions for Junior writing too, in its own order.
 CORE_EIGHT = ("the", "of", "and", "to", "it", "is", "for", "be")
-
-BOUNDARY = re.compile(r"([ -])")
-DIVIDERS = frozenset(" -")
 
 
 @dataclass(frozen=True)
@@ -164,51 +161,9 @@ def sign_for(signs: Signs, word: str, pos: str) -> Sign | None:
     return signs.get((word, pos)) or signs.get((word, ""))
 
 
-def components(latin: str) -> tuple[str, ...]:
-    """A phrase entry's words and the separators between them, in order.
-
-    An entry that begins or ends with a separator keeps the empty word on that side,
-    so the result lines up one for one with the runs of a spelling for the same entry.
-    """
-    return tuple(BOUNDARY.split(latin))
-
-
 def _lookup(signs: Signs, part: str, pos: str, single: bool) -> Sign | None:
     """A phrase entry's tag belongs to the phrase, so only general rows apply inside."""
     return sign_for(signs, part, pos) if single else signs.get((part, ""))
-
-
-def _runs(letters: Letters) -> list[Letters]:
-    """Split a spelling at the separators the tokenizer passed through."""
-    runs: list[Letters] = []
-    current: list[Letter] = []
-    for letter in letters:
-        if letter.name in DIVIDERS:
-            runs.append(tuple(current))
-            runs.append((letter,))
-            current = []
-        else:
-            current.append(letter)
-    runs.append(tuple(current))
-    return runs
-
-
-def _divider(run: Letters) -> str:
-    return run[0].name if len(run) == 1 and run[0].name in DIVIDERS else ""
-
-
-def _aligned(parts: tuple[str, ...], runs: list[Letters]) -> bool:
-    """Whether the Latin words and the spelling's runs are the same shape.
-
-    Equal counts are not enough: a Latin hyphen facing a spelt space would let a
-    substitution cross a boundary that is not the one it matched.
-    """
-    if len(parts) != len(runs):
-        return False
-    return all(
-        (part if part in DIVIDERS else "") == _divider(run)
-        for part, run in zip(parts, runs, strict=True)
-    )
 
 
 def apply_signs(
@@ -217,20 +172,19 @@ def apply_signs(
     """Substitute the Manual's word signs and standard outlines into a spelling.
 
     A single-word entry consults its own part-of-speech tag; a phrase entry is matched
-    word by word. Nothing is substituted unless the Latin words and the spelling's runs
-    are the same shape, which is what keeps to-day (one run, two Latin words) and dhs
-    (one Latin word, four) intact. Returns the spelling, the words it changed, and the
-    rows it consulted.
+    word by word, at the boundaries `qslex.elements` finds. Nothing is substituted
+    unless the Latin words and the spelling's runs are the same shape, which is what
+    keeps to-day (one run, three Latin parts) and dhs (one Latin part, seven runs)
+    intact. Returns the spelling, the words it changed, and the rows it consulted.
     """
-    parts = components(latin)
-    runs = _runs(letters)
-    if not _aligned(parts, runs):
+    pairs = elements(latin, letters)
+    if pairs is None:
         return letters, (), ()
-    single = len(parts) == 1
+    single = len(pairs) == 1
     out: list[Letter] = []
     applied: list[str] = []
     consulted: list[tuple[str, str]] = []
-    for part, run in zip(parts, runs, strict=True):
+    for part, run in pairs:
         sign = _lookup(signs, part, pos, single)
         if sign is None:
             out.extend(run)

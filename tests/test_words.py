@@ -17,12 +17,12 @@ from qslex import (
     spell,
     tokenize,
 )
+from qslex.elements import components
 from qslex.letters import parse
 from qslex.words import (
     CONTRACTIONS_HEADER,
     SIGNS_HEADER,
     apply_signs,
-    components,
 )
 
 MAPPING = load_mapping()

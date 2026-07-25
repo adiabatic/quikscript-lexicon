@@ -1,5 +1,6 @@
 word	pos	column	kind	spelling	source	rule	note
 added		senior	terminal	·Day·Day	manual	terminal-es-ed	whole word ·At·Day·Day; naive ·At·Day·Utter·Day
+breeches-buoy	NN1	senior	word	·Bay·Roe·Eat·Cheer·Zoo-·Bay·Oy	derived	terminal-es-ed	the epenthetic vowel between Ch and Z goes inside the compound, as it does in breeches on its own
 bridges		senior	terminal	·Jay·Zoo	manual	terminal-es-ed	whole word ·Bay·Roe·It·Jay·Zoo; naive ·Bay·Roe·It·Jay·Utter·Zoo
 churches		senior	word	·Cheer·Utter·Roe·Cheer·Zoo	derived	terminal-es-ed	Manual names churches' (possessive); ReadLex entry is churches NN2/VVZ ˈtʃɜːRtʃƏz; naive ·Cheer·Utter·Roe·Cheer·Utter·Zoo, epenthetic Ə between Ch and Z omitted
 clutched		senior	word	·Key·Low·Utter·Cheer·Tea	derived	terminal-es-ed	one of the seven voiceless -ed finals; rule is identity here because ReadLex already writes the devoiced /t/, so the naive spelling already ends ·Tea
@@ -31,6 +32,7 @@ switches		senior	terminal	·Cheer·Zoo	manual	terminal-es-ed	whole word ·See·W
 tipped		senior	word	·Tea·It·Pea·Tea	derived	terminal-es-ed	one of the seven voiceless -ed finals; rule is identity here because ReadLex already writes the devoiced /t/, so the naive spelling already ends ·Tea
 treated		senior	word	·Tea·Roe·Eat·Tea·Day	derived	terminal-es-ed	naive ·Tea·Roe·Eat·Tea·Utter·Day; epenthetic Ə in the TD pair omitted
 wages		senior	word	·Way·Eight·Jay·Zoo	derived	terminal-es-ed	naive ·Way·Eight·Jay·Utter·Zoo; epenthetic Ə between J and Z omitted
+adding-machine	NN1	senior	word	·At·Day·Oolong-·May·Utter·She·Eat·No	derived	terminal-ing	the affix is bared inside the compound: the first element is the ·At·Day·Oolong the corpus gives adding on its own
 beings		senior	word	·Bay·Eat·Oolong·Zoo	derived	terminal-ing	naive ·Bay·Eat·It·Oolong·Zoo; affix -ing drops vowel-i, and the root contraction ·Bay·Oolong (= being) is forbidden by the changed meaning, so the root ·Bay·Eat is spelt in full
 bringing		senior	word	·Bay·Roe·It·Oolong·Oolong	manual	terminal-ing	root bring keeps its ·It; only the affix -ing loses the vowel
 calling		senior	word	·Key·Awe·Low·Oolong	manual	terminal-ing	
@@ -44,6 +46,7 @@ unthinkingly		senior	word	·Utter·No·Thaw·It·Oolong·Key·Oolong·Low·It	de
 willingness		senior	word	·Way·It·Low·Oolong·No·Et·See	derived	terminal-ing	naive ·Way·It·Low·It·Oolong·No·Utter·See; affix -ing drops vowel-i. Out of this slice: terminal-ess-est would further rewrite -·No·Utter·See to -·No·Et·See, giving ·Way·It·Low·Oolong·No·Et·See under the whole Manual; terminal-ess-est also fires: -ness writes ·Et
 wing		senior	word	·Way·It·Oolong	manual	terminal-ing	root, not affix, so vowel-i is kept; identical to naive
 writings		senior	word	·Roe·I·Tea·Oolong·Zoo	manual	terminal-ing	
+air-conditioned	AJ0	senior	word	·Eight·Roe-·Key·No·Day·It·She·Utter·No·Day	derived	prefix-con-com	a prefix rule reaching an element that does not start the entry: the second element is the ·Key·No·Day·It·She·Utter·No·Day conditioned has on its own
 commend		senior	word	·Key·May·Et·No·Day	derived	prefix-con-com	rewrite: naive ·Key·Utter·May·Et·No·Day; the com- of kəˈmend is ·Key·Utter·May and collapses to ·Key·May
 comment		senior	word	·Key·Ox·May·Et·No·Tea	derived	prefix-con-com	no-op: ReadLex ˈkɒment already stressed
 composed		senior	word	·Key·May·Pea·Owe·Zoo·Day	derived	prefix-con-com	rewrite: naive ·Key·Utter·May·Pea·Owe·Zoo·Day; unstressed com- drops the schwa. AJ0 VVD VVN identical
@@ -137,12 +140,14 @@ enrage		senior	word	·It·No·Roe·Eight·Jay	derived	prefix-in-en	no-op: ReadLe
 inform		senior	word	·It·No·Fee·Awe·Roe·May	derived	prefix-in-en	no-op: ReadLex writes ɪnˈfɔːRm — it spells en- with ɪ too, which is exactly the Manual's alike, so ·It·No- falls out
 inquire		senior	word	·It·No·Key·Way·I·Roe	derived	prefix-in-en	no-op: ReadLex writes ɪnˈkwaɪəR — it spells en- with ɪ too, which is exactly the Manual's alike, so ·It·No- falls out
 basically	AV0	senior	terminal	·Utter·Low·It	derived	terminal-ally-able	naive ·Bay·Eight·See·It·Key·Low·It has no vowel at all there; the Manual writes -ally invariably, 'even if a preceding penlift results'
+cable-car	NN1	senior	word	·Key·Eight·Bay·Utter·Low-·Key·Ah·Roe	derived	terminal-ally-able	the -able vowel comes back because a syllable follows, exactly as in the Manual's rif(u)leman; cable alone is ·Key·Eight·Bay·Low
 comfortable	AJ0	senior	terminal	·Utter·Bay·Low	derived	terminal-ally-able	naive ·Utter·Bay·Utter·Low; the Manual writes -able and -ible alike as -·Utter·Bay·Low
 comfortably	AV0	senior	terminal	·Utter·Bay·Low·It	derived	terminal-ally-able	ReadLex ˈkʌmfəRtəbli already has no vowel before ·Low
 finally	AV0	senior	terminal	·Utter·Low·It	derived	terminal-ally-able	corroborates terminal-al-el-le-il: adding a syllable restores the vowel the -al rule would have dropped
 possible	AJ0	senior	terminal	·Utter·Bay·Low	derived	terminal-ally-able	naive ·Utter·Bay·Utter·Low; -ible is spelt as -able
 possibly	AV0	senior	terminal	·Utter·Bay·Low·It	derived	terminal-ally-able	-ibly is spelt as -ably
 action		senior	terminal	·She·No	manual	terminal-tion	whole word ·At·Key·She·No; naive ·At·Key·She·Utter·No; the alternative N-letter joins the preceding consonant, omitting the vowel.
+combination-lock	NN1	senior	word	·Key·Ox·May·Bay·It·No·Eight·She·No-·Low·Ox·Key	derived	terminal-tion	the terminal reaches the first element: it is the ·Key·Ox·May·Bay·It·No·Eight·She·No combination has on its own
 fashion		senior	terminal	·She·No	manual	terminal-tion	whole word ·Fee·At·She·No; naive ·Fee·At·She·Utter·No; the alternative N-letter joins the preceding consonant, omitting the vowel. Contrast ashen = ·At·She·Utter·No under terminal-en-on: identical /ʃən/, opposite treatment, decided by the Latin spelling of the ending
 mission		senior	terminal	·She·No	manual	terminal-tion	whole word ·May·It·She·No; naive ·May·It·She·Utter·No; the alternative N-letter joins the preceding consonant, omitting the vowel.
 occasion		senior	terminal	·Eight·Zhivago·No	manual	terminal-tion	whole word ·Utter·Key·Eight·Zhivago·No; naive ·Utter·Key·Eight·Zhivago·Utter·No; the alternative N-letter joins the preceding consonant, omitting the vowel.
@@ -154,8 +159,10 @@ goodness		senior	terminal	·No·Et·See	manual	terminal-ess-est	naive ·Gay·Foo
 highest		senior	terminal	·Et·See·Tea	manual	terminal-ess-est	naive ·He·I·Utter·See·Tea becomes ·He·I·Et·See·Tea. ReadLex has AJS and AV0 rows with identical IPA, so a POS=AJS gate misses the AV0 row of the Manual's own example
 hopeless		senior	terminal	·Low·Et·See	manual	terminal-ess-est	naive ·He·Owe·Pea·Low·Utter·See; -less ·Utter becomes ·Et
 hostess		senior	terminal	·Et·See	manual	terminal-ess-est	no-op: ReadLex ˈhəʊstes already has /es/ so the naive spelling is already ·He·Owe·See·Tea·Et·See
+witness-box	NN1	senior	word	·Way·It·Tea·No·Et·See-·Bay·Ox·Key·See	derived	terminal-ess-est	-ness takes ·Et in the first element, as witness does on its own
 cement		senior	word	·See·It·May·Et·No·Tea	derived	terminal-land-ment	stressed-vowel exception: sɪˈment has stressed e in -ment so ·Et stays and the naive spelling is unchanged
 england		senior	word	·It·Oolong·Gay·Low·No·Day	manual	terminal-land-ment	Manual writes it with a leading namer dot, stripped here; naive ·It·Oolong·Gay·Low·Utter·No·Day loses the -land ·Utter
+gentleman-at-arms	NN1	senior	word	·Jay·Et·No·Tea·Utter·Low·May·No-·At·Tea-·Ah·Roe·May·Zoo	derived	terminal-land-ment	-man loses its vowel in the first element, as gentleman does on its own, while the vowel before that element's ·Low stays because -man follows it
 highland		senior	terminal	·Low·No·Day	manual	terminal-land-ment	naive ·He·I·Low·Utter·No·Day; the -land ·Utter is dropped
 overland		senior	word	·Owe·Vie·Utter·Roe·Low·At·No·Day	derived	terminal-land-ment	Manual names it only as a stressed-vowel exception; ˈəʊvəRlænd has stressed æ in -land so ·At stays and the naive spelling is unchanged
 payment		senior	terminal	·May·No·Tea	manual	terminal-land-ment	naive ·Pea·Eight·May·Utter·No·Tea; the -ment ·Utter is dropped
@@ -178,6 +185,7 @@ serious		senior	terminal	·Utter·See	manual	terminal-us-ous	no-op: naive ·See�
 various		senior	terminal	·Utter·See	manual	terminal-us-ous	no-op: naive ·Vie·Eight·Roe·It·Utter·See; the -i- of -ious is the ·It of the -ia rule, and the terminal proper is ·Utter·See
 eastward		senior	word	·Eat·See·Tea·Way·Day	manual	terminal-ward	Manual writes the whole word; naive is ·Eat·See·Tea·Way·Utter·Roe·Day, so -ward loses both ·Utter and ·Roe. AJ0 and AV0 rows are identical
 forward		senior	word	·Fee·Awe·Roe·Way·Day	manual	terminal-ward	Manual writes the whole word; naive ·Fee·Awe·Roe·Way·Utter·Roe·Day. The stressed for- keeps its ·Awe·Roe; only the -ward ·Utter·Roe goes. All five POS rows (AJ0 AV0 NN1 VVB VVI) share one IPA
+haywards heath	NP0	senior	word	·He·Eight·Way·Day·Zoo ·He·Eat·Thaw	derived	terminal-ward	the unstressed -ward of the first word contracts, as Edward's does; ReadLex has no haywards on its own to check it against
 onwards		senior	word	·Ox·No·Way·Day·Zoo	manual	terminal-ward	Manual writes the whole word; naive ·Ox·No·Way·Utter·Roe·Day·Zoo. Stressed on- keeps ·Ox
 careful		senior	word	·Key·Eight·Roe·Fee·Utter·Low	derived	terminal-ful	no-op: ReadLex ˈkeəRfəl already gives -·Fee·Utter·Low
 carefully		senior	word	·Key·Eight·Roe·Fee·Utter·Low·It	derived	terminal-ful	no-op: ReadLex ˈkeəRfəli already gives -·Fee·Utter·Low·It
@@ -192,16 +200,19 @@ detain		senior	word	·Day·It·Tea·Eight·No	derived	terminal-ain	no-op: ReadLe
 fountain		senior	word	·Fee·Out·No·Tea·Utter·No	derived	terminal-ain	no-op: ReadLex ˈfaʊntən already ends -·Utter·No
 maintain		senior	word	·May·Eight·No·Tea·Eight·No	derived	terminal-ain	no-op: ReadLex meɪnˈteɪn already ends -·Eight·No
 mountain		senior	word	·May·Out·No·Tea·Utter·No	derived	terminal-ain	no-op: ReadLex ˈmaʊntən already ends -·Utter·No
+mountain ash	NP0	senior	word	·May·Out·No·Tea·Utter·No ·At·She	derived	terminal-ain	unstressed -ain is ·Utter·No in the first word of a two-word entry, as mountain is on its own
 obtain		senior	word	·Utter·Bay·Tea·Eight·No	derived	terminal-ain	no-op: ReadLex əbˈteɪn already ends -·Eight·No; this word is also an example under prefix-ob-of
 retain		senior	word	·Roe·It·Tea·Eight·No	derived	terminal-ain	no-op: ReadLex rɪˈteɪn already ends -·Eight·No
 baggage		senior	word	·Bay·At·Gay·Utter·Jay	derived	terminal-age	rewrite: naive ·Bay·At·Gay·It·Jay; ·It to ·Utter
 cabbage		senior	word	·Key·At·Bay·Utter·Jay	derived	terminal-age	rewrite: naive ·Key·At·Bay·It·Jay; ·It to ·Utter
 carriage		senior	word	·Key·At·Roe·It·Jay	derived	terminal-age	no-op: -y root keeps ·It
+cribbage-board	NN1	senior	word	·Key·Roe·It·Bay·Utter·Jay-·Bay·Awe·Roe·Day	derived	terminal-age	-age is ·Utter·Jay in the first element, as cribbage is on its own
 manage		senior	word	·May·At·No·Utter·Jay	derived	terminal-age	rewrite: naive ·May·At·No·It·Jay; ReadLex writes plain ɪ so the -·Utter·Jay terminal must be imposed on Latin-orthography grounds
 marriage		senior	word	·May·At·Roe·It·Jay	derived	terminal-age	no-op: root ends -y in Orthodox, so the terminal keeps ·It — same ReadLex ɪ as manage, so the rule is conditioned on Latin spelling alone
 tonnage		senior	word	·Tea·Utter·No·Utter·Jay	derived	terminal-age	modern spelling of the Manual's example tonage; rewrite: naive ·Tea·Utter·No·It·Jay; ·It to ·Utter
 village		senior	word	·Vie·It·Low·Utter·Jay	derived	terminal-age	rewrite: naive ·Vie·It·Low·It·Jay; only the terminal ·It changes, the root ·It stays
 wattage		senior	word	·Way·Ox·Tea·Utter·Jay	derived	terminal-age	rewrite: naive ·Way·Ox·Tea·It·Jay; ·It to ·Utter
+able-bodied	AJ0	senior	word	·Eight·Bay·Utter·Low-·Bay·Ox·Day·It·Day	derived	terminal-al-el-le-il	the vowel before the L stays, because a syllable follows: able alone is ·Eight·Bay·Low, and the Manual's rif(u)leman restores it
 animal		senior	word	·At·No·It·May·Low	derived	terminal-al-el-le-il	naive ·At·No·It·May·Utter·Low; unstressed vowel between L and the preceding consonant omitted
 bevel	NN1	senior	word	·Bay·Et·Vie·Low	derived	terminal-al-el-le-il	naive ·Bay·Et·Vie·Utter·Low; unstressed vowel before L omitted. POS pinned to NN1 because ReadLex's bevel VVB/VVI rows carry the IPA of the inflected form (ˈbevəlz), an upstream defect
 burial		senior	word	·Bay·Et·Roe·It·Utter·Low	manual	terminal-al-el-le-il	identical to naive: -al follows a vowel-sound, so the vowel before L is kept
@@ -214,6 +225,7 @@ devil		senior	word	·Day·Et·Vie·Low	derived	terminal-al-el-le-il	naive ·Day�
 devilry		senior	word	·Day·Et·Vie·Utter·Low·Roe·It	derived	terminal-al-el-le-il	identical to naive: another syllable is added, so the vowel before L is kept; contrast devil = ·Day·Et·Vie·Low
 eagle		senior	word	·Eat·Gay·Low	derived	terminal-al-el-le-il	naive ·Eat·Gay·Utter·Low; unstressed vowel between L and the preceding consonant omitted
 easel		senior	word	·Eat·Zoo·Low	derived	terminal-al-el-le-il	naive ·Eat·Zoo·Utter·Low; unstressed vowel between L and the preceding consonant omitted
+feeding-bottle	NN1	senior	word	·Fee·Eat·Day·Oolong-·Bay·Ox·Tea·Low	derived	terminal-al-el-le-il	the other side of able-bodied: nothing follows the last element's L, so its vowel goes as bottle's does, while terminal-ing bares the first element
 final		senior	word	·Fee·I·No·Low	derived	terminal-al-el-le-il	naive ·Fee·I·No·Utter·Low; unstressed vowel between L and the preceding consonant omitted
 finally		senior	word	·Fee·I·No·Utter·Low·It	derived	terminal-al-el-le-il	identical to naive: another syllable is added, so the vowel before L is kept. Consistent with terminal-ally = -·Utter·Low·It
 initial		senior	word	·It·No·It·She·Low	derived	terminal-al-el-le-il	naive ·It·No·It·She·Utter·Low; unstressed vowel between L and the preceding consonant omitted
@@ -281,7 +293,9 @@ payee		senior	terminal	·Eat	manual	terminal-y	no-op: stressed peɪˈiː gives �
 pity		senior	terminal	·It·Tea·It	manual	terminal-y	no-op: ˈpɪti gives ·Pea·It·Tea·It for all three POS
 sanctity		senior	terminal	·It·Tea·It	manual	terminal-y	no-op: naive ·See·At·Oolong·Key·Tea·It·Tea·It already ends ·It·Tea·It
 simile		senior	terminal	·It	manual	terminal-y	no-op: happY i gives ·See·It·May·It·Low·It
+vice versa	AV0	senior	word	·Vie·I·See·It ·Vie·Utter·Roe·See·Utter	derived	terminal-y	the terminal vowel of the first word is ·It, the ruling tilde and krone take; ReadLex has no versa on its own to check it against
 ashen		senior	terminal	·She·Utter·No	manual	terminal-en-on	whole word ·At·She·Utter·No; the rule is identity against the naive spelling, which already ends ·Utter·No. Contrast fashion = ·Fee·At·She·No under terminal-tion: identical /ʃən/, opposite treatment, decided by the Latin spelling of the ending
+chicken-house	NN1	senior	word	·Cheer·It·Key·Utter·No-·He·Out·See	derived	terminal-en-on	-en is ·Utter·No in the first element, as in the Manual's own chicken
 eaten		senior	terminal	·Tea·Utter·No	manual	terminal-en-on	whole word ·Eat·Tea·Utter·No; the rule is identity against the naive spelling, which already ends ·Utter·No.
 fasten		senior	terminal	·See·Utter·No	manual	terminal-en-on	whole word ·Fee·At·See·Utter·No; the rule is identity against the naive spelling, which already ends ·Utter·No. TRAP-BATH dual variant: ReadLex has both ˈfÆsən and ˈfⱭːsən for VVB/VVI, so the whole word is ·Fee·At·See·Utter·No or ·Fee·Ah·See·Utter·No; the terminal is the same either way
 happen		senior	terminal	·Pea·Utter·No	manual	terminal-en-on	whole word ·He·At·Pea·Utter·No; the rule is identity against the naive spelling, which already ends ·Utter·No.

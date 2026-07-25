@@ -13,7 +13,7 @@ Everything is generated into [`lexicon/`](../lexicon) and committed, so the file
 | `quikscript-lexicon.json` | The master. Grouped by headword, 56,649 of them, 108,425 entries. |
 | `quikscript-lexicon.tsv` | The flat projection, 108,375 rows after deduplication. |
 | `qs_converter.json` | Latin → spellings for the transliterator, 78,135 keys, 79,212 rows. |
-| `qs_converter_phrases.txt` | The 2,171 entries a tokenizer must match whole. |
+| `qs_converter_phrases.txt` | The 1,600 entries a tokenizer must match whole. |
 | `letters.tsv` | All 44 Quikscript letters with their codepoints — the decoder ring for the PUA text in every other file. |
 
 **JSON-primary, and strictly so.** `quikscript-lexicon.json` is built first and everything else is projected from it in one reshape. Nothing is emitted in parallel, because parallel generation is what produced upstream's duplicate-row TSV ([Shavian-info/readlex#124](https://github.com/Shavian-info/readlex/pull/124)) — the exact bug this arrangement makes structurally impossible. There is one master per layer: `readlex.json` upstream, the rule and override tables in `src/qslex/data/`, `quikscript-lexicon.json` out. Nothing downstream of the build is hand-edited.
@@ -128,39 +128,13 @@ The entries a tokenizer must match as one unit before it splits the text, becaus
 
 The predicate is compositionality, not a character test: an entry is listed when spelling its pieces separately and rejoining them does not reproduce the entry's own spelling, when a piece is not in the lexicon at all, or — for a single word — when it contains an apostrophe, which a tokenizer splits at. On top of that sit 14 declared exceptions in `src/qslex/data/phrase-exceptions.tsv`: three HTML entities that are not lexicon entries at all, and eleven words spaCy's tokenizer splits, which no property of the lexicon can reveal.
 
-The list is longer than upstream's — 2,171 against 1,406 — for two different reasons, and only one of them is good. Quikscript's terminal and prefix conventions are genuinely more context-sensitive than Shavian's, so hundreds of compounds legitimately fail to compose where their Shavian spellings do. But about 636 entries are on the list only because of [the compound gap](#known-gap-the-rules-layer-does-not-see-inside-a-compound) below, and will drop off it when that is fixed. The list is regenerated from the spellings either way, so it cannot disagree with them.
+The list is longer than upstream's — 1,600 against 1,406 — and the reason is real: Quikscript's terminal and prefix conventions are genuinely more context-sensitive than Shavian's, so hundreds of compounds legitimately fail to compose where their Shavian spellings do. It was longer still, 2,171, until the rules learnt to see inside a compound ([#9](https://github.com/adiabatic/quikscript-lexicon/issues/9)); 571 entries were on it only because their elements were spelt one way alone and another way in the compound. The list is regenerated from the spellings either way, so it cannot disagree with them.
 
 It is also *shorter* in eight places, and those are real: at-home, lean-to, set-to, aged care, school-aged and three more compose in Quikscript because a standard word-outline collapses a stressed/unstressed pair that Shavian spells two ways.
 
 ### letters.tsv
 
 `codepoint`, `qs`, `name`, `class`, `ipa` for all 44 letters, derived from `src/qslex/csur.py` and the segment mapping. The `name` column is the letter's own example word, which is how [the CSUR proposal](https://www.quikscript.net/csur/) names them; the `ipa` column lists every mapping token that produces the letter, and is empty for ·Excite and ·Exam, which no segment mapping can reach.
-
-## Known gap: the rules layer does not see inside a compound
-
-Found by this build, and reported rather than fixed, because it belongs to the rules layer ([#2](https://github.com/adiabatic/quikscript-lexicon/issues/2)) and not to this one.
-
-The orthographic rules match on the whole entry string: prefix rules test `startswith`, terminal rules are `$`-anchored. So in a hyphenated or multi-word entry only the last element can receive a terminal rule and only the first a prefix rule, and every other element keeps a vowel the Manual drops:
-
-| Entry | Built | The element standing alone |
-|---|---|---|
-| `adding-machine` | ·At·Day·**It**·Oolong-·May·Utter·She·Eat·No | adding = ·At·Day·Oolong |
-| `air-conditioned` | ·Eight·Roe-·Key·**Utter**·No·Day·It·She·Utter·No·Day | conditioned = ·Key·No·Day·It·She·Utter·No·Day |
-| `combination-lock` | ·Key·Ox·May·Bay·It·No·Eight·She·**Utter**·No-·Low·Ox·Key | combination = ·Key·Ox·May·Bay·It·No·Eight·She·No |
-
-The word-sign layer solved exactly this problem for itself — [§ Phrase entries](word-signs.md#phrase-entries) — and the rules layer has no equivalent. Nothing in `docs/orthographic-rules.md` records a decision to treat compounds this way, so it reads as an oversight rather than a ruling.
-
-### How big it is, and how much of it is real
-
-6,556 entries carry a space or a hyphen. 890 of those spell differently from their own elements concatenated, and they divide three ways — only the first is a defect:
-
-| | Entries | |
-|---|---|---|
-| A rule the compound hides really should have fired | **636** | `terminal-ing` 525, `prefix-con-com` 32, `terminal-age` 24, `terminal-tion` 22, `terminal-ally-able` 16, and five smaller families |
-| Only `terminal-al-el-le-il` is hidden | 167 | **Correct as it stands.** That rule omits the vowel before L *only when nothing follows*: the Manual writes rifle = ·Roe·I·Fee·Low but rif(u)leman = ·Roe·I·Fee·Utter·Low·May·No, restoring the vowel when a syllable is added. able-bodied and cable-car keep it for the same reason. The rule not firing gives the right answer here, if for the wrong reason. |
-| No rule accounts for it | 87 | **Not a rules question at all.** ReadLex simply gives the compound a different pronunciation from its parts: a la mode has `ɑː` where a has `eɪ`, aide-de-camp ends `kɑːm`, black-lead is `led` not `liːd`, bay-wreaths takes voiceless `θs`. The rules layer is downstream of that and correctly follows it. |
-
-So the fix is worth roughly 636 entries, and `qs_converter_phrases.txt` should shrink by about as many when it lands. The shape of the fix already exists: split the entry into elements the way `components`/`_runs`/`_aligned` do in [`src/qslex/words.py`](../src/qslex/words.py), run the rule stack per element, rejoin. Expect every count in `EXPECTED_RULE_CHANGES` to move.
 
 ## Regenerating
 

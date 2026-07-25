@@ -35,8 +35,6 @@ able-bodied
 absent-minded
 absent-mindedly
 absent-mindedness
-according as
-according to
 ack-ack
 ad hoc
 ad infinitum
@@ -54,8 +52,6 @@ ad-men
 adam's-apple
 adam's-apples
 add-ons
-adding-machine
-adding-machines
 addis ababa
 addle-brained
 addle-head
@@ -76,10 +72,7 @@ aide-memoire
 aide-memoires
 aides-de-camp
 ain't
-air-conditioned
 air-conditioning
-airing-cupboard
-airing-cupboards
 ale-house
 alma mater
 alma maters
@@ -127,13 +120,8 @@ autos-da-fe
 avant-garde
 b's
 baa'd
-baking-hot
-baking-powder
-baking-powders
 bald-pate
 bald-pates
-banning-order
-banning-orders
 barnard castle
 barrow-in-furness
 barton-upon-humber
@@ -174,15 +162,8 @@ black-leading
 black-leads
 blaenau-ffestiniog
 blast-offs
-bleaching-powder
-bleaching-powders
-bleeding-edge
 blindman's buff
 blood-baths
-blotting-paper
-blotting-papers
-blowing-up
-blowing-ups
 bo'ness
 bo'sn
 bo'sns
@@ -190,20 +171,13 @@ bo'sun
 bo'suns
 boa-constrictor
 boa-constrictors
-boarding-card
-boarding-cards
 boarding-house
-boarding-houses
-boarding-school
-boarding-schools
 boat-house
 bob-omb
 bobby-soxer
 bobby-soxers
 bode's law
 bognor regis
-boiling-point
-boiling-points
 bolton-le-sands
 bon mot
 bon voyage
@@ -220,19 +194,7 @@ bow-wow
 bow-wows
 bowie knife
 bowie knives
-bowling-green
-bowling-greens
-boxing day
-boxing days
-boxing-glove
-boxing-gloves
-boxing-match
-boxing-matches
-branding-iron
-branding-irons
 break-ins
-breathing-space
-breathing-spaces
 breeches-buoy
 breeches-buoys
 bric-a-brac
@@ -245,8 +207,6 @@ brush-offs
 buena vista
 buenos aires
 buenos ayres
-building-societies
-building-society
 bull's-eye
 bull's-eyes
 burnham-on-sea
@@ -274,23 +234,13 @@ cannot
 cap-a-pie
 carryings-on
 carte blanche
-carving-fork
-carving-forks
-carving-knife
-carving-knives
 cast-offs
 casus belli
 cat-o'-nine-tails
-catchment-area
-catchment-areas
-catchment-basin
-catchment-basins
 cattle-cake
 cave-ins
 cefn-mawr
 centi-
-chafing dish
-chafing dishes
 chaise longue
 chaise longues
 chalfont st giles
@@ -301,7 +251,6 @@ chamois-leather
 chamois-leathers
 charge d'affaires
 charges d'affaires
-charing cross
 charnel house
 charnel houses
 chaw-bacons
@@ -312,12 +261,7 @@ cheval glass
 cheval glasses
 cheval-glass
 cheval-glasses
-chewing-gum
-chicken-hearted
 chicken-house
-chicken-houses
-chicken-run
-chicken-runs
 child's-play
 chock-a-block
 chop suey
@@ -332,7 +276,6 @@ cine-films
 cine-projector
 cine-projectors
 clearing-house
-clearing-houses
 cleator moor
 clermont-ferrand
 climate-controlled
@@ -381,8 +324,6 @@ co-written
 co-wrote
 coach-house
 coal-house
-coaling-station
-coaling-stations
 coca-cola
 coca-colas
 cock-a-doodle-doo
@@ -391,8 +332,6 @@ cock-a-hoop
 cod-liver oil
 coffee-house
 colwyn bay
-combination-lock
-combination-locks
 come-at-able
 come-ons
 comin'
@@ -404,10 +343,6 @@ connah's quay
 contra-
 contrary to
 contrast-enhanced
-cooling-tower
-cooling-towers
-coping-stone
-coping-stones
 cor anglais
 coral-reef
 coral-reefs
@@ -426,7 +361,6 @@ council-chamber
 council-chambers
 counter-
 counting-house
-counting-houses
 country-house
 coup d'etat
 coup de grace
@@ -439,8 +373,6 @@ covid-19
 crackle-china
 crash-dives
 creme de menthe
-cribbage-board
-cribbage-boards
 cro magnon
 cro-magnon
 cross-bencher
@@ -459,15 +391,6 @@ cul-de-sacs
 cupro-nickel
 cure-all
 cure-alls
-curling-iron
-curling-irons
-curling-pins
-curling-stone
-curling-stones
-curling-tongs
-cutting-edge
-cutting-room
-cutting-rooms
 d'amaro
 d's
 d'you
@@ -479,8 +402,6 @@ dapple-grey
 dapple-greys
 daren't
 dark-chinned
-darning-needle
-darning-needles
 de facto
 de jure
 de luxe
@@ -498,10 +419,8 @@ de-ices
 de-icing
 deca-
 deci-
-decision-making
 deckle-edged
 delta-vee
-depending on
 derring-do
 devil-may-care
 didn't
@@ -512,21 +431,6 @@ dilly-dally
 dilly-dallying
 ding-dong
 ding-dongs
-dining-car
-dining-cars
-dining-room
-dining-rooms
-dining-table
-dining-tables
-direction-finder
-direction-finders
-diving-bell
-diving-bells
-diving-board
-diving-boards
-diving-dress
-diving-suit
-diving-suits
 do's
 do-gooder
 do-gooders
@@ -570,50 +474,14 @@ double-quick
 double-spacing
 double-talk
 double-think
-downing street
-drainage-basin
-drainage-basins
-draining-board
-draining-boards
 dramatis personae
-drawing-board
-drawing-boards
-drawing-pin
-drawing-pins
-drawing-room
-drawing-rooms
-dressing-case
-dressing-cases
-dressing-down
-dressing-gown
-dressing-gowns
-dressing-table
-dressing-tables
 dribs and drabs
-drinking-bout
-drinking-bouts
-drinking-fountain
-drinking-fountains
-drinking-song
-drinking-songs
-drinking-water
-dripping-pan
-dripping-pans
 drive-ins
-driving-belt
-driving-belts
-driving-wheel
-driving-wheels
-dropping-zone
-dropping-zones
 drum-majorette
 drum-majorettes
-ducking-stool
-ducking-stools
 dun laoghaire
 dunno
 dwelling-house
-dwelling-houses
 e'en
 e'er
 e's
@@ -621,15 +489,11 @@ e-mail
 eagle-eyed
 earl shilton
 east kilbride
-eating-apple
-eating-apples
 eating-house
-eating-houses
 eau de cologne
 eau-de-vie
 ebbw vale
 echo-sounders
-edging-shears
 el dorado
 el dorados
 el nino
@@ -669,25 +533,12 @@ faits accomplis
 faroe islands
 faux pas
 feeble-minded
-feeding-bottle
-feeding-bottles
 ferriers
 finnan haddie
 finno-ugric
 fire-control
 fire-extinguisher
 fire-extinguishers
-firing-line
-firing-lines
-firing-parties
-firing-party
-firing-squad
-firing-squads
-fishing-line
-fishing-lines
-fishing-rod
-fishing-rods
-fishing-tackle
 flesh-wound
 fleur-de-lis
 fleur-de-lys
@@ -706,45 +557,25 @@ forasmuch as
 force majeure
 forget-me-nots
 fort lauderdale
-foundation-stone
-foundation-stones
 four-wheelers
 frampton cotterell
 franco-
-franking-machine
-franking-machines
 free-for-alls
-freezing-mixture
-freezing-mixtures
-freezing-point
-freezing-points
 front-bencher
 front-benchers
 fuddy-duddies
 fuddy-duddy
 g's
-gambling-den
-gambling-dens
 gaming-house
-gaming-houses
-gaming-room
-gaming-rooms
-gaming-table
-gaming-tables
-garbage-can
-garbage-cans
 gee whiz
 gee-gees
 general-purpose
-gentleman-at-arms
 gentlemen-at-arms
 geo-
 get-at-able
 get-togethers
 gilfach goch
 given that
-glove-compartment
-glove-compartments
 go-betweens
 go-getter
 go-getters
@@ -755,9 +586,6 @@ goggle-box
 goggle-boxes
 goggle-eyed
 goin'
-going-over
-going-overs
-goings-on
 gonna
 gotham city
 gotta
@@ -766,15 +594,7 @@ grand mal
 grand prix
 grand-
 grands prix
-grappling-iron
-grappling-irons
 grave-clothes
-graving dock
-graving docks
-grazing-land
-grazing-lands
-growing-pain
-growing-pains
 guelder rose
 guelder roses
 guinea-bissau
@@ -815,22 +635,16 @@ haywards heath
 he'd
 he'll
 he's
-hearing-aid
-hearing-aids
 heart's-ease
 hebden royal
 hecto-
 helter-skelters
 hemel hempstead
-hemming-stitch
-hemming-stitches
 henley-on-thames
 here's
 het-up
 hi-fi
 hi-fis
-hiding-place
-hiding-places
 high spen
 high-contrast
 high-falutin
@@ -863,10 +677,6 @@ hoyland nether
 hubble-bubble
 hubble-bubbles
 hugger-mugger
-humming-top
-humming-tops
-hunting-crop
-hunting-crops
 hurdy-gurdies
 hurdy-gurdy
 hurly-burly
@@ -883,7 +693,6 @@ ill-usage
 ill-use
 ill-used
 ill-uses
-in connection with
 in loco parentis
 in memoriam
 in situ
@@ -896,8 +705,6 @@ inter alia
 ipse dixit
 ipse dixits
 ipso facto
-ironing-board
-ironing-boards
 isla verde
 isn't
 it'd
@@ -906,8 +713,6 @@ it's
 j's
 jack-o'-lantern
 jack-o'-lanterns
-jaunting-car
-jaunting-cars
 jiggery-pokery
 joie de vivre
 joss-house
@@ -924,10 +729,6 @@ kirkby in ashfield
 knee-breeches
 knick-knack
 knick-knacks
-knitting-machine
-knitting-machines
-knitting-needle
-knitting-needles
 knock-kneed
 knock-ons
 know-alls
@@ -944,31 +745,10 @@ la-di-da
 lady's-maid
 lady's-maids
 laissez-faire
-landing-craft
-landing-field
-landing-fields
-landing-gear
-landing-net
-landing-nets
-landing-parties
-landing-party
-landing-place
-landing-places
-landing-stage
-landing-stages
-landing-strip
-landing-strips
 lapis lazuli
 lapis lazulis
 las palmas
 las vegas
-laughing-gas
-laughing-stock
-laughing-stocks
-launching-pad
-launching-pads
-launching-site
-launching-sites
 lay-offs
 le havre
 le mans
@@ -986,8 +766,6 @@ leanin'
 leger line
 leger lines
 leighton-linslade
-lending-libraries
-lending-library
 lese majeste
 let 's
 let's
@@ -1001,13 +779,8 @@ light-headedness
 light-heartedly
 light-o'-love
 light-o'-loves
-lighting-up
-lightning-conductor
-lightning-conductors
 lily-livered
 lily-white
-linen-draper
-linen-drapers
 lingua franca
 linsey-woolsey
 liony-piony
@@ -1016,47 +789,25 @@ lip-reading
 live-birth
 live-births
 livin'
-living-room
-living-rooms
-living-space
-living-spaces
 llantwit major
 lloyd's
 loc cit
 locum tenens
 locus classicus
 lodging-house
-lodging-houses
 long eaton
 long-period
 long-windedness
 lookin'
-looking-glass
-looking-glasses
 los angeles
 loud-hailer
 loud-hailers
-loving-cup
-loving-cups
-loving-kindness
 low-ceiled
-luggage-carrier
-luggage-carriers
-luggage-rack
-luggage-racks
-luggage-van
-luggage-vans
-lurking-place
-lurking-places
 lytham st annes
 m'
 m'lady
 m's
 ma'am
-mailing-card
-mailing-cards
-mailing-list
-mailing-lists
 major-domo
 major-domos
 mangel-wurzel
@@ -1068,10 +819,6 @@ mar-a-lago
 mardi gras
 market harborough
 market-gardening
-marking-ink
-marking-inks
-marshalling-yard
-marshalling-yards
 mason-dixon
 mass-produce
 maundy thursday
@@ -1079,14 +826,7 @@ maundy thursdays
 maxi-
 mayn't
 meeting-house
-meeting-houses
-meeting-place
-meeting-places
 melcombe regis
-melting-point
-melting-points
-melting-pot
-melting-pots
 melton mowbray
 merthyr tydfil
 micro-organism
@@ -1097,8 +837,6 @@ middle-distance
 middle-of-the-road
 might-have-beens
 mightn't
-milking-machine
-milking-machines
 milli-
 milton keynes
 mini-
@@ -1110,20 +848,11 @@ minute-guns
 minute-hand
 minute-hands
 mise en scene
-mission-critical
 mod cons
 modus operandi
 modus vivendi
 money-grubber
 money-grubbers
-mooring-mast
-mooring-masts
-mountain ash
-mourning-band
-mourning-bands
-mourning-cloak
-mourning-ring
-mourning-rings
 moustachio'd
 mouth-organ
 mouth-organs
@@ -1172,8 +901,6 @@ non compos mentis
 non sequitur
 non sequiturs
 non-
-non-compliance
-non-contentious
 nor'-
 nor'-east
 nor'-nor'-east
@@ -1188,8 +915,6 @@ nouveaux riches
 nova scotian
 novel-writing
 now that
-nursing-home
-nursing-homes
 o'brien
 o'clock
 o'donnell
@@ -1200,7 +925,6 @@ o's
 oap's
 obiter dicta
 obiter dictum
-ocean-liner
 odd-job
 off-putting
 off-scourings
@@ -1212,10 +936,6 @@ one-idea'd
 one-upmanship
 op cit
 opera-house
-operating-table
-operating-tables
-operating-theatre
-operating-theatres
 orang-outan
 orang-outang
 orang-outangs
@@ -1232,10 +952,6 @@ over-
 ow
 oxy-hydrogen
 p's
-packing-case
-packing-cases
-packing-needle
-packing-needles
 paddle-box
 paddle-boxes
 paddle-steamer
@@ -1254,12 +970,7 @@ parkinson's
 parti-coloured
 passer-by
 passers-by
-passing-out
-passion-flower
-passion-flowers
 pate de foie gras
-paving-stone
-paving-stones
 pax romana
 peek-a-boo
 penn'orth
@@ -1289,12 +1000,6 @@ play-offs
 play-reading
 player-piano
 plug-ins
-polling-booth
-polling-booths
-polling-day
-polling-days
-polling-station
-polling-stations
 pont-llan-fraith
 pooh-poohed
 pooh-poohing
@@ -1307,8 +1012,6 @@ post meridiem
 post-
 post-mortem
 post-mortems
-postage-stamp
-postage-stamps
 poste restante
 power-dives
 pre-
@@ -1330,12 +1033,6 @@ prie-dieus
 prima donnas
 prima facie
 princes risborough
-printing-ink
-printing-inks
-printing-press
-printing-presses
-printing-shop
-printing-shops
 prison-breakings
 pro forma
 pro rata
@@ -1344,21 +1041,11 @@ pro tempore
 pro-
 process-server
 process-servers
-pruning-hook
-pruning-hooks
-pruning-knife
-pruning-knives
-pruning-saw
-pruning-saws
-pruning-scissors
-pruning-shears
 pseudo-
 public-house
 pull-ins
 pull-offs
 pull-throughs
-punching-ball
-punching-balls
 put-ons
 putting-green
 putting-greens
@@ -1368,10 +1055,6 @@ q's
 quai d'orsay
 quasi-
 queenborough-in-sheppey
-question-mark
-question-marks
-question-master
-question-masters
 qui vive
 quid pro quo
 r's
@@ -1452,12 +1135,6 @@ reading-lamps
 reading-room
 reading-rooms
 real-life
-reaping-hook
-reaping-hooks
-receiving-set
-receiving-sets
-reception-desk
-reception-desks
 record-breaking
 record-player
 record-players
@@ -1469,16 +1146,6 @@ rest-cure
 rest-cures
 rest-house
 riding-breeches
-riding-habit
-riding-habits
-riding-lamp
-riding-lamps
-riding-light
-riding-lights
-riding-master
-riding-masters
-riding-school
-riding-schools
 riff-raff
 rifle-range
 rifle-ranges
@@ -1494,16 +1161,7 @@ rip-roaring
 robert jarvik
 rock-'n-roll
 rocket-bases
-rocking-chair
-rocking-chairs
-rocking-horse
-rocking-horses
 roll-ons
-rolling-mill
-rolling-mills
-rolling-pin
-rolling-pins
-rolling-stock
 roly-polies
 roly-poly
 room-mate
@@ -1523,23 +1181,12 @@ run-offs
 run-throughs
 runnin'
 running mate
-running mates
-running-board
-running-boards
 s's
 saddle-sore
 sado-masochist
 sado-masochists
 safe-conduct
 saffron walden
-sailing-boat
-sailing-boats
-sailing-master
-sailing-masters
-sailing-ship
-sailing-ships
-sailing-vessel
-sailing-vessels
 saint elmo
 saint's-day
 saint's-days
@@ -1557,30 +1204,12 @@ sang froid
 santa claus
 santo domingo
 sao paolo
-sausage-dog
-sausage-dogs
-sausage-meat
-sausage-roll
-sausage-rolls
 save that
-savings-bank
-savings-banks
 savoir-faire
-scaling-ladder
-scaling-ladders
 sci fi
-scotland yard
 scotus
-scribbling-block
-scribbling-blocks
-scrubbing-brush
-scrubbing-brushes
 se'ennight
 sea-bathing
-sealing-wax
-searing-iron
-searing-irons
-seating-room
 seaton burn
 seaton delaval
 second-best
@@ -1593,12 +1222,6 @@ second-raters
 second-sighted
 self-
 self-absorbed
-self-command
-self-communion
-self-complacency
-self-confessed
-self-contained
-self-control
 self-destruct
 self-destructed
 self-destructing
@@ -1609,42 +1232,21 @@ semi-
 serbo-croat
 servo-
 set-tos
-sewage-farm
-sewage-farms
-sewage-works
 sewer-gas
 sewer-rat
 sewer-rats
-sewing-machine
-sewing-machines
 shadow-puppet
 shadow-puppets
 shan't
-shaving-brush
-shaving-brushes
 she'd
 she'll
 she's
 shepton mallet
 ship's-chandler
 ship's-chandlers
-shipping-agent
-shipping-agents
-shipping-office
-shipping-offices
 shish kebab
 shish kebabs
 shit-house
-shooting-box
-shooting-boxes
-shooting-brake
-shooting-brakes
-shooting-galleries
-shooting-gallery
-shooting-range
-shooting-ranges
-shooting-stick
-shooting-sticks
 short-circuited
 short-circuiting
 shouldn't
@@ -1668,51 +1270,16 @@ single-breasted
 single-handed
 single-minded
 single-spacing
-sinking-fund
-sinking-funds
 sinn fein
 sir roger de coverley
 sit-ins
-sitting-room
-sitting-rooms
 sixth-formers
-skating-rink
-skating-rinks
 ski'd
 skiffle-group
 skiffle-groups
-skipping-rope
-skipping-ropes
-skirting-board
-skirting-boards
 skittle-pin
 skittle-pins
-sleeping-bag
-sleeping-bags
-sleeping-car
-sleeping-cars
-sleeping-draught
-sleeping-draughts
-sleeping-pill
-sleeping-pills
-sleeping-sickness
-smelling-bottle
-smelling-bottles
-smelling-salts
 smoke-rocket
-smoking-car
-smoking-carriage
-smoking-carriages
-smoking-cars
-smoking-compartment
-smoking-compartments
-smoking-mixture
-smoking-room
-smoking-rooms
-smoothing-iron
-smoothing-irons
-smoothing-plane
-smoothing-planes
 snaffle-bit
 snaffle-bits
 so that
@@ -1720,8 +1287,6 @@ so-and-sos
 social-work
 socio-
 sol-fa
-soldering-iron
-soldering-irons
 somethin'
 sotto voce
 sou'-east
@@ -1730,21 +1295,8 @@ sou'-sou'-west
 sou'-west
 sou'-wester
 sou'-westers
-sounding-board
-sounding-boards
 south kirkby
 southend-on-sea
-sparking-plug
-sparking-plugs
-sparring-match
-sparring-matches
-sparring-partner
-sparring-partners
-speaking-trumpet
-speaking-trumpets
-speaking-tube
-speaking-tubes
-spelling-book
 spin-offs
 spindle-berries
 spindle-berry
@@ -1753,8 +1305,6 @@ spindle-shanked
 spindle-shanks
 spindle-tree
 spindle-trees
-spinning-wheel
-spinning-wheels
 splice'n'dice
 split-second
 spread-eagled
@@ -1778,47 +1328,17 @@ st stephen
 st. john
 stable-companion
 stable-companions
-staff-commander
-stalking-horse
-stalking-horses
-stamping-ground
-stamping-grounds
 stand-ins
-stapling-machine
-stapling-machines
-starting-gate
-starting-gates
-starting-point
-starting-points
-starting-post
-starting-posts
-starting-price
-starting-prices
-station-waggon
-station-waggons
 status quo
-steering-gear
-steering-wheel
-steering-wheels
 step-
 step-ins
-stepping-stone
-stepping-stones
-sticking-plaster
-sticking-plasters
 still-lifes
 stoke-on-trent
 stourport-on-severn
 stratford-on-avon
 strollin'
-stumbling-block
-stumbling-blocks
 sub judice
 sub-
-sucking-pig
-sucking-pigs
-summing-up
-summing-ups
 sun-drenched
 sun-dried
 sun-god
@@ -1838,15 +1358,8 @@ sun-worship
 super-duper
 sutton coldfield
 sutton in ashfield
-swaddling-clothes
 swan's-down
-swimming-bath
 swimming-baths
-swimming-costume
-swimming-costumes
-swimming-pool
-swimming-pools
-swimming-trunks
 swizzle-stick
 swizzle-sticks
 t's
@@ -1862,9 +1375,6 @@ table-turning
 tableau vivant
 tableaux vivants
 take-offs
-talking-point
-talking-points
-talking-to
 talking-tos
 tam-o'-shanter
 tam-o'-shanters
@@ -1882,7 +1392,6 @@ tel-aviv
 tele-program
 tele-programs
 tenement-house
-tenement-houses
 terra firma
 terra incognita
 terra-cotta
@@ -1902,17 +1411,12 @@ thinkin'
 third-rater
 third-raters
 tho'
-threshing-floor
-threshing-floors
-threshing-machine
-threshing-machines
 thro'
 throttle-valve
 throttle-valves
 throw-ins
 tick-tocks
 tightly-wound
-time-consuming
 tip-offs
 title-deed
 title-deeds
@@ -1929,8 +1433,6 @@ to-do
 to-dos
 to-morrow
 to-night
-toasting-fork
-toasting-forks
 tom-toms
 tonic sol-fa
 topsy-turvy
@@ -1939,23 +1441,10 @@ topsy-turvydoms
 tours de force
 tout ensemble
 tower hamlets
-towing-line
-towing-lines
-towing-path
-towing-paths
-towing-rope
-towing-ropes
-tracing-paper
-traction-engine
-traction-engines
 trade-ins
 trade-unionism
 trade-wind
 trade-winds
-training-college
-training-colleges
-training-ship
-training-ships
 trans-
 trans-neptunian
 travel-soiled
@@ -1977,12 +1466,8 @@ tub-thumpers
 tuck-ins
 tumble-down
 tung-oil
-tuning-fork
-tuning-forks
 turn-offs
 turn-ons
-turning-point
-turning-points
 tutti-frutti
 tutti-fruttis
 two-a-penny
@@ -2014,12 +1499,8 @@ v's
 vade-mecum
 vade-mecums
 van jansen
-vantage-point
-vantage-points
 vapour-baths
 variable-gravity
-vaulting-horse
-vaulting-horses
 vice versa
 vice-
 vingt-un
@@ -2034,47 +1515,23 @@ w's
 wagga wagga
 wagon-lit
 wagons-lit
-waiting-list
-waiting-lists
-waiting-room
-waiting-rooms
 walkie-talkie
 walkie-talkies
 waltham forest
 wanna
 want-ad
-warming-pan
-warming-pans
 wash-
 wash-house
-washing-day
-washing-days
-washing-machine
-washing-machines
-washing-up
-washing-ups
 washington dc
 wasn't
 wasp-waisted
-watering-can
-watering-cans
-watering-cart
-watering-carts
 we'd
 we'll
 we're
 we've
 weak-kneed
 weather-bureaus
-wedding-cake
-wedding-cakes
-wedding-ring
-wedding-rings
-weighing-machine
-weighing-machines
 well-
-well-conducted
-well-connected
 well-intentioned
 well-read
 well-to-do
@@ -2084,8 +1541,6 @@ west bromwich
 weston-super-mare
 whaddya
 whaley bridge
-whaling-gun
-whaling-guns
 what'll
 what's
 whate'er
@@ -2095,14 +1550,6 @@ when's
 where's
 whipper-in
 whippers-in
-whipping-boy
-whipping-boys
-whipping-post
-whipping-posts
-whipping-top
-whipping-tops
-whispering-galleries
-whispering-gallery
 whistle-stop
 whistle-stops
 white-livered
@@ -2114,7 +1561,6 @@ who'd
 who'll
 who're
 who's
-whooping-cough
 wich-
 will-o'-the-wisp
 will-o'-the-wisps
@@ -2127,32 +1573,15 @@ wind-up
 wind-whipped
 winding-sheet
 winding-sheets
-wing-commander
-wing-commanders
-winning-post
-winning-posts
-wishing-cap
-wishing-caps
 wishy-washy
 witch-
-witness-box
-witness-boxes
-witness-stand
-witness-stands
 wolf's-bane
 won't
 wootton bassett
 word-perfect
 work-ins
-working-class
-working-out
 wouldn't
 write-offs
-writing-desk
-writing-desks
-writing-ink
-writing-inks
-writing-paper
 wrong-headedly
 wych-
 x's

@@ -1,5 +1,6 @@
 from qslex.csur import CODEPOINT_OF, NAME_OF
 from qslex.divergences import Divergence, load_divergences
+from qslex.elements import components, elements
 from qslex.letters import (
     Letter,
     Letters,
@@ -17,6 +18,7 @@ from qslex.readlex import Row, load_rows
 from qslex.rules import (
     RULES,
     Context,
+    Element,
     LigatureRule,
     Rule,
     RuleWord,
@@ -27,6 +29,7 @@ from qslex.rules import (
     load_x_ligatures,
     naive,
     spell,
+    split,
 )
 from qslex.tokenizer import Token, TokenizeError, is_stressed, letters, qs, tokenize
 from qslex.variants import VarTag, kept, load_var_tags, select
@@ -49,6 +52,7 @@ __all__ = [
     "Context",
     "Contraction",
     "Divergence",
+    "Element",
     "Example",
     "Letter",
     "Letters",
@@ -69,6 +73,8 @@ __all__ = [
     "TokenizeError",
     "VarTag",
     "apply_signs",
+    "components",
+    "elements",
     "is_stressed",
     "kept",
     "letters",
@@ -94,6 +100,7 @@ __all__ = [
     "select",
     "sign_for",
     "spell",
+    "split",
     "tokenize",
     "unknown_names",
 ]

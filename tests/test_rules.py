@@ -28,6 +28,7 @@ from qslex.rules import (
     load_rule_words,
     load_x_ligatures,
     naive,
+    split,
     terminal_for,
     undecided_ing,
 )
@@ -252,6 +253,69 @@ def test_x_that_is_not_key_see_or_gay_zoo_gets_no_ligature() -> None:
 
 def test_senior_and_ligature_differ_only_where_recorded() -> None:
     assert senior("expect", "VVB") == "·It·Key·See·Pea·Et·Key·Tea"
+
+
+def test_a_terminal_or_prefix_rule_reaches_every_element_of_a_compound() -> None:
+    assert senior("adding-machine", "NN1") == "·At·Day·Oolong-·May·Utter·She·Eat·No"
+    assert senior("adding", "VVG") == "·At·Day·Oolong"
+    assert (
+        senior("air-conditioned", "AJ0") == "·Eight·Roe-·Key·No·Day·It·She·Utter·No·Day"
+    )
+    assert (
+        senior("combination-lock", "NN1")
+        == "·Key·Ox·May·Bay·It·No·Eight·She·No-·Low·Ox·Key"
+    )
+    assert senior("combination", "NN1") == "·Key·Ox·May·Bay·It·No·Eight·She·No"
+
+
+def test_the_vowel_before_a_final_l_comes_back_when_a_syllable_follows() -> None:
+    assert senior("rifle", "NN1") == "·Roe·I·Fee·Low"
+    assert senior("rifleman", "NN1") == "·Roe·I·Fee·Utter·Low·May·No"
+    assert senior("able", "AJ0") == "·Eight·Bay·Low"
+    assert senior("able-bodied", "AJ0") == "·Eight·Bay·Utter·Low-·Bay·Ox·Day·It·Day"
+    assert senior("cable", "NN1") == "·Key·Eight·Bay·Low"
+    assert senior("cable-car", "NN1") == "·Key·Eight·Bay·Utter·Low-·Key·Ah·Roe"
+    assert senior("feeding-bottle", "NN1") == "·Fee·Eat·Day·Oolong-·Bay·Ox·Tea·Low"
+
+
+def test_a_ruling_keyed_on_an_element_governs_the_compound() -> None:
+    assert senior("left-wing", "NN1") == "·Low·Et·Fee·Tea-·Way·It·Oolong"
+    assert senior("well-being", "NN1") == "·Way·Et·Low-·Bay·Eat·Oolong"
+    assert senior("ding-dong", "NN1") == "·Day·It·Oolong-·Day·Ox·Oolong"
+    assert senior("leading-strings", "NN2") == (
+        "·Low·Eat·Day·Oolong-·See·Tea·Roe·It·Oolong·Zoo"
+    )
+
+
+def test_a_compound_keeps_its_own_pronunciation_where_readlex_gives_it_one() -> None:
+    assert senior("black-lead", "NN1") == "·Bay·Low·At·Key-·Low·Et·Day"
+    assert senior("bay-wreaths", "NN2") == "·Bay·Eight-·Roe·Eat·Thaw·See"
+    assert senior("aide-de-camp", "NN1") == "·Eight·Day-·Day·Utter-·Key·Ah·May"
+    assert senior("a la mode", "AV0") == "·Ah ·Low·Ah ·May·Owe·Day"
+
+
+def test_split_marks_only_the_element_the_entry_ends_on_as_final() -> None:
+    context = context_for("adding-machine", "NN1")
+    elements = split(context, naive(context))
+    assert [(e.context.latin, e.word, e.context.final) for e in elements] == [
+        ("adding", True, False),
+        ("-", False, False),
+        ("machine", True, True),
+    ]
+
+
+def test_split_gives_a_prefix_form_entry_no_final_element() -> None:
+    context = context_for("after-", "PRE")
+    elements = split(context, naive(context))
+    assert [e.context.final for e in elements if e.word] == [False]
+
+
+def test_split_leaves_an_entry_the_alignment_guard_rejects_whole() -> None:
+    for word in ("to-day", "dhs"):
+        context = context_for(word)
+        elements = split(context, naive(context))
+        assert [(e.context.latin, e.context.final) for e in elements] == [(word, True)]
+    assert senior("to-day", "NN1") == "·Tea·Utter·Day·Eight"
 
 
 def test_terminal_rules_are_mutually_exclusive() -> None:

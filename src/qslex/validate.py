@@ -14,13 +14,13 @@ from qslex.overrides import Override, load_overrides
 from qslex.quirks import load_quirks, normalize
 from qslex.readlex import CORPUS_HEADWORDS, CORPUS_ROWS, CorpusError, Row, load_rows
 from qslex.rules import (
-    GATED_RULES,
     RULES,
     Context,
     claims,
     load_tables,
     naive,
     spell,
+    split,
     undecided_ess,
     undecided_ful,
     undecided_ing,
@@ -77,9 +77,9 @@ RRP_HEADWORDS = 56649
 # by ReadLex's IPA already and ship as normalisers, so a zero here is a statement, not a
 # bug: it says the corpus never contradicts that rule.
 EXPECTED_RULE_CHANGES: dict[str, int] = {
-    "terminal-es-ed": 7678,
-    "terminal-ing": 10400,
-    "prefix-con-com": 1361,
+    "terminal-es-ed": 7681,
+    "terminal-ing": 10976,
+    "prefix-con-com": 1390,
     "prefix-un": 0,
     "prefix-an-al-ar": 0,
     "prefix-ob-of": 0,
@@ -87,22 +87,22 @@ EXPECTED_RULE_CHANGES: dict[str, int] = {
     "prefix-pre-pro": 0,
     "prefix-per-pur": 0,
     "prefix-in-en": 0,
-    "terminal-ally-able": 982,
-    "terminal-tion": 2728,
-    "terminal-ess-est": 1814,
-    "terminal-land-ment": 884,
+    "terminal-ally-able": 978,
+    "terminal-tion": 2751,
+    "terminal-ess-est": 1818,
+    "terminal-land-ment": 893,
     "terminal-ent-ance": 0,
     "terminal-us-ous": 1,
-    "terminal-ward": 70,
+    "terminal-ward": 71,
     "terminal-ful": 0,
-    "terminal-ain": 21,
-    "terminal-age": 277,
-    "terminal-al-el-le-il": 3136,
+    "terminal-ain": 22,
+    "terminal-age": 302,
+    "terminal-al-el-le-il": 3140,
     "terminal-ia-ea": 13,
     "terminal-ier-ior": 0,
     "terminal-er": 0,
-    "terminal-y": 13,
-    "terminal-en-on": 18,
+    "terminal-y": 14,
+    "terminal-en-on": 25,
 }
 
 # Rows each word sign or standard outline rewrites, again over the rows the lexicon
@@ -286,24 +286,25 @@ def main(argv: list[str] | None = None) -> int:
             result = spell(context, tables)
             spellings["senior"][(word, row.pos)].add(result.senior)
             spellings["ligature"][(word, row.pos)].add(result.ligature or result.senior)
-            for orthographic in RULES:
-                if orthographic.latin is None or claims(orthographic, context):
-                    rule_claims[orthographic.id] += 1
             for rule_id in result.applied:
                 rule_changes[rule_id] += 1
-                if (rule_id, word) in tables.words:
-                    rule_word_hits.add((rule_id, word))
-            for rule_id in GATED_RULES:
-                if tables.skipped(rule_id, word):
-                    rule_word_hits.add((rule_id, word))
-            if undecided_ing(word, vvg) and not tables.ruled("terminal-ing", word):
-                undecided["terminal-ing"].add(word)
-            if undecided_ess(context, raw, tables):
-                undecided["terminal-ess-est"].add(word)
-            if undecided_ful(context, raw, tables):
-                undecided["terminal-ful"].add(word)
-            if undecided_prefix(context, raw, tables):
-                undecided["prefix-be-de-re"].add(word)
+            rule_word_hits.update(result.ruled)
+            for element in split(context, raw):
+                if not element.word:
+                    continue
+                inner = element.context
+                part = inner.latin
+                for orthographic in RULES:
+                    if orthographic.latin is None or claims(orthographic, inner):
+                        rule_claims[orthographic.id] += 1
+                if undecided_ing(part, vvg) and not tables.ruled("terminal-ing", part):
+                    undecided["terminal-ing"].add(part)
+                if undecided_ess(inner, element.letters, tables):
+                    undecided["terminal-ess-est"].add(part)
+                if undecided_ful(inner, element.letters, tables):
+                    undecided["terminal-ful"].add(part)
+                if undecided_prefix(inner, element.letters, tables):
+                    undecided["prefix-be-de-re"].add(part)
             why = undecided_ligature(context, raw, tables)
             if why:
                 undecided[f"ligature/{why}"].add(word)

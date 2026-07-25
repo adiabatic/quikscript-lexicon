@@ -10,6 +10,7 @@ Authority links go to the [AMS Manual transcription][manual]; every letter-name 
 - `src/qslex/data/contractions.tsv` — the 78 rows of the [§III contraction list][senior], which reach **no** column. Columns: `word`, `pos`, `kind`, `contraction`, `authority`, `note`.
 - `src/qslex/words.py` — the loaders and the substitution, which rejects an unknown tier, a Manual anchor that does not belong to this table, a Junior spelling that merely repeats the Senior one, a part-of-speech row that a general row already shadows, and a missing core sign.
 - `src/qslex/letters.py` — the letter-name primitives this layer shares with the rules.
+- `src/qslex/elements.py` — the split into elements it shares with them too, so that neither layer can disagree with the other about where a boundary is.
 
 ## The three tiers
 
@@ -87,7 +88,7 @@ The Manual names MS, M.C., etc, i.e. and e.g. as standard contractions in everyd
 
 ## Phrase entries
 
-A multi-word or hyphenated entry is matched word by word at every boundary, space and hyphen alike. That is what ReadLex itself does with its capitals — air-to-air is `ˌeəR-T-ˈeəR`, dyed-in-the-wool is `ˌdaɪd-ɪn-Ð-ˈwʊl` — so following it keeps the two halves of the same convention consistent.
+A multi-word or hyphenated entry is matched word by word at every boundary, space and hyphen alike. That is what ReadLex itself does with its capitals — air-to-air is `ˌeəR-T-ˈeəR`, dyed-in-the-wool is `ˌdaɪd-ɪn-Ð-ˈwʊl` — so following it keeps the two halves of the same convention consistent. [Read's orthographic rules](orthographic-rules.md#one-entry-several-words) now cut an entry up the same way, at the same boundaries, in the same code.
 
 Two guards keep it honest. A row is only applied inside a phrase if it holds for **every** part of speech, because the entry's tag belongs to the phrase and not to any word inside it: that is has an AV0 tag, but the that inside it is not the degree adverb, so it keeps the demonstrative ·They·At·Tea while the standalone AV0 that contracts. And nothing is substituted unless the Latin words and the spelling's runs are the same shape, which is what stops to-day (`təˈdeɪ`, one run against three Latin parts) and dhs (one Latin part against seven runs, its IPA being the department's name spelt out) from being mangled. Equal counts are not enough on their own: the shape check also refuses a Latin hyphen facing a spelt space, so a substitution can never cross a boundary other than the one it matched.
 

@@ -38,7 +38,8 @@ In the order a word passes through the pipeline:
 - `src/qslex/data/ipa-to-qs.tsv` — the canonical IPA → Quikscript segment mapping the tokenizer matches against (spec: [`docs/ipa-to-qs.md`](docs/ipa-to-qs.md))
 - `src/qslex/data/ipa-overrides.tsv` — per-word stress overrides consulted while resolving a token, where the mechanical ɪə rule is wrong
 - `src/qslex/data/shavian-divergences.tsv` — words where the Manual deliberately overrules ReadLex's Shavian column, so the validator expects that disagreement
-- `src/qslex/rules.py` — Read's terminal, affix and prefix conventions applied on top of the segment mapping, plus the ·Excite/·Exam ligature column (spec: [`docs/orthographic-rules.md`](docs/orthographic-rules.md))
+- `src/qslex/elements.py` — where an entry's boundaries are: the one split into elements that both the rules and the word signs cut a hyphenated or multi-word entry at
+- `src/qslex/rules.py` — Read's terminal, affix and prefix conventions applied on top of the segment mapping, word by word inside a compound, plus the ·Excite/·Exam ligature column (spec: [`docs/orthographic-rules.md`](docs/orthographic-rules.md))
 - `src/qslex/data/manual-spellings.tsv` — every spelling the Manual writes out, and every example word it names, as the fixture the rules are held to
 - `src/qslex/data/rule-words.tsv` — per-word rulings for the four rules whose trigger the data cannot settle by itself
 - `src/qslex/data/x-ligatures.tsv` — the words where the Latin `x` cannot be aligned to a letter pair mechanically

@@ -3,10 +3,11 @@ from __future__ import annotations
 import csv
 import dataclasses
 import re
-from collections.abc import Callable, Container
+from collections.abc import Callable, Container, Iterable
 from dataclasses import dataclass, field
 from pathlib import Path
 
+from qslex.elements import DIVIDERS, elements
 from qslex.letters import Letter, Letters, names, parse, render, unknown_names
 from qslex.mapping import open_data
 from qslex.tokenizer import Token, is_stressed
@@ -54,6 +55,16 @@ class Context:
     pos: str
     ipa: str
     tokens: tuple[Token, ...]
+    final: bool = True
+
+    def within(self, latin: str, final: bool) -> Context:
+        """The same row seen as one element of its own entry.
+
+        A rule reads the Latin spelling, the part-of-speech tag, and whether the entry
+        ends here; the IPA and its tokens ride along whole, because nothing after
+        `naive` looks at them.
+        """
+        return dataclasses.replace(self, latin=latin, final=final)
 
 
 @dataclass(frozen=True)
@@ -62,6 +73,7 @@ class Spelling:
     junior: str
     ligature: str
     applied: tuple[str, ...]
+    ruled: tuple[tuple[str, str], ...]
     signed: tuple[str, ...]
     signs: tuple[tuple[str, str], ...]
 
@@ -138,6 +150,18 @@ def _force(letters: Letters, offset: int, shape: tuple[str, ...], want: str) -> 
     return _rename(letters, index, want)
 
 
+def _restored(context: Context) -> bool:
+    """Whether the vowel before a word-final L comes back, another syllable following.
+
+    "Where another syllable is added, the vowel sound before this L must be clearly
+    pronounced and spelt in most cases: as it must be in — finally, orally, animality,
+    initially, officially, levelling, devilry, caviller, rif(u)leman." A following
+    element of a compound adds a syllable exactly as a suffix does, so able-bodied and
+    cable-car keep the vowel that able and cable drop.
+    """
+    return not context.final
+
+
 def _omit(letters: Letters, offset: int, shape: tuple[str, ...]) -> Letters:
     """Drop the unstressed vowel that precedes `shape`, unless a vowel precedes it."""
     if not _ends(letters, offset, *shape):
@@ -180,6 +204,14 @@ class Tables:
 
     def ruled(self, rule: str, latin: str) -> bool:
         return (rule, latin) in self.words
+
+    def consulted(
+        self, fired: Iterable[str], latin: str
+    ) -> tuple[tuple[str, str], ...]:
+        """The rulings this word reached: one it fired under, or one that stopped it."""
+        keys = {(rule, latin) for rule in fired}
+        keys.update((rule, latin) for rule in GATED_RULES if self.skipped(rule, latin))
+        return tuple(sorted(keys & self.words.keys()))
 
     def ligature_for(self, latin: str, pos: str) -> LigatureRule | None:
         return self.ligatures.get((latin, pos)) or self.ligatures.get((latin, ""))
@@ -384,8 +416,11 @@ def apply_ally(context: Context, letters: Letters, tables: Tables) -> Letters:
         if index and letters[index - 1].is_vowel:
             return _force(letters, offset, ("Low", "It"), "Utter")
         return _insert(letters, index, "Utter")
-    tail = ("Low", "It") if match.group(1) in {"ably", "ibly"} else ("Low",)
-    return _omit(letters, offset, tail)
+    if match.group(1) in {"ably", "ibly"}:
+        return _omit(letters, offset, ("Low", "It"))
+    if _restored(context):
+        return letters
+    return _omit(letters, offset, ("Low",))
 
 
 def apply_tion(context: Context, letters: Letters, tables: Tables) -> Letters:
@@ -534,7 +569,7 @@ def apply_ful(context: Context, letters: Letters, tables: Tables) -> Letters:
 
 def apply_al(context: Context, letters: Letters, tables: Tables) -> Letters:
     match = AL.search(context.latin)
-    if match is None:
+    if match is None or _restored(context):
         return letters
     return _omit(letters, _offset(match, letters), ("Low",))
 
@@ -631,6 +666,47 @@ def terminal_for(context: Context) -> Rule | None:
         if claims(rule, context):
             return rule
     return None
+
+
+@dataclass(frozen=True)
+class Element:
+    """One part of an entry, with the run of the spelling that belongs to it.
+
+    A `word` is what the rules run on: not the separators, and not the empty word an
+    entry that begins or ends with one leaves behind.
+    """
+
+    context: Context
+    letters: Letters
+
+    @property
+    def word(self) -> bool:
+        return bool(self.context.latin) and self.context.latin not in DIVIDERS
+
+
+def split(context: Context, letters: Letters) -> tuple[Element, ...]:
+    """The entry cut into the words the terminals and prefixes actually attach to.
+
+    A terminal is keyed to the end of a word and a prefix to the start of one, so a
+    hyphenated or multi-word entry has to be cut up before either can see the words
+    inside it: matching the whole entry string leaves a terminal for the last element
+    only and a prefix for the first, and every element between them keeps a vowel the
+    Manual drops. The cut is `qslex.elements`', alignment guard and all, so that the
+    rules and the word signs cannot disagree about where a boundary is; an entry the
+    guard rejects comes back whole, as a single element.
+
+    Only the element the entry ends on is final, which is why a prefix-form entry like
+    after- has none: something follows its last word, even if the corpus does not say
+    what.
+    """
+    pairs = elements(context.latin, letters)
+    if pairs is None:
+        return (Element(context, letters),)
+    last = len(pairs) - 1
+    return tuple(
+        Element(context.within(part, index == last), run)
+        for index, (part, run) in enumerate(pairs)
+    )
 
 
 def _pairs(letters: Letters) -> list[tuple[int, str]]:
@@ -749,17 +825,33 @@ def undecided_ligature(context: Context, letters: Letters, tables: Tables) -> st
     return ""
 
 
-def spell(context: Context, tables: Tables = NO_TABLES) -> Spelling:
-    letters = naive(context)
+def _stack(element: Element, tables: Tables) -> tuple[Letters, tuple[str, ...]]:
+    letters = element.letters
     applied: list[str] = []
-    terminal = terminal_for(context)
+    terminal = terminal_for(element.context)
     for rule in RULES:
         if rule.stage == "terminal" and rule is not terminal:
             continue
-        after = rule.apply(context, letters, tables)
+        after = rule.apply(element.context, letters, tables)
         if after != letters:
             applied.append(rule.id)
             letters = after
+    return letters, tuple(applied)
+
+
+def spell(context: Context, tables: Tables = NO_TABLES) -> Spelling:
+    out: list[Letter] = []
+    fired: set[str] = set()
+    rulings: set[tuple[str, str]] = set()
+    for element in split(context, naive(context)):
+        if not element.word:
+            out.extend(element.letters)
+            continue
+        after, applied = _stack(element, tables)
+        out.extend(after)
+        fired.update(applied)
+        rulings.update(tables.consulted(applied, element.context.latin))
+    letters = tuple(out)
     senior, signed, consulted = apply_signs(
         context.latin, context.pos, letters, tables.signs, "senior"
     )
@@ -771,7 +863,8 @@ def spell(context: Context, tables: Tables = NO_TABLES) -> Spelling:
         senior=render(senior),
         junior="" if names(junior) == names(senior) else render(junior),
         ligature="" if lig is None or names(lig) == names(senior) else render(lig),
-        applied=tuple(applied),
+        applied=tuple(rule.id for rule in RULES if rule.id in fired),
+        ruled=tuple(sorted(rulings)),
         signed=signed,
         signs=consulted,
     )

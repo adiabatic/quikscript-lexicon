@@ -1,11 +1,11 @@
 from __future__ import annotations
 
 import csv
-import re
 from collections.abc import Iterable
 from dataclasses import dataclass
 from pathlib import Path
 
+from qslex.elements import DIVIDERS, components
 from qslex.mapping import open_data
 
 PENN_FILE = "c5-to-penn.tsv"
@@ -18,8 +18,6 @@ REASONS = {"html-entity", "tokenizer-split"}
 
 FALLBACK = "0"
 JOIN = "⬌"
-BOUNDARY = re.compile(r"([ -])")
-DIVIDERS = frozenset(" -")
 
 # The order tagged rows are written in. Proper nouns come first on purpose: a consumer
 # that falls back from NNP to the NN row — which is what latin2shaw.py does — reaches
@@ -219,7 +217,7 @@ def _composes(entry: str, fallback: dict[str, str]) -> bool:
     answer. A single word with an apostrophe never composes: the tokenizer splits the
     clitic off, and no lexicon entry covers the halves.
     """
-    pieces = BOUNDARY.split(entry)
+    pieces = components(entry)
     if len(pieces) == 1:
         return "'" not in entry
     built: list[str] = []
