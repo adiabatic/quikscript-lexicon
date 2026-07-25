@@ -2,12 +2,13 @@ from __future__ import annotations
 
 import argparse
 import collections
+import dataclasses
 import re
 import sys
 from pathlib import Path
 
 from qslex.divergences import load_divergences
-from qslex.manual import load_examples
+from qslex.manual import SIGN_ANCHORS, load_examples
 from qslex.mapping import Mapping, load_mapping
 from qslex.overrides import Override, load_overrides
 from qslex.quirks import load_quirks, normalize
@@ -34,6 +35,7 @@ from qslex.tokenizer import (
     pre_r,
     tokenize,
 )
+from qslex.words import CORE_EIGHT, load_contractions
 
 EAR = "\U0001047d"
 IAN = "\U0001047e"
@@ -98,6 +100,30 @@ EXPECTED_RULE_CHANGES: dict[str, int] = {
     "terminal-en-on": 18,
 }
 
+# Rows each word sign or standard outline rewrites. Most of the Manual's Common words
+# are already what ReadLex's IPA gives, and five of the core eight arrive as upstream's
+# own Ð/T/N/V/F capitals, so a zero here says the corpus agrees with the Manual rather
+# than that the row is idle. Counts include the word inside a phrase entry.
+EXPECTED_SIGN_CHANGES: dict[str, int] = {
+    "after": 5,
+    "always": 1,
+    "at": 4,
+    "be": 3,
+    "dr": 1,
+    "is": 2,
+    "it": 2,
+    "last": 5,
+    "mr": 2,
+    "mrs": 2,
+    "that": 3,
+    "to": 3,
+    "was": 1,
+}
+
+# Rows whose Junior spelling diverges from the Senior one: non-demonstrative that,
+# and the two standard outlines that reduce a vowel ReadLex writes in full.
+EXPECTED_JUNIOR_DIVERGENCES = 5
+
 # Words the Manual spells out that ReadLex has no entry for, so the fixture records
 # them without being able to reproduce them.
 EXPECTED_MANUAL_ABSENT = 2
@@ -155,6 +181,7 @@ def main(argv: list[str] | None = None) -> int:
     overrides = load_overrides(mapping)
     divergences = load_divergences()
     tables = load_tables()
+    contractions = load_contractions()
     examples = load_examples()
     try:
         rows: tuple[Row, ...] = load_rows(
@@ -183,6 +210,11 @@ def main(argv: list[str] | None = None) -> int:
     rule_claims: collections.Counter[str] = collections.Counter()
     rule_word_hits: set[tuple[str, str]] = set()
     ligature_hits: set[tuple[str, str]] = set()
+    sign_changes: collections.Counter[str] = collections.Counter()
+    sign_hits: set[tuple[str, str]] = set()
+    junior_rows = 0
+    junior_drift: list[str] = []
+    core_misses: list[str] = []
     undecided: dict[str, set[str]] = collections.defaultdict(set)
     stray_ligatures: list[str] = []
     spellings: dict[str, dict[tuple[str, str], set[str]]] = {
@@ -191,6 +223,8 @@ def main(argv: list[str] | None = None) -> int:
     }
 
     vvg = {row.word.lower() for row in rows if row.pos == "VVG"}
+    core_signs = {word: tables.signs[(word, "")].senior for word in CORE_EIGHT}
+    unsigned = dataclasses.replace(tables, signs={})
 
     normalized_strings: list[str] = []
     for row in rows:
@@ -251,6 +285,22 @@ def main(argv: list[str] | None = None) -> int:
                 break
         if result.ligature and "x" not in word:
             stray_ligatures.append(f"{word!r} has no x but got {result.ligature}")
+        for touched in dict.fromkeys(result.signed):
+            sign_changes[touched] += 1
+        sign_hits.update(result.signs)
+        if word in core_signs and result.senior != core_signs[word]:
+            core_misses.append(
+                f"{word!r} [{row.pos}] is a core word sign, wanted "
+                f"{core_signs[word]}, got {result.senior}"
+            )
+        if result.junior:
+            junior_rows += 1
+            bare = spell(context, unsigned).senior
+            if result.junior != bare:
+                junior_drift.append(
+                    f"{word!r} [{row.pos}] declares Junior {result.junior}, but "
+                    f"leaving the sign unapplied gives {bare}"
+                )
 
         claimed = row.shavian.count(EAR)
         produced = stressed_rhotic_ears(ipa, tokens)
@@ -466,6 +516,69 @@ def main(argv: list[str] | None = None) -> int:
         print(f"    {line}")
     if stray_ligatures:
         failures.append(f"{len(stray_ligatures)} ligatures on words without an x")
+
+    print("\nword signs and standard outlines, rows rewritten:")
+    for key in sorted(tables.signs):
+        if key not in sign_hits:
+            failures.append(f"word-sign row {key} was never reached by a corpus row")
+    for word in sorted(set(EXPECTED_SIGN_CHANGES) | set(sign_changes)):
+        changed = sign_changes.get(word, 0)
+        pinned = EXPECTED_SIGN_CHANGES.get(word)
+        drift = "" if pinned is None or changed == pinned else f" MISMATCH ({pinned})"
+        print(f"  {word:12} {changed:4}{drift}")
+        if pinned is None:
+            failures.append(f"{word!r} rewrites {changed} rows with no pinned count")
+        elif changed != pinned:
+            failures.append(
+                f"word sign {word!r} rewrote {changed} rows, expected {pinned}"
+            )
+    corroborated = {e.word for e in examples if e.rule in SIGN_ANCHORS}
+    uncorroborated = sorted(set(sign_changes) - corroborated)
+    print(f"  rewriting words with no Manual fixture: {uncorroborated or 'none'}")
+    if uncorroborated:
+        failures.append(
+            f"these words rewrite rows but no manual-spellings.tsv row holds their "
+            f"spelling to the Manual: {uncorroborated}"
+        )
+    busy = {key for key in tables.signs if key[0] in sign_changes}
+    print(
+        f"  {len(tables.signs)} rows, {len(sign_hits)} reached, "
+        f"{len(tables.signs) - len(busy)} that rewrite nothing"
+    )
+    for word, spelling in sorted(core_signs.items()):
+        print(f"  core: {word:5} {spelling}")
+    print(f"  core-eight rows disagreeing with their sign: {len(core_misses)}")
+    for line in core_misses[:10]:
+        print(f"    {line}")
+    if core_misses:
+        failures.append(f"{len(core_misses)} rows spell a core word sign in full")
+
+    print(f"\nJunior divergences: {junior_rows} (want {EXPECTED_JUNIOR_DIVERGENCES})")
+    for line in junior_drift[:10]:
+        print(f"    {line}")
+    if junior_rows != EXPECTED_JUNIOR_DIVERGENCES:
+        failures.append(
+            f"{junior_rows} rows carry a Junior spelling, "
+            f"expected {EXPECTED_JUNIOR_DIVERGENCES}"
+        )
+    if junior_drift:
+        failures.append(
+            f"{len(junior_drift)} Junior spellings are not simply the unsigned spelling"
+        )
+
+    print(
+        f"\nSenior contraction table (converter layer, applied to no column): "
+        f"{len(contractions)} rows"
+    )
+    known_words = {row.word.lower() for row in rows}
+    orphans = [
+        entry.word
+        for entry in contractions
+        if entry.kind == "word" and entry.word not in known_words
+    ]
+    print(f"  contractions with no ReadLex entry: {len(orphans)}")
+    if orphans:
+        failures.append(f"contraction rows for words ReadLex does not have: {orphans}")
 
     absent = 0
     unreproduced: list[str] = []

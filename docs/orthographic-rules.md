@@ -7,7 +7,7 @@ Section III of the Manual is the complete inventory: eighteen terminal rules and
 ## Artifacts
 
 - `src/qslex/rules.py` — the engine and the twenty-six rules. Pure functions over a `Context` of (Latin spelling, POS, quirk-normalised IPA, tokens); the rulings a single row cannot make for itself come from declared tables, not from corpus lookups inside a rule.
-- `src/qslex/data/manual-spellings.tsv` — the fixture: 340 rows covering every rule, 118 of them spellings the Manual writes out itself. Columns: `word`, `pos`, `column` (`senior`/`ligature`), `kind` (`word`/`terminal`/`prefix`), `spelling`, `source`, `rule`, `note`.
+- `src/qslex/data/manual-spellings.tsv` — the fixture: 358 rows covering every rule, 136 of them spellings the Manual writes out itself. Eighteen belong to the word-sign layer rather than to a rule ([`docs/word-signs.md`](word-signs.md)). Columns: `word`, `pos`, `column` (`senior`/`ligature`), `kind` (`word`/`terminal`/`prefix`), `spelling`, `source`, `rule`, `note`.
 - `src/qslex/data/rule-words.tsv` — per-word rulings for the four rules whose trigger the data cannot settle: 320 rows, each `apply` or `skip` with an authority and a note.
 - `src/qslex/data/x-ligatures.tsv` — the eleven words where the mechanical Latin-`x` ↔ letter-pair alignment cannot place the ligature by itself.
 - `src/qslex/manual.py` — the fixture loader, which rejects an unknown rule anchor, an unknown letter name, or a derived spelling with no note.

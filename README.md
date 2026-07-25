@@ -15,6 +15,9 @@ In the order a word passes through the pipeline:
 - `src/qslex/data/manual-spellings.tsv` — every spelling the Manual writes out, and every example word it names, as the fixture the rules are held to
 - `src/qslex/data/rule-words.tsv` — per-word rulings for the four rules whose trigger the data cannot settle by itself
 - `src/qslex/data/x-ligatures.tsv` — the words where the Latin `x` cannot be aligned to a letter pair mechanically
+- `src/qslex/words.py` — the lexical layer that runs last: the Manual's word signs, standard word-outlines and abbreviations, and the junior column (spec: [`docs/word-signs.md`](docs/word-signs.md))
+- `src/qslex/data/word-signs.tsv` — the core eight, the three abbreviations, and every standard word-outline, with the junior form where it diverges
+- `src/qslex/data/contractions.tsv` — the Manual's ~50 Senior contractions, shipped for the transliterator and applied to no column
 - `src/qslex/` — the loaders, tokenizer, and exhaustive validator that run all of the above
 
 The mapping tables live inside the package so they are importable from an installed wheel; the corpus lives outside it, because a consumer transcribing IPA does not need 6 MB of ReadLex.
@@ -27,7 +30,7 @@ uv run python -m qslex.validate
 uv run ruff check . && uv run ruff format --check . && uv run mypy
 ```
 
-The validator tokenizes every vendored IPA string and fails on any unmapped residue, any mapping row or quirk rule that stops firing, any quirk rule that touches a word it does not declare, any ɪə decision that contradicts the Shavian column without a recorded authority, and any drift in the pinned corpus invariants. It then applies Read's orthographic rules to every row and fails on any spelling the Manual writes out that the rules no longer reproduce, any rule whose rewrite count has drifted, any ruling that has gone stale, and any word left undecided. It verifies the corpus SHA-256 first, so a corpus bump is always a deliberate, reviewable change.
+The validator tokenizes every vendored IPA string and fails on any unmapped residue, any mapping row or quirk rule that stops firing, any quirk rule that touches a word it does not declare, any ɪə decision that contradicts the Shavian column without a recorded authority, and any drift in the pinned corpus invariants. It then applies Read's orthographic rules to every row and fails on any spelling the Manual writes out that the rules no longer reproduce, any rule whose rewrite count has drifted, any ruling that has gone stale, and any word left undecided. Finally it substitutes the word signs and fails on any sign row the corpus never reaches, any word whose rewrite count is unpinned or has drifted, any core-eight row spelt out in full, and any junior spelling that is not simply the spelling with the override left unapplied. It verifies the corpus SHA-256 first, so a corpus bump is always a deliberate, reviewable change.
 
 ## License
 

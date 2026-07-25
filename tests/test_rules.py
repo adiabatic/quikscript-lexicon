@@ -17,6 +17,8 @@ from qslex import (
     spell,
     tokenize,
 )
+from qslex.letters import parse, render_qs
+from qslex.manual import SIGN_ANCHORS
 from qslex.rules import (
     RULE_IDS,
     TERMINAL_RULES,
@@ -24,8 +26,6 @@ from qslex.rules import (
     load_rule_words,
     load_x_ligatures,
     naive,
-    parse,
-    render_qs,
     terminal_for,
     undecided_ing,
 )
@@ -97,7 +97,7 @@ def test_manual_example_words(example: Example) -> None:
 
 def test_the_fixture_covers_every_rule() -> None:
     covered = {example.rule for example in EXAMPLES}
-    assert covered == set(RULE_IDS) | {"section-2"}
+    assert covered == set(RULE_IDS) | {"section-2"} | SIGN_ANCHORS
 
 
 def test_every_manual_source_row_is_a_whole_or_partial_spelling() -> None:

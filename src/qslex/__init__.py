@@ -1,5 +1,14 @@
 from qslex.csur import CODEPOINT_OF, NAME_OF
 from qslex.divergences import Divergence, load_divergences
+from qslex.letters import (
+    Letter,
+    Letters,
+    names,
+    parse,
+    render,
+    render_qs,
+    unknown_names,
+)
 from qslex.manual import Example, load_examples
 from qslex.mapping import MapEntry, Mapping, load_mapping
 from qslex.overrides import Override, Overrides, load_overrides
@@ -8,7 +17,6 @@ from qslex.readlex import Row, load_rows
 from qslex.rules import (
     RULES,
     Context,
-    Letter,
     LigatureRule,
     Rule,
     RuleWord,
@@ -18,20 +26,31 @@ from qslex.rules import (
     load_tables,
     load_x_ligatures,
     naive,
-    render,
-    render_qs,
     spell,
 )
 from qslex.tokenizer import Token, TokenizeError, is_stressed, letters, qs, tokenize
+from qslex.words import (
+    CORE_EIGHT,
+    Contraction,
+    Sign,
+    Signs,
+    apply_signs,
+    load_contractions,
+    load_word_signs,
+    sign_for,
+)
 
 __all__ = [
     "CODEPOINT_OF",
+    "CORE_EIGHT",
     "NAME_OF",
     "RULES",
     "Context",
+    "Contraction",
     "Divergence",
     "Example",
     "Letter",
+    "Letters",
     "LigatureRule",
     "MapEntry",
     "Mapping",
@@ -41,12 +60,16 @@ __all__ = [
     "Row",
     "Rule",
     "RuleWord",
+    "Sign",
+    "Signs",
     "Spelling",
     "Tables",
     "Token",
     "TokenizeError",
+    "apply_signs",
     "is_stressed",
     "letters",
+    "load_contractions",
     "load_divergences",
     "load_examples",
     "load_mapping",
@@ -55,12 +78,17 @@ __all__ = [
     "load_rows",
     "load_rule_words",
     "load_tables",
+    "load_word_signs",
     "load_x_ligatures",
     "naive",
+    "names",
     "normalize",
+    "parse",
     "qs",
     "render",
     "render_qs",
+    "sign_for",
     "spell",
     "tokenize",
+    "unknown_names",
 ]

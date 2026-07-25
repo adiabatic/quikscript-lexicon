@@ -1,0 +1,79 @@
+word	pos	kind	contraction	authority	note
+also		word	·Awe·Low·See	senior-contractions	
+are		word	·Roe	senior-contractions	
+as		word	·At	senior-contractions	
+be		word	·Bay	senior-contractions	also one of the core eight, so the senior column already carries it
+being		word	·Bay·Oolong	senior-contractions	the root contraction, which the affix -ing rule alone would not reach
+been		word	·Bay·No	senior-contractions	
+because		word	·Bay·Key·Zoo	senior-contractions	
+before		word	·Bay·Fee	senior-contractions	
+but		word	·Bay·Tea	senior-contractions	
+can		word	·Key	senior-contractions	
+can't		word	·Key·No·Tea	senior-contractions	written solid, no apostrophe
+cannot		word	·Key·At·No·Ox·Tea	senior-contractions	
+come		word	·Key·May	senior-contractions	
+comes		word	·Key·May·Zoo	senior-contractions	
+coming		word	·Key·May·Oolong	senior-contractions	
+could		word	·Key·Day	senior-contractions	
+couldn't		word	·Key·Day·No·Tea	senior-contractions	written solid, no apostrophe
+do		word	·Day	senior-contractions	
+did		word	·Day·Day	senior-contractions	
+don't		word	·Day·No·Tea	senior-contractions	written solid, no apostrophe
+didn't		word	·Day·Day·No·Tea	senior-contractions	written solid, no apostrophe
+ever		word	·Et·Vie	senior-contractions	
+every		word	·Et·Vie·It	senior-contractions	
+from		word	·Fee·May	senior-contractions	
+go		word	·Gay	senior-contractions	
+going		word	·Gay·Oolong	senior-contractions	the root contraction, which the affix -ing rule alone would not reach
+gone		word	·Gay·No	senior-contractions	
+good		word	·Gay·Day	senior-contractions	
+have		word	·He·Vie	senior-contractions	
+haven't		word	·He·Vie·No·Tea	senior-contractions	written solid, no apostrophe
+he		word	·He	senior-contractions	
+him		word	·He·May	senior-contractions	
+his		word	·He·Zoo	senior-contractions	
+into		word	·It·No·Tea	senior-contractions	
+its		word	·It·See	senior-contractions	the Manual gives one spelling for its and it's alike
+it's		word	·It·See	senior-contractions	the Manual gives one spelling for its and it's alike, and writes no apostrophe
+little		word	·Low·It·Low	senior-contractions	
+make		word	·May·Key	senior-contractions	
+making		word	·May·Key·Oolong	senior-contractions	the root contraction, which the affix -ing rule alone would not reach
+made		word	·May·Day	senior-contractions	
+me		word	·May	senior-contractions	
+much		word	·May·Cheer	senior-contractions	
+never		word	·No·Et·Vie	senior-contractions	
+often		word	·Ox·Fee·No	senior-contractions	named as the exception to terminal -en, -on, which otherwise writes ·Utter·No invariably
+on		word	·Ox	senior-contractions	
+only		word	·Owe·No·It	senior-contractions	
+people		word	·Pea·Pea·Low	senior-contractions	
+perhaps		word	·Pea·Pea·See	senior-contractions	
+shall		word	·She·Low	senior-contractions	
+should		word	·She·Day	senior-contractions	
+she		word	·She	senior-contractions	
+so		word	·See	senior-contractions	
+than		word	·They·No	senior-contractions	
+that	AJ0	word	·They·Tea	senior-contractions	not when demonstrative; the senior column already carries this, because the Common words list states it too
+that	AV0	word	·They·Tea	senior-contractions	not when demonstrative; the senior column already carries this, because the Common words list states it too
+that	CJT	word	·They·Tea	senior-contractions	not when demonstrative; the senior column already carries this, because the Common words list states it too
+these		word	·They·Zoo	senior-contractions	
+think		word	·Thaw	senior-contractions	
+thinking		word	·Thaw·Oolong	senior-contractions	the root contraction, which the affix -ing rule alone would not reach
+thought		word	·Thaw·Tea	senior-contractions	
+this		word	·They·See	senior-contractions	
+time		word	·Tea·May	senior-contractions	
+times		word	·Tea·May·Zoo	senior-contractions	
+very		word	·Vie·Roe	senior-contractions	
+we		word	·Way	senior-contractions	
+what		word	·Why	senior-contractions	
+whatever		word	·Why·Et·Vie	senior-contractions	
+which		word	·Cheer	senior-contractions	
+will		word	·Low	senior-contractions	
+with		word	·Way·It	senior-contractions	
+without		word	·Way·It·Out·Tea	senior-contractions	
+would		word	·Way·Day	senior-contractions	
+wouldn't		word	·Way·Day·No·Tea	senior-contractions	written solid, no apostrophe
+you		word	·Ye	senior-contractions	
+your		word	·Ye·Roe	senior-contractions	
+yours		word	·Ye·Roe·Zoo	senior-contractions	
+'ll		clitic	’·Low	senior-contractions	the Manual gives will and 'll one spelling; its only running-text instance, they'll ·They·Eight’·Low, keeps the apostrophe
+n't		clitic	·No·Tea	senior-contractions	generalised from can't, couldn't, don't, didn't, haven't and wouldn't, all written solid; the Manual's running-text wasn't and doesn't agree

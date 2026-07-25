@@ -4,8 +4,9 @@ import csv
 from dataclasses import dataclass
 from pathlib import Path
 
+from qslex.letters import unknown_names
 from qslex.mapping import open_data
-from qslex.rules import RULE_IDS, unknown_names
+from qslex.rules import RULE_IDS
 
 SPELLINGS_FILE = "manual-spellings.tsv"
 SPELLINGS_HEADER = [
@@ -22,7 +23,8 @@ COLUMNS = {"senior", "ligature"}
 KINDS = {"word", "terminal", "prefix"}
 SOURCES = {"manual", "derived", "modernised"}
 LIGATURE_RULE = "section-2"
-ANCHORS = set(RULE_IDS) | {LIGATURE_RULE}
+SIGN_ANCHORS = {"junior-contractions", "common-words"}
+ANCHORS = set(RULE_IDS) | SIGN_ANCHORS | {LIGATURE_RULE}
 
 
 @dataclass(frozen=True)

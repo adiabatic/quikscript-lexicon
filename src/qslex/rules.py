@@ -7,9 +7,10 @@ from collections.abc import Callable, Container
 from dataclasses import dataclass, field
 from pathlib import Path
 
-from qslex.csur import CODEPOINT_OF
+from qslex.letters import Letter, Letters, names, parse, render, unknown_names
 from qslex.mapping import open_data
 from qslex.tokenizer import Token, is_stressed
+from qslex.words import Signs, apply_signs, load_word_signs
 
 RULE_WORDS_FILE = "rule-words.tsv"
 RULE_WORDS_HEADER = ["rule", "word", "decision", "authority", "note"]
@@ -43,45 +44,8 @@ EPENTHETIC_PAIRS = frozenset(
     }
 )
 
-VOWELS = frozenset(
-    {
-        "It",
-        "Eat",
-        "Et",
-        "Eight",
-        "At",
-        "I",
-        "Ah",
-        "Awe",
-        "Ox",
-        "Oy",
-        "Utter",
-        "Out",
-        "Owe",
-        "Foot",
-        "Ooze",
-    }
-)
 REDUCIBLE = frozenset({"It", "Utter"})
 ING_TAILS = ("ingness", "ingly", "ings", "ing")
-
-
-@dataclass(frozen=True)
-class Letter:
-    name: str
-    stressed: bool
-    source: str
-
-    @property
-    def is_vowel(self) -> bool:
-        return self.name in VOWELS
-
-    @property
-    def is_letter(self) -> bool:
-        return self.name in CODEPOINT_OF
-
-
-Letters = tuple[Letter, ...]
 
 
 @dataclass(frozen=True)
@@ -95,8 +59,11 @@ class Context:
 @dataclass(frozen=True)
 class Spelling:
     senior: str
+    junior: str
     ligature: str
     applied: tuple[str, ...]
+    signed: tuple[str, ...]
+    signs: tuple[tuple[str, str], ...]
 
 
 def naive(context: Context) -> Letters:
@@ -116,38 +83,6 @@ def naive(context: Context) -> Letters:
             out.append(Letter(name, stressed and offset == 0, token.ipa))
         position = following
     return tuple(out)
-
-
-def render(letters: Letters) -> str:
-    return "".join(("·" + f.name) if f.is_letter else f.name for f in letters)
-
-
-def render_qs(letters: Letters) -> str:
-    return "".join(
-        chr(CODEPOINT_OF[f.name]) if f.is_letter else f.name for f in letters
-    )
-
-
-LETTER = re.compile(r"·([A-Za-z]+)|(.)")
-SEPARATORS = frozenset("- '")
-
-
-def parse(spelling: str) -> Letters:
-    return tuple(
-        Letter(name or other, False, "") for name, other in LETTER.findall(spelling)
-    )
-
-
-def unknown_names(spelling: str) -> list[str]:
-    return [
-        f.name
-        for f in parse(spelling)
-        if f.name not in CODEPOINT_OF and f.name not in SEPARATORS
-    ]
-
-
-def names(letters: Letters) -> tuple[str, ...]:
-    return tuple(f.name for f in letters)
 
 
 def _drop(letters: Letters, index: int) -> Letters:
@@ -237,6 +172,7 @@ class LigatureRule:
 class Tables:
     words: dict[tuple[str, str], RuleWord] = field(default_factory=dict)
     ligatures: dict[tuple[str, str], LigatureRule] = field(default_factory=dict)
+    signs: Signs = field(default_factory=dict)
 
     def skipped(self, rule: str, latin: str) -> bool:
         entry = self.words.get((rule, latin))
@@ -321,7 +257,7 @@ def load_x_ligatures(path: Path | None = None) -> dict[tuple[str, str], Ligature
 
 
 def load_tables() -> Tables:
-    return Tables(load_rule_words(), load_x_ligatures())
+    return Tables(load_rule_words(), load_x_ligatures(), load_word_signs())
 
 
 def apply_es_ed(context: Context, letters: Letters, tables: Tables) -> Letters:
@@ -824,9 +760,18 @@ def spell(context: Context, tables: Tables = NO_TABLES) -> Spelling:
         if after != letters:
             applied.append(rule.id)
             letters = after
-    lig = ligate(context, letters, tables)
+    senior, signed, consulted = apply_signs(
+        context.latin, context.pos, letters, tables.signs, "senior"
+    )
+    junior, *_ = apply_signs(
+        context.latin, context.pos, letters, tables.signs, "junior"
+    )
+    lig = ligate(context, senior, tables)
     return Spelling(
-        senior=render(letters),
-        ligature="" if lig is None or names(lig) == names(letters) else render(lig),
+        senior=render(senior),
+        junior="" if names(junior) == names(senior) else render(junior),
+        ligature="" if lig is None or names(lig) == names(senior) else render(lig),
         applied=tuple(applied),
+        signed=signed,
+        signs=consulted,
     )

@@ -339,3 +339,21 @@ tax		senior	word	·Tea·At·Key·See	derived	section-2	senior: IPA-faithful, no 
 vex		ligature	word	·Vie·Et·Excite	derived	section-2	qs_x: Manual names Vex in the ·Et·Excite list; here ·Et is simply the /e/, not a prefix substitution; senior = ·Vie·Et·Key·See
 vex		senior	word	·Vie·Et·Key·See	derived	section-2	senior: IPA-faithful, no ligature; qs_x = ·Vie·Et·Excite
 xylophone		senior	word	·Zoo·I·Low·Utter·Fee·Owe·No	derived	section-2	qs_x = senior: Manual states ·Zoo in Xylophone — initial X spelling a /z/ takes the plain Z-letter, never a ligature
+the		senior	word	·They	manual	junior-contractions	
+of		senior	word	·Vie	manual	junior-contractions	
+and		senior	word	·No	manual	junior-contractions	
+to		senior	word	·Tea	manual	junior-contractions	
+it		senior	word	·It	manual	junior-contractions	
+is		senior	word	·Zoo	manual	junior-contractions	
+for		senior	word	·Fee	manual	junior-contractions	
+be		senior	word	·Bay	manual	junior-contractions	
+mr		senior	word	·May·Roe	manual	junior-contractions	letters 22/25; the Manual writes it name-dotted as ··May·Roe, and the dot is stripped here as it is for England
+mrs		senior	word	·May·Zoo	manual	junior-contractions	letters 22/12; name-dot stripped
+dr		senior	word	·Day·Utter·Roe	manual	junior-contractions	letters 4/36/25; name-dot stripped
+after		senior	word	·At·Fee·Tea·Utter·Roe	manual	common-words	the standard outline takes ·At, so it agrees with ReadLex's Æ rows and overrules its Ɑː ones
+always		senior	word	·Awe·Low·Way·Utter·Zoo	manual	common-words	
+at		senior	word	·At·Tea	manual	common-words	
+last		senior	word	·Low·At·See·Tea	manual	common-words	as after: the standard outline takes ·At
+was		senior	word	·Way·Utter·Zoo	manual	common-words	
+that	DT0	senior	word	·They·At·Tea	manual	common-words	
+that	CJT	senior	word	·They·Tea	manual	common-words	the Common words footnote: spelt in full only when demonstrative, otherwise ·They·Tea

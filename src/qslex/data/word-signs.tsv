@@ -1,0 +1,104 @@
+word	pos	tier	senior	junior	full	authority	note
+the		core	·They		·They·Utter	junior-contractions	the Manual omits the variable vowel by design (p.7): 'the solution … is to omit the variable vowel entirely'; ReadLex already writes the sign as Ð
+of		core	·Vie		·Ox·Vie	junior-contractions	spoken and written with a V-sound; ReadLex already writes the sign as V
+and		core	·No		·At·No·Day	junior-contractions	ReadLex already writes the sign as N
+to		core	·Tea		·Tea·Foot	junior-contractions	Tall ·Tea and Short ·It are distinct on the writing-line; ReadLex already writes the sign as T
+it		core	·It		·It·Tea	junior-contractions	ReadLex writes ordinary ɪt, so the sign is supplied here
+is		core	·Zoo		·It·Zoo	junior-contractions	spoken and written with a Z-sound; ReadLex writes ordinary ɪz, so the sign is supplied here
+for		core	·Fee		·Fee·Awe·Roe	junior-contractions	ReadLex already writes the sign as F
+be		core	·Bay		·Bay·Eat	junior-contractions	ReadLex writes ordinary biː, so the sign is supplied here
+mr		abbreviation	·May·Roe			junior-contractions	letters 22/25, written without a break; ReadLex expands the IPA to ˈmɪstəR
+mrs		abbreviation	·May·Zoo			junior-contractions	letters 22/12, written without a break; ReadLex expands the IPA to ˈmɪsəz/ˈmɪsɪz
+dr		abbreviation	·Day·Utter·Roe			junior-contractions	letters 4/36/25, written without a break — 'easier to write the three letters than two'; ReadLex expands the IPA to ˈdɒktəR
+a	AT0	standard	·Utter			common-words	the ZZ0 row is the letter A (·Eight), not the article
+an		standard	·Utter·No			common-words	
+about		standard	·Utter·Bay·Out·Tea			common-words	
+after		standard	·At·Fee·Tea·Utter·Roe			common-words	Read standardises the BATH vowel as ·At: this matches ReadLex's Æ rows and overrules its Ɑː rows, 'the choice of standard spellings … implies no preference in pronunciation'
+all		standard	·Awe·Low			common-words	
+always		standard	·Awe·Low·Way·Utter·Zoo	·Awe·Low·Way·Eight·Zoo		common-words	the Senior outline reduces -ways to ·Utter·Zoo; ReadLex's ˈɔːlweɪz gives the Junior form
+am	VBB	standard	·At·May			common-words	the AV0 row is a.m. (·Eight·Et·May), not the verb
+at		standard	·At·Tea			common-words	
+by		standard	·Bay·I			common-words	
+day		standard	·Day·Eight			common-words	
+days		standard	·Day·Eight·Zoo			common-words	
+does	VDZ	standard	·Day·Utter·Zoo			common-words	the NN2 row is the plural of doe (·Day·Owe·Zoo)
+done		standard	·Day·Utter·No			common-words	
+even		standard	·Eat·Vie·Utter·No			common-words	
+first		standard	·Fee·Utter·Roe·See·Tea			common-words	
+had		standard	·He·At·Day			common-words	
+has		standard	·He·At·Zoo			common-words	
+her		standard	·He·Utter·Roe			common-words	
+hers		standard	·He·Utter·Roe·Zoo			common-words	
+how		standard	·He·Out			common-words	
+i		standard	·I			common-words	
+if		standard	·It·Fee			common-words	
+in		standard	·It·No			common-words	
+know		standard	·No·Owe			common-words	
+known		standard	·No·Owe·No			common-words	
+last		standard	·Low·At·See·Tea			common-words	as after: the standard outline takes the ·At of ReadLex's Æ rows
+long		standard	·Low·Ox·Oolong			common-words	
+may		standard	·May·Eight			common-words	
+might		standard	·May·I·Tea			common-words	
+mine		standard	·May·I·No			common-words	
+more		standard	·May·Awe·Roe			common-words	
+most		standard	·May·Owe·See·Tea			common-words	
+must		standard	·May·Utter·See·Tea			common-words	
+my		standard	·May·I			common-words	
+new		standard	·No·Ye·Ooze			common-words	
+news		standard	·No·Ye·Ooze·Zoo			common-words	
+no		standard	·No·Owe			common-words	
+none		standard	·No·Utter·No			common-words	
+not		standard	·No·Ox·Tea			common-words	
+now		standard	·No·Out			common-words	
+off		standard	·Ox·Fee			common-words	
+once		standard	·Way·Utter·No·See			common-words	
+one		standard	·Way·Utter·No			common-words	
+or		standard	·Awe·Roe			common-words	
+other		standard	·Utter·They·Utter·Roe			common-words	
+others		standard	·Utter·They·Utter·Roe·Zoo			common-words	
+our		standard	·Out·Roe			common-words	
+over		standard	·Owe·Vie·Utter·Roe			common-words	
+said		standard	·See·Et·Day			common-words	
+say		standard	·See·Eight			common-words	
+says		standard	·See·Et·Zoo			common-words	the Manual's own minimal pair against say
+some		standard	·See·Utter·May			common-words	
+take		standard	·Tea·Eight·Key			common-words	
+taken		standard	·Tea·Eight·Key·Utter·No			common-words	
+that	DT0	standard	·They·At·Tea			common-words	the demonstrative determiner and pronoun, spelt in full
+that	AJ0	standard	·They·Tea	·They·At·Tea		common-words	not demonstrative, so the Senior contraction; Junior spells it in full
+that	AV0	standard	·They·Tea	·They·At·Tea		common-words	the degree adverb is not demonstrative, so the Senior contraction
+that	CJT	standard	·They·Tea	·They·At·Tea		common-words	the conjunction and relative are not demonstrative, so the Senior contraction
+their		standard	·They·Eight·Roe			common-words	
+theirs		standard	·They·Eight·Roe·Zoo			common-words	
+then		standard	·They·Et·No			common-words	
+there		standard	·They·Eight·Roe			common-words	merged with their by the standard outline
+they		standard	·They·Eight			common-words	
+those		standard	·They·Owe·Zoo			common-words	
+too		standard	·Tea·Ooze			common-words	
+two		standard	·Tea·Ooze			common-words	merged with too by the standard outline
+under		standard	·Utter·No·Day·Utter·Roe			common-words	
+unless		standard	·Utter·No·Low·Et·See			common-words	
+use	NN1	standard	·Ye·Ooze·See			common-words	the Manual labels the noun; ReadLex's juːs agrees
+use	VVB	standard	·Ye·Ooze·Zoo			common-words	the Manual labels the verb; ReadLex's juːz agrees
+use	VVI	standard	·Ye·Ooze·Zoo			common-words	the Manual labels the verb; ReadLex's juːz agrees
+used	VM0	standard	·Ye·Ooze·See·Tea			common-words	the used of used to, which the Manual writes ·Ye·Ooze·See·Tea ·Tea
+used	AJ0	standard	·Ye·Ooze·Zoo·Day			common-words	the verb's participle
+used	VVD	standard	·Ye·Ooze·Zoo·Day			common-words	the verb's past tense
+used	VVN	standard	·Ye·Ooze·Zoo·Day			common-words	the verb's participle
+was		standard	·Way·Utter·Zoo	·Way·Ox·Zoo		common-words	the Senior outline takes the weak vowel — the Manual's Senior specimen writes wasn't ·Way·Utter·Zoo·No·Tea, its Junior one writes 'twas ’·Tea·Way·Ox·Zoo; ReadLex's wɒz gives the Junior form
+way		standard	·Way·Eight			common-words	
+ways		standard	·Way·Eight·Zoo			common-words	
+were		standard	·Way·Utter·Roe			common-words	
+when		standard	·Why·Et·No			common-words	
+where		standard	·Why·Eight·Roe			common-words	
+who	PNQ	standard	·He·Ooze			common-words	the NP0 row is the initialism W.H.O. spelt out
+whose		standard	·He·Ooze·Zoo			common-words	
+why		standard	·Why·I			common-words	
+word		standard	·Way·Utter·Roe·Day			common-words	
+words		standard	·Way·Utter·Roe·Day·Zoo			common-words	
+work		standard	·Way·Utter·Roe·Key			common-words	
+works		standard	·Way·Utter·Roe·Key·See			common-words	
+world		standard	·Way·Utter·Roe·Low·Day			common-words	
+worlds		standard	·Way·Utter·Roe·Low·Day·Zoo			common-words	the Manual prints world/’s; the possessive takes no apostrophe
+year		standard	·Ye·Eat·Utter·Roe			common-words	
+years		standard	·Ye·Eat·Utter·Roe·Zoo			common-words	
