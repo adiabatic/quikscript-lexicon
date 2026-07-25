@@ -52,7 +52,7 @@ EXPECTED_TOKEN_COUNTS = {
 }
 
 EXPECTED_RAW_COUNTS = {
-    "raw ʊə incl. inside aʊə and across əʊ+ə (issue #1's 1,229)": (r"ʊə", 1229),
+    "raw ʊə incl. inside aʊə and across əʊ+ə": (r"ʊə", 1229),
 }
 
 FORBIDDEN_RAW_PATTERNS = {

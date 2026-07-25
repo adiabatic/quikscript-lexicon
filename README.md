@@ -21,7 +21,7 @@ uv run python -m qslex.validate
 uv run ruff check . && uv run ruff format --check . && uv run mypy
 ```
 
-The validator tokenizes all 110,056 vendored IPA strings and fails on any unmapped residue, any mapping row or quirk rule that stops firing, any quirk rule that touches a word it does not declare, any ɪə decision that contradicts the Shavian column without a recorded authority, and any drift in the pinned corpus invariants. It verifies the corpus SHA-256 first, so a corpus bump is always a deliberate, reviewable change.
+The validator tokenizes every vendored IPA string and fails on any unmapped residue, any mapping row or quirk rule that stops firing, any quirk rule that touches a word it does not declare, any ɪə decision that contradicts the Shavian column without a recorded authority, and any drift in the pinned corpus invariants. It verifies the corpus SHA-256 first, so a corpus bump is always a deliberate, reviewable change.
 
 ## Licence
 
