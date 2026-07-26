@@ -339,7 +339,7 @@ def main(argv: list[str] | None = None) -> int:
     rule_changes: collections.Counter[str] = collections.Counter()
     rule_claims: collections.Counter[str] = collections.Counter()
     rule_word_hits: set[tuple[str, str]] = set()
-    ligature_hits: set[tuple[str, str]] = set()
+    ligature_hits: set[str] = set()
     sign_changes: collections.Counter[str] = collections.Counter()
     sign_hits: set[tuple[str, str]] = set()
     junior_rows = 0
@@ -427,7 +427,7 @@ def main(argv: list[str] | None = None) -> int:
                 inner = element.context
                 part = inner.latin
                 for orthographic in RULES:
-                    if orthographic.latin is None or claims(orthographic, inner):
+                    if claims(orthographic, inner):
                         rule_claims[orthographic.id] += 1
                 if undecided_ing(part, vvg) and not tables.ruled("terminal-ing", part):
                     undecided["terminal-ing"].add(part)
@@ -440,10 +440,8 @@ def main(argv: list[str] | None = None) -> int:
             why = undecided_ligature(context, raw, tables)
             if why:
                 undecided[f"ligature/{why}"].add(word)
-            for key in ((word, row.pos), (word, "")):
-                if key in tables.ligatures:
-                    ligature_hits.add(key)
-                    break
+            if word in tables.ligatures:
+                ligature_hits.add(word)
             if result.ligature and "x" not in word:
                 stray_ligatures.append(f"{word!r} has no x but got {result.ligature}")
             for touched in dict.fromkeys(result.signed):

@@ -24,7 +24,7 @@ GATED_RULES = {
 }
 
 LIGATURES_FILE = "x-ligatures.tsv"
-LIGATURES_HEADER = ["word", "pos", "ligature", "reason", "note"]
+LIGATURES_HEADER = ["word", "ligature", "reason", "note"]
 LIGATURE_REASONS = {"multiple-x", "unaligned"}
 
 EPENTHESIS = "Ə"
@@ -186,7 +186,6 @@ class RuleWord:
 @dataclass(frozen=True)
 class LigatureRule:
     word: str
-    pos: str
     ligature: str
     reason: str
     note: str
@@ -195,7 +194,7 @@ class LigatureRule:
 @dataclass(frozen=True)
 class Tables:
     words: dict[tuple[str, str], RuleWord] = field(default_factory=dict)
-    ligatures: dict[tuple[str, str], LigatureRule] = field(default_factory=dict)
+    ligatures: dict[str, LigatureRule] = field(default_factory=dict)
     signs: Signs = field(default_factory=dict)
 
     def skipped(self, rule: str, latin: str) -> bool:
@@ -213,8 +212,8 @@ class Tables:
         keys.update((rule, latin) for rule in GATED_RULES if self.skipped(rule, latin))
         return tuple(sorted(keys & self.words.keys()))
 
-    def ligature_for(self, latin: str, pos: str) -> LigatureRule | None:
-        return self.ligatures.get((latin, pos)) or self.ligatures.get((latin, ""))
+    def ligature_for(self, latin: str) -> LigatureRule | None:
+        return self.ligatures.get(latin)
 
 
 NO_TABLES = Tables()
@@ -255,8 +254,8 @@ def load_rule_words(path: Path | None = None) -> dict[tuple[str, str], RuleWord]
     return known
 
 
-def load_x_ligatures(path: Path | None = None) -> dict[tuple[str, str], LigatureRule]:
-    known: dict[tuple[str, str], LigatureRule] = {}
+def load_x_ligatures(path: Path | None = None) -> dict[str, LigatureRule]:
+    known: dict[str, LigatureRule] = {}
     with open_data(path, LIGATURES_FILE) as (f, source):
         reader = csv.reader(f, delimiter="\t")
         header = next(reader)
@@ -281,10 +280,9 @@ def load_x_ligatures(path: Path | None = None) -> dict[tuple[str, str], Ligature
             unknown = unknown_names(rule.ligature)
             if unknown:
                 raise ValueError(f"{source}:{lineno}: unknown letter names {unknown}")
-            key = (rule.word, rule.pos)
-            if key in known:
-                raise ValueError(f"{source}:{lineno}: duplicate row for {key}")
-            known[key] = rule
+            if rule.word in known:
+                raise ValueError(f"{source}:{lineno}: duplicate row for {rule.word!r}")
+            known[rule.word] = rule
     return known
 
 
@@ -292,7 +290,7 @@ def load_tables() -> Tables:
     return Tables(load_rule_words(), load_x_ligatures(), load_word_signs())
 
 
-def apply_es_ed(context: Context, letters: Letters, tables: Tables) -> Letters:
+def apply_es_ed(context: Context, letters: Letters) -> Letters:
     kept = tuple(f for f in letters if f.source != EPENTHESIS)
     if ES_ED.search(context.latin) is None:
         return kept
@@ -308,7 +306,7 @@ def apply_es_ed(context: Context, letters: Letters, tables: Tables) -> Letters:
     return kept
 
 
-def apply_con_com(context: Context, letters: Letters, tables: Tables) -> Letters:
+def apply_con_com(context: Context, letters: Letters) -> Letters:
     latin = context.latin
     if len(latin) < 5 or not latin.startswith(("con", "com")):
         return letters
@@ -320,83 +318,75 @@ def apply_con_com(context: Context, letters: Letters, tables: Tables) -> Letters
     return _drop(letters, 1)
 
 
-def _prefix(
-    context: Context,
-    letters: Letters,
-    prefixes: tuple[str, ...],
-    index: int,
-    want: str,
-    frame: tuple[tuple[int, str], ...],
-) -> Letters:
-    """Normalise the prefix vowel at `index`, once `frame` confirms the consonants."""
-    latin = context.latin
-    if not latin.startswith(prefixes) or len(latin) < len(prefixes[0]) + 3:
-        return letters
-    if len(letters) <= max(index, *(at for at, _ in frame)):
-        return letters
-    if any(letters[at].name != name for at, name in frame):
-        return letters
-    if not letters[index].is_vowel or not _reducible(letters, index):
-        return letters
-    return _rename(letters, index, want)
+@dataclass(frozen=True)
+class PrefixForm:
+    """One prefix whose vowel the Manual normalises.
+
+    `spellings` are the Latin openings that select the form, `index` the letter it
+    rewrites and `want` what that letter becomes; `frame` names the consonants that
+    have to sit where they do for the prefix to be the real one.
+    """
+
+    spellings: tuple[str, ...]
+    index: int
+    want: str
+    frame: tuple[tuple[int, str], ...]
 
 
-def apply_un(context: Context, letters: Letters, tables: Tables) -> Letters:
-    return _prefix(context, letters, ("un",), 0, "Utter", ((1, "No"),))
+def _prefix(context: Context, letters: Letters, form: PrefixForm) -> Letters:
+    """Normalise the prefix vowel, once the form's frame confirms the consonants."""
+    if len(letters) <= max(form.index, *(at for at, _ in form.frame)):
+        return letters
+    if any(letters[at].name != name for at, name in form.frame):
+        return letters
+    if not _reducible(letters, form.index):
+        return letters
+    return _rename(letters, form.index, form.want)
 
 
-def apply_an_al_ar(context: Context, letters: Letters, tables: Tables) -> Letters:
-    for prefix, consonant in (("an", "No"), ("al", "Low"), ("ar", "Roe")):
-        if context.latin.startswith(prefix):
-            return _prefix(context, letters, (prefix,), 0, "Utter", ((1, consonant),))
+PREFIX_FORMS: dict[str, tuple[PrefixForm, ...]] = {
+    "prefix-un": (PrefixForm(("un",), 0, "Utter", ((1, "No"),)),),
+    "prefix-an-al-ar": (
+        PrefixForm(("an",), 0, "Utter", ((1, "No"),)),
+        PrefixForm(("al",), 0, "Utter", ((1, "Low"),)),
+        PrefixForm(("ar",), 0, "Utter", ((1, "Roe"),)),
+    ),
+    "prefix-ob-of": (
+        PrefixForm(("ob",), 0, "Utter", ((1, "Bay"),)),
+        PrefixForm(("of",), 0, "Utter", ((1, "Fee"),)),
+    ),
+    "prefix-be-de-re": (
+        PrefixForm(("be",), 1, "It", ((0, "Bay"),)),
+        PrefixForm(("de",), 1, "It", ((0, "Day"),)),
+        PrefixForm(("re",), 1, "It", ((0, "Roe"),)),
+    ),
+    "prefix-pre-pro": (
+        PrefixForm(("pre",), 2, "It", ((0, "Pea"), (1, "Roe"))),
+        PrefixForm(("pro",), 2, "Utter", ((0, "Pea"), (1, "Roe"))),
+    ),
+    "prefix-per-pur": (
+        PrefixForm(("per", "pur"), 1, "Utter", ((0, "Pea"), (2, "Roe"))),
+    ),
+    "prefix-in-en": (PrefixForm(("in", "en"), 0, "It", ((1, "No"),)),),
+}
+
+
+def _prefixed(context: Context, letters: Letters, rule: str) -> Letters:
+    for form in PREFIX_FORMS[rule]:
+        if context.latin.startswith(form.spellings):
+            return _prefix(context, letters, form)
     return letters
-
-
-def apply_ob_of(context: Context, letters: Letters, tables: Tables) -> Letters:
-    for prefix, consonant in (("ob", "Bay"), ("of", "Fee")):
-        if context.latin.startswith(prefix):
-            return _prefix(context, letters, (prefix,), 0, "Utter", ((1, consonant),))
-    return letters
-
-
-def apply_be_de_re(context: Context, letters: Letters, tables: Tables) -> Letters:
-    if tables.skipped("prefix-be-de-re", context.latin):
-        return letters
-    for prefix, consonant in (("be", "Bay"), ("de", "Day"), ("re", "Roe")):
-        if context.latin.startswith(prefix):
-            return _prefix(context, letters, (prefix,), 1, "It", ((0, consonant),))
-    return letters
-
-
-def apply_pre_pro(context: Context, letters: Letters, tables: Tables) -> Letters:
-    if context.latin.startswith("pre"):
-        return _prefix(context, letters, ("pre",), 2, "It", ((0, "Pea"), (1, "Roe")))
-    if context.latin.startswith("pro"):
-        return _prefix(context, letters, ("pro",), 2, "Utter", ((0, "Pea"), (1, "Roe")))
-    return letters
-
-
-def apply_per_pur(context: Context, letters: Letters, tables: Tables) -> Letters:
-    return _prefix(
-        context, letters, ("per", "pur"), 1, "Utter", ((0, "Pea"), (2, "Roe"))
-    )
-
-
-def apply_in_en(context: Context, letters: Letters, tables: Tables) -> Letters:
-    return _prefix(context, letters, ("in", "en"), 0, "It", ((1, "No"),))
 
 
 def _ing_stem(latin: str) -> str:
     return latin[: latin.rindex("ing")]
 
 
-def apply_ing(context: Context, letters: Letters, tables: Tables) -> Letters:
+def apply_ing(context: Context, letters: Letters) -> Letters:
     latin = context.latin
-    if not latin.endswith(ING_TAILS) or "ing" not in latin[1:]:
+    if not latin.endswith(ING_TAILS):
         return letters
     if _ing_stem(latin).endswith("y"):
-        return letters
-    if tables.skipped("terminal-ing", latin):
         return letters
     for index in range(len(letters) - 2, 0, -1):
         if letters[index].name == "It" and letters[index + 1].name == "Oolong":
@@ -404,16 +394,13 @@ def apply_ing(context: Context, letters: Letters, tables: Tables) -> Letters:
     return letters
 
 
-def apply_ally(context: Context, letters: Letters, tables: Tables) -> Letters:
-    match = ALLY.search(context.latin)
-    if match is None:
-        return letters
+def apply_ally(context: Context, letters: Letters, match: re.Match[str]) -> Letters:
     offset = _offset(match, letters)
     if match.group(1) == "ally":
         if not _ends(letters, offset, "Low", "It"):
             return letters
         index = len(letters) - offset - 2
-        if index and letters[index - 1].is_vowel:
+        if letters[index - 1].is_vowel:
             return _force(letters, offset, ("Low", "It"), "Utter")
         return _insert(letters, index, "Utter")
     if match.group(1) in {"ably", "ibly"}:
@@ -423,24 +410,17 @@ def apply_ally(context: Context, letters: Letters, tables: Tables) -> Letters:
     return _omit(letters, offset, ("Low",))
 
 
-def apply_tion(context: Context, letters: Letters, tables: Tables) -> Letters:
-    match = TION.search(context.latin)
-    if match is None:
-        return letters
+def apply_tion(context: Context, letters: Letters, match: re.Match[str]) -> Letters:
     return _omit(letters, _offset(match, letters), ("No",))
 
 
-def apply_ess(context: Context, letters: Letters, tables: Tables) -> Letters:
-    match = ESS.search(context.latin)
-    if match is None or tables.skipped("terminal-ess-est", context.latin):
-        return letters
+def apply_ess(context: Context, letters: Letters, match: re.Match[str]) -> Letters:
     shape = ("See", "Tea") if match.group(1) == "est" else ("See",)
     return _force(letters, _offset(match, letters), shape, "Et")
 
 
-def apply_land(context: Context, letters: Letters, tables: Tables) -> Letters:
-    match = LAND.search(context.latin)
-    if match is None or match.group(1) == "men":
+def apply_land(context: Context, letters: Letters, match: re.Match[str]) -> Letters:
+    if match.group(1) == "men":
         return letters
     offset = _offset(match, letters)
     for shape in (("No", "Day"), ("No", "Tea"), ("No",)):
@@ -450,10 +430,7 @@ def apply_land(context: Context, letters: Letters, tables: Tables) -> Letters:
     return letters
 
 
-def apply_ent(context: Context, letters: Letters, tables: Tables) -> Letters:
-    match = ENT.search(context.latin)
-    if match is None:
-        return letters
+def apply_ent(context: Context, letters: Letters, match: re.Match[str]) -> Letters:
     offset = _offset(match, letters)
     for shape in (("No", "Tea"), ("No", "See")):
         after = _force(letters, offset, shape, "Utter")
@@ -462,37 +439,19 @@ def apply_ent(context: Context, letters: Letters, tables: Tables) -> Letters:
     return letters
 
 
-def apply_ous(context: Context, letters: Letters, tables: Tables) -> Letters:
-    match = OUS.search(context.latin)
-    if match is None:
-        return letters
+def apply_ous(context: Context, letters: Letters, match: re.Match[str]) -> Letters:
     return _force(letters, _offset(match, letters), ("See",), "Utter")
 
 
-def apply_er(context: Context, letters: Letters, tables: Tables) -> Letters:
-    match = ER.search(context.latin)
-    if match is None:
-        return letters
-    offset = _offset(match, letters)
-    if not _ends(letters, offset, "Roe"):
-        return letters
-    index = _vowel_at(letters, offset, 1)
-    if index is None or letters[index - 1].is_vowel:
-        return letters
-    return _force(letters, offset, ("Roe",), "Utter")
+def apply_er(context: Context, letters: Letters, match: re.Match[str]) -> Letters:
+    return _force(letters, _offset(match, letters), ("Roe",), "Utter")
 
 
-def apply_ier(context: Context, letters: Letters, tables: Tables) -> Letters:
-    match = IER.search(context.latin)
-    if match is None:
-        return letters
+def apply_ier(context: Context, letters: Letters, match: re.Match[str]) -> Letters:
     return _tighten(letters, _offset(match, letters), ("Utter", "Roe"))
 
 
-def apply_ia(context: Context, letters: Letters, tables: Tables) -> Letters:
-    match = IA.search(context.latin)
-    if match is None:
-        return letters
+def apply_ia(context: Context, letters: Letters, match: re.Match[str]) -> Letters:
     offset = _offset(match, letters)
     for shape in (("Utter", "No"), ("Utter",)):
         after = _tighten(letters, offset, shape)
@@ -511,37 +470,25 @@ def _tighten(letters: Letters, offset: int, shape: tuple[str, ...]) -> Letters:
     return _rename(letters, index, "Eat" if letters[index].stressed else "It")
 
 
-def apply_y(context: Context, letters: Letters, tables: Tables) -> Letters:
-    match = YY.search(context.latin)
-    if match is None:
-        return letters
+def apply_y(context: Context, letters: Letters, match: re.Match[str]) -> Letters:
     if match.group(2) and match.group(1) == "e":
         # -es after a silent e is a plural, not the terminal -e of simile or coffee.
         return letters
     return _force(letters, _offset(match, letters), (), "It")
 
 
-def apply_ain(context: Context, letters: Letters, tables: Tables) -> Letters:
-    match = AIN.search(context.latin)
-    if match is None:
-        return letters
+def apply_ain(context: Context, letters: Letters, match: re.Match[str]) -> Letters:
     return _force(letters, _offset(match, letters), ("No",), "Utter")
 
 
-def apply_age(context: Context, letters: Letters, tables: Tables) -> Letters:
+def apply_age(context: Context, letters: Letters, match: re.Match[str]) -> Letters:
     latin = context.latin
-    match = AGE.search(latin)
-    if match is None:
-        return letters
     stem = latin[: latin.rindex("age")]
     want = "It" if stem.endswith(("y", "i")) else "Utter"
     return _force(letters, _offset(match, letters), ("Jay",), want)
 
 
-def apply_ward(context: Context, letters: Letters, tables: Tables) -> Letters:
-    match = WARD.search(context.latin)
-    if match is None:
-        return letters
+def apply_ward(context: Context, letters: Letters, match: re.Match[str]) -> Letters:
     offset = _offset(match, letters)
     if not _ends(letters, offset, "Way", "Utter", "Roe", "Day"):
         return letters
@@ -551,58 +498,59 @@ def apply_ward(context: Context, letters: Letters, tables: Tables) -> Letters:
     return _drop(_drop(letters, index), index)
 
 
-def apply_ful(context: Context, letters: Letters, tables: Tables) -> Letters:
-    match = FUL.search(context.latin)
-    if match is None or tables.skipped("terminal-ful", context.latin):
-        return letters
+def apply_ful(context: Context, letters: Letters, match: re.Match[str]) -> Letters:
     offset = _offset(match, letters)
     shape = ("Low", "It") if match.group(1) else ("Low",)
     if not _ends(letters, offset, *shape):
         return letters
     index = _vowel_at(letters, offset, len(shape))
-    if index is None or index == 0 or letters[index - 1].name != "Fee":
+    if index is None or letters[index - 1].name != "Fee":
         return letters
     if letters[index].stressed or letters[index].name not in {"Utter", "Foot"}:
         return letters
     return _rename(letters, index, "Foot" if context.pos.startswith("NN") else "Utter")
 
 
-def apply_al(context: Context, letters: Letters, tables: Tables) -> Letters:
-    match = AL.search(context.latin)
-    if match is None or _restored(context):
+def apply_al(context: Context, letters: Letters, match: re.Match[str]) -> Letters:
+    if _restored(context):
         return letters
     return _omit(letters, _offset(match, letters), ("Low",))
 
 
-def apply_en_on(context: Context, letters: Letters, tables: Tables) -> Letters:
-    match = EN.search(context.latin)
-    if match is None:
-        return letters
+def apply_en_on(context: Context, letters: Letters, match: re.Match[str]) -> Letters:
     return _force(letters, _offset(match, letters), ("No",), "Utter")
 
 
-Apply = Callable[[Context, Letters, "Tables"], Letters]
+Apply = Callable[[Context, Letters], Letters]
+ApplyTerminal = Callable[[Context, Letters, re.Match[str]], Letters]
 
 
 @dataclass(frozen=True)
 class Rule:
     id: str
-    stage: str
     apply: Apply
-    latin: re.Pattern[str] | None = None
+
+
+@dataclass(frozen=True)
+class Terminal:
+    """A rule keyed to the end of a word, run on the match that selected it."""
+
+    id: str
+    apply: ApplyTerminal
+    latin: re.Pattern[str]
 
 
 def _pattern(body: str) -> re.Pattern[str]:
     return re.compile(rf"(?<=.){body}")
 
 
-ES_ED = _pattern(r"(es|ed)(s|ness|nesses|ly)?$")
+ES_ED = _pattern(r"(es|ed)(s|ness|ly)?$")
 ALLY = _pattern(r"(ally|ably|ibly|able|ible)(s)?$")
-TION = _pattern(r"(ation|asion|ssion|shion|tion|cean|sion|gion)(s|es)?$")
-ESS = _pattern(r"(ness|less|est|ess)(es)?$")
+TION = _pattern(r"(shion|tion|cean|sion|gion)(s|es)?$")
+ESS = _pattern(r"(est|ess)(es)?$")
 LAND = _pattern(r"(land|ment|man|men)(s)?$")
 ENT = _pattern(r"(ence|ance|ent|ant)(s)?$")
-OUS = _pattern(r"(scious|tious|cious|ous|us)(es)?$")
+OUS = _pattern(r"(us)(es)?$")
 WARD = _pattern(r"ward(s)?$")
 FUL = _pattern(r"ful(ly)?(s)?$")
 AIN = _pattern(r"ain(s)?$")
@@ -611,60 +559,63 @@ AL = _pattern(r"(al|el|le|il)(s)?$")
 IA = _pattern(r"(ian|ean|ion|ia|ea)(s)?$")
 IER = _pattern(r"(ier|ior)(s)?$")
 ER = _pattern(r"(er|ar|ir|or|our|yr|re)(s)?$")
-YY = _pattern(r"(ity|ily|ey|ie|y|e)(s)?$")
+YY = _pattern(r"(ie|y|e)(s)?$")
 EN = _pattern(r"(en|on)(s)?$")
 
-PREFIX_RULES: tuple[Rule, ...] = (
-    Rule("prefix-con-com", "prefix", apply_con_com),
-    Rule("prefix-un", "prefix", apply_un),
-    Rule("prefix-an-al-ar", "prefix", apply_an_al_ar),
-    Rule("prefix-ob-of", "prefix", apply_ob_of),
-    Rule("prefix-be-de-re", "prefix", apply_be_de_re),
-    Rule("prefix-pre-pro", "prefix", apply_pre_pro),
-    Rule("prefix-per-pur", "prefix", apply_per_pur),
-    Rule("prefix-in-en", "prefix", apply_in_en),
+
+def _prefix_rule(rule: str) -> Rule:
+    def apply(context: Context, letters: Letters) -> Letters:
+        return _prefixed(context, letters, rule)
+
+    return Rule(rule, apply)
+
+
+PREFIX_RULES: tuple[Rule, ...] = (Rule("prefix-con-com", apply_con_com),) + tuple(
+    _prefix_rule(rule) for rule in PREFIX_FORMS
 )
 
-TERMINAL_RULES: tuple[Rule, ...] = (
-    Rule("terminal-ally-able", "terminal", apply_ally, ALLY),
-    Rule("terminal-tion", "terminal", apply_tion, TION),
-    Rule("terminal-ess-est", "terminal", apply_ess, ESS),
-    Rule("terminal-land-ment", "terminal", apply_land, LAND),
-    Rule("terminal-ent-ance", "terminal", apply_ent, ENT),
-    Rule("terminal-us-ous", "terminal", apply_ous, OUS),
-    Rule("terminal-ward", "terminal", apply_ward, WARD),
-    Rule("terminal-ful", "terminal", apply_ful, FUL),
-    Rule("terminal-ain", "terminal", apply_ain, AIN),
-    Rule("terminal-age", "terminal", apply_age, AGE),
-    Rule("terminal-al-el-le-il", "terminal", apply_al, AL),
-    Rule("terminal-ia-ea", "terminal", apply_ia, IA),
-    Rule("terminal-ier-ior", "terminal", apply_ier, IER),
-    Rule("terminal-er", "terminal", apply_er, ER),
-    Rule("terminal-y", "terminal", apply_y, YY),
-    Rule("terminal-en-on", "terminal", apply_en_on, EN),
+TERMINAL_RULES: tuple[Terminal, ...] = (
+    Terminal("terminal-ally-able", apply_ally, ALLY),
+    Terminal("terminal-tion", apply_tion, TION),
+    Terminal("terminal-ess-est", apply_ess, ESS),
+    Terminal("terminal-land-ment", apply_land, LAND),
+    Terminal("terminal-ent-ance", apply_ent, ENT),
+    Terminal("terminal-us-ous", apply_ous, OUS),
+    Terminal("terminal-ward", apply_ward, WARD),
+    Terminal("terminal-ful", apply_ful, FUL),
+    Terminal("terminal-ain", apply_ain, AIN),
+    Terminal("terminal-age", apply_age, AGE),
+    Terminal("terminal-al-el-le-il", apply_al, AL),
+    Terminal("terminal-ia-ea", apply_ia, IA),
+    Terminal("terminal-ier-ior", apply_ier, IER),
+    Terminal("terminal-er", apply_er, ER),
+    Terminal("terminal-y", apply_y, YY),
+    Terminal("terminal-en-on", apply_en_on, EN),
 )
 
-RULES: tuple[Rule, ...] = (
-    (
-        Rule("terminal-es-ed", "epenthesis", apply_es_ed),
-        Rule("terminal-ing", "affix", apply_ing),
-    )
-    + PREFIX_RULES
-    + TERMINAL_RULES
-)
+WORD_RULES: tuple[Rule, ...] = (
+    Rule("terminal-es-ed", apply_es_ed),
+    Rule("terminal-ing", apply_ing),
+) + PREFIX_RULES
+
+RULES: tuple[Rule | Terminal, ...] = WORD_RULES + TERMINAL_RULES
 
 RULE_IDS = tuple(rule.id for rule in RULES)
 
 
-def claims(rule: Rule, context: Context) -> bool:
-    """Whether this terminal rule owns the end of the word, fire or not."""
-    return rule.latin is not None and rule.latin.search(context.latin) is not None
+def claims(rule: Rule | Terminal, context: Context) -> bool:
+    """Whether this rule owns the word: a terminal, only when its pattern matches."""
+    if not isinstance(rule, Terminal):
+        return True
+    return rule.latin.search(context.latin) is not None
 
 
-def terminal_for(context: Context) -> Rule | None:
+def terminal_for(context: Context) -> tuple[Terminal, re.Match[str]] | None:
+    """The terminal that owns the end of this word, and the match that selected it."""
     for rule in TERMINAL_RULES:
-        if claims(rule, context):
-            return rule
+        match = rule.latin.search(context.latin)
+        if match is not None:
+            return rule, match
     return None
 
 
@@ -722,7 +673,7 @@ def _pairs(letters: Letters) -> list[tuple[int, str]]:
 
 def ligate(context: Context, letters: Letters, tables: Tables) -> Letters | None:
     latin = context.latin
-    declared = tables.ligature_for(latin, context.pos)
+    declared = tables.ligature_for(latin)
     if declared is not None:
         return parse(declared.ligature) if declared.ligature else None
     if latin.count("x") != 1:
@@ -767,7 +718,7 @@ def undecided_prefix(context: Context, letters: Letters, tables: Tables) -> bool
     """
     if tables.ruled("prefix-be-de-re", context.latin):
         return False
-    return apply_be_de_re(context, letters, tables) != letters
+    return _prefixed(context, letters, "prefix-be-de-re") != letters
 
 
 def undecided_ess(context: Context, letters: Letters, tables: Tables) -> bool:
@@ -800,23 +751,13 @@ def undecided_ful(context: Context, letters: Letters, tables: Tables) -> bool:
     match = FUL.search(context.latin)
     if match is None:
         return False
-    offset = _offset(match, letters)
-    shape = ("Low", "It") if match.group(1) else ("Low",)
-    if not _ends(letters, offset, *shape):
-        return False
-    index = _vowel_at(letters, offset, len(shape))
-    if index is None or letters[index - 1].name != "Fee" or letters[index].stressed:
-        return False
-    if letters[index].name not in {"Utter", "Foot"}:
-        return False
-    want = "Foot" if context.pos.startswith("NN") else "Utter"
-    return letters[index].name != want
+    return apply_ful(context, letters, match) != letters
 
 
 def undecided_ligature(context: Context, letters: Letters, tables: Tables) -> str:
     """Why the mechanical alignment declined, for the validator's residue report."""
     latin = context.latin
-    if "x" not in latin or tables.ligature_for(latin, context.pos) is not None:
+    if "x" not in latin or tables.ligature_for(latin) is not None:
         return ""
     if latin.count("x") > 1:
         return "multiple-x"
@@ -825,17 +766,32 @@ def undecided_ligature(context: Context, letters: Letters, tables: Tables) -> st
     return ""
 
 
+def _gated(rule: Rule | Terminal, context: Context, tables: Tables) -> bool:
+    """Whether a hand ruling stops this rule from running on this word."""
+    return rule.id in GATED_RULES and tables.skipped(rule.id, context.latin)
+
+
 def _stack(element: Element, tables: Tables) -> tuple[Letters, tuple[str, ...]]:
+    context = element.context
     letters = element.letters
     applied: list[str] = []
-    terminal = terminal_for(element.context)
-    for rule in RULES:
-        if rule.stage == "terminal" and rule is not terminal:
+    for rule in WORD_RULES:
+        if _gated(rule, context, tables):
             continue
-        after = rule.apply(element.context, letters, tables)
+        after = rule.apply(context, letters)
         if after != letters:
             applied.append(rule.id)
             letters = after
+    found = terminal_for(context)
+    if found is None:
+        return letters, tuple(applied)
+    terminal, match = found
+    if _gated(terminal, context, tables):
+        return letters, tuple(applied)
+    after = terminal.apply(context, letters, match)
+    if after != letters:
+        applied.append(terminal.id)
+        letters = after
     return letters, tuple(applied)
 
 
@@ -852,11 +808,8 @@ def spell(context: Context, tables: Tables = NO_TABLES) -> Spelling:
         fired.update(applied)
         rulings.update(tables.consulted(applied, element.context.latin))
     letters = tuple(out)
-    senior, signed, consulted = apply_signs(
-        context.latin, context.pos, letters, tables.signs, "senior"
-    )
-    junior, *_ = apply_signs(
-        context.latin, context.pos, letters, tables.signs, "junior"
+    senior, junior, signed, consulted = apply_signs(
+        context.latin, context.pos, letters, tables.signs
     )
     lig = ligate(context, senior, tables)
     return Spelling(

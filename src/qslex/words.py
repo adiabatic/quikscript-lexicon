@@ -33,9 +33,6 @@ class Sign:
     authority: str
     note: str
 
-    def column(self, name: str) -> str:
-        return self.junior if name == "junior" and self.junior else self.senior
-
 
 @dataclass(frozen=True)
 class Contraction:
@@ -167,33 +164,40 @@ def _lookup(signs: Signs, part: str, pos: str, single: bool) -> Sign | None:
 
 
 def apply_signs(
-    latin: str, pos: str, letters: Letters, signs: Signs, column: str
-) -> tuple[Letters, tuple[str, ...], tuple[tuple[str, str], ...]]:
+    latin: str, pos: str, letters: Letters, signs: Signs
+) -> tuple[Letters, Letters, tuple[str, ...], tuple[tuple[str, str], ...]]:
     """Substitute the Manual's word signs and standard outlines into a spelling.
 
     A single-word entry consults its own part-of-speech tag; a phrase entry is matched
     word by word, at the boundaries `qslex.elements` finds. Nothing is substituted
     unless the Latin words and the spelling's runs are the same shape, which is what
     keeps to-day (one run, three Latin parts) and dhs (one Latin part, seven runs)
-    intact. Returns the spelling, the words it changed, and the rows it consulted.
+    intact. Both columns come out of one alignment, because a row with no junior form
+    of its own writes its senior spelling into both. Returns the two spellings, the
+    words the senior one changed, and the rows it consulted.
     """
     pairs = elements(latin, letters)
     if pairs is None:
-        return letters, (), ()
+        return letters, letters, (), ()
     single = len(pairs) == 1
-    out: list[Letter] = []
+    senior: list[Letter] = []
+    junior: list[Letter] = []
     applied: list[str] = []
     consulted: list[tuple[str, str]] = []
     for part, run in pairs:
         sign = _lookup(signs, part, pos, single)
         if sign is None:
-            out.extend(run)
+            senior.extend(run)
+            junior.extend(run)
             continue
         consulted.append((sign.word, sign.pos))
-        spelling = parse(sign.column(column))
+        spelling = parse(sign.senior)
         if names(spelling) == names(run):
-            out.extend(run)
-            continue
-        out.extend(spelling)
-        applied.append(part)
-    return tuple(out), tuple(applied), tuple(consulted)
+            senior.extend(run)
+        else:
+            senior.extend(spelling)
+            applied.append(part)
+        if sign.junior:
+            spelling = parse(sign.junior)
+        junior.extend(run if names(spelling) == names(run) else spelling)
+    return tuple(senior), tuple(junior), tuple(applied), tuple(consulted)

@@ -320,9 +320,9 @@ def test_split_leaves_an_entry_the_alignment_guard_rejects_whole() -> None:
 
 def test_terminal_rules_are_mutually_exclusive() -> None:
     for word in ("fashion", "ashen", "settlement", "eagle", "manage", "highest"):
-        chosen = terminal_for(context_for(word))
-        assert chosen is not None, word
-        assert sum(1 for rule in TERMINAL_RULES if rule is chosen) == 1
+        found = terminal_for(context_for(word))
+        assert found is not None, word
+        assert sum(1 for rule in TERMINAL_RULES if rule is found[0]) == 1
 
 
 def test_rule_ids_are_unique_and_ordered_prefix_then_terminal() -> None:
@@ -369,7 +369,7 @@ def test_every_ruling_carries_an_authority_and_a_note() -> None:
 
 
 def test_every_ligature_ruling_names_a_word_with_an_x() -> None:
-    for (word, _), entry in load_x_ligatures().items():
+    for word, entry in load_x_ligatures().items():
         assert "x" in word
         assert entry.note
 

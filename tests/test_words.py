@@ -291,7 +291,7 @@ def test_a_clitic_needs_a_note(tmp_path: Path) -> None:
 
 def test_apply_signs_leaves_an_unaligned_spelling_alone() -> None:
     letters = parse("·Tea·Utter·Day·Eight")
-    out, applied, consulted = apply_signs("to-day", "NN1", letters, SIGNS, "senior")
+    out, _, applied, consulted = apply_signs("to-day", "NN1", letters, SIGNS)
     assert out == letters
     assert applied == ()
     assert consulted == ()
@@ -299,7 +299,7 @@ def test_apply_signs_leaves_an_unaligned_spelling_alone() -> None:
 
 def test_a_latin_hyphen_facing_a_spelt_space_is_not_aligned() -> None:
     letters = parse("·At·Zoo ·It ·Way·Utter·Roe")
-    out, applied, consulted = apply_signs("as-it-were", "AV0", letters, SIGNS, "senior")
+    out, _, applied, consulted = apply_signs("as-it-were", "AV0", letters, SIGNS)
     assert out == letters
     assert applied == ()
     assert consulted == ()
