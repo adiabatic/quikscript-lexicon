@@ -14,13 +14,30 @@ dependencies = []
 requires = ["uv_build>=0.11.31,<0.12.0"]
 build-backend = "uv_build"
 
+[project.optional-dependencies]
+translit = [
+    "spacy>=3.8.7",
+    # spaCy imports click directly but only declares typer, which stopped
+    # depending on click in 0.27
+    "click>=8.1",
+    "en-core-web-sm",
+    "smartypants>=2.0.1",
+    "unidecode>=1.3.8",
+    "beautifulsoup4>=4.12.0",
+]
+
 [dependency-groups]
 dev = [
     "mypy>=1.14.0",
     "pytest>=9.1.1",
     "pytest-cov>=6.0.0",
     "ruff>=0.16.0",
+    "qslex[translit]",
 ]
+
+[tool.uv.sources]
+en-core-web-sm = { url = "https://github.com/explosion/spacy-models/releases/download/en_core_web_sm-3.8.0/en_core_web_sm-3.8.0-py3-none-any.whl" }
+qslex = { workspace = true }
 
 [tool.ruff]
 line-length = 88
@@ -31,6 +48,10 @@ select = ["E", "F", "I", "UP", "B", "SIM"]
 [tool.mypy]
 strict = true
 files = ["src", "tests"]
+
+[[tool.mypy.overrides]]
+module = ["smartypants", "spacy.tokenizer"]
+ignore_missing_imports = true
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

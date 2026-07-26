@@ -50,9 +50,19 @@ In the order a word passes through the pipeline:
 - `src/qslex/data/manual-passages.tsv` — the Manual's eleven specimen passages, word by word, as the fixture the finished spellings are held to (spec: [`docs/validation.md`](docs/validation.md))
 - `src/qslex/roundtrip.py` — the reverse of the segment mapping, which reads every shipped spelling back to a phoneme string and lays it beside the IPA it came from
 - `src/qslex/lint.py` — the Manual's own lint, re-derived rule by rule from hunspell-dict-qs's hand-written checks, with `src/qslex/data/lint-pragmas.tsv` declaring every word allowed to break one and why
+- `src/qslex/latin2qs.py` — the consumer at the end: ReadLex's `latin2shaw.py` ported to emit Quikscript from running Latin text (spec: [`docs/latin2qs.md`](docs/latin2qs.md))
 - `src/qslex/` — the loaders, tokenizer, and exhaustive validator that run all of the above
 
 The mapping tables live inside the package so they are importable from an installed wheel; the corpus lives outside it, because a consumer transcribing IPA does not need 27 MB of ReadLex.
+
+## Transliterating
+
+```sh
+uv run python -m qslex.latin2qs < input.txt                    # Senior
+uv run python -m qslex.latin2qs --mode x --contractions in.txt # ligatures + §III contractions
+```
+
+spaCy tokenizes and tags, `lexicon/qs_converter.json` supplies the spellings, the part of speech settles the heteronyms, and the Manual's conventions govern namer dots, apostrophes and punctuation. Words the lexicon lacks are constructed from affixes and flagged ⚠️, or passed through flagged ✢. The spec, the output modes and every deliberate departure from upstream's `latin2shaw.py` are in [`docs/latin2qs.md`](docs/latin2qs.md).
 
 ## Regenerating
 
