@@ -36,6 +36,8 @@ from qslex.rules import (
     undecided_ing,
 )
 
+from tsv import write_tsv
+
 MAPPING = load_mapping()
 QUIRKS = load_quirks()
 OVERRIDES = load_overrides(MAPPING)
@@ -48,10 +50,7 @@ for _row in select(load_var_tags(), load_rows()):
 
 
 def ligatures_file(tmp_path: Path, rows: list[list[str]]) -> Path:
-    lines = ["\t".join(LIGATURES_HEADER)] + ["\t".join(row) for row in rows]
-    path = tmp_path / "x.tsv"
-    path.write_text("\n".join(lines) + "\n", encoding="utf-8")
-    return path
+    return write_tsv(tmp_path / "x.tsv", LIGATURES_HEADER, rows)
 
 
 def context_for(word: str, pos: str = "") -> Context:

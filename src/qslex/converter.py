@@ -1,12 +1,11 @@
 from __future__ import annotations
 
-import csv
 from collections.abc import Iterable
 from dataclasses import dataclass
 from pathlib import Path
 
 from qslex.elements import DIVIDERS, components
-from qslex.mapping import open_data
+from qslex.tables import rows_of
 
 PENN_FILE = "c5-to-penn.tsv"
 PENN_HEADER = ["c5", "penn", "evidence", "note"]
@@ -82,63 +81,41 @@ def load_penn(path: Path | None = None) -> dict[str, TagMap]:
     reach, where the conventional correspondence is used and said to be used.
     """
     known: dict[str, TagMap] = {}
-    with open_data(path, PENN_FILE) as (f, source):
-        reader = csv.reader(f, delimiter="\t")
-        header = next(reader)
-        if header != PENN_HEADER:
-            raise ValueError(f"unexpected header in {source}: {header}")
-        for lineno, row in enumerate(reader, start=2):
-            if len(row) != len(PENN_HEADER):
-                raise ValueError(
-                    f"{source}:{lineno}: expected {len(PENN_HEADER)} fields, "
-                    f"got {len(row)}"
-                )
-            entry = TagMap(*row)
-            if entry.evidence not in EVIDENCE:
-                raise ValueError(
-                    f"{source}:{lineno}: evidence must be one of {sorted(EVIDENCE)}, "
-                    f"got {entry.evidence!r}"
-                )
-            if entry.penn not in PENN_TAGS:
-                raise ValueError(
-                    f"{source}:{lineno}: {entry.penn!r} has no place in the row order"
-                )
-            if not entry.note:
-                raise ValueError(f"{source}:{lineno}: every mapping needs a note")
-            if entry.c5 in known:
-                raise ValueError(f"{source}:{lineno}: duplicate row for {entry.c5!r}")
-            known[entry.c5] = entry
+    for lineno, source, row in rows_of(path, PENN_FILE, PENN_HEADER):
+        entry = TagMap(*row)
+        if entry.evidence not in EVIDENCE:
+            raise ValueError(
+                f"{source}:{lineno}: evidence must be one of {sorted(EVIDENCE)}, "
+                f"got {entry.evidence!r}"
+            )
+        if entry.penn not in PENN_TAGS:
+            raise ValueError(
+                f"{source}:{lineno}: {entry.penn!r} has no place in the row order"
+            )
+        if not entry.note:
+            raise ValueError(f"{source}:{lineno}: every mapping needs a note")
+        if entry.c5 in known:
+            raise ValueError(f"{source}:{lineno}: duplicate row for {entry.c5!r}")
+        known[entry.c5] = entry
     return known
 
 
 def load_phrase_exceptions(path: Path | None = None) -> tuple[PhraseException, ...]:
     out: list[PhraseException] = []
     seen: set[str] = set()
-    with open_data(path, EXCEPTIONS_FILE) as (f, source):
-        reader = csv.reader(f, delimiter="\t")
-        header = next(reader)
-        if header != EXCEPTIONS_HEADER:
-            raise ValueError(f"unexpected header in {source}: {header}")
-        for lineno, row in enumerate(reader, start=2):
-            if len(row) != len(EXCEPTIONS_HEADER):
-                raise ValueError(
-                    f"{source}:{lineno}: expected {len(EXCEPTIONS_HEADER)} fields, "
-                    f"got {len(row)}"
-                )
-            entry = PhraseException(*row)
-            if entry.reason not in REASONS:
-                raise ValueError(
-                    f"{source}:{lineno}: reason must be one of {sorted(REASONS)}, "
-                    f"got {entry.reason!r}"
-                )
-            if not entry.note:
-                raise ValueError(f"{source}:{lineno}: every exception needs a note")
-            if entry.entry in seen:
-                raise ValueError(
-                    f"{source}:{lineno}: duplicate row for {entry.entry!r}"
-                )
-            seen.add(entry.entry)
-            out.append(entry)
+    for lineno, source, row in rows_of(path, EXCEPTIONS_FILE, EXCEPTIONS_HEADER):
+        entry = PhraseException(*row)
+        if entry.reason not in REASONS:
+            raise ValueError(
+                f"{source}:{lineno}: reason must be one of {sorted(REASONS)}, "
+                f"got {entry.reason!r}"
+            )
+        if not entry.note:
+            raise ValueError(f"{source}:{lineno}: every exception needs a note")
+        if entry.entry in seen:
+            raise ValueError(f"{source}:{lineno}: duplicate row for {entry.entry!r}")
+        seen.add(entry.entry)
+        out.append(entry)
     return tuple(out)
 
 

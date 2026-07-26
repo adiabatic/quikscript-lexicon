@@ -1,12 +1,11 @@
 from __future__ import annotations
 
-import csv
 from collections.abc import Iterable
 from dataclasses import dataclass
 from pathlib import Path
 
-from qslex.mapping import open_data
 from qslex.readlex import Row
+from qslex.tables import Declares, rows_of
 
 TAGS_FILE = "var-tags.tsv"
 TAGS_HEADER = ["tag", "canonical", "policy", "rows", "words", "note"]
@@ -20,17 +19,13 @@ DOCUMENTED = frozenset({"RRP", "TrapBath", "GenAm", "GenAus"})
 
 
 @dataclass(frozen=True)
-class VarTag:
+class VarTag(Declares):
     tag: str
     canonical: str
     policy: str
     rows: int
     words: str
     note: str
-
-    @property
-    def declared_words(self) -> tuple[str, ...]:
-        return tuple(w.strip() for w in self.words.split(",") if w.strip())
 
     @property
     def kept(self) -> bool:
@@ -42,42 +37,32 @@ Tags = dict[str, VarTag]
 
 def load_var_tags(path: Path | None = None) -> Tags:
     known: Tags = {}
-    with open_data(path, TAGS_FILE) as (f, source):
-        reader = csv.reader(f, delimiter="\t")
-        header = next(reader)
-        if header != TAGS_HEADER:
-            raise ValueError(f"unexpected header in {source}: {header}")
-        for lineno, row in enumerate(reader, start=2):
-            if len(row) != len(TAGS_HEADER):
-                raise ValueError(
-                    f"{source}:{lineno}: expected {len(TAGS_HEADER)} fields, "
-                    f"got {len(row)}"
-                )
-            tag, canonical, policy, rows, words, note = row
-            if not tag:
-                raise ValueError(f"{source}:{lineno}: empty tag")
-            if policy not in POLICIES:
-                raise ValueError(
-                    f"{source}:{lineno}: policy must be one of {sorted(POLICIES)}, "
-                    f"got {policy!r}"
-                )
-            try:
-                count = int(rows)
-            except ValueError as error:
-                raise ValueError(
-                    f"{source}:{lineno}: rows must be a number: {error}"
-                ) from error
-            entry = VarTag(tag, canonical, policy, count, words, note)
-            if tag in known:
-                raise ValueError(f"{source}:{lineno}: duplicate row for {tag!r}")
-            if tag not in DOCUMENTED and not entry.declared_words:
-                raise ValueError(
-                    f"{source}:{lineno}: {tag!r} is not one of upstream's documented "
-                    f"tags {sorted(DOCUMENTED)}, so it must declare the words it covers"
-                )
-            if not note:
-                raise ValueError(f"{source}:{lineno}: every tag needs a note")
-            known[tag] = entry
+    for lineno, source, row in rows_of(path, TAGS_FILE, TAGS_HEADER):
+        tag, canonical, policy, rows, words, note = row
+        if not tag:
+            raise ValueError(f"{source}:{lineno}: empty tag")
+        if policy not in POLICIES:
+            raise ValueError(
+                f"{source}:{lineno}: policy must be one of {sorted(POLICIES)}, "
+                f"got {policy!r}"
+            )
+        try:
+            count = int(rows)
+        except ValueError as error:
+            raise ValueError(
+                f"{source}:{lineno}: rows must be a number: {error}"
+            ) from error
+        entry = VarTag(tag, canonical, policy, count, words, note)
+        if tag in known:
+            raise ValueError(f"{source}:{lineno}: duplicate row for {tag!r}")
+        if tag not in DOCUMENTED and not entry.declared_words:
+            raise ValueError(
+                f"{source}:{lineno}: {tag!r} is not one of upstream's documented "
+                f"tags {sorted(DOCUMENTED)}, so it must declare the words it covers"
+            )
+        if not note:
+            raise ValueError(f"{source}:{lineno}: every tag needs a note")
+        known[tag] = entry
     for entry in known.values():
         if entry.canonical not in known:
             raise ValueError(

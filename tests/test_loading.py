@@ -15,7 +15,10 @@ from qslex.mapping import HEADER
 from qslex.overrides import OVERRIDES_HEADER
 from qslex.quirks import QUIRKS_HEADER
 from qslex.readlex import CorpusError, Row, load_rows
+from qslex.tables import rows_of
 from qslex.variants import TAGS_HEADER, kept, load_var_tags, select
+
+from tsv import write_tsv
 
 PEA = chr(0xE650)
 EAT_UTTER = chr(0xE671) + chr(0xE67A)
@@ -28,11 +31,25 @@ GOOD_ROWS = [
     ["ɪə", "unstressed", IT_UTTER, "U+E670 U+E67A", "·It·Utter", "sequence", "h", "x"],
 ]
 
+TABLE_HEADER = ["word", "note"]
 
-def write_tsv(path: Path, header: list[str], rows: list[list[str]]) -> Path:
-    lines = ["\t".join(header)] + ["\t".join(r) for r in rows]
-    path.write_text("\n".join(lines) + "\n", encoding="utf-8")
-    return path
+
+def test_a_table_with_an_unexpected_header_is_rejected(tmp_path: Path) -> None:
+    path = write_tsv(tmp_path / "t.tsv", ["word"], [])
+    with pytest.raises(ValueError, match="unexpected header"):
+        list(rows_of(path, "t.tsv", TABLE_HEADER))
+
+
+@pytest.mark.parametrize(
+    ("row", "got"),
+    [(["pea"], 1), (["pea", "a note", "spare"], 3)],
+)
+def test_a_row_with_the_wrong_field_count_is_rejected(
+    tmp_path: Path, row: list[str], got: int
+) -> None:
+    path = write_tsv(tmp_path / "t.tsv", TABLE_HEADER, [row])
+    with pytest.raises(ValueError, match=f"t.tsv:2: expected 2 fields, got {got}"):
+        list(rows_of(path, "t.tsv", TABLE_HEADER))
 
 
 def mapping_file(tmp_path: Path, rows: list[list[str]]) -> Path:
@@ -49,17 +66,6 @@ def test_empty_ipa_is_rejected(tmp_path: Path) -> None:
     rows = [*GOOD_ROWS, ["", "", "", "", "", "marker", "", ""]]
     with pytest.raises(ValueError, match="empty ipa token"):
         load_mapping(mapping_file(tmp_path, rows))
-
-
-def test_bad_header(tmp_path: Path) -> None:
-    path = write_tsv(tmp_path / "m.tsv", HEADER[:-1], [])
-    with pytest.raises(ValueError, match="unexpected header"):
-        load_mapping(path)
-
-
-def test_wrong_field_count(tmp_path: Path) -> None:
-    with pytest.raises(ValueError, match="expected 8 fields"):
-        load_mapping(mapping_file(tmp_path, [["p", "", ""]]))
 
 
 def test_unknown_kind(tmp_path: Path) -> None:
@@ -350,17 +356,6 @@ def test_good_var_tags_load(tmp_path: Path) -> None:
     assert tags["RRP"].rows == 3
 
 
-def test_var_tags_bad_header(tmp_path: Path) -> None:
-    path = write_tsv(tmp_path / "v.tsv", TAGS_HEADER[:-1], [])
-    with pytest.raises(ValueError, match="unexpected header"):
-        load_var_tags(path)
-
-
-def test_var_tags_wrong_field_count(tmp_path: Path) -> None:
-    with pytest.raises(ValueError, match="expected 6 fields"):
-        load_var_tags(tags_file(tmp_path, [["RRP", "RRP", "keep"]]))
-
-
 def test_var_tags_reject_an_empty_tag(tmp_path: Path) -> None:
     rows = [*GOOD_TAGS, ["", "RRP", "keep", "0", "", "n"]]
     with pytest.raises(ValueError, match="empty tag"):
@@ -444,17 +439,6 @@ def test_good_penn_rows_load(tmp_path: Path) -> None:
     assert penn["VVB"].evidence == "standard"
 
 
-def test_penn_bad_header(tmp_path: Path) -> None:
-    path = write_tsv(tmp_path / "p.tsv", PENN_HEADER[:-1], [])
-    with pytest.raises(ValueError, match="unexpected header"):
-        load_penn(path)
-
-
-def test_penn_wrong_field_count(tmp_path: Path) -> None:
-    with pytest.raises(ValueError, match="expected 4 fields"):
-        load_penn(penn_file(tmp_path, [["NN1", "NN"]]))
-
-
 def test_penn_rejects_unknown_evidence(tmp_path: Path) -> None:
     rows = [["NN1", "NN", "vibes", "singular noun"]]
     with pytest.raises(ValueError, match="evidence must be one of"):
@@ -492,17 +476,6 @@ def test_good_phrase_exceptions_load(tmp_path: Path) -> None:
     listed = load_phrase_exceptions(exceptions_file(tmp_path, GOOD_EXCEPTIONS))
     assert [exception.entry for exception in listed] == ["&amp;", "cannot"]
     assert listed[1].reason == "tokenizer-split"
-
-
-def test_phrase_exceptions_bad_header(tmp_path: Path) -> None:
-    path = write_tsv(tmp_path / "e.tsv", EXCEPTIONS_HEADER[:-1], [])
-    with pytest.raises(ValueError, match="unexpected header"):
-        load_phrase_exceptions(path)
-
-
-def test_phrase_exceptions_wrong_field_count(tmp_path: Path) -> None:
-    with pytest.raises(ValueError, match="expected 3 fields"):
-        load_phrase_exceptions(exceptions_file(tmp_path, [["cannot", "html-entity"]]))
 
 
 def test_phrase_exceptions_reject_an_unknown_reason(tmp_path: Path) -> None:

@@ -4,6 +4,8 @@ import pytest
 
 from qslex.passages import PASSAGES_HEADER, SPECIMENS, load_passages
 
+from tsv import write_tsv
+
 GOOD_ROWS = [
     ["no-how", "0", "if", "·It·Fee", "senior", "", ""],
     ["no-how", "1", "he", "·He", "contraction", "", ""],
@@ -13,10 +15,7 @@ GOOD_ROWS = [
 
 
 def passages_file(tmp_path: Path, rows: list[list[str]]) -> Path:
-    lines = ["\t".join(PASSAGES_HEADER)] + ["\t".join(row) for row in rows]
-    path = tmp_path / "p.tsv"
-    path.write_text("\n".join(lines) + "\n", encoding="utf-8")
-    return path
+    return write_tsv(tmp_path / "p.tsv", PASSAGES_HEADER, rows)
 
 
 def loaded(tmp_path: Path, rows: list[list[str]]) -> tuple[str, ...]:

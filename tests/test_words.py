@@ -25,6 +25,8 @@ from qslex.words import (
     apply_signs,
 )
 
+from tsv import write_tsv
+
 MAPPING = load_mapping()
 QUIRKS = load_quirks()
 OVERRIDES = load_overrides(MAPPING)
@@ -33,12 +35,6 @@ SIGNS = TABLES.signs
 CONTRACTIONS = load_contractions()
 
 ROWS = {(row.word.lower(), row.pos): row for row in load_rows()}
-
-
-def write_tsv(path: Path, header: list[str], rows: list[list[str]]) -> Path:
-    lines = ["\t".join(header)] + ["\t".join(r) for r in rows]
-    path.write_text("\n".join(lines) + "\n", encoding="utf-8")
-    return path
 
 
 CORE_ROWS = [
@@ -186,18 +182,6 @@ def test_apply_signs_reports_only_what_it_changed() -> None:
         "as it were", row.pos, ipa, tuple(tokenize(ipa, MAPPING, OVERRIDES))
     )
     assert spell(context, TABLES).signed == ("it",)
-
-
-def test_bad_signs_header(tmp_path: Path) -> None:
-    path = write_tsv(tmp_path / "s.tsv", SIGNS_HEADER[:-1], [])
-    with pytest.raises(ValueError, match="unexpected header"):
-        load_word_signs(path)
-
-
-def test_signs_wrong_field_count(tmp_path: Path) -> None:
-    path = write_tsv(tmp_path / "s.tsv", SIGNS_HEADER, [["the", ""]])
-    with pytest.raises(ValueError, match="expected 8 fields"):
-        load_word_signs(path)
 
 
 def test_unknown_tier(tmp_path: Path) -> None:

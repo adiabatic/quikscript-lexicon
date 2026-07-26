@@ -1,12 +1,11 @@
 from __future__ import annotations
 
-import csv
 from dataclasses import dataclass
 from pathlib import Path
 
 from qslex.elements import elements
 from qslex.letters import Letter, Letters, names, parse, unknown_names
-from qslex.mapping import open_data
+from qslex.tables import rows_of
 
 SIGNS_FILE = "word-signs.tsv"
 SIGNS_HEADER = ["word", "pos", "tier", "senior", "junior", "full", "authority", "note"]
@@ -49,63 +48,53 @@ Signs = dict[tuple[str, str], Sign]
 
 def load_word_signs(path: Path | None = None) -> Signs:
     known: Signs = {}
-    with open_data(path, SIGNS_FILE) as (f, source):
-        reader = csv.reader(f, delimiter="\t")
-        header = next(reader)
-        if header != SIGNS_HEADER:
-            raise ValueError(f"unexpected header in {source}: {header}")
-        for lineno, row in enumerate(reader, start=2):
-            if len(row) != len(SIGNS_HEADER):
+    for lineno, source, row in rows_of(path, SIGNS_FILE, SIGNS_HEADER):
+        sign = Sign(*row)
+        if sign.tier not in TIERS:
+            raise ValueError(
+                f"{source}:{lineno}: tier must be one of {sorted(TIERS)}, "
+                f"got {sign.tier!r}"
+            )
+        if sign.authority not in SIGN_AUTHORITIES:
+            raise ValueError(
+                f"{source}:{lineno}: {sign.authority!r} is not a Manual anchor "
+                f"for this table (have {sorted(SIGN_AUTHORITIES)})"
+            )
+        if sign.full and sign.tier != "core":
+            raise ValueError(
+                f"{source}:{lineno}: an uncontracted form is only recorded for "
+                f"the core eight, not for a {sign.tier} word"
+            )
+        for label, spelling in (
+            ("senior", sign.senior),
+            ("junior", sign.junior),
+            ("full", sign.full),
+        ):
+            if label == "senior" and not spelling:
+                raise ValueError(f"{source}:{lineno}: no senior spelling")
+            if spelling and not spelling.startswith("·"):
                 raise ValueError(
-                    f"{source}:{lineno}: expected {len(SIGNS_HEADER)} fields, "
-                    f"got {len(row)}"
+                    f"{source}:{lineno}: {label} spelling must be ·-prefixed: "
+                    f"{spelling!r}"
                 )
-            sign = Sign(*row)
-            if sign.tier not in TIERS:
+            unknown = unknown_names(spelling)
+            if unknown:
                 raise ValueError(
-                    f"{source}:{lineno}: tier must be one of {sorted(TIERS)}, "
-                    f"got {sign.tier!r}"
+                    f"{source}:{lineno}: unknown letter names in {label}: {unknown}"
                 )
-            if sign.authority not in SIGN_AUTHORITIES:
-                raise ValueError(
-                    f"{source}:{lineno}: {sign.authority!r} is not a Manual anchor "
-                    f"for this table (have {sorted(SIGN_AUTHORITIES)})"
-                )
-            if sign.full and sign.tier != "core":
-                raise ValueError(
-                    f"{source}:{lineno}: an uncontracted form is only recorded for "
-                    f"the core eight, not for a {sign.tier} word"
-                )
-            for label, spelling in (
-                ("senior", sign.senior),
-                ("junior", sign.junior),
-                ("full", sign.full),
-            ):
-                if label == "senior" and not spelling:
-                    raise ValueError(f"{source}:{lineno}: no senior spelling")
-                if spelling and not spelling.startswith("·"):
-                    raise ValueError(
-                        f"{source}:{lineno}: {label} spelling must be ·-prefixed: "
-                        f"{spelling!r}"
-                    )
-                unknown = unknown_names(spelling)
-                if unknown:
-                    raise ValueError(
-                        f"{source}:{lineno}: unknown letter names in {label}: {unknown}"
-                    )
-            if sign.junior == sign.senior:
-                raise ValueError(
-                    f"{source}:{lineno}: leave junior empty where it does not diverge"
-                )
-            key = (sign.word, sign.pos)
-            if key in known:
-                raise ValueError(f"{source}:{lineno}: duplicate row for {key}")
-            if sign.pos and (sign.word, "") in known:
-                raise ValueError(
-                    f"{source}:{lineno}: {sign.word!r} already has a row for every "
-                    f"part of speech, so a {sign.pos} row can never be reached"
-                )
-            known[key] = sign
+        if sign.junior == sign.senior:
+            raise ValueError(
+                f"{source}:{lineno}: leave junior empty where it does not diverge"
+            )
+        key = (sign.word, sign.pos)
+        if key in known:
+            raise ValueError(f"{source}:{lineno}: duplicate row for {key}")
+        if sign.pos and (sign.word, "") in known:
+            raise ValueError(
+                f"{source}:{lineno}: {sign.word!r} already has a row for every "
+                f"part of speech, so a {sign.pos} row can never be reached"
+            )
+        known[key] = sign
     missing = [word for word in CORE_EIGHT if (word, "") not in known]
     if missing:
         raise ValueError(f"{SIGNS_FILE} is missing core word signs: {missing}")
@@ -115,41 +104,31 @@ def load_word_signs(path: Path | None = None) -> Signs:
 def load_contractions(path: Path | None = None) -> tuple[Contraction, ...]:
     out: list[Contraction] = []
     seen: set[tuple[str, str]] = set()
-    with open_data(path, CONTRACTIONS_FILE) as (f, source):
-        reader = csv.reader(f, delimiter="\t")
-        header = next(reader)
-        if header != CONTRACTIONS_HEADER:
-            raise ValueError(f"unexpected header in {source}: {header}")
-        for lineno, row in enumerate(reader, start=2):
-            if len(row) != len(CONTRACTIONS_HEADER):
-                raise ValueError(
-                    f"{source}:{lineno}: expected {len(CONTRACTIONS_HEADER)} fields, "
-                    f"got {len(row)}"
-                )
-            entry = Contraction(*row)
-            if entry.kind not in KINDS:
-                raise ValueError(
-                    f"{source}:{lineno}: kind must be one of {sorted(KINDS)}, "
-                    f"got {entry.kind!r}"
-                )
-            if entry.authority != CONTRACTION_AUTHORITY:
-                raise ValueError(
-                    f"{source}:{lineno}: {entry.authority!r} is not "
-                    f"{CONTRACTION_AUTHORITY!r}"
-                )
-            unknown = unknown_names(entry.contraction)
-            if unknown:
-                raise ValueError(f"{source}:{lineno}: unknown letter names {unknown}")
-            if entry.kind == "clitic" and not entry.note:
-                raise ValueError(
-                    f"{source}:{lineno}: a clitic is generalised rather than listed, "
-                    f"so it needs a note saying from what"
-                )
-            key = (entry.word, entry.pos)
-            if key in seen:
-                raise ValueError(f"{source}:{lineno}: duplicate row for {key}")
-            seen.add(key)
-            out.append(entry)
+    for lineno, source, row in rows_of(path, CONTRACTIONS_FILE, CONTRACTIONS_HEADER):
+        entry = Contraction(*row)
+        if entry.kind not in KINDS:
+            raise ValueError(
+                f"{source}:{lineno}: kind must be one of {sorted(KINDS)}, "
+                f"got {entry.kind!r}"
+            )
+        if entry.authority != CONTRACTION_AUTHORITY:
+            raise ValueError(
+                f"{source}:{lineno}: {entry.authority!r} is not "
+                f"{CONTRACTION_AUTHORITY!r}"
+            )
+        unknown = unknown_names(entry.contraction)
+        if unknown:
+            raise ValueError(f"{source}:{lineno}: unknown letter names {unknown}")
+        if entry.kind == "clitic" and not entry.note:
+            raise ValueError(
+                f"{source}:{lineno}: a clitic is generalised rather than listed, "
+                f"so it needs a note saying from what"
+            )
+        key = (entry.word, entry.pos)
+        if key in seen:
+            raise ValueError(f"{source}:{lineno}: duplicate row for {key}")
+        seen.add(key)
+        out.append(entry)
     return tuple(out)
 
 

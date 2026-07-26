@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import csv
 import dataclasses
 import re
 from collections.abc import Callable, Container, Iterable
@@ -9,7 +8,7 @@ from pathlib import Path
 
 from qslex.elements import DIVIDERS, elements
 from qslex.letters import Letter, Letters, names, parse, render, unknown_names
-from qslex.mapping import open_data
+from qslex.tables import rows_of
 from qslex.tokenizer import Token, is_stressed
 from qslex.words import Signs, apply_signs, load_word_signs
 
@@ -223,82 +222,62 @@ NO_TABLES = Tables()
 
 def load_rule_words(path: Path | None = None) -> dict[tuple[str, str], RuleWord]:
     known: dict[tuple[str, str], RuleWord] = {}
-    with open_data(path, RULE_WORDS_FILE) as (f, source):
-        reader = csv.reader(f, delimiter="\t")
-        header = next(reader)
-        if header != RULE_WORDS_HEADER:
-            raise ValueError(f"unexpected header in {source}: {header}")
-        for lineno, row in enumerate(reader, start=2):
-            if len(row) != len(RULE_WORDS_HEADER):
-                raise ValueError(
-                    f"{source}:{lineno}: expected {len(RULE_WORDS_HEADER)} fields, "
-                    f"got {len(row)}"
-                )
-            entry = RuleWord(*row)
-            if entry.rule not in GATED_RULES:
-                raise ValueError(
-                    f"{source}:{lineno}: {entry.rule!r} is not a gated rule "
-                    f"(have {sorted(GATED_RULES)})"
-                )
-            if entry.decision not in DECISIONS:
-                raise ValueError(
-                    f"{source}:{lineno}: decision must be one of {sorted(DECISIONS)}, "
-                    f"got {entry.decision!r}"
-                )
-            if entry.rule == "terminal-ing" and not entry.word.endswith(ING_TAILS):
-                raise ValueError(f"{source}:{lineno}: {entry.word!r} has no -ing")
-            if not entry.authority:
-                raise ValueError(f"{source}:{lineno}: a decision needs an authority")
-            key = (entry.rule, entry.word)
-            if key in known:
-                raise ValueError(f"{source}:{lineno}: duplicate row for {key}")
-            known[key] = entry
+    for lineno, source, row in rows_of(path, RULE_WORDS_FILE, RULE_WORDS_HEADER):
+        entry = RuleWord(*row)
+        if entry.rule not in GATED_RULES:
+            raise ValueError(
+                f"{source}:{lineno}: {entry.rule!r} is not a gated rule "
+                f"(have {sorted(GATED_RULES)})"
+            )
+        if entry.decision not in DECISIONS:
+            raise ValueError(
+                f"{source}:{lineno}: decision must be one of {sorted(DECISIONS)}, "
+                f"got {entry.decision!r}"
+            )
+        if entry.rule == "terminal-ing" and not entry.word.endswith(ING_TAILS):
+            raise ValueError(f"{source}:{lineno}: {entry.word!r} has no -ing")
+        if not entry.authority:
+            raise ValueError(f"{source}:{lineno}: a decision needs an authority")
+        key = (entry.rule, entry.word)
+        if key in known:
+            raise ValueError(f"{source}:{lineno}: duplicate row for {key}")
+        known[key] = entry
     return known
 
 
 def load_x_ligatures(path: Path | None = None) -> dict[str, LigatureRule]:
     known: dict[str, LigatureRule] = {}
-    with open_data(path, LIGATURES_FILE) as (f, source):
-        reader = csv.reader(f, delimiter="\t")
-        header = next(reader)
-        if header != LIGATURES_HEADER:
-            raise ValueError(f"unexpected header in {source}: {header}")
-        for lineno, row in enumerate(reader, start=2):
-            if len(row) != len(LIGATURES_HEADER):
-                raise ValueError(
-                    f"{source}:{lineno}: expected {len(LIGATURES_HEADER)} fields, "
-                    f"got {len(row)}"
-                )
-            rule = LigatureRule(*row)
-            if rule.reason not in LIGATURE_REASONS:
-                raise ValueError(
-                    f"{source}:{lineno}: reason must be one of "
-                    f"{sorted(LIGATURE_REASONS)}, got {rule.reason!r}"
-                )
-            if "x" not in rule.word:
-                raise ValueError(f"{source}:{lineno}: {rule.word!r} has no x to ligate")
-            if not rule.note:
-                raise ValueError(f"{source}:{lineno}: every ligature call needs a note")
-            unknown = unknown_names(rule.ligature)
-            if unknown:
-                raise ValueError(f"{source}:{lineno}: unknown letter names {unknown}")
-            spelt = names(parse(rule.ligature))
-            if rule.ligature and not LIGATURE_LETTERS.intersection(spelt):
-                raise ValueError(
-                    f"{source}:{lineno}: {rule.ligature} carries no ligature; leave "
-                    f"the column empty to rule that this word takes none"
-                )
-            if "xc" in rule.word and any(
-                first in LIGATURE_LETTERS and second == "See"
-                for first, second in zip(spelt, spelt[1:], strict=False)
-            ):
-                raise ValueError(
-                    f"{source}:{lineno}: {rule.ligature} adds a ·See after the "
-                    f"ligature that the ligature already covers"
-                )
-            if rule.word in known:
-                raise ValueError(f"{source}:{lineno}: duplicate row for {rule.word!r}")
-            known[rule.word] = rule
+    for lineno, source, row in rows_of(path, LIGATURES_FILE, LIGATURES_HEADER):
+        rule = LigatureRule(*row)
+        if rule.reason not in LIGATURE_REASONS:
+            raise ValueError(
+                f"{source}:{lineno}: reason must be one of "
+                f"{sorted(LIGATURE_REASONS)}, got {rule.reason!r}"
+            )
+        if "x" not in rule.word:
+            raise ValueError(f"{source}:{lineno}: {rule.word!r} has no x to ligate")
+        if not rule.note:
+            raise ValueError(f"{source}:{lineno}: every ligature call needs a note")
+        unknown = unknown_names(rule.ligature)
+        if unknown:
+            raise ValueError(f"{source}:{lineno}: unknown letter names {unknown}")
+        spelt = names(parse(rule.ligature))
+        if rule.ligature and not LIGATURE_LETTERS.intersection(spelt):
+            raise ValueError(
+                f"{source}:{lineno}: {rule.ligature} carries no ligature; leave "
+                f"the column empty to rule that this word takes none"
+            )
+        if "xc" in rule.word and any(
+            first in LIGATURE_LETTERS and second == "See"
+            for first, second in zip(spelt, spelt[1:], strict=False)
+        ):
+            raise ValueError(
+                f"{source}:{lineno}: {rule.ligature} adds a ·See after the "
+                f"ligature that the ligature already covers"
+            )
+        if rule.word in known:
+            raise ValueError(f"{source}:{lineno}: duplicate row for {rule.word!r}")
+        known[rule.word] = rule
     return known
 
 

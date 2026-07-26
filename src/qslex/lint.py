@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import csv
 import re
 from collections.abc import Callable
 from dataclasses import dataclass
@@ -8,8 +7,8 @@ from pathlib import Path
 
 from qslex.elements import DIVIDERS, components, elements
 from qslex.letters import VOWELS, Letters, names, parse
-from qslex.mapping import open_data
 from qslex.rules import AL, ALLY, ENT, ING_TAILS, Tables
+from qslex.tables import rows_of
 
 PRAGMAS_FILE = "lint-pragmas.tsv"
 PRAGMAS_HEADER = ["check", "word", "reason", "note"]
@@ -269,32 +268,22 @@ def load_pragmas(path: Path | None = None) -> dict[tuple[str, str], str]:
     become the bare exception list this project keeps refusing to write.
     """
     pragmas: dict[tuple[str, str], str] = {}
-    with open_data(path, PRAGMAS_FILE) as (f, source):
-        reader = csv.reader(f, delimiter="\t")
-        header = next(reader)
-        if header != PRAGMAS_HEADER:
-            raise ValueError(f"unexpected header in {source}: {header}")
-        for lineno, row in enumerate(reader, start=2):
-            if len(row) != len(PRAGMAS_HEADER):
-                raise ValueError(
-                    f"{source}:{lineno}: expected {len(PRAGMAS_HEADER)} fields, "
-                    f"got {len(row)}"
-                )
-            check, word, reason, note = row
-            if check not in CHECK_IDS:
-                raise ValueError(f"{source}:{lineno}: {check!r} is not a check")
-            if reason != DEFECT:
-                raise ValueError(
-                    f"{source}:{lineno}: reason must be {DEFECT!r}, got {reason!r}"
-                )
-            if not note:
-                raise ValueError(
-                    f"{source}:{lineno}: a known defect needs a note saying what it is"
-                )
-            key = (check, word)
-            if key in pragmas:
-                raise ValueError(f"{source}:{lineno}: duplicate pragma for {key}")
-            pragmas[key] = reason
+    for lineno, source, row in rows_of(path, PRAGMAS_FILE, PRAGMAS_HEADER):
+        check, word, reason, note = row
+        if check not in CHECK_IDS:
+            raise ValueError(f"{source}:{lineno}: {check!r} is not a check")
+        if reason != DEFECT:
+            raise ValueError(
+                f"{source}:{lineno}: reason must be {DEFECT!r}, got {reason!r}"
+            )
+        if not note:
+            raise ValueError(
+                f"{source}:{lineno}: a known defect needs a note saying what it is"
+            )
+        key = (check, word)
+        if key in pragmas:
+            raise ValueError(f"{source}:{lineno}: duplicate pragma for {key}")
+        pragmas[key] = reason
     return pragmas
 
 

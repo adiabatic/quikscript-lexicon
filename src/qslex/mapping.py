@@ -1,17 +1,11 @@
 from __future__ import annotations
 
-import csv
-import io
-from collections.abc import Iterator
-from contextlib import contextmanager
 from dataclasses import dataclass
-from importlib import resources
 from pathlib import Path
-from typing import IO
 
 from qslex.csur import CODEPOINT_OF
+from qslex.tables import rows_of
 
-DATA_PACKAGE = "qslex.data"
 MAPPING_FILE = "ipa-to-qs.tsv"
 
 HEADER = [
@@ -57,69 +51,41 @@ class Mapping:
     tokens_by_length: tuple[str, ...]
 
 
-@contextmanager
-def open_data(path: Path | None, name: str) -> Iterator[tuple[IO[str], str]]:
-    if path is not None:
-        with path.open(encoding="utf-8", newline="") as f:
-            yield f, str(path)
-        return
-    resource = resources.files(DATA_PACKAGE) / name
-    with io.StringIO(resource.read_text(encoding="utf-8"), newline="") as f:
-        yield f, f"{DATA_PACKAGE}/{name}"
-
-
 def load_mapping(path: Path | None = None) -> Mapping:
     entries: list[MapEntry] = []
-    with open_data(path, MAPPING_FILE) as (f, source):
-        reader = csv.reader(f, delimiter="\t")
-        header = next(reader)
-        if header != HEADER:
-            raise ValueError(f"unexpected header in {source}: {header}")
-        for lineno, row in enumerate(reader, start=2):
-            if len(row) != len(HEADER):
-                raise ValueError(
-                    f"{source}:{lineno}: expected {len(HEADER)} fields, got {len(row)}"
-                )
-            ipa, condition, qs, cps, letters, kind, example, authority = row
-            if not ipa:
-                raise ValueError(f"{source}:{lineno}: empty ipa token")
-            names = tuple(n for n in letters.split("·") if n)
-            if letters and not letters.startswith("·"):
-                raise ValueError(
-                    f"{source}:{lineno}: letters must be ·-prefixed: {letters!r}"
-                )
-            for cp in cps.split():
-                if not cp.startswith("U+"):
-                    raise ValueError(
-                        f"{source}:{lineno}: codepoint must be U+-prefixed: {cp!r}"
-                    )
-            try:
-                codepoints = tuple(int(c.removeprefix("U+"), 16) for c in cps.split())
-            except ValueError as error:
-                raise ValueError(
-                    f"{source}:{lineno}: bad codepoint: {error}"
-                ) from error
-            entry = MapEntry(
-                ipa, condition, qs, codepoints, names, kind, example, authority
+    for lineno, source, row in rows_of(path, MAPPING_FILE, HEADER):
+        ipa, condition, qs, cps, letters, kind, example, authority = row
+        if not ipa:
+            raise ValueError(f"{source}:{lineno}: empty ipa token")
+        names = tuple(n for n in letters.split("·") if n)
+        if letters and not letters.startswith("·"):
+            raise ValueError(
+                f"{source}:{lineno}: letters must be ·-prefixed: {letters!r}"
             )
-            if kind not in KINDS:
-                raise ValueError(f"{source}:{lineno}: unknown kind {kind!r}")
-            if kind in {"marker", "structural", "hiatus"} and (names or codepoints):
+        for cp in cps.split():
+            if not cp.startswith("U+"):
                 raise ValueError(
-                    f"{source}:{lineno}: {kind} row must map to no letters"
+                    f"{source}:{lineno}: codepoint must be U+-prefixed: {cp!r}"
                 )
-            unknown = [n for n in names if n not in CODEPOINT_OF]
-            if unknown:
-                raise ValueError(f"{source}:{lineno}: unknown letter names {unknown}")
-            if codepoints != tuple(CODEPOINT_OF[n] for n in names):
-                raise ValueError(
-                    f"{source}:{lineno}: codepoints do not match letter names"
-                )
-            if qs != "".join(chr(c) for c in codepoints):
-                raise ValueError(
-                    f"{source}:{lineno}: qs string does not match codepoints"
-                )
-            entries.append(entry)
+        try:
+            codepoints = tuple(int(c.removeprefix("U+"), 16) for c in cps.split())
+        except ValueError as error:
+            raise ValueError(f"{source}:{lineno}: bad codepoint: {error}") from error
+        entry = MapEntry(
+            ipa, condition, qs, codepoints, names, kind, example, authority
+        )
+        if kind not in KINDS:
+            raise ValueError(f"{source}:{lineno}: unknown kind {kind!r}")
+        if kind in {"marker", "structural", "hiatus"} and (names or codepoints):
+            raise ValueError(f"{source}:{lineno}: {kind} row must map to no letters")
+        unknown = [n for n in names if n not in CODEPOINT_OF]
+        if unknown:
+            raise ValueError(f"{source}:{lineno}: unknown letter names {unknown}")
+        if codepoints != tuple(CODEPOINT_OF[n] for n in names):
+            raise ValueError(f"{source}:{lineno}: codepoints do not match letter names")
+        if qs != "".join(chr(c) for c in codepoints):
+            raise ValueError(f"{source}:{lineno}: qs string does not match codepoints")
+        entries.append(entry)
 
     lookup: dict[str, dict[str, MapEntry]] = {}
     for entry in entries:

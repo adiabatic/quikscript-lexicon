@@ -1,11 +1,10 @@
 from __future__ import annotations
 
-import csv
 from dataclasses import dataclass
 from pathlib import Path
 
 from qslex.letters import unknown_names
-from qslex.mapping import open_data
+from qslex.tables import rows_of
 
 PASSAGES_FILE = "manual-passages.tsv"
 PASSAGES_HEADER = ["passage", "index", "latin", "spelling", "verdict", "ours", "note"]
@@ -83,61 +82,51 @@ def load_passages(path: Path | None = None) -> tuple[PassageWord, ...]:
     words: list[PassageWord] = []
     last: dict[str, int] = {}
     counts: dict[str, int] = dict.fromkeys(SPECIMENS, 0)
-    with open_data(path, PASSAGES_FILE) as (f, source):
-        reader = csv.reader(f, delimiter="\t")
-        header = next(reader)
-        if header != PASSAGES_HEADER:
-            raise ValueError(f"unexpected header in {source}: {header}")
-        for lineno, row in enumerate(reader, start=2):
-            if len(row) != len(PASSAGES_HEADER):
-                raise ValueError(
-                    f"{source}:{lineno}: expected {len(PASSAGES_HEADER)} fields, "
-                    f"got {len(row)}"
-                )
-            passage, index, latin, spelling, verdict, ours, note = row
-            specimen = SPECIMENS.get(passage)
-            if specimen is None:
-                raise ValueError(f"{source}:{lineno}: unknown passage {passage!r}")
-            try:
-                position = int(index)
-            except ValueError as error:
-                raise ValueError(f"{source}:{lineno}: {error}") from error
-            if position <= last.get(passage, -1):
-                raise ValueError(
-                    f"{source}:{lineno}: {passage} word {position} is out of order"
-                )
-            last[passage] = position
-            counts[passage] += 1
-            if verdict not in specimen.verdicts:
-                raise ValueError(
-                    f"{source}:{lineno}: a {specimen.level} passage cannot have "
-                    f"verdict {verdict!r} (have {sorted(specimen.verdicts)})"
-                )
-            if not latin:
-                raise ValueError(f"{source}:{lineno}: no Latin word")
-            for label, value in (("spelling", spelling), ("ours", ours)):
-                unknown = unknown_names(value.replace(ALTERNATIVES, ""))
-                if unknown:
-                    raise ValueError(
-                        f"{source}:{lineno}: unknown letter names in {label}: {unknown}"
-                    )
-            if not spelling.startswith("·"):
-                raise ValueError(
-                    f"{source}:{lineno}: spelling must be ·-prefixed: {spelling!r}"
-                )
-            if bool(ours) != (verdict == "differs"):
-                raise ValueError(
-                    f"{source}:{lineno}: only a differing word records what this "
-                    f"lexicon spells instead"
-                )
-            if bool(note) != (verdict in UNREPRODUCED):
-                raise ValueError(
-                    f"{source}:{lineno}: a {verdict!r} word needs a note saying why, "
-                    f"and no other kind takes one"
-                )
-            words.append(
-                PassageWord(passage, position, latin, spelling, verdict, ours, note)
+    for lineno, source, row in rows_of(path, PASSAGES_FILE, PASSAGES_HEADER):
+        passage, index, latin, spelling, verdict, ours, note = row
+        specimen = SPECIMENS.get(passage)
+        if specimen is None:
+            raise ValueError(f"{source}:{lineno}: unknown passage {passage!r}")
+        try:
+            position = int(index)
+        except ValueError as error:
+            raise ValueError(f"{source}:{lineno}: {error}") from error
+        if position <= last.get(passage, -1):
+            raise ValueError(
+                f"{source}:{lineno}: {passage} word {position} is out of order"
             )
+        last[passage] = position
+        counts[passage] += 1
+        if verdict not in specimen.verdicts:
+            raise ValueError(
+                f"{source}:{lineno}: a {specimen.level} passage cannot have "
+                f"verdict {verdict!r} (have {sorted(specimen.verdicts)})"
+            )
+        if not latin:
+            raise ValueError(f"{source}:{lineno}: no Latin word")
+        for label, value in (("spelling", spelling), ("ours", ours)):
+            unknown = unknown_names(value.replace(ALTERNATIVES, ""))
+            if unknown:
+                raise ValueError(
+                    f"{source}:{lineno}: unknown letter names in {label}: {unknown}"
+                )
+        if not spelling.startswith("·"):
+            raise ValueError(
+                f"{source}:{lineno}: spelling must be ·-prefixed: {spelling!r}"
+            )
+        if bool(ours) != (verdict == "differs"):
+            raise ValueError(
+                f"{source}:{lineno}: only a differing word records what this "
+                f"lexicon spells instead"
+            )
+        if bool(note) != (verdict in UNREPRODUCED):
+            raise ValueError(
+                f"{source}:{lineno}: a {verdict!r} word needs a note saying why, "
+                f"and no other kind takes one"
+            )
+        words.append(
+            PassageWord(passage, position, latin, spelling, verdict, ours, note)
+        )
     wrong = {p: n for p, n in counts.items() if n != SPECIMENS[p].words}
     if wrong:
         raise ValueError(

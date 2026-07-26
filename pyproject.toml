@@ -43,6 +43,9 @@ line-length = 88
 [tool.ruff.lint]
 select = ["E", "F", "I", "UP", "B", "SIM"]
 
+[tool.ruff.lint.isort]
+known-local-folder = ["tsv"]
+
 [tool.mypy]
 strict = true
 files = ["src", "tests"]

@@ -12,16 +12,15 @@ from qslex.lint import (
 )
 from qslex.rules import NO_TABLES
 
+from tsv import write_tsv
+
 
 def broken(word: str, spelling: str, ipa: str, ligature: str = "") -> set[str]:
     return {check for check, _, _ in lint(word, spelling, ligature, ipa, NO_TABLES)}
 
 
 def pragma_file(tmp_path: Path, rows: list[list[str]]) -> Path:
-    lines = ["\t".join(PRAGMAS_HEADER)] + ["\t".join(row) for row in rows]
-    path = tmp_path / "p.tsv"
-    path.write_text("\n".join(lines) + "\n", encoding="utf-8")
-    return path
+    return write_tsv(tmp_path / "p.tsv", PRAGMAS_HEADER, rows)
 
 
 def test_every_check_says_what_the_manual_requires() -> None:
