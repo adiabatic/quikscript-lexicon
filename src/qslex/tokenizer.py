@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import collections
 from dataclasses import dataclass
 
 from qslex.mapping import MapEntry, Mapping
@@ -30,8 +29,7 @@ class TokenizeError(ValueError):
 def tokenize(
     ipa: str, mapping: Mapping, overrides: Overrides = NO_OVERRIDES
 ) -> list[Token]:
-    rules = overrides.get(ipa, ())
-    seen: collections.Counter[str] = collections.Counter()
+    rule = overrides.get(ipa)
     tokens: list[Token] = []
     position = 0
     while position < len(ipa):
@@ -41,8 +39,7 @@ def tokenize(
             following = position + len(candidate)
             if candidate.endswith("ə") and ipa.startswith("ʊ", following):
                 continue
-            seen[candidate] += 1
-            entry = _resolve(ipa, position, candidate, mapping, rules, seen[candidate])
+            entry = _resolve(ipa, position, candidate, mapping, rule)
             tokens.append(Token(candidate, entry))
             position = following
             break
@@ -56,15 +53,13 @@ def _resolve(
     position: int,
     token: str,
     mapping: Mapping,
-    rules: tuple[Override, ...],
-    occurrence: int,
+    rule: Override | None,
 ) -> MapEntry:
     conditions = mapping.lookup[token]
     if "" in conditions:
         return conditions[""]
-    for rule in rules:
-        if rule.token == token and rule.applies_to(occurrence):
-            return conditions[rule.condition]
+    if rule is not None and rule.token == token:
+        return conditions[rule.condition]
     if "stressed" in conditions:
         return conditions["stressed" if is_stressed(ipa, position) else "unstressed"]
     return conditions["pre-r" if pre_r(ipa, position + len(token)) else "no-r"]

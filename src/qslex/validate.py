@@ -192,13 +192,7 @@ FORBIDDEN_OUTPUT = {
 
 
 def consulted(tokens: list[Token], rule: Override) -> bool:
-    occurrence = 0
-    for token in tokens:
-        if token.ipa == rule.token:
-            occurrence += 1
-            if rule.applies_to(occurrence):
-                return True
-    return False
+    return any(token.ipa == rule.token for token in tokens)
 
 
 def stressed_rhotic_ears(ipa: str, tokens: list[Token]) -> int:
@@ -331,7 +325,7 @@ def main(argv: list[str] | None = None) -> int:
     residue: list[str] = []
     token_counts: collections.Counter[tuple[str, str]] = collections.Counter()
     quirk_hits: dict[int, set[str]] = collections.defaultdict(set)
-    override_hits: dict[tuple[str, str, str], set[str]] = collections.defaultdict(set)
+    override_hits: dict[str, set[str]] = collections.defaultdict(set)
     divergence_hits: set[tuple[str, str]] = set()
     iea_audit: dict[str, set[str]] = {
         "stressed": set(),
@@ -407,9 +401,9 @@ def main(argv: list[str] | None = None) -> int:
             if needle in spelling:
                 output_leaks.append(f"{label}: {row.word!r} -> {spelling}")
 
-        for rule in overrides.get(ipa, ()):
-            if consulted(tokens, rule):
-                override_hits[(rule.ipa, rule.token, rule.occurrence)].add(row.word)
+        rule = overrides.get(ipa)
+        if rule is not None and consulted(tokens, rule):
+            override_hits[rule.ipa].add(row.word)
 
         for token in tokens:
             token_counts[(token.ipa, token.entry.condition)] += 1
@@ -605,26 +599,24 @@ def main(argv: list[str] | None = None) -> int:
             print(f"    DECLARED BUT UNMATCHED: {', '.join(unseen)}")
 
     print("\nstress overrides:")
-    all_overrides = [rule for rules in overrides.values() for rule in rules]
-    for override in sorted(all_overrides, key=lambda r: (r.words, r.ipa)):
-        override_key = (override.ipa, override.token, override.occurrence)
-        hits = override_hits.get(override_key, set())
+    for override in sorted(overrides.values(), key=lambda r: (r.words, r.ipa)):
+        hits = override_hits.get(override.ipa, set())
         print(
             f"  {override.words}: {override.token!r} -> {override.condition} "
             f"({len(hits)} rows)"
         )
         if not hits:
-            failures.append(f"override {override_key} was never consulted")
+            failures.append(f"override {override.ipa!r} was never consulted")
         undeclared = sorted(hits - set(override.declared_words))
         if undeclared:
             failures.append(
-                f"override {override_key} touches undeclared words: {undeclared}"
+                f"override {override.ipa!r} touches undeclared words: {undeclared}"
             )
         mechanical = letters(tokenize(override.ipa, mapping))
         overridden = letters(tokenize(override.ipa, mapping, overrides))
         if mechanical == overridden:
             failures.append(
-                f"override {override_key} changes nothing; the mechanical rule "
+                f"override {override.ipa!r} changes nothing; the mechanical rule "
                 f"already yields {overridden}"
             )
 

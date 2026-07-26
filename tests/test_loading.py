@@ -140,45 +140,30 @@ def overrides_file(tmp_path: Path, rows: list[list[str]]) -> Path:
 
 def test_overrides_reject_unknown_token(tmp_path: Path) -> None:
     mapping = load_mapping(mapping_file(tmp_path, GOOD_ROWS))
-    rows = [["ˈzzz", "zz", "*", "stressed", "word", "a", ""]]
+    rows = [["ˈzzz", "zz", "stressed", "word", "a", ""]]
     with pytest.raises(ValueError, match="unknown token"):
         load_overrides(mapping, overrides_file(tmp_path, rows))
 
 
 def test_overrides_reject_wrong_condition(tmp_path: Path) -> None:
     mapping = load_mapping(mapping_file(tmp_path, GOOD_ROWS))
-    rows = [["ˈkɪə", "ɪə", "*", "pre-r", "word", "a", ""]]
+    rows = [["ˈkɪə", "ɪə", "pre-r", "word", "a", ""]]
     with pytest.raises(ValueError, match="no condition"):
         load_overrides(mapping, overrides_file(tmp_path, rows))
 
 
 def test_overrides_reject_unconditional_token(tmp_path: Path) -> None:
     mapping = load_mapping(mapping_file(tmp_path, GOOD_ROWS))
-    rows = [["p", "p", "*", "stressed", "word", "a", ""]]
+    rows = [["p", "p", "stressed", "word", "a", ""]]
     with pytest.raises(ValueError, match="unconditional"):
         load_overrides(mapping, overrides_file(tmp_path, rows))
 
 
 def test_overrides_reject_ipa_without_token(tmp_path: Path) -> None:
     mapping = load_mapping(mapping_file(tmp_path, GOOD_ROWS))
-    rows = [["ˈpp", "ɪə", "*", "stressed", "word", "a", ""]]
+    rows = [["ˈpp", "ɪə", "stressed", "word", "a", ""]]
     with pytest.raises(ValueError, match="does not contain"):
         load_overrides(mapping, overrides_file(tmp_path, rows))
-
-
-@pytest.mark.parametrize("occurrence", ["last", "0", "01", "-1", "²", "1.0", ""])
-def test_overrides_reject_bad_occurrence(tmp_path: Path, occurrence: str) -> None:
-    mapping = load_mapping(mapping_file(tmp_path, GOOD_ROWS))
-    rows = [["ˈkɪə", "ɪə", occurrence, "stressed", "word", "a", ""]]
-    with pytest.raises(ValueError, match="occurrence must be"):
-        load_overrides(mapping, overrides_file(tmp_path, rows))
-
-
-@pytest.mark.parametrize("occurrence", ["*", "1", "2", "10"])
-def test_overrides_accept_good_occurrence(tmp_path: Path, occurrence: str) -> None:
-    mapping = load_mapping(mapping_file(tmp_path, GOOD_ROWS))
-    rows = [["ˈkɪə", "ɪə", occurrence, "stressed", "word", "a", ""]]
-    assert load_overrides(mapping, overrides_file(tmp_path, rows))
 
 
 def test_quirks_reject_missing_words(tmp_path: Path) -> None:
@@ -189,14 +174,14 @@ def test_quirks_reject_missing_words(tmp_path: Path) -> None:
 
 def test_overrides_reject_missing_words(tmp_path: Path) -> None:
     mapping = load_mapping(mapping_file(tmp_path, GOOD_ROWS))
-    rows = [["ˈkɪə", "ɪə", "*", "stressed", "", "a", ""]]
+    rows = [["ˈkɪə", "ɪə", "stressed", "", "a", ""]]
     with pytest.raises(ValueError, match="no words declared"):
         load_overrides(mapping, overrides_file(tmp_path, rows))
 
 
 def test_overrides_reject_duplicates(tmp_path: Path) -> None:
     mapping = load_mapping(mapping_file(tmp_path, GOOD_ROWS))
-    row = ["ˈkɪə", "ɪə", "*", "stressed", "word", "a", ""]
+    row = ["ˈkɪə", "ɪə", "stressed", "word", "a", ""]
     with pytest.raises(ValueError, match="duplicate override"):
         load_overrides(mapping, overrides_file(tmp_path, [row, row]))
 
