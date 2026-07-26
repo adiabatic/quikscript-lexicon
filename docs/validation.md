@@ -61,9 +61,9 @@ A Senior passage is held to the senior and ligature columns; a Junior passage to
 
 Every shipped spelling is read back, letter by letter, to a phoneme string, and laid beside the IPA it was made from. The reverse table is *derived* from `ipa-to-qs.tsv` rather than written out, which makes deriving it a proof in itself: it fails if two IPA tokens that no documented merge joins ever land on the same letter. Only ·Excite and ·Exam are stated by hand, because no segment mapping reaches them; [§II][section-2] gives both.
 
-The two strings will not be equal, and are not meant to be. What is checked is that every difference between them is one this project has accounted for. `EDITS` in [`src/qslex/roundtrip.py`](../src/qslex/roundtrip.py) lists the licensed ones with a reason each — an unstressed vowel a terminal convention omits, the epenthetic ·Utter the rules insert, the ·Et of a ligature, the strong vowel a standard outline takes — and the alignment is a shortest path over exactly those. A spelling that cannot be reached by any of them fails, and the count of each licensed difference is pinned, so a rule that starts eliding a vowel it has no business eliding shows up as a count that moved rather than as a spelling nobody looked at.
+The two strings will not be equal, and are not meant to be. What is checked is that every difference between them is one this project has accounted for. `EDITS` in [`src/qslex/roundtrip.py`](../src/qslex/roundtrip.py) lists the licensed ones with a reason each — an unstressed vowel a terminal convention omits, the epenthetic ·Utter the rules insert, the ·Et of a ligature — and the alignment is a shortest path over exactly those. A spelling that cannot be reached by any of them fails, and the count of each licensed difference is pinned, so a rule that starts eliding a vowel it has no business eliding shows up as a count that moved rather than as a spelling nobody looked at.
 
-76,756 spellings read straight back to their own IPA with nothing elided or levelled at all. The Manual's three abbreviations are skipped: they are written "without a break between letters" and stand for the written word, not for its sounds, so there is nothing to read back.
+76,751 spellings read straight back to their own IPA with nothing elided or levelled at all. The 34 rows a word sign or standard outline rewrites are skipped: a sign stands for the written word rather than for its sounds — the Manual's three abbreviations are not even written with a break between their letters — so there is nothing to read back, and the licensed differences stay about the mapping and the terminal conventions rather than about the sign table, which is pinned word by word elsewhere.
 
 ## The Manual's own lint
 
@@ -74,7 +74,7 @@ Two things change when a check moves from a hand-written dictionary to a generat
 - **A shape-only check mostly re-reports the corpus.** "An element may not end ·Et·No·Tea" is, in a generated lexicon, equivalent to "ReadLex may not write /ent/", which is not a spelling rule at all. ·Et appears exactly where ReadLex wrote /e/, and the Manual's rider on the -land/-ment rule — "stressed vowels will be appropriately written: … cement …" — licenses every one of the 179 rows it fires on.
 - **A Latin-gated check is a real re-derivation.** Firing only where the Manual's own trigger is present — the Orthodox suffix or prefix — and asserting the shape the Manual prescribes gives a check that reads zero when the rules are right, and whose every non-zero row is worth looking at.
 
-So all nine ported checks are Latin-gated, and all nine run **per element**, at the boundaries [`src/qslex/elements.py`](../src/qslex/elements.py) cuts:
+So every ported check is Latin-gated, and the seven the lint still runs over the corpus run **per element**, at the boundaries [`src/qslex/elements.py`](../src/qslex/elements.py) cuts:
 
 | Check | Anchor | What the Manual requires |
 |---|---|---|
@@ -84,13 +84,17 @@ So all nine ported checks are Latin-gated, and all nine run **per element**, at 
 | `terminal-land-ment-vowel-omitted` | [terminal-land-ment][land] | -land, -ment, -man omit the unstressed vowel |
 | `terminal-men-keeps-a-vowel` | [terminal-land-ment][land] | "…except in -men", the one ending that keeps it |
 | `initial-ex-et` | [§II][section-2] | an initial ex- takes ·Et before the ligature, "easier than ·It" |
-| `x-ligature-missing` | [§II][section-2] | a ·Key·See or ·Gay·Zoo that Orthodox spells with x becomes the ligature |
 | `x-ligature-only-with-x` | [§II][section-2] | "but only where Orthodox spells these sounds with X" — and "only one ·Excite in Xerxes" |
-| `x-superfluous-see` | [§II][section-2] | "Beware of adding a superfluous S-letter for the C in Excite, Excess" |
 
-Eight of the nine read zero over all 108,425 spelt rows, which is what an independent re-derivation of a working rule should read. The ninth, `initial-ex-et`, fires on 36 rows, and all 36 are one defect: `rules.py::ligate` is the last rule still scoped to the whole entry rather than to the element, so an `ex-` that is word-initial but not entry-initial — cross-examine, pre-exist, for example, corn-exchange — gets neither the ligature nor the ·Et. They are declared in `src/qslex/data/lint-pragmas.tsv`, under the reason `known-defect` pointing at [#11](https://github.com/adiabatic/quikscript-lexicon/issues/11), which is a record and not a licence — and because the validator fails on a pragma that excuses nothing, fixing the defect forces the declarations out with it.
+Six of the seven read zero over all 108,425 spelt rows, which is what an independent re-derivation of a working rule should read. The seventh, `initial-ex-et`, fires on 36 rows, and all 36 are one defect: `rules.py::ligate` is the last rule still scoped to the whole entry rather than to the element, so an `ex-` that is word-initial but not entry-initial — cross-examine, pre-exist, for example, corn-exchange — gets neither the ligature nor the ·Et. They are declared in `src/qslex/data/lint-pragmas.tsv`, under the reason `known-defect` pointing at [#11](https://github.com/adiabatic/quikscript-lexicon/issues/11), which is a record and not a licence — and because the validator fails on a pragma that excuses nothing, fixing the defect forces the declarations out with it.
 
-A pragma states a `reason` from a fixed vocabulary — `stressed`, `not-a-morpheme`, `manual`, `known-defect` — so that the table cannot quietly become the bare exception list this project keeps refusing to write, and the validator fails on any pragma that excuses nothing, so a fix cannot leave its excuse behind.
+A pragma states a `reason`, and `known-defect` is the only reason the table admits: every row has to point at a defect recorded elsewhere and say in its note what that defect is, so that the table cannot quietly become the bare exception list this project keeps refusing to write. The validator fails on any pragma that excuses nothing, so a fix cannot leave its excuse behind.
+
+### Moved to the table they can only fire on
+
+Two more checks were ported and then moved out of the lint. A ·Key·See or ·Gay·Zoo pair that no ligature covers, and the superfluous ·See for the C of -xc- that [§II][section-2] warns against, can only reach a shipped spelling through a row `x-ligatures.tsv` declares by hand — everything the mechanical path declines is caught first, and with a better message, by the undecided residue. Both are assertions on the declared row now, in `rules.py::load_x_ligatures`, where they hold every row unconditionally rather than only the rows a corpus entry happens to visit.
+
+Half of the first one cannot move there. A row may leave the ligature column empty, ruling that its word takes no ligature at all — which is what a word with more than one x, none of them spelling a ·Key·See, has to declare. Whether the spelling that then ships still carries a pair is something the row itself cannot show, so the loader holds a row that names a ligature to actually carrying one, and the validator holds a row that names none to a spelling with no pair left in it.
 
 ### Dropped, with reasons
 

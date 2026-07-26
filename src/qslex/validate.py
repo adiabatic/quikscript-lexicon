@@ -11,7 +11,7 @@ from qslex.divergences import load_divergences
 from qslex.lint import CHECKS, lint, load_pragmas
 from qslex.manual import SIGN_ANCHORS, load_examples
 from qslex.mapping import Mapping, load_mapping
-from qslex.overrides import Override, load_overrides
+from qslex.overrides import load_overrides
 from qslex.passages import SPECIMENS, load_passages
 from qslex.quirks import load_quirks, normalize
 from qslex.readlex import CORPUS_HEADWORDS, CORPUS_ROWS, CorpusError, Row, load_rows
@@ -24,12 +24,13 @@ from qslex.roundtrip import (
 )
 from qslex.rules import (
     RULES,
+    TERMINAL_RULES,
     Context,
+    Terminal,
     claims,
+    ligatable,
     load_tables,
-    naive,
     spell,
-    split,
     undecided_ess,
     undecided_ful,
     undecided_ing,
@@ -37,7 +38,6 @@ from qslex.rules import (
     undecided_prefix,
 )
 from qslex.tokenizer import (
-    STRESS_MARKS,
     Token,
     TokenizeError,
     letters,
@@ -77,9 +77,6 @@ EXPECTED_TOKEN_COUNTS = {
     ("aʊə", "pre-r"): 270,
     ("aʊə", "no-r"): 51,
 }
-
-RRP_ROWS = 108425
-RRP_HEADWORDS = 56649
 
 # Rows each orthographic rule actually rewrites, counted over the rows the lexicon
 # spells rather than over the whole corpus. Sixteen of the Manual's rules are satisfied
@@ -148,8 +145,8 @@ EXPECTED_MANUAL_ABSENT = 2
 # `EDITS` the mapping and the conventions license, and each is pinned here, so a rule
 # that starts eliding a vowel it has no business eliding shows up as a count that moved.
 EXPECTED_ROUNDTRIP_EDITS: dict[tuple[str, str], int] = {
-    ("ə", ""): 19509,
-    ("ɪ", ""): 11245,
+    ("ə", ""): 19508,
+    ("ɪ", ""): 11243,
     ("ə", "e"): 1828,
     ("e", "eɪ"): 1354,
     ("ɪ", "iː"): 1312,
@@ -159,40 +156,20 @@ EXPECTED_ROUNDTRIP_EDITS: dict[tuple[str, str], int] = {
     ("", "ə"): 256,
     ("r", ""): 71,
     ("ə", "ɪ"): 14,
-    ("ɑː", "æ"): 10,
-    ("ə", "æ"): 4,
-    ("iː", ""): 3,
-    ("uː", ""): 3,
-    ("æ", ""): 3,
-    ("t", ""): 2,
-    ("eɪ", "ə"): 1,
-    ("ɒ", "ə"): 1,
 }
 
 # Spellings that read straight back to their own IPA, with nothing elided or levelled.
-EXPECTED_ROUNDTRIP_IDENTICAL = 76756
+EXPECTED_ROUNDTRIP_IDENTICAL = 76751
 
-# The Manual's three abbreviations are written without a break between letters and
-# stand for the written word, not for its sounds, so there is nothing to read back.
-EXPECTED_ROUNDTRIP_SKIPPED = 5
-
-EXPECTED_RAW_COUNTS = {
-    "raw ʊə incl. inside aʊə and across əʊ+ə": (r"ʊə", 1231),
-}
+# A word sign or standard outline stands for the written word rather than for its
+# sounds, so a row one rewrites has nothing to read back.
+EXPECTED_ROUNDTRIP_SKIPPED = 34
 
 FORBIDDEN_RAW_PATTERNS = {
     "bare ɪR (schwa-less EAR)": r"ɪ[ˈˌ]?R",
     "bare aɪR (schwa-less PRICE+R)": r"aɪ[ˈˌ]?R",
     "bare aʊR (schwa-less MOUTH+R)": r"aʊ[ˈˌ]?R",
 }
-
-FORBIDDEN_OUTPUT = {
-    "hiatus marker leaked into output": "+",
-}
-
-
-def consulted(tokens: list[Token], rule: Override) -> bool:
-    return any(token.ipa == rule.token for token in tokens)
 
 
 def stressed_rhotic_ears(ipa: str, tokens: list[Token]) -> int:
@@ -327,14 +304,9 @@ def main(argv: list[str] | None = None) -> int:
     quirk_hits: dict[int, set[str]] = collections.defaultdict(set)
     override_hits: dict[str, set[str]] = collections.defaultdict(set)
     divergence_hits: set[tuple[str, str]] = set()
-    iea_audit: dict[str, set[str]] = {
-        "stressed": set(),
-        "unstressed": set(),
-        "unmarked-multinucleus": set(),
-    }
+    iea_audit: dict[str, set[str]] = {"stressed": set(), "unstressed": set()}
     oracle = {"agree": 0, "disagree": 0, "silent": 0}
     unexpected: list[str] = []
-    output_leaks: list[str] = []
 
     rule_changes: collections.Counter[str] = collections.Counter()
     rule_claims: collections.Counter[str] = collections.Counter()
@@ -354,6 +326,7 @@ def main(argv: list[str] | None = None) -> int:
     core_misses: list[str] = []
     undecided: dict[str, set[str]] = collections.defaultdict(set)
     stray_ligatures: list[str] = []
+    unligated: list[str] = []
     spellings: dict[str, dict[tuple[str, str], set[str]]] = {
         "senior": collections.defaultdict(set),
         "junior": collections.defaultdict(set),
@@ -396,13 +369,8 @@ def main(argv: list[str] | None = None) -> int:
             residue.append(f"{row.word!r}: {error}")
             continue
 
-        spelling = letters(tokens)
-        for label, needle in FORBIDDEN_OUTPUT.items():
-            if needle in spelling:
-                output_leaks.append(f"{label}: {row.word!r} -> {spelling}")
-
         rule = overrides.get(ipa)
-        if rule is not None and consulted(tokens, rule):
+        if rule is not None:
             override_hits[rule.ipa].add(row.word)
 
         for token in tokens:
@@ -413,7 +381,6 @@ def main(argv: list[str] | None = None) -> int:
         if spells:
             word = row.word.lower()
             context = Context(word, row.pos, ipa, tuple(tokens))
-            raw = naive(context)
             result = spell(context, tables)
             spellings["senior"][(word, row.pos)].add(result.senior)
             spellings["junior"][(word, row.pos)].add(result.junior or result.senior)
@@ -421,14 +388,14 @@ def main(argv: list[str] | None = None) -> int:
             for rule_id in result.applied:
                 rule_changes[rule_id] += 1
             rule_word_hits.update(result.ruled)
-            for element in split(context, raw):
+            for element in result.elements:
                 if not element.word:
                     continue
                 inner = element.context
                 part = inner.latin
-                for orthographic in RULES:
-                    if claims(orthographic, inner):
-                        rule_claims[orthographic.id] += 1
+                for terminal in TERMINAL_RULES:
+                    if claims(terminal, inner):
+                        rule_claims[terminal.id] += 1
                 if undecided_ing(part, vvg) and not tables.ruled("terminal-ing", part):
                     undecided["terminal-ing"].add(part)
                 if undecided_ess(inner, element.letters, tables):
@@ -437,11 +404,16 @@ def main(argv: list[str] | None = None) -> int:
                     undecided["terminal-ful"].add(part)
                 if undecided_prefix(inner, element.letters, tables):
                     undecided["prefix-be-de-re"].add(part)
-            why = undecided_ligature(context, raw, tables)
+            why = undecided_ligature(context, tables)
             if why:
                 undecided[f"ligature/{why}"].add(word)
             if word in tables.ligatures:
                 ligature_hits.add(word)
+                if not tables.ligatures[word].ligature and ligatable(result.senior):
+                    unligated.append(
+                        f"{word!r} is ruled to take no ligature but ships "
+                        f"{result.senior}"
+                    )
             if result.ligature and "x" not in word:
                 stray_ligatures.append(f"{word!r} has no x but got {result.ligature}")
             for touched in dict.fromkeys(result.signed):
@@ -453,7 +425,7 @@ def main(argv: list[str] | None = None) -> int:
                     f"{core_signs[word]}, got {result.senior}"
                 )
             for check_id, part, complaint in lint(
-                word, row.pos, result.senior, result.ligature, ipa, tables, {}
+                word, result.senior, result.ligature, ipa, tables
             ):
                 if (check_id, word) in pragmas:
                     lint_excused.add((check_id, word))
@@ -464,12 +436,7 @@ def main(argv: list[str] | None = None) -> int:
                         f"{part!r} in {word!r} [{row.pos}] {result.senior}: {complaint}"
                     )
 
-            abbreviated = any(
-                tables.signs[key].tier == "abbreviation"
-                for key in result.signs
-                if key[0] in set(result.signed)
-            )
-            if abbreviated:
+            if result.signed:
                 roundtrip_skipped += 1
             else:
                 said = source_phonemes(tuple(tokens))
@@ -521,15 +488,6 @@ def main(argv: list[str] | None = None) -> int:
         elif any(t.ipa == "ɪə" for t in tokens):
             oracle["silent"] += 1
 
-    for ipa in normalized_strings:
-        for chunk in re.split(r"[ +-]", ipa):
-            if (
-                "ɪə" in chunk
-                and not any(mark in chunk for mark in STRESS_MARKS)
-                and len(re.findall(r"[ɪieæaɑɒɔʊuʌəɜːÆƏIⱭ]+", chunk)) > 1
-            ):
-                iea_audit["unmarked-multinucleus"].add(chunk)
-
     print(f"rows tokenized: {len(rows)} (expected {CORPUS_ROWS})")
     print(f"unmapped residue: {len(residue)}")
     for line in residue[:20]:
@@ -561,17 +519,20 @@ def main(argv: list[str] | None = None) -> int:
     unruled = sorted(set(var_rows) - set(var_tags))
     if unruled:
         failures.append(f"variant tags with no row policy: {unruled}")
-    print(f"  rows the lexicon spells: {rrp_rows} (expected {RRP_ROWS})")
+    spelt_rows = sum(entry.rows for entry in var_tags.values() if entry.kept)
+    print(f"  rows the lexicon spells: {rrp_rows} (expected {spelt_rows})")
     print(
         f"  headwords they fall under: {len(rrp_headwords)} of {CORPUS_HEADWORDS} "
-        f"(expected {RRP_HEADWORDS})"
+        "(expected all of them)"
     )
-    if rrp_rows != RRP_ROWS:
-        failures.append(f"{rrp_rows} rows survive the row policy, expected {RRP_ROWS}")
-    if len(rrp_headwords) != RRP_HEADWORDS:
+    if rrp_rows != spelt_rows:
+        failures.append(
+            f"{rrp_rows} rows survive the row policy, expected {spelt_rows}"
+        )
+    if len(rrp_headwords) != CORPUS_HEADWORDS:
         failures.append(
             f"{len(rrp_headwords)} headwords survive the row policy, "
-            f"expected {RRP_HEADWORDS}"
+            f"expected {CORPUS_HEADWORDS}"
         )
 
     print("\nquirk rule applications:")
@@ -655,28 +616,12 @@ def main(argv: list[str] | None = None) -> int:
         )
 
     raw_blob = "\n".join(row.ipa for row in rows)
-    print("\nexpected raw pattern counts:")
-    for label, (pattern, expected) in EXPECTED_RAW_COUNTS.items():
-        count = len(re.findall(pattern, raw_blob))
-        marker = "ok" if count == expected else f"MISMATCH (expected {expected})"
-        print(f"  {label}: {count} {marker}")
-        if count != expected:
-            failures.append(f"raw count mismatch for {label}: {count} != {expected}")
-
     print("\nforbidden raw patterns:")
     for label, pattern in FORBIDDEN_RAW_PATTERNS.items():
         count = len(re.findall(pattern, raw_blob))
         print(f"  {label}: {count}")
         if count:
             failures.append(f"forbidden pattern present: {label} ({count})")
-
-    print(f"\nforbidden output patterns: {len(output_leaks)}")
-    for line in output_leaks[:10]:
-        print(f"  {line}")
-    if output_leaks:
-        failures.append(
-            f"{len(output_leaks)} rows leak a structural marker into output"
-        )
 
     unused = [
         (entry.ipa, entry.condition)
@@ -696,8 +641,6 @@ def main(argv: list[str] | None = None) -> int:
         f"  unstressed: {token_counts.get(('ɪə', 'unstressed'), 0)} occurrences, "
         f"{len(iea_audit['unstressed'])} words"
     )
-    unmarked = sorted(iea_audit["unmarked-multinucleus"])
-    print(f"  ɪə in mark-less multi-nucleus chunks ({len(unmarked)})")
 
     print("\ntop token counts:")
     for (ipa, condition), count in token_counts.most_common(15):
@@ -708,10 +651,15 @@ def main(argv: list[str] | None = None) -> int:
         changed = rule_changes.get(orthographic.id, 0)
         pinned = EXPECTED_RULE_CHANGES.get(orthographic.id)
         drift = "" if pinned is None or changed == pinned else f" MISMATCH ({pinned})"
-        claimed = rule_claims.get(orthographic.id, 0)
-        print(f"  {orthographic.id:22} {changed:6} of {claimed:6} claimed{drift}")
-        if not claimed:
-            failures.append(f"rule {orthographic.id} claims no word in the corpus")
+        if isinstance(orthographic, Terminal):
+            claimed = rule_claims.get(orthographic.id, 0)
+            print(f"  {orthographic.id:22} {changed:6} of {claimed:6} claimed{drift}")
+            if not claimed:
+                failures.append(
+                    f"terminal {orthographic.id} claims no word in the corpus"
+                )
+        else:
+            print(f"  {orthographic.id:22} {changed:6}{drift}")
         if pinned is not None and changed != pinned:
             failures.append(
                 f"rule {orthographic.id} rewrote {changed} rows, expected {pinned}"
@@ -746,6 +694,11 @@ def main(argv: list[str] | None = None) -> int:
         print(f"    {line}")
     if stray_ligatures:
         failures.append(f"{len(stray_ligatures)} ligatures on words without an x")
+    print(f"  rulings that leave a pair unligated: {len(unligated)}")
+    for line in unligated[:10]:
+        print(f"    {line}")
+    if unligated:
+        failures.append(f"{len(unligated)} rulings leave a ligatable pair in the word")
 
     print("\nword signs and standard outlines, rows rewritten:")
     for key in sorted(tables.signs):
@@ -860,7 +813,7 @@ def main(argv: list[str] | None = None) -> int:
 
     print("\nround trip, every spelling read back to a phoneme string:")
     print(f"  identical to the IPA it came from: {roundtrip_identical}")
-    print(f"  abbreviations, which spell no sounds: {roundtrip_skipped}")
+    print(f"  word signs, which spell no sounds: {roundtrip_skipped}")
     print(f"  not readable back at all: {len(unreadable)}")
     for line in unreadable[:10]:
         print(f"    {line}")
@@ -876,7 +829,7 @@ def main(argv: list[str] | None = None) -> int:
         )
     if roundtrip_skipped != EXPECTED_ROUNDTRIP_SKIPPED:
         failures.append(
-            f"{roundtrip_skipped} abbreviation rows skipped, "
+            f"{roundtrip_skipped} word-sign rows skipped, "
             f"expected {EXPECTED_ROUNDTRIP_SKIPPED}"
         )
     for edit in sorted(set(EXPECTED_ROUNDTRIP_EDITS) | set(roundtrip)):

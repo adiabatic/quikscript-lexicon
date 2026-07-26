@@ -9,20 +9,15 @@ from pathlib import Path
 from qslex.elements import DIVIDERS, components, elements
 from qslex.letters import VOWELS, Letters, names, parse
 from qslex.mapping import open_data
-from qslex.rules import ING_TAILS, Tables
+from qslex.rules import AL, ALLY, ENT, ING_TAILS, Tables
 
 PRAGMAS_FILE = "lint-pragmas.tsv"
 PRAGMAS_HEADER = ["check", "word", "reason", "note"]
 
-# Why a word is allowed to break a check. Each is a class the Manual itself creates, or
-# a defect this project has recorded elsewhere; a pragma with no reason in this
-# vocabulary is a bare exception, which is what this table exists to prevent.
-REASONS = {
-    "stressed": "the vowel is a nucleus, where the Manual's rule says unstressed",
-    "not-a-morpheme": "the Latin ending is not the affix the rule is about",
-    "manual": "the Manual writes this spelling itself",
-    "known-defect": "a defect recorded against another issue, not a licence",
-}
+# The one reason a word is allowed to break a check: a defect recorded against another
+# issue, not a licence. Any other reason is a bare exception, which is what this table
+# exists to prevent.
+DEFECT = "known-defect"
 
 REDUCIBLE = frozenset({"It", "Utter"})
 VOWEL_CHARS = frozenset("ɪieæaɑɒɔʊuʌəɜːƏIÆⱭ")
@@ -36,13 +31,12 @@ VOWELS_BEFORE_L = VOWELS | {"Ye"}
 # The Manual's own trigger for each check, as an Orthodox ending. Latin-gating is the
 # whole difference between a check that re-derives a rule and one that re-reports the
 # corpus: ·Et·No·Tea is only wrong where Orthodox spells -ent, and ReadLex's own /e/
-# elsewhere is not this project's business.
-ENT = re.compile(r"(?<=.)(ence|ance|ent|ant)(s)?$")
+# elsewhere is not this project's business. A check whose rule keys on the same ending
+# takes that rule's own pattern — `rules.ENT`, `rules.AL`, and `rules.ALLY`, which
+# claims -able and -ally before -al does. The two written out here are the ones that
+# differ, because -men is the exception the -land rule carves out.
 LAND = re.compile(r"(?<=.)(land|ment|man)(s)?$")
 MEN = re.compile(r"(?<=.)men$")
-AL = re.compile(r"(?<=.)(al|el|le|il)(s)?$")
-# -able and -ally claim a word before -al does, in the Manual's own order of terminals.
-ALLY = re.compile(r"(?<=.)(ally|ably|ibly|able|ible)(s)?$")
 
 
 @dataclass(frozen=True)
@@ -50,7 +44,6 @@ class Site:
     """One element of one entry, as the lint sees it."""
 
     word: str
-    pos: str
     latin: str
     letters: Letters
     ligature: Letters
@@ -85,7 +78,6 @@ class Site:
 @dataclass(frozen=True)
 class Check:
     id: str
-    anchor: str
     requires: str
     test: Callable[[Site, Tables], str]
 
@@ -218,24 +210,6 @@ def initial_ex_et(site: Site, tables: Tables) -> str:
     return f"·{spelt[0]} before the ligature, not ·Et" if spelt[0] != "Et" else ""
 
 
-def ligature_missing(site: Site, tables: Tables) -> str:
-    """ "Senior Quikscript substitutes a Tall ·Excite for ·Key·See sounds: a Deep ·Exam
-    for ·Gay·Zoo sounds — but only where Orthodox spells these sounds with X."
-    (section-2)
-    """
-    if "x" not in site.latin:
-        return ""
-    spelt = site.spelt
-    pairs = [
-        index
-        for index in range(len(spelt) - 1)
-        if (spelt[index], spelt[index + 1]) in {("Key", "See"), ("Gay", "Zoo")}
-    ]
-    if not pairs or set(site.ligated) & LIGATURES:
-        return ""
-    return "a ·Key·See or ·Gay·Zoo pair on an x-word with no ligature"
-
-
 def ligature_only_with_x(site: Site, tables: Tables) -> str:
     """ "but only where Orthodox spells these sounds with X … and only one ·Excite in
     Xerxes." (section-2)
@@ -247,73 +221,41 @@ def ligature_only_with_x(site: Site, tables: Tables) -> str:
     return f"{used} ligatures for {available} x in the Latin"
 
 
-def superfluous_see(site: Site, tables: Tables) -> str:
-    """ "Beware of adding a superfluous S-letter for the C in Excite, Excess etc, it is
-    covered already by the X-letter." (section-2)
-    """
-    if "xc" not in site.latin:
-        return ""
-    spelt = site.ligated
-    for index, name in enumerate(spelt[:-1]):
-        if name in LIGATURES and spelt[index + 1] == "See":
-            return "a ·See after the ligature that the ligature already covers"
-    return ""
-
-
 CHECKS: tuple[Check, ...] = (
     Check(
         "terminal-ing-vowel-omitted",
-        "terminal-ing",
         "an -ing affix is written ·Oolong with no ·It before it",
         ing_vowel_omitted,
     ),
     Check(
         "terminal-al-vowel-omitted",
-        "terminal-al-el-le-il",
         "a final L drops the unstressed vowel before it, after a consonant",
         al_vowel_omitted,
     ),
     Check(
         "terminal-ent-ance-utter",
-        "terminal-ent-ance",
         "-ent, -ant, -ence and -ance are written invariably with ·Utter·No",
         ent_ance_utter,
     ),
     Check(
         "terminal-land-ment-vowel-omitted",
-        "terminal-land-ment",
         "-land, -ment and -man omit the unstressed vowel",
         land_ment_vowel_omitted,
     ),
     Check(
         "terminal-men-keeps-a-vowel",
-        "terminal-land-ment",
         "-men is the one ending that keeps its vowel",
         men_keeps_a_vowel,
     ),
     Check(
         "initial-ex-et",
-        "section-2",
         "an initial ex- takes ·Et before the ligature",
         initial_ex_et,
     ),
     Check(
-        "x-ligature-missing",
-        "section-2",
-        "a ·Key·See or ·Gay·Zoo an Orthodox x spells becomes the ligature",
-        ligature_missing,
-    ),
-    Check(
         "x-ligature-only-with-x",
-        "section-2",
         "no more ligatures than the Latin has x",
         ligature_only_with_x,
-    ),
-    Check(
-        "x-superfluous-see",
-        "section-2",
-        "the ligature already covers the C of -xc-",
-        superfluous_see,
     ),
 )
 
@@ -323,7 +265,7 @@ CHECK_IDS = tuple(check.id for check in CHECKS)
 def load_pragmas(path: Path | None = None) -> dict[tuple[str, str], str]:
     """The words a check is allowed to fire on, and why each is allowed.
 
-    Every row states a reason from a fixed vocabulary, so that the table cannot quietly
+    Every row records a defect and says what it is, so that the table cannot quietly
     become the bare exception list this project keeps refusing to write.
     """
     pragmas: dict[tuple[str, str], str] = {}
@@ -341,12 +283,11 @@ def load_pragmas(path: Path | None = None) -> dict[tuple[str, str], str]:
             check, word, reason, note = row
             if check not in CHECK_IDS:
                 raise ValueError(f"{source}:{lineno}: {check!r} is not a check")
-            if reason not in REASONS:
+            if reason != DEFECT:
                 raise ValueError(
-                    f"{source}:{lineno}: reason must be one of {sorted(REASONS)}, "
-                    f"got {reason!r}"
+                    f"{source}:{lineno}: reason must be {DEFECT!r}, got {reason!r}"
                 )
-            if reason == "known-defect" and not note:
+            if not note:
                 raise ValueError(
                     f"{source}:{lineno}: a known defect needs a note saying what it is"
                 )
@@ -361,9 +302,7 @@ def _chunks(text: str) -> tuple[str, ...]:
     return tuple(re.split(r"[ -]", text))
 
 
-def sites(
-    word: str, pos: str, spelling: str, ligature: str, ipa: str
-) -> tuple[Site, ...]:
+def sites(word: str, spelling: str, ligature: str, ipa: str) -> tuple[Site, ...]:
     """One Site per element, cut where `qslex.elements` cuts.
 
     Where the Latin, the spelling and the IPA do not agree about how many pieces an
@@ -375,7 +314,7 @@ def sites(
     ligated = elements(word, parse(ligature)) if ligature else None
     ipa_parts = _chunks(ipa)
     if pairs is None:
-        return (Site(word, pos, word, letters, parse(ligature), ipa, True),)
+        return (Site(word, word, letters, parse(ligature), ipa, True),)
     words = [part for part in components(word) if part not in DIVIDERS]
     runs = [run for part, run in pairs if part not in DIVIDERS]
     ligature_runs = (
@@ -385,7 +324,7 @@ def sites(
     )
     chunks = ipa_parts if len(ipa_parts) == len(words) else [ipa] * len(words)
     return tuple(
-        Site(word, pos, latin, run, tuple(other), chunk, index == len(words) - 1)
+        Site(word, latin, run, tuple(other), chunk, index == len(words) - 1)
         for index, (latin, run, other, chunk) in enumerate(
             zip(words, runs, ligature_runs, chunks, strict=True)
         )
@@ -394,19 +333,15 @@ def sites(
 
 def lint(
     word: str,
-    pos: str,
     spelling: str,
     ligature: str,
     ipa: str,
     tables: Tables,
-    pragmas: dict[tuple[str, str], str],
 ) -> tuple[tuple[str, str, str], ...]:
     """Every check this entry breaks, as (check id, element, what is wrong)."""
     out: list[tuple[str, str, str]] = []
-    for site in sites(word, pos, spelling, ligature, ipa):
+    for site in sites(word, spelling, ligature, ipa):
         for check in CHECKS:
-            if (check.id, site.word) in pragmas:
-                continue
             complaint = check.test(site, tables)
             if complaint:
                 out.append((check.id, site.latin, complaint))

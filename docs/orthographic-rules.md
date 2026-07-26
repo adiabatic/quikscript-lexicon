@@ -146,11 +146,12 @@ Where the Manual and ReadLex disagree about a word's *pronunciation* rather than
 
 The rules section of [`src/qslex/validate.py`](../src/qslex/validate.py) runs over every corpus row and fails unless:
 
-- every rule claims at least one word — counted per element, so a rule that only ever owns the end of a word inside a compound still has to claim it — and rewrites exactly as many rows as `EXPECTED_RULE_CHANGES` pins;
+- every rule rewrites exactly as many rows as `EXPECTED_RULE_CHANGES` pins;
+- every terminal claims at least one word — counted per element, so a terminal that only ever owns the end of a word inside a compound still has to claim it. The ten rules that are not terminals — -es/-ed, -ing and the eight prefixes — carry no pattern to be claimed by, because each decides inside its own `apply` rather than by matching the end of the Latin; what holds them is their pinned count and the undecided residue below;
 - every Manual example word reproduces exactly, and exactly two are missing from ReadLex;
 - every ruling in `rule-words.tsv` and `x-ligatures.tsv` is exercised, so a stale one cannot linger;
 - no -ing, -est/-ess, -ful, be-/de-/re- or ligature decision is left undecided;
-- no ligature is emitted for a word with no `x` in it.
+- no ligature is emitted for a word with no `x` in it, and no word whose ruling declares it takes none still ships a ·Key·See or ·Gay·Zoo pair.
 
 [manual]: https://adiabatic.github.io/abbots-morton-spaceport/the-manual.html
 [plan]: https://github.com/adiabatic/quikscript-lexicon/issues/8

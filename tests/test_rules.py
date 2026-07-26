@@ -1,4 +1,5 @@
 import collections
+from pathlib import Path
 
 import pytest
 
@@ -22,9 +23,11 @@ from qslex import (
 from qslex.letters import parse, render_qs
 from qslex.manual import SIGN_ANCHORS
 from qslex.rules import (
+    LIGATURES_HEADER,
     RULE_IDS,
     TERMINAL_RULES,
     Tables,
+    ligatable,
     load_rule_words,
     load_x_ligatures,
     naive,
@@ -42,6 +45,13 @@ EXAMPLES = load_examples()
 BY_WORD: dict[str, list[Row]] = collections.defaultdict(list)
 for _row in select(load_var_tags(), load_rows()):
     BY_WORD[_row.word.lower()].append(_row)
+
+
+def ligatures_file(tmp_path: Path, rows: list[list[str]]) -> Path:
+    lines = ["\t".join(LIGATURES_HEADER)] + ["\t".join(row) for row in rows]
+    path = tmp_path / "x.tsv"
+    path.write_text("\n".join(lines) + "\n", encoding="utf-8")
+    return path
 
 
 def context_for(word: str, pos: str = "") -> Context:
@@ -377,3 +387,27 @@ def test_every_ligature_ruling_names_a_word_with_an_x() -> None:
 def test_ligature_rulings_parse_to_known_letters() -> None:
     for entry in load_x_ligatures().values():
         assert render(parse(entry.ligature)) == entry.ligature
+
+
+def test_a_ruling_that_ligates_nothing_is_rejected(tmp_path: Path) -> None:
+    rows = [["next", "·No·Et·Key·See·Tea", "unaligned", "the ks is spelt out"]]
+    with pytest.raises(ValueError, match="carries no ligature"):
+        load_x_ligatures(ligatures_file(tmp_path, rows))
+
+
+def test_a_ruling_that_keeps_the_c_of_xc_is_rejected(tmp_path: Path) -> None:
+    rows = [["excite", "·Et·Excite·See·I·Tea", "unaligned", "the ligature covers it"]]
+    with pytest.raises(ValueError, match="already covers"):
+        load_x_ligatures(ligatures_file(tmp_path, rows))
+
+
+def test_an_empty_column_rules_that_a_word_takes_no_ligature(tmp_path: Path) -> None:
+    rows = [["x-ray-xylophone", "", "multiple-x", "neither x spells a ·Key·See"]]
+    ruled = load_x_ligatures(ligatures_file(tmp_path, rows))
+    assert ruled["x-ray-xylophone"].ligature == ""
+
+
+def test_a_spelling_is_ligatable_while_a_pair_is_left_in_it() -> None:
+    assert ligatable("·No·Et·Key·See·Tea")
+    assert ligatable("·Et·Gay·Zoo·At·May")
+    assert not ligatable("·No·Et·Excite·Tea")

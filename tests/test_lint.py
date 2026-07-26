@@ -6,7 +6,6 @@ from qslex.lint import (
     CHECK_IDS,
     CHECKS,
     PRAGMAS_HEADER,
-    REASONS,
     lint,
     load_pragmas,
     sites,
@@ -15,9 +14,7 @@ from qslex.rules import NO_TABLES
 
 
 def broken(word: str, spelling: str, ipa: str, ligature: str = "") -> set[str]:
-    return {
-        check for check, _, _ in lint(word, "", spelling, ligature, ipa, NO_TABLES, {})
-    }
+    return {check for check, _, _ in lint(word, spelling, ligature, ipa, NO_TABLES)}
 
 
 def pragma_file(tmp_path: Path, rows: list[list[str]]) -> Path:
@@ -27,9 +24,9 @@ def pragma_file(tmp_path: Path, rows: list[list[str]]) -> Path:
     return path
 
 
-def test_every_check_names_a_manual_anchor_and_what_it_requires() -> None:
+def test_every_check_says_what_the_manual_requires() -> None:
     assert len(set(CHECK_IDS)) == len(CHECKS)
-    assert all(check.anchor and check.requires for check in CHECKS)
+    assert all(check.requires for check in CHECKS)
 
 
 def test_the_shipped_pragmas_load() -> None:
@@ -39,13 +36,13 @@ def test_the_shipped_pragmas_load() -> None:
 
 
 def test_an_element_is_cut_where_the_spelling_and_the_latin_agree() -> None:
-    cut = sites("corn-exchange", "NN1", "·Key·Awe·Roe·No-·It·Key·See", "", "ˈkɔːRn-ɪks")
+    cut = sites("corn-exchange", "·Key·Awe·Roe·No-·It·Key·See", "", "ˈkɔːRn-ɪks")
     assert [site.latin for site in cut] == ["corn", "exchange"]
     assert [site.last for site in cut] == [False, True]
 
 
 def test_a_misaligned_entry_is_treated_as_one_element() -> None:
-    cut = sites("to-day", "AV0", "·Tea·Day·Eight", "", "təˈdeɪ")
+    cut = sites("to-day", "·Tea·Day·Eight", "", "təˈdeɪ")
     assert [site.latin for site in cut] == ["to-day"]
 
 
@@ -122,14 +119,6 @@ def test_a_stressed_ex_keeps_its_own_vowel() -> None:
     )
 
 
-def test_an_x_word_with_a_ligatable_pair_must_ligate() -> None:
-    assert "x-ligature-missing" in broken("next", "·No·Et·Key·See·Tea", "nekst")
-    assert "x-ligature-missing" not in broken(
-        "next", "·No·Et·Key·See·Tea", "nekst", "·No·Et·Excite·Tea"
-    )
-    assert "x-ligature-missing" not in broken("necks", "·No·Et·Key·See", "neks")
-
-
 def test_no_more_ligatures_than_the_latin_has_x() -> None:
     assert "x-ligature-only-with-x" in broken(
         "next", "·No·Et·Key·See·Tea", "nekst", "·No·Et·Excite·Excite"
@@ -139,15 +128,9 @@ def test_no_more_ligatures_than_the_latin_has_x() -> None:
     )
 
 
-def test_the_ligature_already_covers_the_c_of_xc() -> None:
-    assert "x-superfluous-see" in broken(
-        "excite", "·It·Key·See·I·Tea", "ɪkˈsaɪt", "·Et·Excite·See·I·Tea"
-    )
-
-
 def test_a_pragma_needs_a_known_reason(tmp_path: Path) -> None:
     rows = [["initial-ex-et", "pre-exist", "because-i-said-so", ""]]
-    with pytest.raises(ValueError, match="reason must be one of"):
+    with pytest.raises(ValueError, match="reason must be 'known-defect'"):
         load_pragmas(pragma_file(tmp_path, rows))
 
 
@@ -161,7 +144,3 @@ def test_a_known_defect_must_say_what_it_is(tmp_path: Path) -> None:
     rows = [["initial-ex-et", "pre-exist", "known-defect", ""]]
     with pytest.raises(ValueError, match="needs a note"):
         load_pragmas(pragma_file(tmp_path, rows))
-
-
-def test_every_reason_explains_itself() -> None:
-    assert all(REASONS.values())

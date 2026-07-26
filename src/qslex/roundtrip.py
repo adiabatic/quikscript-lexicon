@@ -42,7 +42,9 @@ NOTHING = ""
 
 # Every difference the round trip is allowed to find between what ReadLex said and what
 # the spelling says, with the reason it is allowed. An edit outside this table is a
-# spelling that has stopped meaning what its source meant.
+# spelling that has stopped meaning what its source meant. A word sign stands for the
+# written word rather than for its sounds, so the rows one rewrites are not read back at
+# all; every edit here belongs to the mapping or to a terminal convention.
 EDITS: dict[tuple[str, str], str] = {
     (
         "ə",
@@ -69,15 +71,7 @@ EDITS: dict[tuple[str, str], str] = {
     ("ɪ", "e"): "the ·Excite ligature takes the ·Et vowel, as -est and -ess do",
     ("ɪ", "ə"): "the -age and -en terminals are written invariably with ·Utter",
     ("ə", "ɪ"): "terminal -y is written ·It whatever ReadLex reduces it to",
-    ("ə", "æ"): "a standard outline takes the strong vowel where ReadLex reduces it",
-    ("ɑː", "æ"): "the after and last outlines standardise the BATH vowel as ·At",
-    ("eɪ", "ə"): "the always outline reduces -ways, which ReadLex writes in full",
-    ("ɒ", "ə"): "the was outline takes the weak vowel, which ReadLex writes in full",
     ("r", NOTHING): "the -ward terminal drops the R with the vowel before it",
-    ("t", NOTHING): "a word sign stands for the whole word, not for its last letter",
-    ("æ", NOTHING): "a word sign stands for the whole word, not for its last letter",
-    ("iː", NOTHING): "a word sign stands for the whole word, not for its last letter",
-    ("uː", NOTHING): "a word sign stands for the whole word, not for its last letter",
 }
 
 

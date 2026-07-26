@@ -26,6 +26,7 @@ GATED_RULES = {
 LIGATURES_FILE = "x-ligatures.tsv"
 LIGATURES_HEADER = ["word", "ligature", "reason", "note"]
 LIGATURE_REASONS = {"multiple-x", "unaligned"}
+LIGATURE_LETTERS = frozenset({"Excite", "Exam"})
 
 EPENTHESIS = "Ə"
 
@@ -76,6 +77,7 @@ class Spelling:
     ruled: tuple[tuple[str, str], ...]
     signed: tuple[str, ...]
     signs: tuple[tuple[str, str], ...]
+    elements: tuple[Element, ...]
 
 
 def naive(context: Context) -> Letters:
@@ -280,6 +282,20 @@ def load_x_ligatures(path: Path | None = None) -> dict[str, LigatureRule]:
             unknown = unknown_names(rule.ligature)
             if unknown:
                 raise ValueError(f"{source}:{lineno}: unknown letter names {unknown}")
+            spelt = names(parse(rule.ligature))
+            if rule.ligature and not LIGATURE_LETTERS.intersection(spelt):
+                raise ValueError(
+                    f"{source}:{lineno}: {rule.ligature} carries no ligature; leave "
+                    f"the column empty to rule that this word takes none"
+                )
+            if "xc" in rule.word and any(
+                first in LIGATURE_LETTERS and second == "See"
+                for first, second in zip(spelt, spelt[1:], strict=False)
+            ):
+                raise ValueError(
+                    f"{source}:{lineno}: {rule.ligature} adds a ·See after the "
+                    f"ligature that the ligature already covers"
+                )
             if rule.word in known:
                 raise ValueError(f"{source}:{lineno}: duplicate row for {rule.word!r}")
             known[rule.word] = rule
@@ -603,11 +619,9 @@ RULES: tuple[Rule | Terminal, ...] = WORD_RULES + TERMINAL_RULES
 RULE_IDS = tuple(rule.id for rule in RULES)
 
 
-def claims(rule: Rule | Terminal, context: Context) -> bool:
-    """Whether this rule owns the word: a terminal, only when its pattern matches."""
-    if not isinstance(rule, Terminal):
-        return True
-    return rule.latin.search(context.latin) is not None
+def claims(terminal: Terminal, context: Context) -> bool:
+    """Whether this terminal owns the end of the word, fire or not."""
+    return terminal.latin.search(context.latin) is not None
 
 
 def terminal_for(context: Context) -> tuple[Terminal, re.Match[str]] | None:
@@ -671,6 +685,11 @@ def _pairs(letters: Letters) -> list[tuple[int, str]]:
     return found
 
 
+def ligatable(spelling: str) -> bool:
+    """Whether a shipped spelling still carries a pair the ligature would cover."""
+    return bool(_pairs(parse(spelling)))
+
+
 def ligate(context: Context, letters: Letters, tables: Tables) -> Letters | None:
     latin = context.latin
     declared = tables.ligature_for(latin)
@@ -697,7 +716,7 @@ def undecided_ing(latin: str, participles: Container[str]) -> bool:
     -ling noun suffix, placenames, lexicalised participles) is ruled on by hand in
     rule-words.tsv.
     """
-    if not latin.endswith(ING_TAILS) or "ing" not in latin[1:]:
+    if not latin.endswith(ING_TAILS):
         return False
     base = latin
     for tail in ("ness", "ly", "s"):
@@ -754,14 +773,14 @@ def undecided_ful(context: Context, letters: Letters, tables: Tables) -> bool:
     return apply_ful(context, letters, match) != letters
 
 
-def undecided_ligature(context: Context, letters: Letters, tables: Tables) -> str:
+def undecided_ligature(context: Context, tables: Tables) -> str:
     """Why the mechanical alignment declined, for the validator's residue report."""
     latin = context.latin
     if "x" not in latin or tables.ligature_for(latin) is not None:
         return ""
     if latin.count("x") > 1:
         return "multiple-x"
-    if len(_pairs(letters)) > 1:
+    if len(_pairs(naive(context))) > 1:
         return "unaligned"
     return ""
 
@@ -799,7 +818,8 @@ def spell(context: Context, tables: Tables = NO_TABLES) -> Spelling:
     out: list[Letter] = []
     fired: set[str] = set()
     rulings: set[tuple[str, str]] = set()
-    for element in split(context, naive(context)):
+    parts = split(context, naive(context))
+    for element in parts:
         if not element.word:
             out.extend(element.letters)
             continue
@@ -820,4 +840,5 @@ def spell(context: Context, tables: Tables = NO_TABLES) -> Spelling:
         ruled=tuple(sorted(rulings)),
         signed=signed,
         signs=consulted,
+        elements=parts,
     )

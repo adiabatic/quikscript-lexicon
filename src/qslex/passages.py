@@ -67,10 +67,6 @@ class PassageWord:
     note: str
 
     @property
-    def level(self) -> str:
-        return SPECIMENS[self.passage].level
-
-    @property
     def columns(self) -> tuple[str, ...]:
         return SPECIMENS[self.passage].columns
 
