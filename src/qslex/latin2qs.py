@@ -30,7 +30,7 @@ from spacy.util import (
     filter_spans,
 )
 
-from qslex.converter import FALLBACK, load_penn
+from qslex.converter import load_penn
 from qslex.csur import CODEPOINT_OF
 from qslex.letters import parse, render_qs
 from qslex.readlex import repo_root
@@ -77,11 +77,14 @@ def _s_suffix(last: str) -> str:
     return ZOO
 
 
-# Contraction halves whose separate words are not lexicon entries, for the rare
-# combination the phrase list does not already match whole. The clitics keep or
-# drop the apostrophe per the Manual's own practice: n't attaches solid, the
+# Contraction halves whose separate words are not lexicon entries. The phrase
+# list matches every straight-apostrophe combination whole, so the opening
+# halves are left to the HTML path alone, where _plain's unidecode never runs
+# and a typographic apostrophe splits don’t into do plus n’t. The clitics keep
+# or drop the apostrophe per the Manual's own practice: n't attaches solid, the
 # rest keep it (docs/word-signs.md, "Contractions, possessives, and the
-# apostrophe").
+# apostrophe"). The two clitic rows contractions.tsv carries, n't and 'll, are
+# read from there rather than repeated here.
 CONTRACTION_START = {
     "ai": _qs("Eight"),
     "ca": _qs("Key", "Ah"),
@@ -90,12 +93,9 @@ CONTRACTION_START = {
     "did": _qs("Day", "It", "Day"),
     "sha": _qs("She", "Ah"),
     "wo": _qs("Way", "Owe"),
-    "y'": _qs("Ye"),
 }
 CONTRACTION_END = {
-    "n't": _qs("No", "Tea"),
     "'ve": APOSTROPHE + _qs("Vie"),
-    "'ll": APOSTROPHE + _qs("Low"),
     "'m": APOSTROPHE + _qs("May"),
     "'d": APOSTROPHE + _qs("Day"),
     "'re": APOSTROPHE + _qs("Utter", "Roe"),
@@ -130,7 +130,7 @@ CLITIC_LETTERS = {
 # doubles smartypants educates are demoted after it runs.
 QUOTES = {"&#8220;": "&#8216;", "&#8221;": "&#8217;"}
 
-ORDINAL = re.compile(r"([0-9]+(?:[, .]?[0-9]+)*)(st|nd|rd|th|s)")
+ORDINAL = re.compile(r"([0-9]+)(st|nd|rd|th|s)")
 ORDINAL_SUFFIXES = {
     "st": _qs("See", "Tea"),
     "nd": _qs("No", "Day"),
@@ -144,7 +144,9 @@ ORDINAL_SUFFIXES = {
 # Shavian strings; tests/test_latin2qs.py holds each to the spelling the
 # lexicon uses inside real words. The productive de-, pre-, pro- and re- take
 # the full stressed vowel a new coining gives them, not the reduced vowel of
-# the lexicalised Latinate stems the prefix rules were written for.
+# the lexicalised Latinate stems the prefix rules were written for. The o'er
+# row never spells the bare word, which the lexicon holds; it is kept for the
+# o'er… compounds, which nothing else builds.
 PREFIXES: dict[str, str] = {
     "anti": _qs("At", "No", "Tea", "It"),
     "counter": _qs("Key", "Out", "No", "Tea", "Utter", "Roe"),
@@ -322,11 +324,11 @@ class Transliterator:
 
         penn = load_penn()
         self.contraction_words: dict[tuple[str, str], str] = {}
-        self.contraction_clitics: dict[str, str] = {}
+        self.contraction_end: dict[str, str] = dict(CONTRACTION_END)
         for entry in load_contractions():
             spelling = _contraction_qs(entry.contraction)
             if entry.kind == "clitic":
-                self.contraction_clitics[entry.word] = spelling
+                self.contraction_end[entry.word] = spelling
             else:
                 tag = penn[entry.pos].penn if entry.pos else ""
                 self.contraction_words[(entry.word, tag)] = spelling
@@ -337,9 +339,7 @@ class Transliterator:
             if letter in self.rows_of
         }
 
-        self.nlp = spacy.load(
-            "en_core_web_sm", exclude=["parser", "lemmatizer", "textcat"]
-        )
+        self.nlp = spacy.load("en_core_web_sm", exclude=["parser", "lemmatizer"])
         tokenizer = self.nlp.tokenizer
         assert isinstance(tokenizer, Tokenizer)
         prefixes = list(self.nlp.Defaults.prefixes or []) + [r"""^[-–—]+"""]
@@ -390,22 +390,20 @@ class Transliterator:
         doc.ents = tuple(filter_spans(new_ents))
         return doc
 
-    def _row_for(self, rows: Rows, tag: str) -> dict[str, str] | None:
+    def _row_for(self, rows: Rows, tag: str) -> dict[str, str]:
         for row in rows:
             if row["tag"] == tag:
                 return row
-            if tag == "NNP" and row["tag"] in ("NN", FALLBACK):
+            if tag == "NNP" and row["tag"] == "NN":
                 return row
-            if tag == "NNPS" and row["tag"] in ("NNS", FALLBACK):
+            if tag == "NNPS" and row["tag"] == "NNS":
                 return row
             # A relative that is C5's CJT, the conjunction, which c5-to-penn
             # sends to IN — but spaCy tags it WDT, a tag no converter row can
             # carry.
             if tag == "WDT" and row["tag"] == "IN":
                 return row
-            if row["tag"] == FALLBACK:
-                return row
-        return None
+        return rows[-1]
 
     def _spelling(self, row: dict[str, str], options: Options) -> str:
         return row.get(COLUMN_OF[options.mode]) or row["qs"]
@@ -457,7 +455,7 @@ class Transliterator:
         if lower.endswith("n't"):
             stem = self.contraction_words.get((lower[:-3], ""))
             if stem is not None:
-                return stem + self.contraction_clitics["n't"]
+                return stem + self.contraction_end["n't"]
         for clitic in ("'s", "'ll", "'d", "'re", "'ve", "'m"):
             if not lower.endswith(clitic):
                 continue
@@ -466,9 +464,7 @@ class Transliterator:
                 continue
             if clitic == "'s":
                 return stem + _s_suffix(stem[-1])
-            if clitic == "'ll":
-                return stem + self.contraction_clitics["'ll"]
-            return stem + CONTRACTION_END[clitic]
+            return stem + self.contraction_end[clitic]
         return None
 
     def convert(self, doc: Doc, options: Options) -> str:
@@ -485,11 +481,12 @@ class Transliterator:
             if (
                 lower in CONTRACTION_START
                 and token.i < len(doc) - 1
-                and doc[token.i + 1].lower_.replace(APOSTROPHE, "'") in CONTRACTION_END
+                and doc[token.i + 1].lower_.replace(APOSTROPHE, "'")
+                in self.contraction_end
             ):
                 built += CONTRACTION_START[lower]
-            elif lower in CONTRACTION_END:
-                built += CONTRACTION_END[lower] + token.whitespace_
+            elif lower in self.contraction_end:
+                built += self.contraction_end[lower] + token.whitespace_
             elif lower == "'s":
                 suffix = _s_suffix(built[-1]) if built else ZOO
                 built += suffix + token.whitespace_
@@ -506,13 +503,11 @@ class Transliterator:
                     and doc[token.i + 2].tag_ in ("VB", "VBP")
                 ):
                     built += HAVE_TO[lower] + token.whitespace_
-                elif lower in VBD_TO and token.tag_ in ("VBD", "VBN", "."):
+                elif lower in VBD_TO and token.tag_ in ("VBD", "VBN"):
                     built += VBD_TO[lower] + token.whitespace_
                 else:
                     built += self._converted_word(token, options)
-            elif ORDINAL.fullmatch(lower):
-                match = ORDINAL.fullmatch(lower)
-                assert match is not None
+            elif match := ORDINAL.fullmatch(lower):
                 number, suffix = match.groups()
                 built += number + ORDINAL_SUFFIXES[suffix] + token.whitespace_
             else:
@@ -527,12 +522,10 @@ class Transliterator:
 
         rows = self.rows_of.get(lower)
         if rows is not None:
-            row = self._row_for(rows, token.tag_)
-            if row is not None:
-                spelling = self._spelling(row, options)
-                if "'" in lower:
-                    spelling = _apostrophized(lower, spelling)
-                return self._dot(token, spelling) + spelling + token.whitespace_
+            spelling = self._spelling(self._row_for(rows, token.tag_), options)
+            if "'" in lower:
+                spelling = _apostrophized(lower, spelling)
+            return self._dot(token, spelling) + spelling + token.whitespace_
 
         constructed = self._constructed(token, options)
         if constructed is not None:

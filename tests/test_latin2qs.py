@@ -276,6 +276,10 @@ def test_a_constructed_affix_word_is_flagged(t: Transliterator) -> None:
     )
 
 
+def test_the_oer_prefix_builds_the_compounds(t: Transliterator) -> None:
+    assert words(t, "the o'erhead beam")[1] == qs("·Owe·Utter·Roe·He·Et·Day") + "⚠️"
+
+
 def test_affixes_match_what_the_lexicon_does_inside_words(
     t: Transliterator,
 ) -> None:
@@ -335,6 +339,21 @@ def test_html_markup_passes_through(t: Transliterator) -> None:
     assert out.startswith("<!doctype html><p>")
     assert qs("·Key·At·Tea") in out
     assert out.endswith("</p>")
+
+
+def test_a_tag_named_like_a_style_block_passes_through(t: Transliterator) -> None:
+    body = qs("·They") + " " + qs("·Key·At·Tea")
+    out = t.transliterate("<!doctype html><stylesheet></style><p>the cat</p>")
+    assert out == "<!doctype html><stylesheet></style><p>" + body + "</p>"
+    out = t.transliterate("<!doctype html><scripts><b>hi</b></script>")
+    assert out == "<!doctype html><scripts><b>" + qs("·He·I") + "</b></script>"
+
+
+def test_a_curly_apostrophe_splits_a_contraction_in_html(t: Transliterator) -> None:
+    body = qs("·I") + " " + qs("·Day·Owe·No·Tea")
+    assert t.transliterate("<!doctype html><p>I don’t</p>") == (
+        "<!doctype html><p>" + body + "</p>"
+    )
 
 
 # --- plain text is not HTML ---------------------------------------------------
