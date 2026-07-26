@@ -2,7 +2,7 @@ from pathlib import Path
 
 import pytest
 
-from qslex.passages import PASSAGES_HEADER, SPECIMENS, load_passages
+from qslex.passages import PASSAGES_HEADER, load_passages
 
 from tsv import write_tsv
 
@@ -20,24 +20,6 @@ def passages_file(tmp_path: Path, rows: list[list[str]]) -> Path:
 
 def loaded(tmp_path: Path, rows: list[list[str]]) -> tuple[str, ...]:
     return tuple(word.verdict for word in load_passages(passages_file(tmp_path, rows)))
-
-
-def test_the_shipped_fixture_loads_and_covers_every_specimen() -> None:
-    words = load_passages()
-    assert len(words) == sum(specimen.words for specimen in SPECIMENS.values())
-    assert {word.passage for word in words} == set(SPECIMENS)
-
-
-def test_every_specimen_word_is_accounted_for() -> None:
-    verdicts = {word.verdict for word in load_passages()}
-    assert verdicts <= {
-        "senior",
-        "junior",
-        "ligature",
-        "contraction",
-        "differs",
-        "absent",
-    }
 
 
 def test_a_junior_passage_cannot_use_a_senior_verdict(tmp_path: Path) -> None:

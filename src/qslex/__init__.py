@@ -35,7 +35,7 @@ from qslex.rules import (
     spell,
     split,
 )
-from qslex.tokenizer import Token, TokenizeError, is_stressed, letters, qs, tokenize
+from qslex.tokenizer import Token, TokenizeError, is_stressed, letters, tokenize
 from qslex.variants import VarTag, kept, load_var_tags, select
 from qslex.words import (
     CORE_EIGHT,
@@ -109,7 +109,6 @@ __all__ = [
     "normalize",
     "parse",
     "phonemes_of",
-    "qs",
     "render",
     "render_qs",
     "select",

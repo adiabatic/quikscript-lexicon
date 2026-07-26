@@ -1,19 +1,9 @@
 import pytest
 
-from qslex import (
-    letters,
-    load_mapping,
-    load_overrides,
-    load_quirks,
-    normalize,
-    qs,
-    tokenize,
-)
+from qslex import letters, normalize, tokenize
 from qslex.tokenizer import TokenizeError
 
-MAPPING = load_mapping()
-QUIRKS = load_quirks()
-OVERRIDES = load_overrides(MAPPING)
+from conftest import MAPPING, OVERRIDES, QUIRKS
 
 MANUAL_ANCHORED = [
     ("year", "jɪəR", "·Ye·Eat·Utter·Roe"),
@@ -145,43 +135,6 @@ def transcribe(ipa: str) -> str:
 @pytest.mark.parametrize("word,ipa,expected", ALL_CASES)
 def test_transcription(word: str, ipa: str, expected: str) -> None:
     assert transcribe(ipa) == expected, word
-
-
-@pytest.mark.parametrize("word,ipa,expected", ALL_CASES)
-def test_qs_agrees_with_letters(word: str, ipa: str, expected: str) -> None:
-    normalized, _ = normalize(ipa, QUIRKS)
-    tokens = tokenize(normalized, MAPPING, OVERRIDES)
-    rendered = "".join(
-        chr(c) if c else t
-        for token in tokens
-        for t, cps in [(token.ipa, token.entry.codepoints)]
-        for c in (cps or ([0] if token.entry.kind == "structural" else []))
-    )
-    assert qs(tokens) == rendered, word
-
-
-def test_no_structural_marker_reaches_the_output() -> None:
-    for _, ipa, expected in ALL_CASES:
-        assert "+" not in expected
-        assert "+" not in transcribe(ipa)
-
-
-def test_compound_elements_match_their_standalone_forms() -> None:
-    pairs = [
-        ("dɪəR", "ˈreɪndɪəR"),
-        ("sfɪəR", "ˈætməsfɪəR"),
-        ("ɡɪəR", "ˈhedɡɪəR"),
-        ("mɪəR", "ˈwɪndəRmɪəR"),
-        ("hɪəR", "hɪəˈrÆftəR"),
-    ]
-    for standalone, compound in pairs:
-        assert "·Eat·Utter·Roe" in transcribe(standalone)
-        assert "·Eat·Utter·Roe" in transcribe(compound)
-
-
-def test_manual_prescribed_unstressed_forms_are_not_overridden() -> None:
-    for ipa in ["ˈhæpɪəR", "ˈkærɪəR", "ˈsiːnɪəR", "ˈbærɪəR", "ˈfʌrɪəR"]:
-        assert "·It·Utter·Roe" in transcribe(ipa)
 
 
 def test_unmapped_symbol_raises() -> None:

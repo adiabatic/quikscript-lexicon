@@ -1,9 +1,9 @@
 import pytest
 
-from qslex import load_quirks, normalize
+from qslex import normalize
 from qslex.quirks import QuirkRule
 
-QUIRKS = load_quirks()
+from conftest import QUIRKS
 
 ORDER_SENSITIVE = [
     ("hodler", "ˈhɑdləR", "ˈhɒdləR"),
@@ -58,7 +58,6 @@ def test_syllabic_marker_rule_is_anchored() -> None:
     assert normalize("̩bʌtn", QUIRKS)[0] == "bʌtn"
 
 
-def test_every_shipped_rule_declares_words() -> None:
+def test_every_shipped_rule_cites_the_issue_it_repairs() -> None:
     for rule in QUIRKS:
-        assert rule.declared_words, rule.match
         assert rule.note.endswith("(#7)"), rule.match

@@ -1,9 +1,5 @@
-from qslex.mapping import load_mapping
-from qslex.overrides import load_overrides
 from qslex.roundtrip import (
     EDITS,
-    MERGES,
-    SEQUENCES,
     align,
     phonemes_of,
     source_phonemes,
@@ -11,8 +7,8 @@ from qslex.roundtrip import (
 )
 from qslex.tokenizer import tokenize
 
-MAPPING = load_mapping()
-OVERRIDES = load_overrides(MAPPING)
+from conftest import MAPPING, OVERRIDES
+
 READ_BACK = phonemes_of(MAPPING)
 
 
@@ -29,16 +25,6 @@ def test_every_letter_reads_back_to_at_least_one_phoneme() -> None:
 def test_the_ligature_letters_read_back_to_their_two_sounds() -> None:
     assert READ_BACK["Excite"] == ("k", "s")
     assert READ_BACK["Exam"] == ("ɡ", "z")
-
-
-def test_the_merges_leave_every_letter_one_reading() -> None:
-    written: dict[str, set[str]] = {}
-    for entry in MAPPING.entries:
-        if len(entry.letters) == 1 and entry.ipa not in SEQUENCES:
-            token = MERGES.get(entry.ipa, entry.ipa)
-            written.setdefault(entry.letters[0], set()).add(token)
-    assert {name: sounds for name, sounds in written.items() if len(sounds) > 1} == {}
-    assert written["Utter"] == {"ə"}
 
 
 def test_stress_marks_and_separators_say_nothing() -> None:

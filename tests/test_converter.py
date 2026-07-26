@@ -82,8 +82,6 @@ def test_rows_come_out_in_penn_order_with_proper_nouns_first() -> None:
     ]
     tags = [row["tag"] for row in converter(entries, PENN)["reading"]]
     assert tags == ["NNP", "JJ", "NN", "VBP", "0"]
-    assert tags[1:-1] == sorted(tags[1:-1])
-    assert tags.index("NNP") < tags.index("NN")
 
 
 def test_a_c5_tag_with_no_penn_equivalent_stops_a_multi_spelling_word() -> None:

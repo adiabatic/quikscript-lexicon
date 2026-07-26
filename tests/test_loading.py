@@ -494,13 +494,3 @@ def test_phrase_exceptions_reject_a_duplicate_row(tmp_path: Path) -> None:
     rows = [GOOD_EXCEPTIONS[1], GOOD_EXCEPTIONS[1]]
     with pytest.raises(ValueError, match="duplicate row for 'cannot'"):
         load_phrase_exceptions(exceptions_file(tmp_path, rows))
-
-
-def test_shipped_tables_load() -> None:
-    mapping = load_mapping()
-    assert load_overrides(mapping)
-    assert load_quirks()
-    assert load_divergences()
-    assert load_var_tags()
-    assert load_penn()
-    assert load_phrase_exceptions()

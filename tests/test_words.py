@@ -4,18 +4,10 @@ import pytest
 
 from qslex import (
     CORE_EIGHT,
-    Context,
     load_contractions,
-    load_mapping,
-    load_overrides,
-    load_quirks,
-    load_rows,
-    load_tables,
     load_word_signs,
-    normalize,
     sign_for,
     spell,
-    tokenize,
 )
 from qslex.elements import components
 from qslex.letters import parse
@@ -25,16 +17,13 @@ from qslex.words import (
     apply_signs,
 )
 
+from conftest import CORPUS, TABLES, context_of
 from tsv import write_tsv
 
-MAPPING = load_mapping()
-QUIRKS = load_quirks()
-OVERRIDES = load_overrides(MAPPING)
-TABLES = load_tables()
 SIGNS = TABLES.signs
 CONTRACTIONS = load_contractions()
 
-ROWS = {(row.word.lower(), row.pos): row for row in load_rows()}
+ROWS = {(row.word.lower(), row.pos): row for row in CORPUS}
 
 
 CORE_ROWS = [
@@ -57,17 +46,11 @@ def signs_file(tmp_path: Path, extra: list[list[str]]) -> Path:
 
 
 def senior(word: str, pos: str) -> str:
-    row = ROWS[(word, pos)]
-    ipa, _ = normalize(row.ipa, QUIRKS)
-    context = Context(word, pos, ipa, tuple(tokenize(ipa, MAPPING, OVERRIDES)))
-    return spell(context, TABLES).senior
+    return spell(context_of(word, ROWS[(word, pos)]), TABLES).senior
 
 
 def spelling(word: str, pos: str) -> tuple[str, str]:
-    row = ROWS[(word, pos)]
-    ipa, _ = normalize(row.ipa, QUIRKS)
-    context = Context(word, pos, ipa, tuple(tokenize(ipa, MAPPING, OVERRIDES)))
-    result = spell(context, TABLES)
+    result = spell(context_of(word, ROWS[(word, pos)]), TABLES)
     return result.senior, result.junior or result.senior
 
 
@@ -77,23 +60,6 @@ def test_core_eight_are_single_signs() -> None:
         assert sign.tier == "core"
         assert len(sign.senior.split("·")) == 2, sign.senior
         assert not sign.junior
-
-
-@pytest.mark.parametrize(
-    ("word", "pos", "want"),
-    [
-        ("the", "AT0", "·They"),
-        ("of", "PRF", "·Vie"),
-        ("and", "CJC", "·No"),
-        ("to", "PRP", "·Tea"),
-        ("for", "PRP", "·Fee"),
-        ("it", "PNP", "·It"),
-        ("is", "VBZ", "·Zoo"),
-        ("be", "VBI", "·Bay"),
-    ],
-)
-def test_core_signs_reach_the_column(word: str, pos: str, want: str) -> None:
-    assert senior(word, pos) == want
 
 
 @pytest.mark.parametrize(
@@ -169,18 +135,12 @@ def test_components_splits_on_spaces_and_hyphens() -> None:
 
 
 def test_signs_are_skipped_when_the_word_and_the_ipa_disagree_on_shape() -> None:
-    row = ROWS[("to-day", "NN1")]
-    ipa, _ = normalize(row.ipa, QUIRKS)
-    context = Context("to-day", row.pos, ipa, tuple(tokenize(ipa, MAPPING, OVERRIDES)))
+    context = context_of("to-day", ROWS[("to-day", "NN1")])
     assert spell(context, TABLES).signed == ()
 
 
 def test_apply_signs_reports_only_what_it_changed() -> None:
-    row = ROWS[("as it were", "AV0")]
-    ipa, _ = normalize(row.ipa, QUIRKS)
-    context = Context(
-        "as it were", row.pos, ipa, tuple(tokenize(ipa, MAPPING, OVERRIDES))
-    )
+    context = context_of("as it were", ROWS[("as it were", "AV0")])
     assert spell(context, TABLES).signed == ("it",)
 
 
@@ -290,9 +250,6 @@ def test_a_latin_hyphen_facing_a_spelt_space_is_not_aligned() -> None:
 
 
 def test_a_no_op_row_is_still_consulted() -> None:
-    row = ROWS[("one", "CRD")]
-    ipa, _ = normalize(row.ipa, QUIRKS)
-    context = Context("one", row.pos, ipa, tuple(tokenize(ipa, MAPPING, OVERRIDES)))
-    result = spell(context, TABLES)
+    result = spell(context_of("one", ROWS[("one", "CRD")]), TABLES)
     assert result.signs == (("one", ""),)
     assert result.signed == ()

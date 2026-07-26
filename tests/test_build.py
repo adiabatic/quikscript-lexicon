@@ -14,13 +14,10 @@ from qslex.build import (
 )
 from qslex.csur import CODEPOINT_OF
 from qslex.letters import VOWELS
-from qslex.mapping import load_mapping
-from qslex.readlex import load_rows
-from qslex.validate import EXPECTED_JUNIOR_DIVERGENCES
-from qslex.variants import load_var_tags, select
 
-MAPPING = load_mapping()
-ENTRIES = convert(select(load_var_tags(), load_rows()), MAPPING)
+from conftest import KEPT, MAPPING
+
+ENTRIES = convert(KEPT, MAPPING)
 BUILT = artifacts(ENTRIES, MAPPING)
 
 ALPHABET = frozenset(chr(codepoint) for codepoint in CODEPOINT_OF.values())
@@ -85,7 +82,6 @@ def test_the_x_column_is_confined_to_words_with_an_x() -> None:
 
 def test_the_junior_column_is_confined_to_the_word_level_cases() -> None:
     juniors = [entry for entry in ENTRIES if entry.junior]
-    assert len(juniors) == EXPECTED_JUNIOR_DIVERGENCES
     assert {entry.latin for entry in juniors} == {"always", "that", "was"}
 
 

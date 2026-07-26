@@ -99,15 +99,3 @@ def letters(tokens: list[Token]) -> str:
         else:
             parts.extend("·" + name for name in token.entry.letters)
     return "".join(parts)
-
-
-def qs(tokens: list[Token]) -> str:
-    parts: list[str] = []
-    for token in tokens:
-        if token.entry.kind == "hiatus":
-            continue
-        if token.entry.kind == "structural":
-            parts.append(token.ipa)
-        else:
-            parts.append(token.entry.qs)
-    return "".join(parts)

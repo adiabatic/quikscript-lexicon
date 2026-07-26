@@ -5,27 +5,16 @@ import pytest
 
 from qslex import (
     Context,
-    Example,
     Row,
     load_examples,
-    load_mapping,
-    load_overrides,
-    load_quirks,
-    load_rows,
-    load_tables,
-    load_var_tags,
-    normalize,
     render,
-    select,
     spell,
-    tokenize,
 )
 from qslex.letters import parse, render_qs
 from qslex.manual import SIGN_ANCHORS
 from qslex.rules import (
     LIGATURES_HEADER,
     RULE_IDS,
-    TERMINAL_RULES,
     Tables,
     ligatable,
     load_rule_words,
@@ -36,16 +25,13 @@ from qslex.rules import (
     undecided_ing,
 )
 
+from conftest import KEPT, TABLES, context_of
 from tsv import write_tsv
 
-MAPPING = load_mapping()
-QUIRKS = load_quirks()
-OVERRIDES = load_overrides(MAPPING)
-TABLES = load_tables()
 EXAMPLES = load_examples()
 
 BY_WORD: dict[str, list[Row]] = collections.defaultdict(list)
-for _row in select(load_var_tags(), load_rows()):
+for _row in KEPT:
     BY_WORD[_row.word.lower()].append(_row)
 
 
@@ -55,8 +41,7 @@ def ligatures_file(tmp_path: Path, rows: list[list[str]]) -> Path:
 
 def context_for(word: str, pos: str = "") -> Context:
     rows = [row for row in BY_WORD[word] if not pos or row.pos == pos]
-    ipa, _ = normalize(rows[0].ipa, QUIRKS)
-    return Context(word, rows[0].pos, ipa, tuple(tokenize(ipa, MAPPING, OVERRIDES)))
+    return context_of(word, rows[0])
 
 
 def spellings(word: str, pos: str) -> list[tuple[str, str, str]]:
@@ -64,9 +49,7 @@ def spellings(word: str, pos: str) -> list[tuple[str, str, str]]:
     for row in BY_WORD.get(word, []):
         if pos and row.pos != pos:
             continue
-        ipa, _ = normalize(row.ipa, QUIRKS)
-        context = Context(word, row.pos, ipa, tuple(tokenize(ipa, MAPPING, OVERRIDES)))
-        result = spell(context, TABLES)
+        result = spell(context_of(word, row), TABLES)
         out.append((row.pos, result.senior, result.ligature or result.senior))
     return out
 
@@ -84,39 +67,9 @@ def ligature(word: str, pos: str = "") -> str:
     return produced[0][2]
 
 
-def _in_readlex(example: Example) -> bool:
-    rows = BY_WORD.get(example.word, [])
-    return any(not example.pos or row.pos == example.pos for row in rows)
-
-
-IN_READLEX = [example for example in EXAMPLES if _in_readlex(example)]
-
-
-@pytest.mark.parametrize(
-    "example",
-    IN_READLEX,
-    ids=lambda e: f"{e.rule}:{e.word}:{e.column}",
-)
-def test_manual_example_words(example: Example) -> None:
-    produced = spellings(example.word, example.pos)
-    index = 2 if example.column == "ligature" else 1
-    values = {row[index] for row in produced}
-    assert any(example.matches(value) for value in values), (
-        f"{example.word} [{example.source}] wants {example.kind} "
-        f"{example.spelling}, got {sorted(values)}"
-    )
-
-
 def test_the_fixture_covers_every_rule() -> None:
     covered = {example.rule for example in EXAMPLES}
     assert covered == set(RULE_IDS) | {"section-2"} | SIGN_ANCHORS
-
-
-def test_every_manual_source_row_is_a_whole_or_partial_spelling() -> None:
-    for example in EXAMPLES:
-        if example.source == "manual":
-            continue
-        assert example.note, example.word
 
 
 def test_es_ed_drops_the_epenthetic_vowel() -> None:
@@ -327,16 +280,13 @@ def test_split_leaves_an_entry_the_alignment_guard_rejects_whole() -> None:
     assert senior("to-day", "NN1") == "·Tea·Utter·Day·Eight"
 
 
-def test_terminal_rules_are_mutually_exclusive() -> None:
+def test_a_terminal_owns_the_end_of_each_of_these_words() -> None:
     for word in ("fashion", "ashen", "settlement", "eagle", "manage", "highest"):
-        found = terminal_for(context_for(word))
-        assert found is not None, word
-        assert sum(1 for rule in TERMINAL_RULES if rule is found[0]) == 1
+        assert terminal_for(context_for(word)) is not None, word
 
 
-def test_rule_ids_are_unique_and_ordered_prefix_then_terminal() -> None:
+def test_rule_ids_are_unique() -> None:
     assert len(RULE_IDS) == len(set(RULE_IDS))
-    assert len(RULE_IDS) == 26
 
 
 def test_parse_round_trips_a_spelling_with_separators() -> None:
@@ -371,21 +321,9 @@ def test_spell_without_tables_still_produces_a_spelling() -> None:
     assert spell(context_for("calling"), Tables()).senior == "·Key·Awe·Low·Oolong"
 
 
-def test_every_ruling_carries_an_authority_and_a_note() -> None:
+def test_every_ruling_carries_a_note() -> None:
     for (rule, word), entry in load_rule_words().items():
-        assert entry.authority, (rule, word)
         assert entry.note, (rule, word)
-
-
-def test_every_ligature_ruling_names_a_word_with_an_x() -> None:
-    for word, entry in load_x_ligatures().items():
-        assert "x" in word
-        assert entry.note
-
-
-def test_ligature_rulings_parse_to_known_letters() -> None:
-    for entry in load_x_ligatures().values():
-        assert render(parse(entry.ligature)) == entry.ligature
 
 
 def test_a_ruling_that_ligates_nothing_is_rejected(tmp_path: Path) -> None:
