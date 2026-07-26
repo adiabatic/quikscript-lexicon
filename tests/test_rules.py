@@ -168,6 +168,14 @@ def test_ess_est_writes_et_but_only_where_the_terminal_is_real() -> None:
     assert senior("honest", "AJ0") == "·Ox·No·Utter·See·Tea"
 
 
+def test_ess_est_reaches_across_a_hiatus_seam() -> None:
+    assert senior("keenness", "NN1") == "·Key·Eat·No·No·Et·See"
+    assert senior("goalless", "AJ0") == "·Gay·Owe·Low·Low·Et·See"
+    assert senior("suddenness", "NN1") == "·See·Utter·Day·Utter·No·No·Et·See"
+    assert senior("freest", "AJS") == "·Fee·Roe·Eat·Et·See·Tea"
+    assert senior("beefiest", "AJS") == "·Bay·Eat·Fee·It·Et·See·Tea"
+
+
 def test_ain_and_age_normalise_the_unstressed_vowel() -> None:
     assert senior("captain", "NN1") == "·Key·At·Pea·Tea·Utter·No"
     assert senior("maintain", "VVB") == "·May·Eight·No·Tea·Eight·No"

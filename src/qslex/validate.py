@@ -95,7 +95,7 @@ EXPECTED_RULE_CHANGES: dict[str, int] = {
     "prefix-in-en": 0,
     "terminal-ally-able": 978,
     "terminal-tion": 2751,
-    "terminal-ess-est": 1818,
+    "terminal-ess-est": 1860,
     "terminal-land-ment": 893,
     "terminal-ent-ance": 0,
     "terminal-us-ous": 1,
@@ -147,7 +147,7 @@ EXPECTED_MANUAL_ABSENT = 2
 EXPECTED_ROUNDTRIP_EDITS: dict[tuple[str, str], int] = {
     ("ə", ""): 19508,
     ("ɪ", ""): 11243,
-    ("ə", "e"): 1828,
+    ("ə", "e"): 1870,
     ("e", "eɪ"): 1354,
     ("ɪ", "iː"): 1312,
     ("ʊ", "uː"): 763,
@@ -159,7 +159,7 @@ EXPECTED_ROUNDTRIP_EDITS: dict[tuple[str, str], int] = {
 }
 
 # Spellings that read straight back to their own IPA, with nothing elided or levelled.
-EXPECTED_ROUNDTRIP_IDENTICAL = 76751
+EXPECTED_ROUNDTRIP_IDENTICAL = 76712
 
 # A word sign or standard outline stands for the written word rather than for its
 # sounds, so a row one rewrites has nothing to read back.

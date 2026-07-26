@@ -1,7 +1,7 @@
 import pytest
 
 from qslex import letters, normalize, tokenize
-from qslex.tokenizer import TokenizeError
+from qslex.tokenizer import TokenizeError, is_stressed
 
 from conftest import MAPPING, OVERRIDES, QUIRKS
 
@@ -166,6 +166,22 @@ def test_stress_marks_do_not_break_vowel_r_context() -> None:
     tokens = tokenize(normalized, MAPPING, OVERRIDES)
     eas = [t for t in tokens if t.ipa == "eə"]
     assert eas[0].entry.condition == "pre-r"
+
+
+def test_a_schwa_only_hiatus_tail_is_not_a_word_of_its_own() -> None:
+    assert not is_stressed("ˈkiːn+nəs", 7)
+    assert not is_stressed("ˈfriː+əst", 6)
+    assert not is_stressed("ˈjʊk+kə", 6)
+    assert not is_stressed("ˈwɪlt+ʃəR", 7)
+
+
+def test_a_hiatus_tail_with_a_stressable_vowel_keeps_the_fallback() -> None:
+    assert is_stressed("ˈbʊk+kiːpɪŋ", 6)
+    assert is_stressed("ˈswet+ʃɜːRt", 7)
+    assert is_stressed("ˈklɪp+bɔːRd", 7)
+    assert is_stressed("ˈkɔːRt+ʃɪp", 8)
+    assert is_stressed("ˈkuːl+li", 7)
+    assert is_stressed("ˈsəʊl+ləsli", 7)
 
 
 def test_overrides_only_fire_on_their_own_string() -> None:

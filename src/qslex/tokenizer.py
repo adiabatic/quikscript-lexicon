@@ -8,6 +8,8 @@ from qslex.overrides import Override, Overrides
 STRESS_MARKS = frozenset("ˈˌ")
 CHUNK_SEPARATORS = frozenset(" -+")
 VOWEL_CHARS = frozenset("ɪieæaɑɒɔʊuʌəɜːÆƏIⱭ")
+SCHWA_CHARS = frozenset("əƏ")
+STRESSABLE_VOWELS = VOWEL_CHARS - SCHWA_CHARS
 NO_OVERRIDES: Overrides = {}
 
 
@@ -86,7 +88,10 @@ def is_stressed(ipa: str, position: int) -> bool:
     end = position
     while end < len(ipa) and ipa[end] not in CHUNK_SEPARATORS:
         end += 1
-    return not any(mark in STRESS_MARKS for mark in ipa[start:end])
+    chunk = ipa[start:end]
+    if start > 0 and ipa[start - 1] == "+" and STRESSABLE_VOWELS.isdisjoint(chunk):
+        return False
+    return not any(mark in STRESS_MARKS for mark in chunk)
 
 
 def letters(tokens: list[Token]) -> str:
