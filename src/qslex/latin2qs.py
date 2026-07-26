@@ -10,6 +10,7 @@ specified in docs/latin2qs.md.
 from __future__ import annotations
 
 import argparse
+import html
 import json
 import re
 import sys
@@ -19,7 +20,6 @@ from pathlib import Path
 import smartypants
 import spacy
 import unidecode
-from bs4 import BeautifulSoup
 from spacy.matcher import PhraseMatcher
 from spacy.tokenizer import Tokenizer
 from spacy.tokens import Doc, Span, Token
@@ -597,7 +597,7 @@ class Transliterator:
         out = ""
         for line in text.splitlines():
             out += self.convert(self.tokenise(line), options) + "\n"
-        return str(BeautifulSoup(_educated(out), features="html.parser"))
+        return html.unescape(_educated(out))
 
 
 def main(argv: list[str] | None = None) -> int:

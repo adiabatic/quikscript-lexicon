@@ -337,6 +337,22 @@ def test_html_markup_passes_through(t: Transliterator) -> None:
     assert out.endswith("</p>")
 
 
+# --- plain text is not HTML ---------------------------------------------------
+
+
+def test_angle_brackets_are_not_escaped(t: Transliterator) -> None:
+    out = convert(t, "1 < 2 and 3 > 2")
+    assert out == "1 < 2 " + qs("·No") + " 3 > 2"
+
+
+def test_an_ampersand_is_not_escaped(t: Transliterator) -> None:
+    assert convert(t, "AT&T") == "AT&T"
+
+
+def test_a_pseudo_tag_gains_no_closing_tag(t: Transliterator) -> None:
+    assert convert(t, "a <xyzzy> b") == qs("·Utter") + " <xyzzy✢> ·" + qs("·Bay·Eat")
+
+
 # --- the Manual's specimen passages -------------------------------------------
 
 # Rows the replay cannot reproduce, each for a reason the layers own: the
