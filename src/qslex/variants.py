@@ -92,19 +92,19 @@ def load_var_tags(path: Path | None = None) -> Tags:
     return known
 
 
-def canonical(tags: Tags, tag: str) -> str:
+def kept(tags: Tags, tag: str) -> bool:
+    """Whether a row wearing this tag belongs to the RRP family the lexicon spells.
+
+    A tag and the tag it normalises to are forbidden to disagree on policy, so the row's
+    own policy is the canonical one.
+    """
     entry = tags.get(tag)
     if entry is None:
         raise ValueError(
             f"{TAGS_FILE} has no policy for the variant tag {tag!r}; the corpus has "
             f"grown a tag nobody has ruled on"
         )
-    return entry.canonical
-
-
-def kept(tags: Tags, tag: str) -> bool:
-    """Whether a row wearing this tag belongs to the RRP family the lexicon spells."""
-    return tags[canonical(tags, tag)].kept
+    return entry.kept
 
 
 def select(tags: Tags, rows: Iterable[Row]) -> tuple[Row, ...]:

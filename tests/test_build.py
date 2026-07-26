@@ -9,18 +9,20 @@ from qslex.build import (
     PHRASES_TXT,
     TSV_HEADER,
     artifacts,
+    convert,
     letters_tsv,
     main,
-    spellings,
 )
 from qslex.csur import CODEPOINT_OF
 from qslex.letters import VOWELS
+from qslex.mapping import load_mapping
 from qslex.readlex import load_rows
 from qslex.validate import EXPECTED_JUNIOR_DIVERGENCES
 from qslex.variants import load_var_tags, select
 
-ENTRIES = spellings(select(load_var_tags(), load_rows()))
-BUILT = artifacts(ENTRIES)
+MAPPING = load_mapping()
+ENTRIES = convert(select(load_var_tags(), load_rows()), MAPPING)
+BUILT = artifacts(ENTRIES, MAPPING)
 
 ALPHABET = frozenset(chr(codepoint) for codepoint in CODEPOINT_OF.values())
 SEPARATORS = frozenset(" -'’./0123456789")
@@ -101,7 +103,7 @@ def test_every_qs_string_is_letters_and_separators() -> None:
 
 
 def test_rendering_the_same_entries_twice_is_byte_identical() -> None:
-    again = artifacts(ENTRIES)
+    again = artifacts(ENTRIES, MAPPING)
     assert {name: text.encode("utf-8") for name, text in again.items()} == {
         name: text.encode("utf-8") for name, text in BUILT.items()
     }
@@ -112,20 +114,20 @@ def test_the_committed_artifacts_match_a_fresh_build() -> None:
 
 
 def test_letters_tsv_names_every_codepoint() -> None:
-    header, rows = table(letters_tsv())
+    header, rows = table(letters_tsv(MAPPING))
     assert tuple(header) == LETTERS_HEADER
     assert [row[2] for row in rows] == list(CODEPOINT_OF)
 
 
 def test_each_letter_row_carries_the_character_for_its_codepoint() -> None:
-    _, rows = table(letters_tsv())
+    _, rows = table(letters_tsv(MAPPING))
     for codepoint, character, name, _, _ in rows:
         assert int(codepoint.removeprefix("U+"), 16) == CODEPOINT_OF[name]
         assert character == chr(CODEPOINT_OF[name])
 
 
 def test_every_letter_is_a_consonant_a_vowel_or_a_ligature() -> None:
-    _, rows = table(letters_tsv())
+    _, rows = table(letters_tsv(MAPPING))
     kinds = {row[2]: row[3] for row in rows}
     assert set(kinds.values()) == {"consonant", "vowel", "ligature"}
     assert {name for name, kind in kinds.items() if kind == "vowel"} == set(VOWELS)

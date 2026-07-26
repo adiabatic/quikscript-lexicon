@@ -129,9 +129,9 @@ The four gaps on this side are the yield, and are filed as [#10](https://github.
 
 ## Coverage in the build log
 
-`make artifacts` ends by printing what the build touched: rows read, rows converted and under how many headwords, rows skipped and under which accent tag, how many rows carry each sparse column, and how many rows each orthographic rule and each word sign rewrote. It names the rules that rewrote nothing, because a rule that never fires is either a normaliser ReadLex already satisfies or a bug — and says which of those it is is the validator's job, not the build's.
+`make artifacts` ends by printing what the build touched: rows converted, rows skipped, and how many rows carry each sparse column.
 
-The same counts are pinned in `validate.py`, so the log is a convenience and the assertion is elsewhere. Reading them in the build log is how a change announces itself while it is being made.
+The same counts are pinned in `validate.py`, so the log is a convenience and the assertion is elsewhere — which is why it stops where it does. The per-rule and per-word-sign rewrite counts, and the reading of which rules rewrote nothing, are `make validate`'s to report and to adjudicate; printing them from the build too was a second, unasserted copy, and a build that only checks its output against disk (`--check`) counts none of it.
 
 [manual]: https://adiabatic.github.io/abbots-morton-spaceport/the-manual.html
 [no-how]: https://adiabatic.github.io/abbots-morton-spaceport/the-manual.html#no-how

@@ -15,7 +15,7 @@ from qslex.mapping import HEADER
 from qslex.overrides import OVERRIDES_HEADER
 from qslex.quirks import QUIRKS_HEADER
 from qslex.readlex import CorpusError, Row, load_rows
-from qslex.variants import TAGS_HEADER, canonical, kept, load_var_tags, select
+from qslex.variants import TAGS_HEADER, kept, load_var_tags, select
 
 PEA = chr(0xE650)
 EAT_UTTER = chr(0xE671) + chr(0xE67A)
@@ -344,7 +344,6 @@ def tags_file(tmp_path: Path, rows: list[list[str]]) -> Path:
 
 def test_good_var_tags_load(tmp_path: Path) -> None:
     tags = load_var_tags(tags_file(tmp_path, GOOD_TAGS))
-    assert canonical(tags, "RRPVar") == "RRP"
     assert kept(tags, "RRPVar")
     assert not kept(tags, "GenAm")
     assert tags["RRPVar"].declared_words == ("again",)
@@ -415,7 +414,7 @@ def test_var_tags_reject_a_canonical_that_disagrees_on_policy(tmp_path: Path) ->
 def test_a_variant_tag_nobody_has_ruled_on_is_rejected(tmp_path: Path) -> None:
     tags = load_var_tags(tags_file(tmp_path, GOOD_TAGS))
     with pytest.raises(ValueError, match="no policy for the variant tag"):
-        canonical(tags, "Martian")
+        kept(tags, "Martian")
 
 
 def test_select_keeps_only_the_rrp_family(tmp_path: Path) -> None:

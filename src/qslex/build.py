@@ -1,23 +1,22 @@
 from __future__ import annotations
 
 import argparse
-import collections
 import json
 import sys
 from collections.abc import Iterable
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from pathlib import Path
 
 from qslex.converter import converter, load_penn, load_phrase_exceptions, phrases
 from qslex.csur import CODEPOINT_OF
 from qslex.letters import VOWELS, parse, render_qs
-from qslex.mapping import load_mapping
+from qslex.mapping import Mapping, load_mapping
 from qslex.overrides import load_overrides
 from qslex.quirks import load_quirks, normalize
 from qslex.readlex import Row, load_rows, repo_root
-from qslex.rules import RULES, Context, load_tables, spell
+from qslex.rules import Context, load_tables, spell
 from qslex.tokenizer import tokenize
-from qslex.variants import kept, load_var_tags, select
+from qslex.variants import load_var_tags, select
 
 ARTIFACTS = "lexicon"
 LEXICON_JSON = "quikscript-lexicon.json"
@@ -69,54 +68,30 @@ class Entry:
         return out
 
 
-@dataclass
+@dataclass(frozen=True)
 class Coverage:
     """What the build touched, for the log.
 
-    Written as it goes rather than recomputed afterwards, so that it counts what was
-    actually spelt rather than what a second pass would spell.
+    Every number is pinned and adjudicated in qslex.validate, so this is a convenience
+    for whoever is watching a change land rather than a check of its own. The tally is
+    done in `report`, so a build that prints nothing counts nothing.
     """
 
-    read: int = 0
-    converted: int = 0
-    headwords: set[str] = field(default_factory=set)
-    skipped: collections.Counter[str] = field(default_factory=collections.Counter)
-    rules: collections.Counter[str] = field(default_factory=collections.Counter)
-    signs: collections.Counter[str] = field(default_factory=collections.Counter)
-    junior: int = 0
-    ligature: int = 0
-
-    @property
-    def idle(self) -> tuple[str, ...]:
-        return tuple(rule.id for rule in RULES if not self.rules[rule.id])
+    read: int
+    spelt: tuple[Entry, ...]
 
     def report(self) -> str:
-        lines = [
-            f"read {self.read} corpus rows, converted {self.converted} under "
-            f"{len(self.headwords)} headwords",
-            f"skipped {sum(self.skipped.values())}: "
-            + ", ".join(f"{tag} {n}" for tag, n in sorted(self.skipped.items())),
-            f"sparse columns: {self.junior} junior, {self.ligature} ligature",
-            "orthographic rules, rows rewritten:",
-        ]
-        for rule in RULES:
-            lines.append(f"  {rule.id:22} {self.rules[rule.id]:6}")
-        lines.append(
-            "word signs and standard outlines, rows rewritten: "
-            + ", ".join(f"{word} {n}" for word, n in sorted(self.signs.items()))
+        junior = sum(1 for entry in self.spelt if entry.junior)
+        ligature = sum(1 for entry in self.spelt if entry.ligature)
+        return (
+            f"converted {len(self.spelt)} corpus rows, "
+            f"skipped {self.read - len(self.spelt)}\n"
+            f"sparse columns: {junior} junior, {ligature} ligature"
         )
-        if self.idle:
-            lines.append(
-                f"NOTE: {len(self.idle)} rules rewrote nothing ("
-                + ", ".join(self.idle)
-                + "): a rule that never fires is either a normaliser ReadLex already "
-                "satisfies or a bug, and qslex.validate adjudicates which"
-            )
-        return "\n".join(lines)
 
 
-def convert(rows: Iterable[Row]) -> tuple[tuple[Entry, ...], Coverage]:
-    """Every kept row spelt, in corpus order, with a tally of what that took.
+def convert(rows: Iterable[Row], mapping: Mapping) -> tuple[Entry, ...]:
+    """Every kept row spelt, in corpus order.
 
     Nothing here decides how a word is spelt: the mapping, the rules and the word signs
     have all already run by the time `spell` returns, and this only renders what they
@@ -126,23 +101,15 @@ def convert(rows: Iterable[Row]) -> tuple[tuple[Entry, ...], Coverage]:
     every row explains its own spelling. Upstream's unrepaired IPA stays available in
     the vendored corpus, which is where anyone diffing against ReadLex should look.
     """
-    mapping = load_mapping()
     quirks = load_quirks()
     overrides = load_overrides(mapping)
     tables = load_tables()
-    coverage = Coverage()
     out: list[Entry] = []
     for row in rows:
         ipa, _ = normalize(row.ipa, quirks)
         tokens = tokenize(ipa, mapping, overrides)
         context = Context(row.word.lower(), row.pos, ipa, tuple(tokens))
         result = spell(context, tables)
-        coverage.converted += 1
-        coverage.headwords.add(row.headword)
-        coverage.rules.update(result.applied)
-        coverage.signs.update(set(result.signed))
-        coverage.junior += bool(result.junior)
-        coverage.ligature += bool(result.ligature)
         out.append(
             Entry(
                 headword=row.headword,
@@ -156,11 +123,7 @@ def convert(rows: Iterable[Row]) -> tuple[tuple[Entry, ...], Coverage]:
                 frequency=row.frequency,
             )
         )
-    return tuple(out), coverage
-
-
-def spellings(rows: Iterable[Row]) -> tuple[Entry, ...]:
-    return convert(rows)[0]
+    return tuple(out)
 
 
 def lexicon_json(entries: Iterable[Entry]) -> str:
@@ -189,9 +152,8 @@ def lexicon_tsv(entries: Iterable[Entry]) -> str:
     return "\n".join(lines) + "\n"
 
 
-def letters_tsv() -> str:
+def letters_tsv(mapping: Mapping) -> str:
     """The decoder ring: PUA text is opaque without a Quikscript font, so name it."""
-    mapping = load_mapping()
     sources: dict[str, list[str]] = {name: [] for name in CODEPOINT_OF}
     for entry in mapping.entries:
         for name in entry.letters:
@@ -219,7 +181,7 @@ def letters_tsv() -> str:
     return "\n".join(lines) + "\n"
 
 
-def artifacts(entries: tuple[Entry, ...]) -> dict[str, str]:
+def artifacts(entries: tuple[Entry, ...], mapping: Mapping) -> dict[str, str]:
     rows = converter(
         ((e.latin, e.pos, e.qs, e.junior, e.ligature) for e in entries), load_penn()
     )
@@ -229,21 +191,17 @@ def artifacts(entries: tuple[Entry, ...]) -> dict[str, str]:
         LEXICON_TSV: lexicon_tsv(entries),
         CONVERTER_JSON: json.dumps(rows, ensure_ascii=False, indent=4) + "\n",
         PHRASES_TXT: "\n".join(listed) + "\n",
-        LETTERS_TSV: letters_tsv(),
+        LETTERS_TSV: letters_tsv(mapping),
     }
 
 
 def build(
     path: Path | None = None, verify: bool = True
 ) -> tuple[dict[str, str], Coverage]:
-    tags = load_var_tags()
+    mapping = load_mapping()
     rows = load_rows(path, verify=verify)
-    entries, coverage = convert(select(tags, rows))
-    coverage.read = len(rows)
-    for row in rows:
-        if not kept(tags, row.var):
-            coverage.skipped[row.var] += 1
-    return artifacts(entries), coverage
+    entries = convert(select(load_var_tags(), rows), mapping)
+    return artifacts(entries, mapping), Coverage(len(rows), entries)
 
 
 def main(argv: list[str] | None = None) -> int:

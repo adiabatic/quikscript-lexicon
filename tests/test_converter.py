@@ -2,7 +2,6 @@ import pytest
 
 from qslex.converter import (
     JOIN,
-    PENN_ORDER,
     ConverterError,
     PhraseException,
     TagMap,
@@ -83,7 +82,7 @@ def test_rows_come_out_in_penn_order_with_proper_nouns_first() -> None:
     ]
     tags = [row["tag"] for row in converter(entries, PENN)["reading"]]
     assert tags == ["NNP", "JJ", "NN", "VBP", "0"]
-    assert tags[:-1] == [tag for tag in PENN_ORDER if tag in tags]
+    assert tags[1:-1] == sorted(tags[1:-1])
     assert tags.index("NNP") < tags.index("NN")
 
 

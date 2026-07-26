@@ -25,28 +25,31 @@ JOIN = "⬌"
 # makes the proper-noun spelling of august, derby, reading, slough and 23 others
 # unreachable. Everything after NNP is alphabetical, because nothing else needs an
 # opinion and an arbitrary order would only invite one.
-PENN_ORDER = (
-    "NNP",
-    "DT",
-    "FW",
-    "IN",
-    "JJ",
-    "JJR",
-    "JJS",
-    "MD",
-    "NN",
-    "NNS",
-    "PRP",
-    "RB",
-    "SYM",
-    "UH",
-    "VB",
-    "VBD",
-    "VBG",
-    "VBN",
-    "VBP",
-    "VBZ",
-    "WP",
+PROPER_NOUN = "NNP"
+PENN_TAGS = frozenset(
+    {
+        "DT",
+        "FW",
+        "IN",
+        "JJ",
+        "JJR",
+        "JJS",
+        "MD",
+        "NN",
+        "NNP",
+        "NNS",
+        "PRP",
+        "RB",
+        "SYM",
+        "UH",
+        "VB",
+        "VBD",
+        "VBG",
+        "VBN",
+        "VBP",
+        "VBZ",
+        "WP",
+    }
 )
 
 
@@ -96,7 +99,7 @@ def load_penn(path: Path | None = None) -> dict[str, TagMap]:
                     f"{source}:{lineno}: evidence must be one of {sorted(EVIDENCE)}, "
                     f"got {entry.evidence!r}"
                 )
-            if entry.penn not in PENN_ORDER:
+            if entry.penn not in PENN_TAGS:
                 raise ValueError(
                     f"{source}:{lineno}: {entry.penn!r} has no place in the row order"
                 )
@@ -201,9 +204,8 @@ def converter(
         rows: list[dict[str, str]] = []
         whole = _collect(group)
         if len(whole) > 1 and len(by_tag) > 1:
-            for tag in PENN_ORDER:
-                if tag in by_tag:
-                    rows.append({**_forms(_collect(by_tag[tag])), "tag": tag})
+            for tag in sorted(by_tag, key=lambda t: (t != PROPER_NOUN, t)):
+                rows.append({**_forms(_collect(by_tag[tag])), "tag": tag})
         rows.append({**_forms(whole), "tag": FALLBACK})
         out[latin] = rows
     return out
