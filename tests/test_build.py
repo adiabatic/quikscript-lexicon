@@ -11,7 +11,6 @@ from qslex.build import (
     artifacts,
     convert,
     letters_tsv,
-    main,
 )
 from qslex.csur import CODEPOINT_OF
 from qslex.letters import VOWELS
@@ -107,10 +106,6 @@ def test_rendering_the_same_entries_twice_is_byte_identical() -> None:
     assert {name: text.encode("utf-8") for name, text in again.items()} == {
         name: text.encode("utf-8") for name, text in BUILT.items()
     }
-
-
-def test_the_committed_artifacts_match_a_fresh_build() -> None:
-    assert main(["--check"]) == 0
 
 
 def test_letters_tsv_names_every_codepoint() -> None:

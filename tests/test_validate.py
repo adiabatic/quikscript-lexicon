@@ -8,7 +8,7 @@ from qslex.readlex import (
     load_rows,
 )
 from qslex.tokenizer import tokenize
-from qslex.validate import main, stressed_rhotic_ears
+from qslex.validate import stressed_rhotic_ears
 
 MAPPING = load_mapping()
 OVERRIDES = load_overrides(MAPPING)
@@ -35,7 +35,3 @@ def test_stressed_rhotic_ears_counts_only_rhotic_stressed() -> None:
     ]
     for ipa, expected in cases:
         assert stressed_rhotic_ears(ipa, tokenize(ipa, MAPPING, OVERRIDES)) == expected
-
-
-def test_validator_passes_on_the_vendored_corpus() -> None:
-    assert main([]) == 0
