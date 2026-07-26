@@ -7,7 +7,7 @@ Authority links go to the [AMS Manual transcription][manual]; every letter-name 
 ## Artifacts
 
 - `src/qslex/data/word-signs.tsv` — the 103 rows that reach a column: the core eight, the three abbreviations, and the Manual's standard word-outlines. Columns: `word`, `pos`, `tier`, `senior`, `junior`, `full`, `authority`, `note`.
-- `src/qslex/data/contractions.tsv` — the 78 rows of the [§III contraction list][senior], which reach **no** column. Columns: `word`, `pos`, `kind`, `contraction`, `authority`, `note`.
+- `src/qslex/data/contractions.tsv` — the [§III contraction list][senior], which reaches **no** column. Its ~50 printed entries make 78 rows: several cover an inflected set (`be/ing/en`, `come/s/ing`, `make/ing, made`), and two are the clitics generalised below. Columns: `word`, `pos`, `kind`, `contraction`, `authority`, `note`.
 - `src/qslex/words.py` — the loaders and the substitution, which rejects an unknown tier, a Manual anchor that does not belong to this table, a Junior spelling that merely repeats the Senior one, a part-of-speech row that a general row already shadows, and a missing core sign.
 - `src/qslex/letters.py` — the letter-name primitives this layer shares with the rules.
 - `src/qslex/elements.py` — the split into elements it shares with them too, so that neither layer can disagree with the other about where a boundary is.
@@ -45,7 +45,7 @@ For the there is no fuller spelling to record beyond the specimens' ·They·Utte
 
 ## Tier 3: the standard word-outlines
 
-[§ Common words][common] prints 69 headwords, several of them covering an inflected pair (`day/s`, `know/n`, `use/d (v.)`), for 84 words in 92 rows once the parts of speech are split out. **Seventy-nine of the 84 are already exactly what ReadLex's IPA gives** once the orthographic rules have run. They ship anyway, for the reason the sixteen no-op rules do: a corpus row that ever contradicts the Manual gets corrected rather than passed through, and the validator pins the count so a word that starts mattering is visible.
+[§ Common words][common] prints 69 headwords, several of them covering an inflected pair (`day/s`, `know/n`, `use/d (v.)`), for 84 words in 92 rows once the parts of speech are split out. **Seventy-nine of the 84 are already exactly what ReadLex's IPA gives** once the orthographic rules have run. They ship anyway, for the reason the eleven no-op rules do: a corpus row that ever contradicts the Manual gets corrected rather than passed through, and the validator pins the count so a word that starts mattering is visible.
 
 Three of the five that do rewrite are word-level standardisations:
 
@@ -92,23 +92,23 @@ A multi-word or hyphenated entry is matched word by word at every boundary, spac
 
 Two guards keep it honest. A row is only applied inside a phrase if it holds for **every** part of speech, because the entry's tag belongs to the phrase and not to any word inside it: that is has an AV0 tag, but the that inside it is not the degree adverb, so it keeps the demonstrative ·They·At·Tea while the standalone AV0 that contracts. And nothing is substituted unless the Latin words and the spelling's runs are the same shape, which is what stops to-day (`təˈdeɪ`, one run against three Latin parts) and dhs (one Latin part against seven runs, its IPA being the department's name spelt out) from being mangled. Equal counts are not enough on their own: the shape check also refuses a Latin hyphen facing a spelt space, so a substitution can never cross a boundary other than the one it matched.
 
-All 34 rows the layer rewrites, in full:
+`EXPECTED_SIGN_CHANGES` in [`src/qslex/validate.py`](../src/qslex/validate.py) pins how many rows each word rewrites and is the only place to read those counts; `make validate` prints them word by word. Every word it lists, in that order:
 
-| Rows | Word | Result |
-|---:|---|---|
-| 5 | after | the `Ɑː` rows, and the `Ɑː` half of the PRE entry after- → ·At·Fee·Tea·Utter·Roe |
-| 5 | last | last ×3, at last, last-ditch → ·Low·At·See·Tea |
-| 4 | at | at-home, at-homes, gentleman-at-arms, gentlemen-at-arms — ReadLex's weak `ət` → ·At·Tea |
-| 3 | be | be VBB, be VBI, would-be → ·Bay |
-| 3 | to | lean-to ×2, set-to → ·Tea |
-| 3 | that | that AJ0, AV0, CJT → ·They·Tea |
-| 2 | it | it PNP, as it were → ·It |
-| 2 | is | is VBZ, that is → ·Zoo |
-| 2 | mr | both rows → ·May·Roe |
-| 2 | mrs | `ˈmɪsəz` and `ˈmɪsɪz` → ·May·Zoo |
-| 1 | dr | → ·Day·Utter·Roe |
-| 1 | always | → ·Awe·Low·Way·Utter·Zoo |
-| 1 | was | → ·Way·Utter·Zoo |
+| Word | Result |
+|---|---|
+| after | the `Ɑː` rows, and the `Ɑː` half of the PRE entry after- → ·At·Fee·Tea·Utter·Roe |
+| always | → ·Awe·Low·Way·Utter·Zoo |
+| at | at-home, at-homes, gentleman-at-arms, gentlemen-at-arms — ReadLex's weak `ət` → ·At·Tea |
+| be | be VBB, be VBI, would-be → ·Bay |
+| dr | → ·Day·Utter·Roe |
+| is | is VBZ, that is → ·Zoo |
+| it | it PNP, as it were → ·It |
+| last | last ×3, at last, last-ditch → ·Low·At·See·Tea |
+| mr | both rows → ·May·Roe |
+| mrs | `ˈmɪsəz` and `ˈmɪsɪz` → ·May·Zoo |
+| that | that AJ0, AV0, CJT → ·They·Tea |
+| to | lean-to ×2, set-to → ·Tea |
+| was | → ·Way·Utter·Zoo |
 
 lean-to and set-to are worth a second look, since the to in each is a lexicalised particle rather than the preposition. They stay, because ReadLex writes exactly the same particle with its own word sign in stand-to `stænd-ˈT`, talking-to `ˈtɔːkɪŋ-T` and to-do `T-ˈduː`; substituting here makes upstream's treatment of the pattern uniform rather than departing from it.
 

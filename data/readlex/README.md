@@ -17,10 +17,8 @@ The IPA field carries the capital-letter conventions this project depends on: wo
 
 ## Why this file and not the TSV
 
-Upstream hand-edits `readlex.json` alone and generates `kingsleyreadlexicon.tsv` and every other format from it by script — stated only in pull request comments ([#124](https://github.com/Shavian-info/readlex/pull/124), [#70](https://github.com/Shavian-info/readlex/pull/70)). The generated TSV has carried generation bugs, and the `var` tags this project's row policy needs appear nowhere else.
-
-That relationship was checked rather than assumed: flattening this file, keeping only the `RRP` and `TrapBath` rows and deduplicating on the five-tuple reproduces the TSV exactly, all 110,056 rows, with nothing left over on either side. So the TSV was a lossy projection of what is now vendored here, and it is no longer carried.
+Upstream hand-edits `readlex.json` alone and generates every other format from it by script, the `var` tags this project's row policy needs appear nowhere else, and the generated TSV was checked to be a lossy projection of this file rather than a second source — so it is not vendored beside it. The argument, with the pull requests it rests on and the check that was run, is in [`docs/pipeline.md`](../../docs/pipeline.md#source-of-truth-readlexjson-not-the-tsv).
 
 ## Bumping it
 
-`src/qslex/validate.py` verifies this file's SHA-256 before use, so a corpus bump is always a deliberate, reviewable change rather than a silent one. Replace the file, update the commit and digest above and in `src/qslex/readlex.py`, then run `make check` and reconcile any invariant that moves.
+`src/qslex/validate.py` verifies this file's SHA-256 before use, so a corpus bump is always a deliberate, reviewable change rather than a silent one. The recipe is in [`docs/pipeline.md`](../../docs/pipeline.md#regenerating); the commit and digest above are one of the two places it has you update.

@@ -34,17 +34,14 @@ The corpus is vendored at a pinned commit with its SHA-256 recorded, and the loa
 
 ## Row policy: the RRP family only
 
-ReadLex carries four accents. This lexicon spells one: **rhotic RP**, which is the standard the corpus is transcribed in and the one Read's own rules assume. `src/qslex/data/var-tags.tsv` states the policy tag by tag, with a pinned row count for each.
+ReadLex carries four accents. This lexicon spells one: **rhotic RP**, which is the standard the corpus is transcribed in and the one Read's own rules assume. `src/qslex/data/var-tags.tsv` states the policy tag by tag and pins the row count for each, and is the only place to read those counts; the validator fails on a count that has drifted.
 
-| Tag | Rows | | Tag | Rows |
-|---|---|---|---|---|
-| `RRP` | 108,409 | keep | `TrapBath` | 1,697 | drop |
-| `RRPVar` | 12 | keep | `GenAm` | 1,081 | drop |
-| `RRPvar` | 4 | keep | `GenAus` | 8 | drop |
-| | | | `Gen Am` | 2 | drop |
-| | | | `SSB` | 1 | drop |
+| Policy | Tags |
+|---|---|
+| keep, normalised to `RRP` | `RRP`, `RRPVar`, `RRPvar` |
+| drop | `TrapBath`, `GenAm`, `Gen Am`, `GenAus`, `SSB` |
 
-The last four are malformed — `RRPVar`/`RRPvar` are the same tag under two capitalisations, `Gen Am` is `GenAm` with a space, and `SSB` is an accent label nothing else in the corpus uses. They are enumerated in [#7](https://github.com/adiabatic/quikscript-lexicon/issues/7); normalising them is done here rather than there because the filter cannot run without it. Every tag outside upstream's documented four must declare the words it covers, and the validator holds it to that list, so an upstream fix shows up as a rule that stopped matching rather than as a silent change of contents.
+Four of them are malformed — `RRPVar`/`RRPvar` are the same tag under two capitalisations, `Gen Am` is `GenAm` with a space, and `SSB` is an accent label nothing else in the corpus uses. They are enumerated in [#7](https://github.com/adiabatic/quikscript-lexicon/issues/7); normalising them is done here rather than there because the filter cannot run without it. Every tag outside upstream's documented four must declare the words it covers, and the validator holds it to that list, so an upstream fix shows up as a rule that stopped matching rather than as a silent change of contents.
 
 Two of those rulings deserve their reasoning on the record:
 
@@ -146,6 +143,8 @@ make check         # lint, types, tests, validator, and artifact freshness
 `make check`'s last step rebuilds every artifact in memory and fails if what is on disk differs, so a stale `lexicon/` cannot be committed. Combined with a clean `git diff` after `make artifacts`, that is the byte-identical-regeneration proof: same checkout, same bytes, every time.
 
 To bump the corpus, replace `data/readlex/readlex.json`, update the commit and digest in [`data/readlex/README.md`](../data/readlex/README.md) and `src/qslex/readlex.py`, then run `make check` and reconcile every invariant that moves. There will be several, and that is the design: a corpus bump is meant to be a reviewable change, not a silent one.
+
+Almost every invariant that moves fails loudly and says what it wanted: the counts pinned in `src/qslex/validate.py`, the row counts in `src/qslex/data/var-tags.tsv`, and the artifacts themselves. Prose cannot, so the numbers still written out in it are the ones to re-read by hand — in this file, its opening line, the [artifact table](#artifacts), the [artifact shapes](#artifact-shapes), [Row policy](#row-policy-the-rrp-family-only) and [Where the validator runs](#where-the-validator-runs-and-why-it-splits); elsewhere, the opening sentence of the [README](../README.md), the sparse-column counts in [`lexicon/README.md`](../lexicon/README.md), the provenance table in [`data/readlex/README.md`](../data/readlex/README.md), and whatever each other spec counts over the corpus.
 
 ## Declined, deliberately
 

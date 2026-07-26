@@ -16,35 +16,33 @@ Section III of the Manual is the complete inventory: eighteen terminal rules and
 Run the proofs:
 
 ```
-uv run pytest
-uv run python -m qslex.validate
-uv run ruff check . && uv run ruff format --check . && uv run mypy
+make check
 ```
 
 ## What the rules actually do
 
-The headline finding is that **sixteen of the twenty-six rules never rewrite anything**. ReadLex's IPA already yields the Manual's spelling for every word those rules name, because Read was standardising a *variable unstressed vowel* and ReadLex writes that vowel as a schwa which the segment mapping already sends to ·Utter. They ship anyway, as normalisers: a ReadLex row that ever contradicts the Manual gets corrected rather than passed through, and the validator pins each rule's rewrite count so a rule that stops mattering — or starts — is visible.
+The headline finding is that **eleven of the twenty-six rules never rewrite anything**. ReadLex's IPA already yields the Manual's spelling for every word those rules name, because Read was standardising a *variable unstressed vowel* and ReadLex writes that vowel as a schwa which the segment mapping already sends to ·Utter. They ship anyway, as normalisers: a ReadLex row that ever contradicts the Manual gets corrected rather than passed through, and the validator pins each rule's rewrite count so a rule that stops mattering — or starts — is visible.
 
-Rows rewritten across the 108,425 rows the lexicon spells, from `EXPECTED_RULE_CHANGES` in [`src/qslex/validate.py`](../src/qslex/validate.py):
+How many rows each rule rewrites, counted over the rows the lexicon spells, is pinned in `EXPECTED_RULE_CHANGES` in [`src/qslex/validate.py`](../src/qslex/validate.py), which is the only place to read those counts; `make validate` prints the tally rule by rule. What each one does:
 
-| Rule | Rewrites | What it does |
-|---|---:|---|
-| [`terminal-ing`][ing] | 10,976 | affix -ing loses vowel-i: calling ·Key·Awe·Low·Oolong |
-| [`terminal-es-ed`][es-ed] | 7,681 | the epenthetic vowel goes: kisses ·Key·It·See·Zoo |
-| [`terminal-al-el-le-il`][al] | 3,140 | vowel omitted before a final L: tribal ·Tea·Roe·I·Bay·Low |
-| [`terminal-tion`][tion] | 2,751 | vowel omitted before N: action ·At·Key·She·No |
-| [`terminal-ess-est`][ess] | 1,818 | ·Et, not ·Utter: highest ·He·I·Et·See·Tea |
-| [`prefix-con-com`][con] | 1,390 | unstressed con-/com- lose the vowel: content (adj) ·Key·No·Tea·Et·No·Tea |
-| [`terminal-ally-able`][ally] | 978 | -·Utter·Low·It, -·Utter·Bay·Low, -·Utter·Bay·Low·It |
-| [`terminal-land-ment`][land] | 893 | vowel omitted: England ·It·Oolong·Gay·Low·No·Day |
-| [`terminal-age`][age] | 302 | -·Utter·Jay, but -·It·Jay after a -y root |
-| [`terminal-ward`][ward] | 71 | contracted: eastward ·Eat·See·Tea·Way·Day |
-| [`terminal-en-on`][en-on] | 25 | invariably -·Utter·No: chicken ·Cheer·It·Key·Utter·No |
-| [`terminal-ain`][ain] | 22 | unstressed -·Utter·No: captain ·Key·At·Pea·Tea·Utter·No |
-| [`terminal-y`][yy] | 14 | unstressed terminal vowel is ·It: tilde ·Tea·It·Low·Day·It |
-| [`terminal-ia-ea`][ia] | 13 | stressed -·Eat·Utter: European ·Ye·Ooze·Utter·Roe·Utter·Pea·Eat·Utter·No |
-| [`terminal-us-ous`][ous] | 1 | invariably -·Utter·See: hippolytus |
-| [`terminal-ent-ance`][ent], [`terminal-er`][er], [`terminal-ier-ior`][ier], [`terminal-ful`][ful], [`prefix-un`][un], [`prefix-an-al-ar`][an], [`prefix-ob-of`][ob], [`prefix-be-de-re`][be], [`prefix-pre-pro`][pre], [`prefix-per-pur`][per], [`prefix-in-en`][in] | 0 | no-ops on this corpus; see below |
+| Rule | What it does |
+|---|---|
+| [`terminal-ing`][ing] | affix -ing loses vowel-i: calling ·Key·Awe·Low·Oolong |
+| [`terminal-es-ed`][es-ed] | the epenthetic vowel goes: kisses ·Key·It·See·Zoo |
+| [`terminal-al-el-le-il`][al] | vowel omitted before a final L: tribal ·Tea·Roe·I·Bay·Low |
+| [`terminal-tion`][tion] | vowel omitted before N: action ·At·Key·She·No |
+| [`terminal-ess-est`][ess] | ·Et, not ·Utter: highest ·He·I·Et·See·Tea |
+| [`prefix-con-com`][con] | unstressed con-/com- lose the vowel: content (adj) ·Key·No·Tea·Et·No·Tea |
+| [`terminal-ally-able`][ally] | -·Utter·Low·It, -·Utter·Bay·Low, -·Utter·Bay·Low·It |
+| [`terminal-land-ment`][land] | vowel omitted: England ·It·Oolong·Gay·Low·No·Day |
+| [`terminal-age`][age] | -·Utter·Jay, but -·It·Jay after a -y root |
+| [`terminal-ward`][ward] | contracted: eastward ·Eat·See·Tea·Way·Day |
+| [`terminal-en-on`][en-on] | invariably -·Utter·No: chicken ·Cheer·It·Key·Utter·No |
+| [`terminal-ain`][ain] | unstressed -·Utter·No: captain ·Key·At·Pea·Tea·Utter·No |
+| [`terminal-y`][yy] | unstressed terminal vowel is ·It: tilde ·Tea·It·Low·Day·It |
+| [`terminal-ia-ea`][ia] | stressed -·Eat·Utter: European ·Ye·Ooze·Utter·Roe·Utter·Pea·Eat·Utter·No |
+| [`terminal-us-ous`][ous] | invariably -·Utter·See: hippolytus |
+| [`terminal-ent-ance`][ent], [`terminal-er`][er], [`terminal-ier-ior`][ier], [`terminal-ful`][ful], [`prefix-un`][un], [`prefix-an-al-ar`][an], [`prefix-ob-of`][ob], [`prefix-be-de-re`][be], [`prefix-pre-pro`][pre], [`prefix-per-pur`][per], [`prefix-in-en`][in] | no-ops on this corpus; see below |
 
 The zeroes are not idle. `per-/pur-` is automatic because ɜː and ə both map to ·Utter, so the Manual's "stressed or not" needs no rule. `in-/en-` is automatic because ReadLex writes en- words with ɪn (enquiry `ɪnˈkwaɪəri`), which is exactly the Manual's "alike unless stressed". `un-` is automatic including the doubled N of unknown `ˌʌnˈnəʊn`. `-ier/-ior` and most of `-ia/-ea` were already settled by #1's stressed/unstressed ɪə conditioning. `-ful` is automatic because ReadLex itself splits the adjective and adverb (`fəl`, 246 rows) from the noun (`fʊl`), exactly as the Manual does; the four rows that cross that line are handled below.
 
@@ -126,9 +124,9 @@ The cut is the word-sign layer's ([§ Phrase entries](word-signs.md#phrase-entri
 
 **The epenthetic vowel is identified by its environment, not only by upstream's tag.** ReadLex marks most -es/-ed sites with a capital `Ə`, but 85 rows carry a plain `ə` in one of the seven pairs the Manual names — "Between these — SZ, ShZ, ChZ, JZ, ZZ, DD, TD — some kind of vowel has to be uttered". englishes `ˈɪŋɡlɪʃəz`, cashboxes, torches, handedness and their like are the same site written two ways. The rule reads the environment, so those come out right; the tag inconsistency is an upstream defect worth fixing at source ([#7][quirks]).
 
-**The strip that opens the rule is not keyed to the Latin.** Everything else in `terminal-es-ed` waits on an -es or -ed in the spelling, but the tagged vowel goes either way, and seven entries need it to: ltd, assoc, h's, s's, x's, blesséd and long-period all carry a capital `Ə` upstream without the ending that names the rule.
+**The strip that opens the rule is not keyed to the Latin.** Everything else in `terminal-es-ed` waits on an -es or -ed in the Latin, but the tagged vowel goes either way, and seven entries need it to: ltd, assoc, h's, s's, x's, blesséd and long-period all carry a capital `Ə` upstream without the ending that names the rule.
 
-**The -y terminal reaches loanwords.** Its only thirteen rewrites are foreign words whose final -e ReadLex gives a genuine schwa: tilde, krone, lasagne, recife, hygge, firenze, karlsruhe. Read's rule is explicitly about this case — "though the actual sound of terminal -y varies in pronunciation, it certainly must be constant in spelling" — so they take ·It.
+**The -y terminal reaches loanwords.** Its rewrites are all foreign words whose final -e ReadLex gives a genuine schwa: tilde, krone, lasagne, recife, hygge, firenze, karlsruhe, campagne, pologne, eiche, clotilde, bode, and the vice of vice versa. Read's rule is explicitly about this case — "though the actual sound of terminal -y varies in pronunciation, it certainly must be constant in spelling" — so they take ·It.
 
 **-ful trusts the POS, and two ReadLex rows have to be excused.** The Manual's split is adjective -·Fee·Utter·Low against noun -·Fee·**Foot**·Low, so the rule keys on the tag. Four ReadLex rows cross the line: brimful `ˌbrɪmˈfʊl` needs no exception because its -ful is stressed, fully `ˈfʊli` needs none because the ful is the root and not the affix, and cupful and spadeful are noun measures ReadLex tags AJ0 — an upstream tagging defect, so both carry a `skip` ruling rather than losing the ·Foot the Manual gives them.
 

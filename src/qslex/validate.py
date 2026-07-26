@@ -79,7 +79,7 @@ EXPECTED_TOKEN_COUNTS = {
 }
 
 # Rows each orthographic rule actually rewrites, counted over the rows the lexicon
-# spells rather than over the whole corpus. Sixteen of the Manual's rules are satisfied
+# spells rather than over the whole corpus. Eleven of the Manual's rules are satisfied
 # by ReadLex's IPA already and ship as normalisers, so a zero here is a statement, not a
 # bug: it says the corpus never contradicts that rule.
 EXPECTED_RULE_CHANGES: dict[str, int] = {

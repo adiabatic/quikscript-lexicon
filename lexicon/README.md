@@ -2,13 +2,7 @@
 
 Generated. Do not edit anything here by hand — `make artifacts` rewrites all of it, and `make check` fails if what is committed differs from a fresh build. The spec is [`docs/pipeline.md`](../docs/pipeline.md).
 
-| File | What it is |
-|---|---|
-| `quikscript-lexicon.json` | The master: 56,649 headwords, 108,425 entries |
-| `quikscript-lexicon.tsv` | The flat projection, 108,375 rows, with a header |
-| `qs_converter.json` | Latin → spellings by part of speech, for the transliterator |
-| `qs_converter_phrases.txt` | Entries a tokenizer has to match whole |
-| `letters.tsv` | Every Quikscript letter and its codepoint |
+What the five files are, and how many rows each carries, is the spec's [Artifacts](../docs/pipeline.md#artifacts) table; the shape of each is under [Artifact shapes](../docs/pipeline.md#artifact-shapes).
 
 ## Reading it
 

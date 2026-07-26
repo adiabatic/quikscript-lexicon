@@ -16,9 +16,7 @@ Authority links go to the [AMS Manual transcription][manual]. Everything below w
 Run the proofs:
 
 ```
-uv run pytest
-uv run python -m qslex.validate
-uv run ruff check . && uv run ruff format --check . && uv run mypy
+make check
 ```
 
 The validator tokenizes every IPA string in the corpus and fails unless there is **zero unmapped residue**, every mapping row is exercised at least once, every quirk rule and stress override fires, no quirk rule touches a word it does not declare, no ɪə decision contradicts the Shavian column without a recorded authority, no structural marker leaks into the output, and the pinned corpus invariants hold — token counts for `R`, `Ə`, `I`, `Æ`, `Ɑː`, `ʍ`, the word signs and weak `u`, plus the nonexistence of schwa-less `ɪR`/`aɪR`/`aʊR`. The pinned figures themselves live in `EXPECTED_TOKEN_COUNTS` and the pattern tables in [`src/qslex/validate.py`](../src/qslex/validate.py), which is the only place to read them. The validator verifies the corpus digest first, so they can only move when someone deliberately bumps the corpus.
