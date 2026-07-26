@@ -10,12 +10,16 @@ from qslex import (
     render,
     spell,
 )
-from qslex.letters import parse, render_qs
+from qslex.letters import Letter, parse, render_qs
 from qslex.manual import SIGN_ANCHORS
 from qslex.rules import (
+    ALLY,
     LIGATURES_HEADER,
     RULE_IDS,
+    WARD,
     Tables,
+    apply_ally,
+    apply_ward,
     ligatable,
     load_rule_words,
     load_x_ligatures,
@@ -117,6 +121,31 @@ def test_ally_is_written_even_where_the_sound_is_absent() -> None:
     assert senior("capable", "AJ0") == "·Key·Eight·Pea·Utter·Bay·Low"
 
 
+@pytest.mark.parametrize(
+    "word,written,spelt",
+    [
+        (
+            "capably",
+            "·Key·Eight·Pea·Utter·Bay·Low·It",
+            "·Key·Eight·Pea·Utter·Bay·Utter·Low·It",
+        ),
+        (
+            "possibly",
+            "·Pea·Ox·See·Utter·Bay·Low·It",
+            "·Pea·Ox·See·Utter·Bay·Utter·Low·It",
+        ),
+    ],
+)
+def test_ably_and_ibly_omit_a_vowel_readlex_never_writes(
+    word: str, written: str, spelt: str
+) -> None:
+    context = context_for(word, "AV0")
+    match = ALLY.search(context.latin)
+    assert match is not None
+    assert render(naive(context)) == written
+    assert render(apply_ally(context, parse(spelt), match)) == written
+
+
 def test_tion_and_en_on_split_on_the_latin_spelling() -> None:
     assert senior("fashion", "NN1") == "·Fee·At·She·No"
     assert senior("ashen", "AJ0") == "·At·She·Utter·No"
@@ -151,6 +180,16 @@ def test_ward_is_contracted_but_not_when_stressed() -> None:
     assert senior("forward", "AJ0") == "·Fee·Awe·Roe·Way·Day"
     assert senior("onwards", "AV0") == "·Ox·No·Way·Day·Zoo"
     assert senior("toward") == "·Tea·Utter·Way·Awe·Roe·Day"
+
+
+def test_ward_declines_a_stressed_utter_readlex_never_writes() -> None:
+    context = context_for("edward", "NP0")
+    match = WARD.search(context.latin)
+    assert match is not None
+    spelt = parse("·Et·Day·Way·Utter·Roe·Day")
+    assert render(apply_ward(context, spelt, match)) == "·Et·Day·Way·Day"
+    stressed = spelt[:3] + (Letter("Utter", True, ""),) + spelt[4:]
+    assert render(apply_ward(context, stressed, match)) == "·Et·Day·Way·Utter·Roe·Day"
 
 
 def test_ful_follows_readlex_because_it_already_splits_adjective_from_noun() -> None:

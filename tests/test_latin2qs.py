@@ -224,6 +224,10 @@ def test_an_initialism_takes_one_dot(t: Transliterator) -> None:
     assert words(t, "the BBC reported it")[1] == "·" + qs("·Bay·Eat·Bay·Eat·See·Eat")
 
 
+def test_an_initialism_no_entity_tags_takes_its_dot(t: Transliterator) -> None:
+    assert words(t, "I watched TV last night.")[2] == "·" + qs("·Tea·Eat·Vie·Eat")
+
+
 def test_shouting_is_not_an_initialism(t: Transliterator) -> None:
     assert words(t, "PLEASE STOP")[0] == qs("·Pea·Low·Eat·Zoo")
 
@@ -317,6 +321,14 @@ def test_ful_splits_on_the_part_of_speech(t: Transliterator) -> None:
     adjective = t.rows_of["careful"][-1]["qs"]
     assert noun.endswith(qs("·Fee·Foot·Low"))
     assert adjective.endswith(qs("·Fee·Utter·Low"))
+
+
+def test_a_constructed_ful_splits_on_the_part_of_speech(t: Transliterator) -> None:
+    assert "capful" not in t.rows_of and "rageful" not in t.rows_of
+    noun = words(t, "He drank a capful of it.")[3]
+    adjective = words(t, "It was a rageful moment.")[3]
+    assert noun == qs("·Key·At·Pea·Fee·Foot·Low") + "⚠️"
+    assert adjective == qs("·Roe·Eight·Jay·Fee·Utter·Low") + "⚠️"
 
 
 # --- words that change before "to" --------------------------------------------
