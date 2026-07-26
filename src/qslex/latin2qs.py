@@ -94,7 +94,6 @@ CONTRACTION_START = {
 }
 CONTRACTION_END = {
     "n't": _qs("No", "Tea"),
-    "all": _qs("Awe", "Low"),
     "'ve": APOSTROPHE + _qs("Vie"),
     "'ll": APOSTROPHE + _qs("Low"),
     "'m": APOSTROPHE + _qs("May"),

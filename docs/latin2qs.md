@@ -95,6 +95,7 @@ Everything else is a straight port. These are the places the port does not repro
 5. **`WDT` falls back to the `IN` row.** Relative that is C5's `CJT`, the conjunction, spelt ·They·Tea — but spaCy tags it `WDT`, a tag no converter row carries.
 6. **Long lines are converted, not dropped.** Upstream silently skips any line of 10,000 characters or more.
 7. **No guillemets, no epenthetic vowel, no ⸰** — replaced above by the Manual's quotes, the Manual's -es/-ed rule, and the namer-dot treatment of initialisms.
+8. **`all` is spelt from the dictionary, not the contraction table.** Upstream lists *all* among the contraction halves, which sit above the dictionary lookup, so every *all* in every text is spelt from the table. Two things follow: "do all" comes out solid and on the *don't* stem's ·Day·Owe, because the opening half reads *do* as a contraction's front and withholds the space a clitic would not want; and ·All Souls Day loses its namer dot, which only the dictionary path applies. The row is dropped here and *all* goes through the dictionary like any other word; `y'all`, whose halves only that row joined, falls to `y'` plus the dictionary's ·Awe·Low.
 
 ## Verification
 

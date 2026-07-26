@@ -127,6 +127,12 @@ def test_verbal_s_attaches_solid(t: Transliterator) -> None:
     assert words(t, "It's here.")[0] == qs("·It·Tea·See")
 
 
+def test_all_is_a_word_not_a_contraction_half(t: Transliterator) -> None:
+    out = words(t, "I do all the work.")
+    assert out[1] == qs("·Day·Ooze")
+    assert out[2] == qs("·Awe·Low")
+
+
 # --- the contraction layer ----------------------------------------------------
 
 
@@ -208,6 +214,10 @@ def test_a_standalone_letter_takes_a_dot(t: Transliterator) -> None:
     out = words(t, "I need a b and a c now.")
     assert out[2] == qs("·Utter")
     assert out[3] == "·" + qs("·Bay·Eat")
+
+
+def test_a_name_opening_with_all_takes_its_dot(t: Transliterator) -> None:
+    assert words(t, "We met on All Souls Day.")[3] == "·" + qs("·Awe·Low")
 
 
 def test_an_initialism_takes_one_dot(t: Transliterator) -> None:
