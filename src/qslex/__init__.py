@@ -10,11 +10,14 @@ from qslex.letters import (
     render_qs,
     unknown_names,
 )
+from qslex.lint import CHECKS, Check, Site, lint, load_pragmas
 from qslex.manual import Example, load_examples
 from qslex.mapping import MapEntry, Mapping, load_mapping
 from qslex.overrides import Override, Overrides, load_overrides
+from qslex.passages import PassageWord, Specimen, load_passages
 from qslex.quirks import QuirkRule, load_quirks, normalize
 from qslex.readlex import Row, load_rows
+from qslex.roundtrip import align, phonemes_of, source_phonemes, spelt_phonemes
 from qslex.rules import (
     RULES,
     Context,
@@ -45,10 +48,10 @@ from qslex.words import (
 )
 
 __all__ = [
+    "CHECKS",
     "CODEPOINT_OF",
     "CORE_EIGHT",
-    "NAME_OF",
-    "RULES",
+    "Check",
     "Context",
     "Contraction",
     "Divergence",
@@ -59,30 +62,39 @@ __all__ = [
     "LigatureRule",
     "MapEntry",
     "Mapping",
+    "NAME_OF",
     "Override",
     "Overrides",
+    "PassageWord",
     "QuirkRule",
+    "RULES",
     "Row",
     "Rule",
     "RuleWord",
     "Sign",
     "Signs",
+    "Site",
+    "Specimen",
     "Spelling",
     "Tables",
     "Token",
     "TokenizeError",
     "VarTag",
+    "align",
     "apply_signs",
     "components",
     "elements",
     "is_stressed",
     "kept",
     "letters",
+    "lint",
     "load_contractions",
     "load_divergences",
     "load_examples",
     "load_mapping",
     "load_overrides",
+    "load_passages",
+    "load_pragmas",
     "load_quirks",
     "load_rows",
     "load_rule_words",
@@ -94,12 +106,15 @@ __all__ = [
     "names",
     "normalize",
     "parse",
+    "phonemes_of",
     "qs",
     "render",
     "render_qs",
     "select",
     "sign_for",
+    "source_phonemes",
     "spell",
+    "spelt_phonemes",
     "split",
     "tokenize",
     "unknown_names",

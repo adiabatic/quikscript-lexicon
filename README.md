@@ -46,7 +46,10 @@ In the order a word passes through the pipeline:
 - `src/qslex/words.py` — the lexical layer that runs last: the Manual's word signs, standard word-outlines and abbreviations, and the junior column (spec: [`docs/word-signs.md`](docs/word-signs.md))
 - `src/qslex/data/word-signs.tsv` — the core eight, the three abbreviations, and every standard word-outline, with the junior form where it diverges
 - `src/qslex/data/contractions.tsv` — the Manual's ~50 Senior contractions, shipped for the transliterator and applied to no column
-- `src/qslex/build.py` — the build that writes `lexicon/`, with `src/qslex/converter.py` and its C5 → Penn table and phrase-list predicate behind `qs_converter.json`
+- `src/qslex/build.py` — the build that writes `lexicon/`, and prints what it touched: rows converted and skipped, and what each rule and sign rewrote
+- `src/qslex/data/manual-passages.tsv` — the Manual's eleven specimen passages, word by word, as the fixture the finished spellings are held to (spec: [`docs/validation.md`](docs/validation.md))
+- `src/qslex/roundtrip.py` — the reverse of the segment mapping, which reads every shipped spelling back to a phoneme string and lays it beside the IPA it came from
+- `src/qslex/lint.py` — the Manual's own lint, re-derived rule by rule from hunspell-dict-qs's hand-written checks, with `src/qslex/data/lint-pragmas.tsv` declaring every word allowed to break one and why
 - `src/qslex/` — the loaders, tokenizer, and exhaustive validator that run all of the above
 
 The mapping tables live inside the package so they are importable from an installed wheel; the corpus lives outside it, because a consumer transcribing IPA does not need 27 MB of ReadLex.
@@ -74,7 +77,9 @@ Over **every** row — including the variants the lexicon does not spell, becaus
 
 Over the **108,425 rows the lexicon spells**, it applies Read's orthographic rules and fails on any spelling the Manual writes out that the rules no longer reproduce, any rule whose rewrite count has drifted, any ruling that has gone stale, and any word left undecided. It then substitutes the word signs and fails on any sign row the corpus never reaches, any word whose rewrite count is unpinned or has drifted, any core-eight row spelt out in full, and any junior spelling that is not simply the spelling with the override left unapplied.
 
-Why the split, and what it costs, is in [`docs/pipeline.md`](docs/pipeline.md#where-the-validator-runs-and-why-it-splits).
+It then holds the finished spellings to three further checks, specified in [`docs/validation.md`](docs/validation.md): the Manual's specimen passages word by word, all 674 of them; a round trip that reads every spelling back to a phoneme string and fails unless every difference from its own IPA is one the mapping and the conventions license; and the Manual's own lint, re-derived rule by rule and run over every spelt row.
+
+Why the corpus split, and what it costs, is in [`docs/pipeline.md`](docs/pipeline.md#where-the-validator-runs-and-why-it-splits).
 
 ## License
 

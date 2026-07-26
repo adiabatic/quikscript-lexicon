@@ -8,11 +8,20 @@ import sys
 from pathlib import Path
 
 from qslex.divergences import load_divergences
+from qslex.lint import CHECKS, lint, load_pragmas
 from qslex.manual import SIGN_ANCHORS, load_examples
 from qslex.mapping import Mapping, load_mapping
 from qslex.overrides import Override, load_overrides
+from qslex.passages import SPECIMENS, load_passages
 from qslex.quirks import load_quirks, normalize
 from qslex.readlex import CORPUS_HEADWORDS, CORPUS_ROWS, CorpusError, Row, load_rows
+from qslex.roundtrip import (
+    EDITS,
+    align,
+    phonemes_of,
+    source_phonemes,
+    spelt_phonemes,
+)
 from qslex.rules import (
     RULES,
     Context,
@@ -36,7 +45,7 @@ from qslex.tokenizer import (
     tokenize,
 )
 from qslex.variants import kept, load_var_tags
-from qslex.words import CORE_EIGHT, load_contractions
+from qslex.words import CORE_EIGHT, Contraction, load_contractions
 
 EAR = "\U0001047d"
 IAN = "\U0001047e"
@@ -134,6 +143,39 @@ EXPECTED_JUNIOR_DIVERGENCES = 5
 # them without being able to reproduce them.
 EXPECTED_MANUAL_ABSENT = 2
 
+# What the round trip finds when it reads every shipped spelling back to a phoneme
+# string and lays it beside the IPA it came from. Every difference is one of the
+# `EDITS` the mapping and the conventions license, and each is pinned here, so a rule
+# that starts eliding a vowel it has no business eliding shows up as a count that moved.
+EXPECTED_ROUNDTRIP_EDITS: dict[tuple[str, str], int] = {
+    ("ə", ""): 19509,
+    ("ɪ", ""): 11245,
+    ("ə", "e"): 1828,
+    ("e", "eɪ"): 1354,
+    ("ɪ", "iː"): 1312,
+    ("ʊ", "uː"): 763,
+    ("ɪ", "e"): 700,
+    ("ɪ", "ə"): 351,
+    ("", "ə"): 256,
+    ("r", ""): 71,
+    ("ə", "ɪ"): 14,
+    ("ɑː", "æ"): 10,
+    ("ə", "æ"): 4,
+    ("iː", ""): 3,
+    ("uː", ""): 3,
+    ("æ", ""): 3,
+    ("t", ""): 2,
+    ("eɪ", "ə"): 1,
+    ("ɒ", "ə"): 1,
+}
+
+# Spellings that read straight back to their own IPA, with nothing elided or levelled.
+EXPECTED_ROUNDTRIP_IDENTICAL = 76756
+
+# The Manual's three abbreviations are written without a break between letters and
+# stand for the written word, not for its sounds, so there is nothing to read back.
+EXPECTED_ROUNDTRIP_SKIPPED = 5
+
 EXPECTED_RAW_COUNTS = {
     "raw ʊə incl. inside aʊə and across əʊ+ə": (r"ʊə", 1231),
 }
@@ -174,6 +216,91 @@ def stressed_rhotic_ears(ipa: str, tokens: list[Token]) -> int:
     return count
 
 
+def by_latin(
+    spellings: dict[str, dict[tuple[str, str], set[str]]],
+) -> dict[str, dict[str, set[str]]]:
+    """Every spelling the lexicon carries for a word, by word and then by column."""
+    out: dict[str, dict[str, set[str]]] = {}
+    for column, table in spellings.items():
+        for (latin, _), values in table.items():
+            out.setdefault(latin, {}).setdefault(column, set()).update(values)
+    return out
+
+
+def contracted_by_word(
+    contractions: tuple[Contraction, ...],
+) -> dict[str, set[str]]:
+    out: dict[str, set[str]] = collections.defaultdict(set)
+    for entry in contractions:
+        out[entry.word].add(entry.contraction)
+    return out
+
+
+def passages(
+    spellings: dict[str, dict[tuple[str, str], set[str]]],
+    contractions: tuple[Contraction, ...],
+) -> list[str]:
+    """Hold every word of the Manual's specimen passages to what the lexicon spells.
+
+    The passages are the one place the Manual writes running text rather than a rule's
+    example, so they are the only fixture that exercises the word signs, the terminals
+    and the segment mapping together, in the proportions English actually uses them.
+    """
+    failures: list[str] = []
+    by_word = by_latin(spellings)
+    contracted = contracted_by_word(contractions)
+
+    tally: dict[str, collections.Counter[str]] = collections.defaultdict(
+        collections.Counter
+    )
+    for word in load_passages():
+        tally[word.passage][word.verdict] += 1
+        columns = by_word.get(word.latin, {})
+        produced = {v for column in word.columns for v in columns.get(column, ())}
+        where = f"{word.passage} word {word.index} ({word.latin!r})"
+        if word.verdict == "contraction":
+            if word.spelling not in contracted.get(word.latin, set()):
+                failures.append(
+                    f"{where} is the §III contraction {word.spelling}, "
+                    f"which contractions.tsv does not carry"
+                )
+        elif word.verdict == "absent":
+            if columns:
+                failures.append(
+                    f"{where} is recorded as absent from ReadLex, which now spells it "
+                    f"{sorted(produced)}"
+                )
+        elif word.verdict == "differs":
+            if not columns:
+                failures.append(f"{where} differs from a word ReadLex no longer has")
+            elif word.spelling in produced:
+                failures.append(
+                    f"{where} is recorded as differing but is now reproduced; the row "
+                    f"should say which column spells it"
+                )
+            else:
+                ours = " / ".join(sorted(columns.get(word.columns[0], set())))
+                if ours != word.ours:
+                    failures.append(
+                        f"{where} pins {word.ours} against the Manual's "
+                        f"{word.spelling}, but the lexicon now spells {ours}"
+                    )
+        elif word.spelling not in columns.get(word.verdict, set()):
+            failures.append(
+                f"{where}: the Manual writes {word.spelling}, the {word.verdict} "
+                f"column has {sorted(columns.get(word.verdict, set()))}"
+            )
+
+    print("\nManual specimen passages, word by word:")
+    for name, specimen in SPECIMENS.items():
+        counts = tally[name]
+        summary = ", ".join(f"{v} {k}" for k, v in sorted(counts.items()))
+        print(
+            f"  {name:19} {specimen.level:6} {sum(counts.values()):4} words: {summary}"
+        )
+    return failures
+
+
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(
         description="Tokenize every ReadLex IPA string against the mapping, and hold "
@@ -190,6 +317,7 @@ def main(argv: list[str] | None = None) -> int:
     divergences = load_divergences()
     tables = load_tables()
     contractions = load_contractions()
+    pragmas = load_pragmas()
     examples = load_examples()
     try:
         rows: tuple[Row, ...] = load_rows(
@@ -222,11 +350,19 @@ def main(argv: list[str] | None = None) -> int:
     sign_hits: set[tuple[str, str]] = set()
     junior_rows = 0
     junior_drift: list[str] = []
+    lint_hits: collections.Counter[str] = collections.Counter()
+    lint_examples: dict[str, list[str]] = collections.defaultdict(list)
+    lint_excused: set[tuple[str, str]] = set()
+    roundtrip: collections.Counter[tuple[str, str]] = collections.Counter()
+    roundtrip_identical = 0
+    roundtrip_skipped = 0
+    unreadable: list[str] = []
     core_misses: list[str] = []
     undecided: dict[str, set[str]] = collections.defaultdict(set)
     stray_ligatures: list[str] = []
     spellings: dict[str, dict[tuple[str, str], set[str]]] = {
         "senior": collections.defaultdict(set),
+        "junior": collections.defaultdict(set),
         "ligature": collections.defaultdict(set),
     }
 
@@ -242,6 +378,7 @@ def main(argv: list[str] | None = None) -> int:
     }
     core_signs = {word: tables.signs[(word, "")].senior for word in CORE_EIGHT}
     unsigned = dataclasses.replace(tables, signs={})
+    read_back = phonemes_of(mapping)
 
     var_rows: collections.Counter[str] = collections.Counter()
     var_words: dict[str, set[str]] = collections.defaultdict(set)
@@ -285,6 +422,7 @@ def main(argv: list[str] | None = None) -> int:
             raw = naive(context)
             result = spell(context, tables)
             spellings["senior"][(word, row.pos)].add(result.senior)
+            spellings["junior"][(word, row.pos)].add(result.junior or result.senior)
             spellings["ligature"][(word, row.pos)].add(result.ligature or result.senior)
             for rule_id in result.applied:
                 rule_changes[rule_id] += 1
@@ -322,6 +460,42 @@ def main(argv: list[str] | None = None) -> int:
                     f"{word!r} [{row.pos}] is a core word sign, wanted "
                     f"{core_signs[word]}, got {result.senior}"
                 )
+            for check_id, part, complaint in lint(
+                word, row.pos, result.senior, result.ligature, ipa, tables, {}
+            ):
+                if (check_id, word) in pragmas:
+                    lint_excused.add((check_id, word))
+                    continue
+                lint_hits[check_id] += 1
+                if len(lint_examples[check_id]) < 5:
+                    lint_examples[check_id].append(
+                        f"{part!r} in {word!r} [{row.pos}] {result.senior}: {complaint}"
+                    )
+
+            abbreviated = any(
+                tables.signs[key].tier == "abbreviation"
+                for key in result.signs
+                if key[0] in set(result.signed)
+            )
+            if abbreviated:
+                roundtrip_skipped += 1
+            else:
+                said = source_phonemes(tuple(tokens))
+                for spelling in dict.fromkeys(
+                    s for s in (result.senior, result.junior, result.ligature) if s
+                ):
+                    written = spelt_phonemes(spelling, read_back)
+                    if said == written:
+                        roundtrip_identical += 1
+                        continue
+                    edits = align(said, written)
+                    if edits is None:
+                        unreadable.append(
+                            f"{word!r} [{row.pos}] {ipa} spelt {spelling} reads back "
+                            f"as {' '.join(written)}"
+                        )
+                        continue
+                    roundtrip.update(edits)
             if result.junior:
                 junior_rows += 1
                 bare = spell(context, unsigned).senior
@@ -676,6 +850,59 @@ def main(argv: list[str] | None = None) -> int:
             f"{absent} Manual example words are missing from ReadLex, "
             f"expected {EXPECTED_MANUAL_ABSENT}"
         )
+
+    print("\nthe Manual's own lint, re-derived and run over every spelt row:")
+    for check in CHECKS:
+        broken = lint_hits.get(check.id, 0)
+        excused = sum(1 for key in pragmas if key[0] == check.id)
+        print(f"  {check.id:34} {broken:5} broken, {excused:3} pragma'd")
+        for line in lint_examples[check.id]:
+            print(f"      {line}")
+        if broken:
+            failures.append(
+                f"lint {check.id} is broken by {broken} rows, and the Manual requires "
+                f"that {check.requires}"
+            )
+    stale = sorted(set(pragmas) - lint_excused)
+    print(f"  pragmas never needed: {stale or 'none'}")
+    if stale:
+        failures.append(f"lint pragmas that excuse nothing: {stale}")
+
+    print("\nround trip, every spelling read back to a phoneme string:")
+    print(f"  identical to the IPA it came from: {roundtrip_identical}")
+    print(f"  abbreviations, which spell no sounds: {roundtrip_skipped}")
+    print(f"  not readable back at all: {len(unreadable)}")
+    for line in unreadable[:10]:
+        print(f"    {line}")
+    if unreadable:
+        failures.append(
+            f"{len(unreadable)} spellings cannot be read back to their own IPA by any "
+            f"licensed difference"
+        )
+    if roundtrip_identical != EXPECTED_ROUNDTRIP_IDENTICAL:
+        failures.append(
+            f"{roundtrip_identical} spellings read back unchanged, "
+            f"expected {EXPECTED_ROUNDTRIP_IDENTICAL}"
+        )
+    if roundtrip_skipped != EXPECTED_ROUNDTRIP_SKIPPED:
+        failures.append(
+            f"{roundtrip_skipped} abbreviation rows skipped, "
+            f"expected {EXPECTED_ROUNDTRIP_SKIPPED}"
+        )
+    for edit in sorted(set(EXPECTED_ROUNDTRIP_EDITS) | set(roundtrip)):
+        found = roundtrip.get(edit, 0)
+        pinned = EXPECTED_ROUNDTRIP_EDITS.get(edit)
+        drift = "" if found == pinned else f" MISMATCH ({pinned})"
+        shape = f"{edit[0] or '-':4} -> {edit[1] or '-':4}"
+        print(f"  {shape} {found:7}{drift}  {EDITS[edit]}")
+        if pinned is None:
+            failures.append(f"round-trip difference {edit} has no pinned count")
+        elif found != pinned:
+            failures.append(
+                f"round-trip difference {edit} occurs {found} times, expected {pinned}"
+            )
+
+    failures.extend(passages(spellings, contractions))
 
     if failures:
         print(f"\nFAILED: {len(failures)} problem(s)")

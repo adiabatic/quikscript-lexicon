@@ -1,10 +1,11 @@
 from __future__ import annotations
 
 import argparse
+import collections
 import json
 import sys
 from collections.abc import Iterable
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from pathlib import Path
 
 from qslex.converter import converter, load_penn, load_phrase_exceptions, phrases
@@ -14,9 +15,9 @@ from qslex.mapping import load_mapping
 from qslex.overrides import load_overrides
 from qslex.quirks import load_quirks, normalize
 from qslex.readlex import Row, load_rows, repo_root
-from qslex.rules import Context, load_tables, spell
+from qslex.rules import RULES, Context, load_tables, spell
 from qslex.tokenizer import tokenize
-from qslex.variants import load_var_tags, select
+from qslex.variants import kept, load_var_tags, select
 
 ARTIFACTS = "lexicon"
 LEXICON_JSON = "quikscript-lexicon.json"
@@ -68,8 +69,54 @@ class Entry:
         return out
 
 
-def spellings(rows: Iterable[Row]) -> tuple[Entry, ...]:
-    """Every kept row spelt, in corpus order.
+@dataclass
+class Coverage:
+    """What the build touched, for the log.
+
+    Written as it goes rather than recomputed afterwards, so that it counts what was
+    actually spelt rather than what a second pass would spell.
+    """
+
+    read: int = 0
+    converted: int = 0
+    headwords: set[str] = field(default_factory=set)
+    skipped: collections.Counter[str] = field(default_factory=collections.Counter)
+    rules: collections.Counter[str] = field(default_factory=collections.Counter)
+    signs: collections.Counter[str] = field(default_factory=collections.Counter)
+    junior: int = 0
+    ligature: int = 0
+
+    @property
+    def idle(self) -> tuple[str, ...]:
+        return tuple(rule.id for rule in RULES if not self.rules[rule.id])
+
+    def report(self) -> str:
+        lines = [
+            f"read {self.read} corpus rows, converted {self.converted} under "
+            f"{len(self.headwords)} headwords",
+            f"skipped {sum(self.skipped.values())}: "
+            + ", ".join(f"{tag} {n}" for tag, n in sorted(self.skipped.items())),
+            f"sparse columns: {self.junior} junior, {self.ligature} ligature",
+            "orthographic rules, rows rewritten:",
+        ]
+        for rule in RULES:
+            lines.append(f"  {rule.id:22} {self.rules[rule.id]:6}")
+        lines.append(
+            "word signs and standard outlines, rows rewritten: "
+            + ", ".join(f"{word} {n}" for word, n in sorted(self.signs.items()))
+        )
+        if self.idle:
+            lines.append(
+                f"NOTE: {len(self.idle)} rules rewrote nothing ("
+                + ", ".join(self.idle)
+                + "): a rule that never fires is either a normaliser ReadLex already "
+                "satisfies or a bug, and qslex.validate adjudicates which"
+            )
+        return "\n".join(lines)
+
+
+def convert(rows: Iterable[Row]) -> tuple[tuple[Entry, ...], Coverage]:
+    """Every kept row spelt, in corpus order, with a tally of what that took.
 
     Nothing here decides how a word is spelt: the mapping, the rules and the word signs
     have all already run by the time `spell` returns, and this only renders what they
@@ -83,12 +130,19 @@ def spellings(rows: Iterable[Row]) -> tuple[Entry, ...]:
     quirks = load_quirks()
     overrides = load_overrides(mapping)
     tables = load_tables()
+    coverage = Coverage()
     out: list[Entry] = []
     for row in rows:
         ipa, _ = normalize(row.ipa, quirks)
         tokens = tokenize(ipa, mapping, overrides)
         context = Context(row.word.lower(), row.pos, ipa, tuple(tokens))
         result = spell(context, tables)
+        coverage.converted += 1
+        coverage.headwords.add(row.headword)
+        coverage.rules.update(result.applied)
+        coverage.signs.update(set(result.signed))
+        coverage.junior += bool(result.junior)
+        coverage.ligature += bool(result.ligature)
         out.append(
             Entry(
                 headword=row.headword,
@@ -102,7 +156,11 @@ def spellings(rows: Iterable[Row]) -> tuple[Entry, ...]:
                 frequency=row.frequency,
             )
         )
-    return tuple(out)
+    return tuple(out), coverage
+
+
+def spellings(rows: Iterable[Row]) -> tuple[Entry, ...]:
+    return convert(rows)[0]
 
 
 def lexicon_json(entries: Iterable[Entry]) -> str:
@@ -175,10 +233,17 @@ def artifacts(entries: tuple[Entry, ...]) -> dict[str, str]:
     }
 
 
-def build(path: Path | None = None, verify: bool = True) -> dict[str, str]:
+def build(
+    path: Path | None = None, verify: bool = True
+) -> tuple[dict[str, str], Coverage]:
     tags = load_var_tags()
-    rows = select(tags, load_rows(path, verify=verify))
-    return artifacts(spellings(rows))
+    rows = load_rows(path, verify=verify)
+    entries, coverage = convert(select(tags, rows))
+    coverage.read = len(rows)
+    for row in rows:
+        if not kept(tags, row.var):
+            coverage.skipped[row.var] += 1
+    return artifacts(entries), coverage
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -195,12 +260,14 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--no-verify-digest", action="store_true")
     args = parser.parse_args(argv)
 
-    built = build(args.readlex, verify=not args.no_verify_digest)
+    built, coverage = build(args.readlex, verify=not args.no_verify_digest)
     if not args.check:
         args.out.mkdir(parents=True, exist_ok=True)
         for name, text in built.items():
             (args.out / name).write_text(text, encoding="utf-8", newline="\n")
             print(f"wrote {args.out / name}")
+        print()
+        print(coverage.report())
         return 0
 
     stale: list[str] = []
