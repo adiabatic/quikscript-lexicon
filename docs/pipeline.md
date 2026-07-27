@@ -148,6 +148,6 @@ Almost every invariant that moves fails loudly and says what it wanted: the coun
 
 ## Declined, deliberately
 
-**`readlex.dict` and `addendum.dict`.** Upstream ships these for [Dave Coffin's Dechifro scripts](https://www.dechifro.org/shavian/), which render Shavian. Nothing in the Quikscript ecosystem consumes the format, and its `^prefix`/`$suffix` affix machinery duplicates what [hunspell-dict-qs](https://github.com/adiabatic/hunspell-dict-qs) already does for Quikscript. Recorded as a decision rather than left as an omission; if a QS toolchain ever wants it, it projects from the JSON like everything else.
+**`readlex.dict` and `addendum.dict`.** Upstream ships these for [Dave Coffin's Dechifro scripts](https://www.dechifro.org/shavian/), which render Shavian. Nothing in the Quikscript ecosystem consumes the format, and its `^prefix`/`$suffix` affix machinery encodes Shavian's affixes rather than Read's. Recorded as a decision rather than left as an omission; if a QS toolchain ever wants it, it projects from the JSON like everything else.
 
 **`readlex_search.json`.** 29 MB serving [readlex.pythonanywhere.com](https://readlex.pythonanywhere.com/). Worth building if and when a search site for Quikscript exists.

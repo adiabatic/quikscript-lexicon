@@ -376,7 +376,7 @@ terminal-y	lychees	apply	loan	as lychee
 terminal-y	maharanee	apply	loan	a loanword whose terminal is no compound element and carries no stress, so ·It
 terminal-y	maharanees	apply	loan	as maharanee
 terminal-y	matrices	skip	not-the-terminal	the Latin plural of matrix
-terminal-y	maybe	apply	lexicalised	compound-final -be, reduced in speech rather than stressed like the verb; the hunspell cross-check writes it with ·It
+terminal-y	maybe	apply	lexicalised	compound-final -be, reduced in speech rather than stressed like the verb
 terminal-y	menses	skip	not-the-terminal	the Latin plural of mensis
 terminal-y	metamorphoses	skip	not-the-terminal	the Greek plural of metamorphosis
 terminal-y	minutiae	apply	latin-plural	the Latin -ae plural of minutia; the terminal is unstressed, so ·It

@@ -49,7 +49,7 @@ In the order a word passes through the pipeline:
 - `src/qslex/build.py` — the build that writes `lexicon/`, and prints what it touched: rows converted and skipped, and how many rows carry each sparse column
 - `src/qslex/data/manual-passages.tsv` — the Manual's eleven specimen passages, word by word, as the fixture the finished spellings are held to (spec: [`docs/validation.md`](docs/validation.md))
 - `src/qslex/roundtrip.py` — the reverse of the segment mapping, which reads every shipped spelling back to a phoneme string and lays it beside the IPA it came from
-- `src/qslex/lint.py` — the Manual's own lint, re-derived rule by rule from hunspell-dict-qs's hand-written checks, with `src/qslex/data/lint-pragmas.tsv` declaring every word allowed to break one and why
+- `src/qslex/lint.py` — the Manual's own lint, every check gated on the Orthodox trigger its rule keys on, with `src/qslex/data/lint-pragmas.tsv` declaring every word allowed to break one and why
 - `src/qslex/latin2qs.py` — the consumer at the end: ReadLex's `latin2shaw.py` ported to emit Quikscript from running Latin text (spec: [`docs/latin2qs.md`](docs/latin2qs.md))
 - `src/qslex/` — the loaders, tokenizer, and exhaustive validator that run all of the above
 
