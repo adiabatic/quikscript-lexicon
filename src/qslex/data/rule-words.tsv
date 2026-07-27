@@ -293,3 +293,162 @@ terminal-ing	wyoming	skip	placename	US state
 terminal-ing	yearling	skip	ling-suffix	year + -ling, not the -ing affix
 terminal-ing	yearlings	skip	ling-suffix	year + -ling, not the -ing affix
 terminal-ing	zing	skip	root	onomatopoeic root, no stem to strip
+terminal-y	adoptee	skip	readlex-stress-defect	every other agentive -ee in ReadLex is final-stressed (absentee, appointee, employee, escapee, trustee); əˈdɒptiː is the outlier, so its ·Eat stands
+terminal-y	algae	apply	latin-plural	the Latin -ae plural of alga; the terminal is unstressed, so ·It
+terminal-y	alumnae	apply	latin-plural	the Latin -ae plural of alumna; the terminal is unstressed, so ·It
+terminal-y	amanuenses	skip	not-the-terminal	the Latin plural of amanuensis
+terminal-y	amoebae	apply	latin-plural	the Latin -ae plural of amoeba; the terminal is unstressed, so ·It
+terminal-y	amphorae	apply	latin-plural	the Latin -ae plural of amphora; the terminal is unstressed, so ·It
+terminal-y	amygdalae	apply	latin-plural	the Latin -ae plural of amygdala; the terminal is unstressed, so ·It
+terminal-y	analyses	skip	not-the-terminal	the Greek plural of analysis
+terminal-y	andes	skip	not-the-terminal	a placename, the -es no inflection on a terminal -e
+terminal-y	antennae	apply	latin-plural	the Latin -ae plural of antenna; the terminal is unstressed, so ·It
+terminal-y	antipodes	skip	not-the-terminal	the Greek plural antipodes
+terminal-y	antitheses	skip	not-the-terminal	the Greek plural of antithesis
+terminal-y	aphides	skip	not-the-terminal	the Latin plural of aphis
+terminal-y	apices	skip	not-the-terminal	the Latin plural of apex
+terminal-y	apogee	apply	loan	a loanword whose terminal is no compound element and carries no stress, so ·It
+terminal-y	apogees	apply	loan	as apogee
+terminal-y	apotheoses	skip	not-the-terminal	the Greek plural of apotheosis
+terminal-y	appendices	skip	not-the-terminal	the Latin plural of appendix
+terminal-y	archnemeses	skip	not-the-terminal	the Greek plural of nemesis, prefixed
+terminal-y	aries	apply	orthographic	no -y or -ee morpheme, but Read keys this terminal to the Orthodox spelling, as -ess is keyed at burgess and mattress
+terminal-y	axes	skip	not-the-terminal	the Greek plural of axis
+terminal-y	bases	skip	not-the-terminal	the Greek plural of basis
+terminal-y	bawbee	apply	loan	a loanword whose terminal is no compound element and carries no stress, so ·It
+terminal-y	bawbees	apply	loan	as bawbee
+terminal-y	blakeslee	skip	compound	ends in the word lee, stressed in its own right; ReadLex marks no stress inside an unhyphenated compound
+terminal-y	braintree	skip	compound	ends in the word tree, stressed in its own right; ReadLex marks no stress inside an unhyphenated compound
+terminal-y	bumblebee	skip	compound	ends in the word bee, stressed in its own right; ReadLex marks no stress inside an unhyphenated compound
+terminal-y	bumblebees	skip	compound	as bumblebee
+terminal-y	calyces	skip	not-the-terminal	the Latin plural of calyx
+terminal-y	carefree	skip	compound	ends in the word free, stressed in its own right; ReadLex marks no stress inside an unhyphenated compound
+terminal-y	catharses	skip	not-the-terminal	the Greek plural of catharsis
+terminal-y	cervices	skip	not-the-terminal	the Latin plural of cervix
+terminal-y	cicatrices	skip	not-the-terminal	the Latin plural of cicatrix
+terminal-y	codices	skip	not-the-terminal	the Latin plural of codex
+terminal-y	congee	apply	loan	a loanword whose terminal is no compound element and carries no stress, so ·It
+terminal-y	cooee	apply	loan	a loanword whose terminal is no compound element and carries no stress, so ·It
+terminal-y	cortices	skip	not-the-terminal	the Latin plural of cortex
+terminal-y	crases	skip	not-the-terminal	the Greek plural of crasis
+terminal-y	crises	skip	not-the-terminal	the Greek plural of crisis
+terminal-y	crosstrees	skip	compound	ends in the word tree, stressed in its own right; ReadLex marks no stress inside an unhyphenated compound
+terminal-y	cyclopides	skip	not-the-terminal	a Latin genus plural
+terminal-y	diabetes	skip	not-the-terminal	a Greek noun whose -es is part of it
+terminal-y	diaereses	skip	not-the-terminal	the Greek plural of diaeresis
+terminal-y	diagnoses	skip	not-the-terminal	the Greek plural of diagnosis
+terminal-y	diereses	skip	not-the-terminal	the Greek plural of dieresis
+terminal-y	dives	skip	not-the-terminal	the Latin name Dives
+terminal-y	ecclesiastes	skip	not-the-terminal	the Greek title Ecclesiastes
+terminal-y	ellipses	skip	not-the-terminal	the Greek plural of ellipsis
+terminal-y	elstree	skip	compound	ends in the word tree, stressed in its own right; ReadLex marks no stress inside an unhyphenated compound
+terminal-y	emphases	skip	not-the-terminal	the Greek plural of emphasis
+terminal-y	facie	apply	orthographic	the facie of prima facie: no -y or -ee morpheme, but Read keys this terminal to the Orthodox spelling, as -ess is keyed at burgess and mattress
+terminal-y	faeces	skip	not-the-terminal	the Latin plural faeces
+terminal-y	feces	skip	not-the-terminal	the Latin plural faeces, spelt the American way
+terminal-y	filigree	apply	loan	a loanword whose terminal is no compound element and carries no stress, so ·It
+terminal-y	formulae	apply	latin-plural	the Latin -ae plural of formula; the terminal is unstressed, so ·It
+terminal-y	fricassee	apply	loan	a loanword whose terminal is no compound element and carries no stress, so ·It
+terminal-y	fricassees	apply	loan	as fricassee; the stressed VVZ row is left alone by the rule itself, so the noun and the verb stay the minimal pair the singular is
+terminal-y	hades	skip	not-the-terminal	the Greek name Hades
+terminal-y	hebrides	skip	not-the-terminal	the placename Hebrides
+terminal-y	honeybee	skip	compound	ends in the word bee, stressed in its own right; ReadLex marks no stress inside an unhyphenated compound
+terminal-y	honeybees	skip	compound	as honeybee
+terminal-y	hypnoses	skip	not-the-terminal	the Greek plural of hypnosis
+terminal-y	hypotheses	skip	not-the-terminal	the Greek plural of hypothesis
+terminal-y	icefree	skip	compound	ends in the word free, stressed in its own right; ReadLex marks no stress inside an unhyphenated compound
+terminal-y	ignes	skip	not-the-terminal	the Latin plural of ignis, in ignes fatui
+terminal-y	indices	skip	not-the-terminal	the Latin plural of index
+terminal-y	jubilee	apply	loan	a loanword whose terminal is no compound element and carries no stress, so ·It
+terminal-y	jubilees	apply	loan	as jubilee
+terminal-y	kedgeree	apply	loan	a loanword whose terminal is no compound element and carries no stress, so ·It
+terminal-y	lacunae	apply	latin-plural	the Latin -ae plural of lacuna; the terminal is unstressed, so ·It
+terminal-y	larvae	apply	latin-plural	the Latin -ae plural of larva; the terminal is unstressed, so ·It
+terminal-y	latchkey	skip	compound	ends in the word key, stressed in its own right; ReadLex marks no stress inside an unhyphenated compound
+terminal-y	latchkeys	skip	compound	as latchkey
+terminal-y	lichee	apply	loan	a loanword whose terminal is no compound element and carries no stress, so ·It
+terminal-y	lichees	apply	loan	as lichee
+terminal-y	litchee	apply	loan	a loanword whose terminal is no compound element and carries no stress, so ·It
+terminal-y	litchees	apply	loan	as litchee
+terminal-y	litotes	skip	not-the-terminal	a Greek noun whose -es is part of it
+terminal-y	lychee	apply	loan	a loanword whose terminal is no compound element and carries no stress, so ·It
+terminal-y	lychees	apply	loan	as lychee
+terminal-y	maharanee	apply	loan	a loanword whose terminal is no compound element and carries no stress, so ·It
+terminal-y	maharanees	apply	loan	as maharanee
+terminal-y	matrices	skip	not-the-terminal	the Latin plural of matrix
+terminal-y	maybe	apply	lexicalised	compound-final -be, reduced in speech rather than stressed like the verb; the hunspell cross-check writes it with ·It
+terminal-y	menses	skip	not-the-terminal	the Latin plural of mensis
+terminal-y	metamorphoses	skip	not-the-terminal	the Greek plural of metamorphosis
+terminal-y	minutiae	apply	latin-plural	the Latin -ae plural of minutia; the terminal is unstressed, so ·It
+terminal-y	naiades	skip	not-the-terminal	the Greek plural of naias
+terminal-y	nebulae	apply	latin-plural	the Latin -ae plural of nebula; the terminal is unstressed, so ·It
+terminal-y	nemeses	skip	not-the-terminal	the Greek plural of nemesis
+terminal-y	neuroses	skip	not-the-terminal	the Greek plural of neurosis
+terminal-y	newquay	skip	compound	ends in the word quay, stressed in its own right; ReadLex marks no stress inside an unhyphenated compound
+terminal-y	novae	apply	latin-plural	the Latin -ae plural of nova; the terminal is unstressed, so ·It
+terminal-y	oases	skip	not-the-terminal	the Greek plural of oasis
+terminal-y	ogletree	skip	compound	ends in the word tree, stressed in its own right; ReadLex marks no stress inside an unhyphenated compound
+terminal-y	orontes	skip	not-the-terminal	the river name Orontes
+terminal-y	parentheses	skip	not-the-terminal	the Greek plural of parenthesis
+terminal-y	passkey	skip	compound	ends in the word key, stressed in its own right; ReadLex marks no stress inside an unhyphenated compound
+terminal-y	passkeys	skip	compound	as passkey
+terminal-y	pawnee	apply	loan	a loanword whose terminal is no compound element and carries no stress, so ·It
+terminal-y	pawnees	apply	loan	as pawnee
+terminal-y	pedigree	apply	loan	a loanword whose terminal is no compound element and carries no stress, so ·It
+terminal-y	pedigrees	apply	loan	as pedigree
+terminal-y	pelves	skip	not-the-terminal	the Latin plural of pelvis
+terminal-y	perigee	apply	loan	a loanword whose terminal is no compound element and carries no stress, so ·It
+terminal-y	perigees	apply	loan	as perigee
+terminal-y	periphrases	skip	not-the-terminal	the Greek plural of periphrasis
+terminal-y	personae	apply	latin-plural	the Latin -ae plural of persona; the terminal is unstressed, so ·It
+terminal-y	peterlee	skip	compound	ends in the word lee, stressed in its own right; ReadLex marks no stress inside an unhyphenated compound
+terminal-y	phalanges	skip	not-the-terminal	the Greek plural of phalanx
+terminal-y	pharisee	apply	loan	a loanword whose terminal is no compound element and carries no stress, so ·It
+terminal-y	pharisees	apply	loan	as pharisee
+terminal-y	phonotaxes	skip	not-the-terminal	the Greek plural of phonotaxis
+terminal-y	pisces	skip	not-the-terminal	the Latin plural of piscis
+terminal-y	precises	skip	not-the-terminal	the s-form of precis, whose own ·Eat this terminal never reaches
+terminal-y	prognoses	skip	not-the-terminal	the Greek plural of prognosis
+terminal-y	psychoses	skip	not-the-terminal	the Greek plural of psychosis
+terminal-y	pupae	apply	latin-plural	the Latin -ae plural of pupa; the terminal is unstressed, so ·It
+terminal-y	pyrites	skip	not-the-terminal	a Greek noun whose -es is part of it
+terminal-y	rabies	apply	orthographic	no -y or -ee morpheme, but Read keys this terminal to the Orthodox spelling, as -ess is keyed at burgess and mattress
+terminal-y	ranee	apply	loan	a loanword whose terminal is no compound element and carries no stress, so ·It
+terminal-y	ranees	apply	loan	as ranee
+terminal-y	retinae	apply	latin-plural	the Latin -ae plural of retina; the terminal is unstressed, so ·It
+terminal-y	scabies	apply	orthographic	no -y or -ee morpheme, but Read keys this terminal to the Orthodox spelling, as -ess is keyed at burgess and mattress
+terminal-y	series	apply	orthographic	no -y or -ee morpheme, but Read keys this terminal to the Orthodox spelling, as -ess is keyed at burgess and mattress
+terminal-y	sesterces	skip	not-the-terminal	the Latin plural of sestertius
+terminal-y	shoetree	skip	compound	ends in the word tree, stressed in its own right; ReadLex marks no stress inside an unhyphenated compound
+terminal-y	shoetrees	skip	compound	as shoetree
+terminal-y	specie	apply	orthographic	no -y or -ee morpheme, but Read keys this terminal to the Orthodox spelling, as -ess is keyed at burgess and mattress
+terminal-y	species	apply	orthographic	no -y or -ee morpheme, but Read keys this terminal to the Orthodox spelling, as -ess is keyed at burgess and mattress
+terminal-y	spondee	apply	loan	a loanword whose terminal is no compound element and carries no stress, so ·It
+terminal-y	spondees	apply	loan	as spondee
+terminal-y	squeegee	skip	readlex-stress-defect	every other -ee verb in ReadLex with a syllable before the terminal is final-stressed (agree, decree, disagree, foresee, fricassee, guarantee, oversee, referee, unsee); ˈskwiːdʒiː is the outlier, and squeegeed and squeegeeing carry the same mark where no terminal reaches it, so its ·Eat stands
+terminal-y	squeegees	skip	readlex-stress-defect	as squeegee
+terminal-y	stelae	apply	latin-plural	the Latin -ae plural of stela; the terminal is unstressed, so ·It
+terminal-y	subspecies	apply	orthographic	as species
+terminal-y	superficies	apply	orthographic	no -y or -ee morpheme, but Read keys this terminal to the Orthodox spelling, as -ess is keyed at burgess and mattress
+terminal-y	suttee	apply	loan	a loanword whose terminal is no compound element and carries no stress, so ·It
+terminal-y	suttees	apply	loan	as suttee
+terminal-y	synopses	skip	not-the-terminal	the Greek plural of synopsis
+terminal-y	syntheses	skip	not-the-terminal	the Greek plural of synthesis
+terminal-y	tepee	apply	loan	a loanword whose terminal is no compound element and carries no stress, so ·It
+terminal-y	tepees	apply	loan	as tepee
+terminal-y	thersites	skip	not-the-terminal	the Greek name Thersites
+terminal-y	theses	skip	not-the-terminal	the Greek plural of thesis
+terminal-y	tibiae	apply	latin-plural	the Latin -ae plural of tibia; the terminal is unstressed, so ·It
+terminal-y	tracheae	apply	latin-plural	the Latin -ae plural of trachea; the terminal is unstressed, so ·It
+terminal-y	trincomalee	apply	loan	a loanword whose terminal is no compound element and carries no stress, so ·It
+terminal-y	trochee	apply	loan	a loanword whose terminal is no compound element and carries no stress, so ·It
+terminal-y	trochees	apply	loan	as trochee
+terminal-y	turnkey	skip	compound	ends in the word key, stressed in its own right; ReadLex marks no stress inside an unhyphenated compound
+terminal-y	turnkeys	skip	compound	as turnkey
+terminal-y	ulnae	apply	latin-plural	the Latin -ae plural of ulna; the terminal is unstressed, so ·It
+terminal-y	vertebrae	apply	latin-plural	the Latin -ae plural of vertebra; the terminal is unstressed, so ·It
+terminal-y	vertices	skip	not-the-terminal	the Latin plural of vertex
+terminal-y	vortices	skip	not-the-terminal	the Latin plural of vortex
+terminal-y	wannabe	apply	lexicalised	as maybe: compound-final -be, reduced in speech
+terminal-y	wannabes	apply	lexicalised	as wannabe
+terminal-y	yippee	apply	loan	a loanword whose terminal is no compound element and carries no stress, so ·It

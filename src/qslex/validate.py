@@ -36,6 +36,7 @@ from qslex.rules import (
     undecided_ing,
     undecided_ligature,
     undecided_prefix,
+    undecided_y,
 )
 from qslex.tokenizer import (
     Token,
@@ -107,7 +108,7 @@ EXPECTED_RULE_CHANGES: dict[str, int] = {
     "terminal-ia-ea": 13,
     "terminal-ier-ior": 0,
     "terminal-er": 0,
-    "terminal-y": 14,
+    "terminal-y": 91,
     "terminal-en-on": 25,
 }
 
@@ -155,11 +156,12 @@ EXPECTED_ROUNDTRIP_EDITS: dict[tuple[str, str], int] = {
     ("ɪ", "ə"): 351,
     ("", "ə"): 256,
     ("r", ""): 71,
+    ("iː", "ɪ"): 77,
     ("ə", "ɪ"): 14,
 }
 
 # Spellings that read straight back to their own IPA, with nothing elided or levelled.
-EXPECTED_ROUNDTRIP_IDENTICAL = 76712
+EXPECTED_ROUNDTRIP_IDENTICAL = 76638
 
 # A word sign or standard outline stands for the written word rather than for its
 # sounds, so a row one rewrites has nothing to read back.
@@ -400,6 +402,8 @@ def main(argv: list[str] | None = None) -> int:
                     undecided["terminal-ing"].add(part)
                 if undecided_ess(inner, element.letters, tables):
                     undecided["terminal-ess-est"].add(part)
+                if undecided_y(inner, element.letters, tables):
+                    undecided["terminal-y"].add(part)
                 if undecided_ful(inner, element.letters, tables):
                     undecided["terminal-ful"].add(part)
                 if undecided_prefix(inner, element.letters, tables):

@@ -12,7 +12,7 @@ Everything is generated into [`lexicon/`](../lexicon) and committed, so the file
 |---|---|
 | `quikscript-lexicon.json` | The master. Grouped by headword, 56,649 of them, 108,425 entries. |
 | `quikscript-lexicon.tsv` | The flat projection, 108,375 rows after deduplication. |
-| `qs_converter.json` | Latin → spellings for the transliterator, 78,135 keys, 79,212 rows. |
+| `qs_converter.json` | Latin → spellings for the transliterator, 78,135 keys, 79,217 rows. |
 | `qs_converter_phrases.txt` | The 1,600 entries a tokenizer must match whole. |
 | `letters.tsv` | All 44 Quikscript letters with their codepoints — the decoder ring for the PUA text in every other file. |
 
@@ -104,7 +104,7 @@ Latin → a list of rows, for [#6](https://github.com/adiabatic/quikscript-lexic
 
 The shape is upstream's, and it is upstream's for a good reason: `latin2shaw.py` looks a token up by `token.lower_`, walks the rows, and takes the first whose `tag` matches spaCy's Penn `token.tag_`, with `"0"` as the universal fallback. Porting that logic wholesale is the point of matching the shape.
 
-- **Tagged rows appear only where they can settle something** — a word needs both more than one spelling and more than one Penn tag before a part of speech can choose between them. 401 of the 78,135 keys qualify.
+- **Tagged rows appear only where they can settle something** — a word needs both more than one spelling and more than one Penn tag before a part of speech can choose between them. 403 of the 78,135 keys qualify.
 - **The `0` row is always present and always last**, its `qs` the `⬌`-joined distinct spellings sorted by codepoint. `⬌` is a "pick one" marker the consumer never splits; upstream punts on disambiguation here and so, for now, do we.
 - **`qs_junior` and `qs_x` ride along**, sparse as elsewhere, with their alternatives in the same order as `qs` so the three columns line up positionally.
 

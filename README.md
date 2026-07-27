@@ -41,7 +41,7 @@ In the order a word passes through the pipeline:
 - `src/qslex/elements.py` — where an entry's boundaries are: the one split into elements that both the rules and the word signs cut a hyphenated or multi-word entry at
 - `src/qslex/rules.py` — Read's terminal, affix and prefix conventions applied on top of the segment mapping, word by word inside a compound, plus the ·Excite/·Exam ligature column (spec: [`docs/orthographic-rules.md`](docs/orthographic-rules.md))
 - `src/qslex/data/manual-spellings.tsv` — every spelling the Manual writes out, and every example word it names, as the fixture the rules are held to
-- `src/qslex/data/rule-words.tsv` — per-word rulings for the four rules whose trigger the data cannot settle by itself
+- `src/qslex/data/rule-words.tsv` — per-word rulings for the five rules whose trigger the data cannot settle by itself
 - `src/qslex/data/x-ligatures.tsv` — the words where the Latin `x` cannot be aligned to a letter pair mechanically
 - `src/qslex/words.py` — the lexical layer that runs last: the Manual's word signs, standard word-outlines and abbreviations, and the junior column (spec: [`docs/word-signs.md`](docs/word-signs.md))
 - `src/qslex/data/word-signs.tsv` — the core eight, the three abbreviations, and every standard word-outline, with the junior form where it diverges

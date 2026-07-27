@@ -20,6 +20,7 @@ GATED_RULES = {
     "terminal-ess-est",
     "terminal-ful",
     "terminal-ing",
+    "terminal-y",
 }
 
 LIGATURES_FILE = "x-ligatures.tsv"
@@ -46,6 +47,8 @@ EPENTHETIC_PAIRS = frozenset(
 )
 
 REDUCIBLE = frozenset({"It", "Utter"})
+UNREDUCED = frozenset({"Eat"})
+Y_REDUCIBLE = REDUCIBLE | UNREDUCED
 ING_TAILS = ("ingness", "ingly", "ings", "ing")
 
 
@@ -137,16 +140,29 @@ def _vowel_at(letters: Letters, offset: int, span: int) -> int | None:
     return index
 
 
-def _reducible(letters: Letters, index: int) -> bool:
-    return not letters[index].stressed and letters[index].name in REDUCIBLE
+def _reducible(letters: Letters, index: int, among: frozenset[str] = REDUCIBLE) -> bool:
+    return not letters[index].stressed and letters[index].name in among
 
 
-def _force(letters: Letters, offset: int, shape: tuple[str, ...], want: str) -> Letters:
-    """Normalise the vowel that precedes `shape` at the end of the word."""
+def _force(
+    letters: Letters,
+    offset: int,
+    shape: tuple[str, ...],
+    want: str,
+    among: frozenset[str] = REDUCIBLE,
+) -> Letters:
+    """Normalise the vowel that precedes `shape` at the end of the word.
+
+    `among` names the vowels this rule may rewrite, and only terminal -y widens it.
+    Read reserves ·Eat "for distinction where the terminal is stressed", so an
+    unstressed ·Eat at that terminal is a vowel he prescribes over; everywhere else a
+    full ·Eat is a vowel ReadLex means, as **·Et is not a reducible vowel** in
+    docs/orthographic-rules.md says of ·Et.
+    """
     if not _ends(letters, offset, *shape):
         return letters
     index = _vowel_at(letters, offset, len(shape))
-    if index is None or not _reducible(letters, index):
+    if index is None or not _reducible(letters, index, among):
         return letters
     return _rename(letters, index, want)
 
@@ -466,10 +482,26 @@ def _tighten(letters: Letters, offset: int, shape: tuple[str, ...]) -> Letters:
 
 
 def apply_y(context: Context, letters: Letters, match: re.Match[str]) -> Letters:
-    if match.group(2) and match.group(1) == "e":
-        # -es after a silent e is a plural, not the terminal -e of simile or coffee.
-        return letters
-    return _force(letters, _offset(match, letters), (), "It")
+    """Write the unstressed terminal ·It, seeing through a plural -s.
+
+    An -es after a silent e spells a plural of its own — houses, similes — and the
+    vowel that plural adds is its own, always a reduced one. Only a full ·Eat there
+    can be the terminal, which leaves apogees carrying apogee's and theses carrying
+    the Greek ending's, a difference no Latin string holds: see `_y_plural`.
+    """
+    among = UNREDUCED if _y_plural(match) else Y_REDUCIBLE
+    return _force(letters, _offset(match, letters), (), "It", among)
+
+
+def _y_plural(match: re.Match[str]) -> bool:
+    """Whether the -s this terminal saw through follows an -e rather than an -ie or -y.
+
+    latchkeys and rabies say in the Latin that the terminal is theirs and the -s is an
+    inflection on it. An -es does not: it is equally how English spells the plural of a
+    silent -e and how Greek and Latin spell an ending of their own, so theses is not
+    these plus s and vortices is not vortice plus s, while apogees is apogee plus s.
+    """
+    return bool(match.group(2)) and match.group(1) == "e"
 
 
 def apply_ain(context: Context, letters: Letters, match: re.Match[str]) -> Letters:
@@ -740,6 +772,31 @@ def undecided_ess(context: Context, letters: Letters, tables: Tables) -> bool:
     if index is None or not _reducible(letters, index):
         return False
     return letters[index].name == "It"
+
+
+def undecided_y(context: Context, letters: Letters, tables: Tables) -> bool:
+    """An unstressed full ·Eat at a terminal -y, where nothing in the IPA decides it.
+
+    ReadLex writes the reduced terminal as happY `i` and keeps a full `iː` for one it
+    thinks unreduced — but it marks no stress inside an unhyphenated compound, so
+    carefree's ·Eat and algae's are the same shape segment for segment with opposite
+    readings. Read's own discriminator is the stress, and it is exactly what is missing,
+    so which of the two this is gets ruled on in rule-words.tsv rather than guessed.
+
+    Behind a plural -s the same ·Eat asks `_y_plural`'s question as well, apogees
+    against theses, and that is ruled on in the same table and counted in the same
+    residue: every unstressed ·Eat this terminal owns is decided by hand.
+    """
+    if tables.ruled("terminal-y", context.latin):
+        return False
+    found = terminal_for(context)
+    if found is None or found[0].id != "terminal-y":
+        return False
+    match = found[1]
+    index = _vowel_at(letters, _offset(match, letters), 0)
+    if index is None:
+        return False
+    return not letters[index].stressed and letters[index].name == "Eat"
 
 
 def undecided_ful(context: Context, letters: Letters, tables: Tables) -> bool:

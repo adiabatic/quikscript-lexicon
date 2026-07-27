@@ -27,6 +27,7 @@ from qslex.rules import (
     split,
     terminal_for,
     undecided_ing,
+    undecided_y,
 )
 
 from conftest import KEPT, TABLES, context_of
@@ -181,6 +182,91 @@ def test_ain_and_age_normalise_the_unstressed_vowel() -> None:
     assert senior("maintain", "VVB") == "·May·Eight·No·Tea·Eight·No"
     assert senior("manage", "VVB") == "·May·At·No·Utter·Jay"
     assert senior("marriage", "NN1") == "·May·At·Roe·It·Jay"
+
+
+def test_y_writes_it_wherever_the_terminal_is_unstressed() -> None:
+    assert senior("algae", "NN2") == "·At·Low·Gay·It"
+    assert senior("apogee", "NN1") == "·At·Pea·Utter·Jay·It"
+    assert senior("jubilee", "NN1") == "·Jay·Ooze·Bay·It·Low·It"
+    assert senior("formulae", "NN2") == "·Fee·Awe·Roe·May·Ye·Utter·Low·It"
+    assert senior("maybe", "AV0") == "·May·Eight·Bay·It"
+    assert senior("prima facie") == "·Pea·Roe·I·May·Utter ·Fee·Eight·She·It"
+
+
+def test_y_sees_through_an_inflection() -> None:
+    assert senior("rabies", "NN1") == "·Roe·Eight·Bay·It·Zoo"
+    assert senior("series", "NN0") == "·See·Eat·Utter·Roe·It·Zoo"
+    assert senior("specie", "NN1") == "·See·Pea·Eat·She·It"
+    assert senior("species", "NN0") == "·See·Pea·Eat·She·It·Zoo"
+    assert senior("latchkeys", "NN2") == "·Low·At·Cheer·Key·Eat·Zoo"
+
+
+def test_a_plural_terminal_is_spelt_as_its_own_singular() -> None:
+    assert senior("apogees", "NN2") == "·At·Pea·Utter·Jay·It·Zoo"
+    assert senior("jubilees", "NN2") == "·Jay·Ooze·Bay·It·Low·It·Zoo"
+    assert senior("pharisees", "NN2") == "·Fee·At·Roe·It·See·It·Zoo"
+    assert senior("wannabes", "NN2") == "·Way·Ox·No·Utter·Bay·It·Zoo"
+    assert senior("honeybees", "NN2") == "·He·Utter·No·It·Bay·Eat·Zoo"
+    assert senior("shoetrees", "NN2") == "·She·Ooze·Tea·Roe·Eat·Zoo"
+
+
+def test_y_leaves_an_es_that_spells_an_ending_of_its_own() -> None:
+    assert senior("theses", "NN2") == "·Thaw·Eat·See·Eat·Zoo"
+    assert senior("crises", "NN2") == "·Key·Roe·I·See·Eat·Zoo"
+    assert senior("oases", "NN2") == "·Owe·Eight·See·Eat·Zoo"
+    assert senior("indices", "NN2") == "·It·No·Day·It·See·Eat·Zoo"
+    assert senior("precises", "VVZ") == "·Pea·Roe·Eight·See·Eat·Zoo"
+    assert senior("precis", "NN0") == "·Pea·Roe·Eight·See·Eat"
+    assert senior("agnes", "NP0") == "·At·Gay·No·Utter·See"
+    assert senior("houses", "NN2") == "·He·Out·Zoo·Zoo"
+
+
+def test_fricassee_is_the_stress_minimal_pair_in_both_numbers() -> None:
+    assert senior("fricassee", "NN1") == "·Fee·Roe·It·Key·Utter·See·It"
+    assert senior("fricassee", "VVI") == "·Fee·Roe·It·Key·Utter·See·Eat"
+    assert senior("fricassees", "NN2") == "·Fee·Roe·It·Key·Utter·See·It·Zoo"
+    assert senior("fricassees", "VVZ") == "·Fee·Roe·It·Key·Utter·See·Eat·Zoo"
+
+
+def test_y_holds_a_lemma_constant_across_the_ed_and_ing_seam() -> None:
+    assert terminal_for(context_for("squeegeed")) is None
+    assert senior("squeegee") == "·See·Key·Way·Eat·Jay·Eat"
+    assert senior("squeegees") == "·See·Key·Way·Eat·Jay·Eat·Zoo"
+    assert senior("squeegeed") == "·See·Key·Way·Eat·Jay·Eat·Day"
+    assert senior("squeegeeing") == "·See·Key·Way·Eat·Jay·Eat·Oolong"
+    assert senior("fricasseed") == "·Fee·Roe·It·Key·Utter·See·Eat·Day"
+    assert senior("fricasseeing") == "·Fee·Roe·It·Key·Utter·See·Eat·Oolong"
+
+
+def test_y_leaves_a_compound_whose_last_element_is_a_word_of_its_own() -> None:
+    assert senior("carefree", "AJ0") == "·Key·Eight·Roe·Fee·Roe·Eat"
+    assert senior("braintree", "NP0") == "·Bay·Roe·Eight·No·Tea·Roe·Eat"
+    assert senior("honeybee", "NN1") == "·He·Utter·No·It·Bay·Eat"
+    assert senior("latchkey", "NN1") == "·Low·At·Cheer·Key·Eat"
+    assert senior("newquay", "NP0") == "·No·Ye·Ooze·Key·Eat"
+    assert senior("adoptee", "NN1") == "·Utter·Day·Ox·Pea·Tea·Eat"
+
+
+def test_y_never_touches_a_terminal_the_ipa_stresses() -> None:
+    assert senior("legatee", "NN1") == "·Low·Et·Gay·Utter·Tea·Eat"
+    assert senior("lessee", "NN1") == "·Low·Et·See·Eat"
+    assert senior("payee", "NN1") == "·Pea·Eight·Eat"
+    assert senior("bee", "NN1") == "·Bay·Eat"
+    assert senior("ash-key", "NN1") == "·At·She-·Key·Eat"
+
+
+def test_y_still_reduces_the_loanword_schwa_it_always_did() -> None:
+    assert senior("krone") == "·Key·Roe·Owe·No·It"
+    assert senior("lasagne", "NN1") == "·Low·Utter·Zoo·Ah·No·Ye·It"
+    assert senior("vice versa", "AV0") == "·Vie·I·See·It ·Vie·Utter·Roe·See·Utter"
+
+
+def test_a_stressed_terminal_it_is_never_promoted_to_eat() -> None:
+    assert senior("coolly", "AV0") == "·Key·Ooze·Low·Low·It"
+    assert senior("wholly", "AV0") == "·He·Owe·Low·Low·It"
+    assert senior("vilely", "AV0") == "·Vie·I·Low·Low·It"
+    assert senior("outlawry", "NN1") == "·Out·Tea·Low·Awe·Roe·It"
+    assert senior("de luxe", "AJ0") == "·Day·It ·Low·Utter·Key·See"
 
 
 def test_ward_is_contracted_but_not_when_stressed() -> None:
@@ -362,6 +448,16 @@ def test_undecided_ing_defers_to_any_participle_suffix() -> None:
     assert undecided_ing("wing", {"calling"})
     assert not undecided_ing("bookkeeping", {"keeping"})
     assert not undecided_ing("carrying", set())
+
+
+def test_undecided_y_flags_an_unstressed_eat_until_a_ruling_covers_it() -> None:
+    for word in ("algae", "carefree", "apogees", "honeybees", "theses"):
+        context = context_for(word)
+        assert undecided_y(context, naive(context), Tables()), word
+        assert not undecided_y(context, naive(context), TABLES), word
+    for word in ("bee", "payee", "money", "houses", "coffees"):
+        context = context_for(word)
+        assert not undecided_y(context, naive(context), Tables()), word
 
 
 def test_spell_without_tables_still_produces_a_spelling() -> None:

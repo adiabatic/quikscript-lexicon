@@ -91,6 +91,8 @@ The same fault ran through -sphere (atmosphere, biosphere, stratosphere…), -me
 
 So the rule stays, and the exceptions are **data**: `src/qslex/data/ipa-overrides.tsv`, keyed on the exact normalized IPA string, each row naming the words it covers, the condition to force, and the evidence. The validator fails if any override stops firing or touches a word it does not declare, so a dead override cannot linger.
 
+The same compound blindness reaches a word-final `iː`, where honeybee `ˈhʌnɪbiː` is segment for segment jubilee `ˈdʒuːbɪliː` and only the first should keep the ·Eat of its own bee. This file cannot carry those: `iː` has a single unconditional mapping row, so there is no condition for an override to select, and the rules layer reads `is_stressed` directly rather than a token's condition. They are declared in `src/qslex/data/rule-words.tsv` instead, under [`terminal-y`](orthographic-rules.md#5-whether-a-terminal--y-that-readlex-writes-in-full-is-stressed).
+
 ### The Shavian column as an oracle
 
 ReadLex's Shavian column is independent evidence: it writes 𐑽 (EAR) for stressed rhotic ɪə and 𐑦𐑼 for unstressed. The validator therefore checks, for every row in the corpus, that the number of 𐑽 in the Shavian column equals the number of ɪə tokens the mapping resolves as stressed-and-rhotic.
@@ -143,6 +145,7 @@ A total function from IPA segments to letters cannot see suffix identity, so sev
 | [§ Terminal -ing][ing]: affix -ing omits the vowel | calling = ·Key·Awe·Low·Oolong (but root wing keeps ·It) | ·It always | affix/root distinction is morphological |
 | [§ Terminal -tion][tion], [§ -land, -ment][land] | action = ·At·Key·She·No | ·At·Key·She·Utter·No | |
 | [§ Terminal -age][age] | manage = `-·Utter·Jay`, marriage = `-·It·Jay` after a -y root | ·It, since ReadLex writes plain `ɪ` — so the `I` tag does not catch it | |
+| [§ Terminal -y][y] | algae = `-·Gay·It`, ·Eat kept only "where the terminal is stressed" | ·Eat, because the row for `iː` is unconditional | the happY `i` row above already carries `terminal-y` as its authority; whether a full `iː` at that terminal is stressed is the rules layer's question |
 
 The pattern is consistent: Quikscript's terminal conventions are keyed to the *spelling* of the suffix, and the IPA column does not carry that information. The rules layer owns them; this mapping deliberately produces the segment-faithful form and lets that layer rewrite it. Two entries in the tagged pass-through table above resolve there too: `Ə` is dropped outright by [§ Terminal -es, -ed][esed], and `I` is normalised by whichever terminal claims the word.
 

@@ -71,6 +71,10 @@ EDITS: dict[tuple[str, str], str] = {
     ("ɪ", "e"): "the ·Excite ligature takes the ·Et vowel, as -est and -ess do",
     ("ɪ", "ə"): "the -age and -en terminals are written invariably with ·Utter",
     ("ə", "ɪ"): "terminal -y is written ·It whatever ReadLex reduces it to",
+    (
+        "iː",
+        "ɪ",
+    ): "terminal -y is ·It unless that terminal is stressed, so a full iː reads as ɪ",
     ("r", NOTHING): "the -ward terminal drops the R with the vowel before it",
 }
 
