@@ -5,10 +5,11 @@ from collections.abc import Callable
 from dataclasses import dataclass
 from pathlib import Path
 
-from qslex.elements import DIVIDERS, components, elements
+from qslex.elements import DIVIDERS, chunks, components, elements
 from qslex.letters import VOWELS, Letters, names, parse
 from qslex.rules import AL, ALLY, ENT, ING_TAILS, Tables
 from qslex.tables import rows_of
+from qslex.tokenizer import marked
 
 PRAGMAS_FILE = "lint-pragmas.tsv"
 PRAGMAS_HEADER = ["check", "word", "reason", "note"]
@@ -20,7 +21,6 @@ DEFECT = "known-defect"
 
 REDUCIBLE = frozenset({"It", "Utter"})
 VOWEL_CHARS = frozenset("ɪieæaɑɒɔʊuʌəɜːƏIÆⱭ")
-STRESS_MARKS = frozenset("ˈˌ")
 LIGATURES = frozenset({"Excite", "Exam"})
 
 # "While L needs no preceding vowel in Spaniel, one is clearly needed wherever -al
@@ -59,7 +59,7 @@ class Site:
 
     @property
     def stressed(self) -> bool:
-        return bool(self.ipa) and self.ipa[0] in STRESS_MARKS
+        return marked(self.ipa)
 
     @property
     def reducible_ending(self) -> bool:
@@ -287,10 +287,6 @@ def load_pragmas(path: Path | None = None) -> dict[tuple[str, str], str]:
     return pragmas
 
 
-def _chunks(text: str) -> tuple[str, ...]:
-    return tuple(re.split(r"[ -]", text))
-
-
 def sites(word: str, spelling: str, ligature: str, ipa: str) -> tuple[Site, ...]:
     """One Site per element, cut where `qslex.elements` cuts.
 
@@ -301,7 +297,6 @@ def sites(word: str, spelling: str, ligature: str, ipa: str) -> tuple[Site, ...]
     letters = parse(spelling)
     pairs = elements(word, letters)
     ligated = elements(word, parse(ligature)) if ligature else None
-    ipa_parts = _chunks(ipa)
     if pairs is None:
         return (Site(word, word, letters, parse(ligature), ipa, True),)
     words = [part for part in components(word) if part not in DIVIDERS]
@@ -311,11 +306,11 @@ def sites(word: str, spelling: str, ligature: str, ipa: str) -> tuple[Site, ...]
         if ligated is not None and len(ligated) == len(pairs)
         else [()] * len(runs)
     )
-    chunks = ipa_parts if len(ipa_parts) == len(words) else [ipa] * len(words)
+    said = chunks(ipa, len(words))
     return tuple(
         Site(word, latin, run, tuple(other), chunk, index == len(words) - 1)
         for index, (latin, run, other, chunk) in enumerate(
-            zip(words, runs, ligature_runs, chunks, strict=True)
+            zip(words, runs, ligature_runs, said, strict=True)
         )
     )
 

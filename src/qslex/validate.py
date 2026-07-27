@@ -152,7 +152,7 @@ EXPECTED_ROUNDTRIP_EDITS: dict[tuple[str, str], int] = {
     ("e", "eɪ"): 1354,
     ("ɪ", "iː"): 1312,
     ("ʊ", "uː"): 763,
-    ("ɪ", "e"): 700,
+    ("ɪ", "e"): 736,
     ("ɪ", "ə"): 351,
     ("", "ə"): 256,
     ("r", ""): 71,
@@ -161,7 +161,7 @@ EXPECTED_ROUNDTRIP_EDITS: dict[tuple[str, str], int] = {
 }
 
 # Spellings that read straight back to their own IPA, with nothing elided or levelled.
-EXPECTED_ROUNDTRIP_IDENTICAL = 76638
+EXPECTED_ROUNDTRIP_IDENTICAL = 76621
 
 # A word sign or standard outline stands for the written word rather than for its
 # sounds, so a row one rewrites has nothing to read back.
@@ -408,15 +408,14 @@ def main(argv: list[str] | None = None) -> int:
                     undecided["terminal-ful"].add(part)
                 if undecided_prefix(inner, element.letters, tables):
                     undecided["prefix-be-de-re"].add(part)
-            why = undecided_ligature(context, tables)
-            if why:
-                undecided[f"ligature/{why}"].add(word)
-            if word in tables.ligatures:
-                ligature_hits.add(word)
-                if not tables.ligatures[word].ligature and ligatable(result.senior):
+                why = undecided_ligature(inner, element.letters, tables)
+                if why:
+                    undecided[f"ligature/{why}"].add(part)
+            ligature_hits.update(ruling for ruling, _ in result.ligated)
+            for ruling, shipped in result.ligated:
+                if not tables.ligatures[ruling].ligature and ligatable(shipped):
                     unligated.append(
-                        f"{word!r} is ruled to take no ligature but ships "
-                        f"{result.senior}"
+                        f"{ruling!r} is ruled to take no ligature but ships {shipped}"
                     )
             if result.ligature and "x" not in word:
                 stray_ligatures.append(f"{word!r} has no x but got {result.ligature}")

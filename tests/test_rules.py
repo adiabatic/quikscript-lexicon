@@ -334,6 +334,33 @@ def test_ligature_takes_et_only_on_a_word_initial_unstressed_ex() -> None:
     assert ligature("expect", "VVB") == "·Et·Excite·Pea·Et·Key·Tea"
     assert ligature("examine", "VVB") == "·Et·Exam·At·May·It·No"
     assert ligature("sixty", "CRD") == "·See·It·Excite·Tea·It"
+    assert ligature("exquisite", "AJ0") == "·It·Excite·Key·Way·It·Zoo·It·Tea"
+
+
+def test_ligature_is_scoped_to_the_word_and_not_to_the_entry() -> None:
+    assert ligature("cross-examine", "VVB") == "·Key·Roe·Ox·See-·Et·Exam·At·May·It·No"
+    assert ligature("for example", "AV0") == "·Fee ·Et·Exam·Ah·May·Pea·Low"
+    assert (
+        ligature("corn-exchange", "NN1")
+        == "·Key·Awe·Roe·No-·Et·Excite·Cheer·Eight·No·Jay"
+    )
+
+
+def test_the_element_split_retires_a_ruling_the_mechanical_path_reproduces() -> None:
+    assert "exercise-books" not in TABLES.ligatures
+    assert (
+        ligature("exercise-books", "NN2")
+        == "·Et·Excite·Utter·Roe·See·I·Zoo-·Bay·Foot·Key·See"
+    )
+
+
+def test_a_ligature_ruling_is_keyed_on_the_element(tmp_path: Path) -> None:
+    rows = [["box", "", "unaligned", "a compound reaches its element's ruling"]]
+    tables = Tables(ligatures=load_x_ligatures(ligatures_file(tmp_path, rows)))
+    result = spell(context_for("ballot-box", "NN1"), tables)
+    assert result.ligated == (("box", "·Bay·Ox·Key·See"),)
+    assert result.ligature == ""
+    assert ligature("ballot-box", "NN1") == "·Bay·At·Low·Utter·Tea-·Bay·Ox·Excite"
 
 
 def test_ligature_reproduces_the_manuals_own_prose_spellings() -> None:

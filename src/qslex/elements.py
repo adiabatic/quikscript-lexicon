@@ -17,6 +17,18 @@ def components(latin: str) -> tuple[str, ...]:
     return tuple(BOUNDARY.split(latin))
 
 
+def chunks(ipa: str, count: int) -> tuple[str, ...]:
+    """A phrase entry's IPA cut into one chunk per word, or the whole string per word.
+
+    ReadLex writes a phrase entry's IPA with the same separators the Latin uses, so the
+    two usually line up one for one; where they do not, the whole string stands for
+    every word. That is the conservatism `elements` applies to the spelling, applied
+    here to the sounds.
+    """
+    parts = tuple(BOUNDARY.split(ipa)[::2])
+    return parts if len(parts) == count else (ipa,) * count
+
+
 def runs(letters: Letters) -> tuple[Letters, ...]:
     """Split a spelling at the separators the tokenizer passed through."""
     out: list[Letters] = []

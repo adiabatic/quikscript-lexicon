@@ -73,6 +73,11 @@ def pre_r(ipa: str, position: int) -> bool:
     return position < len(ipa) and ipa[position] in ("r", "R")
 
 
+def marked(ipa: str) -> bool:
+    """Whether ReadLex writes a stress mark at the head of this chunk."""
+    return bool(ipa) and ipa[0] in STRESS_MARKS
+
+
 def is_stressed(ipa: str, position: int) -> bool:
     start = position
     while start > 0 and ipa[start - 1] not in CHUNK_SEPARATORS:

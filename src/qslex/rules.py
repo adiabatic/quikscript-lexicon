@@ -6,10 +6,10 @@ from collections.abc import Callable, Container, Iterable
 from dataclasses import dataclass, field
 from pathlib import Path
 
-from qslex.elements import DIVIDERS, elements
+from qslex.elements import DIVIDERS, chunks, elements
 from qslex.letters import Letter, Letters, names, parse, render, unknown_names
 from qslex.tables import rows_of
-from qslex.tokenizer import Token, is_stressed
+from qslex.tokenizer import Token, is_stressed, marked
 from qslex.words import Signs, apply_signs, load_word_signs
 
 RULE_WORDS_FILE = "rule-words.tsv"
@@ -63,9 +63,11 @@ class Context:
     def within(self, latin: str, final: bool) -> Context:
         """The same row seen as one element of its own entry.
 
-        A rule reads the Latin spelling, the part-of-speech tag, and whether the entry
-        ends here; the IPA and its tokens ride along whole, because nothing after
-        `naive` looks at them.
+        Only the Latin spelling and whether the entry ends here narrow to the element.
+        The IPA and its tokens stay the whole entry's, so `ipa` seen from the exchange
+        of corn-exchange is still `ˈkɔːRn-ɪkstʃeɪndʒ`, carrying corn's mark and not
+        exchange's want of one. A rule that wants this element's sounds cuts them for
+        itself with `elements.chunks`, as `ligate` does, rather than reading them here.
         """
         return dataclasses.replace(self, latin=latin, final=final)
 
@@ -79,6 +81,7 @@ class Spelling:
     ruled: tuple[tuple[str, str], ...]
     signed: tuple[str, ...]
     signs: tuple[tuple[str, str], ...]
+    ligated: tuple[tuple[str, str], ...]
     elements: tuple[Element, ...]
 
 
@@ -701,22 +704,71 @@ def ligatable(spelling: str) -> bool:
     return bool(_pairs(parse(spelling)))
 
 
-def ligate(context: Context, letters: Letters, tables: Tables) -> Letters | None:
-    latin = context.latin
-    declared = tables.ligature_for(latin)
-    if declared is not None:
-        return parse(declared.ligature) if declared.ligature else None
+def _ligated(latin: str, said: str, letters: Letters) -> Letters:
+    """One word's substitution, taking ·Et where its own chunk carries no stress mark.
+
+    ·Et is a convenience the Manual offers for an *unstressed* initial ex- — "with an
+    initial vowel ·Et easier than ·It" — so it waits on ReadLex's own mark at the head
+    of this element's chunk rather than on the stress `naive` wrote into the letter.
+    corn-exchange carries its one mark on corn, which leaves the ex- of exchange
+    unstressed and takes the ·Et; exquisite `ˈɪkskwɪzɪt` carries a mark of its own and
+    keeps its ·It, as sixty does. `is_stressed`'s fallback answers a different question
+    — it reads a mark-less chunk as a word keeping its standalone stress, which is right
+    for the monosyllables it was written for and wrong for a polysyllable whose own mark
+    is not initial.
+    """
     if latin.count("x") != 1:
-        return None
+        return letters
     pairs = _pairs(letters)
     if len(pairs) != 1:
-        return None
+        return letters
     index, name = pairs[0]
     out = _rename(_drop(letters, index + 1), index, name)
     initial = latin.startswith("ex") and index == 1 and out[0].name == "It"
-    if initial and not out[0].stressed:
+    if initial and not marked(said):
         out = _rename(out, 0, "Et")
     return out
+
+
+def ligate(
+    context: Context, letters: Letters, tables: Tables
+) -> tuple[Letters, tuple[tuple[str, str], ...]]:
+    """The X-ligature per word of the entry, with the rulings the entry reached.
+
+    An x and the letter pair it stands for belong to a word, not to an entry, so
+    matching the whole string left cross-examine and corn-exchange with an ex- that is
+    word-initial but not entry-initial, and read a second word's pair as a second pair
+    of the first word's. The ruling table is consulted per element for the same reason
+    `_stack` consults `rule-words.tsv` per element: what a hand ruling is about is the
+    word, and exercise-books needed one only while the entry was matched whole.
+
+    Everything that is not a separator takes a chunk of the IPA, the empty word an
+    entry like ex- ends on included, so that this cut is the one `qslex.lint` makes and
+    a rule and the check that re-derives it cannot read a different stress mark.
+
+    A ruling comes back with the run the entry ships for its word, because the check
+    that a row naming no ligature leaves no pair behind is about that word and not
+    about whatever the elements beside it ship.
+    """
+    parts = split(context, letters)
+    spoken = [part.context.latin not in DIVIDERS for part in parts]
+    said = iter(chunks(context.ipa, sum(spoken)))
+    out: list[Letter] = []
+    hits: list[tuple[str, str]] = []
+    for part, sounds in zip(parts, spoken, strict=True):
+        chunk = next(said) if sounds else ""
+        if not part.word:
+            out.extend(part.letters)
+            continue
+        latin = part.context.latin
+        declared = tables.ligature_for(latin)
+        if declared is not None:
+            shipped = parse(declared.ligature) if declared.ligature else part.letters
+            hits.append((latin, render(shipped)))
+            out.extend(shipped)
+            continue
+        out.extend(_ligated(latin, chunk, part.letters))
+    return tuple(out), tuple(hits)
 
 
 def undecided_ing(latin: str, participles: Container[str]) -> bool:
@@ -809,14 +861,14 @@ def undecided_ful(context: Context, letters: Letters, tables: Tables) -> bool:
     return apply_ful(context, letters, match) != letters
 
 
-def undecided_ligature(context: Context, tables: Tables) -> str:
+def undecided_ligature(context: Context, letters: Letters, tables: Tables) -> str:
     """Why the mechanical alignment declined, for the validator's residue report."""
     latin = context.latin
     if "x" not in latin or tables.ligature_for(latin) is not None:
         return ""
     if latin.count("x") > 1:
         return "multiple-x"
-    if len(_pairs(naive(context))) > 1:
+    if len(_pairs(letters)) > 1:
         return "unaligned"
     return ""
 
@@ -867,14 +919,15 @@ def spell(context: Context, tables: Tables = NO_TABLES) -> Spelling:
     senior, junior, signed, consulted = apply_signs(
         context.latin, context.pos, letters, tables.signs
     )
-    lig = ligate(context, senior, tables)
+    lig, hits = ligate(context, senior, tables)
     return Spelling(
         senior=render(senior),
         junior="" if names(junior) == names(senior) else render(junior),
-        ligature="" if lig is None or names(lig) == names(senior) else render(lig),
+        ligature="" if names(lig) == names(senior) else render(lig),
         applied=tuple(rule.id for rule in RULES if rule.id in fired),
         ruled=tuple(sorted(rulings)),
         signed=signed,
         signs=consulted,
+        ligated=hits,
         elements=parts,
     )

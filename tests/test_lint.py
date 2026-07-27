@@ -28,8 +28,8 @@ def test_every_check_says_what_the_manual_requires() -> None:
     assert all(check.requires for check in CHECKS)
 
 
-def test_the_shipped_pragmas_load() -> None:
-    assert load_pragmas()
+def test_the_shipped_table_excuses_nothing() -> None:
+    assert load_pragmas() == {}
 
 
 def test_an_element_is_cut_where_the_spelling_and_the_latin_agree() -> None:
