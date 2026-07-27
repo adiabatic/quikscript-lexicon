@@ -51,7 +51,7 @@ The conditioning is the one [`docs/word-signs.md`](word-signs.md#contractions-po
 | verbal `'s` | solid | it's = ·It·Tea·See |
 | `n't` | solid | wasn't, can't |
 | `'d` `'ll` `'m` `'re` `'ve` | apostrophe kept | they'll = ·They·Eight’·Low |
-| aphetic `'t...` | leading apostrophe kept | 'twas = ’·Tea·Way·Ox·Zoo |
+| aphetic `'t...` | leading apostrophe kept | 'twas = ’·Tea·Way·Utter·Zoo, ’·Tea·Way·Ox·Zoo in junior mode |
 
 The corpus's spellings carry no apostrophes at all, so for the keeping classes the transliterator reinserts one: a dictionary spelling that ends in the clitic's own letters gets ’ placed before them. That reproduces the Manual's ·They·Eight’·Low from the artifact's ·They·Eight·Low, in every mode — the Bo-peep specimen keeping the apostrophe is Junior text.
 

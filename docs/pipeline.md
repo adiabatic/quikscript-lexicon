@@ -85,7 +85,7 @@ The key is treated as an opaque upstream identifier, not as data — it is kept 
 
 `Latn`, `qs`, `qs_junior`, `qs_x`, `Shaw`, `pos`, `ipa`, `freq` — upstream's five columns with the Quikscript spelling taking the position the Shavian one held, and the Shavian pushed right rather than dropped. Unlike upstream's, it carries a header row, because eight columns of which two are usually empty are not self-describing.
 
-Sparse columns are empty strings where they do not diverge: 2,347 rows carry a `qs_x`, 5 carry a `qs_junior`. Those bounds are checked, not assumed — `qs_x` may differ only on a word with an `x` in it, and `qs_junior` only on the word-level cases [#3](https://github.com/adiabatic/quikscript-lexicon/issues/3) enumerates.
+Sparse columns are empty strings where they do not diverge: 2,347 rows carry a `qs_x`, 8 carry a `qs_junior`. Those bounds are checked, not assumed — `qs_x` may differ only on a word with an `x` in it, and `qs_junior` only on the word-level cases [#3](https://github.com/adiabatic/quikscript-lexicon/issues/3) enumerates.
 
 The projection **deduplicates**. Two headwords can list the same inflected form — ax and axe both own axed — which is 50 rows in this corpus, and flattening without collapsing them is precisely upstream's #124 bug.
 

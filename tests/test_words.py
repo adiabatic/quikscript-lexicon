@@ -17,13 +17,13 @@ from qslex.words import (
     apply_signs,
 )
 
-from conftest import CORPUS, TABLES, context_of
+from conftest import KEPT, TABLES, context_of
 from tsv import write_tsv
 
 SIGNS = TABLES.signs
 CONTRACTIONS = load_contractions()
 
-ROWS = {(row.word.lower(), row.pos): row for row in CORPUS}
+ROWS = {(row.word.lower(), row.pos): row for row in KEPT}
 
 
 CORE_ROWS = [
@@ -96,6 +96,25 @@ def test_junior_diverges_only_where_a_row_says_so() -> None:
     )
     assert spelling("was", "VBD") == ("·Way·Utter·Zoo", "·Way·Ox·Zoo")
     assert spelling("one", "CRD") == ("·Way·Utter·No", "·Way·Utter·No")
+
+
+def test_the_was_outline_reaches_inside_both_its_contractions() -> None:
+    for pos in ("VBD+XX0", "VM0+XX0"):
+        assert spelling("wasn't", pos) == (
+            "·Way·Utter·Zoo·Utter·No·Tea",
+            "·Way·Ox·Zoo·Utter·No·Tea",
+        )
+    assert spelling("'twas", "PNP+VBD") == ("·Tea·Way·Utter·Zoo", "·Tea·Way·Ox·Zoo")
+    assert senior("doesn't", "VDZ+XX0") == "·Day·Utter·Zoo·Utter·No·Tea"
+
+
+def test_no_unlisted_stem_is_substituted_inside_one() -> None:
+    assert senior("isn't", "VBZ+XX0") == "·It·Zoo·Utter·No·Tea"
+    assert senior("'tis", "PNP+VBZ") == "·Tea·It·Zoo"
+    assert senior("mustn't", "VM0+XX0") == "·May·Utter·See·Utter·No·Tea"
+    assert senior("it's", "PNP+VBZ") == "·It·Tea·See"
+    assert senior("it'd", "PNI+VHD") == "·It·Tea·Utter·Day"
+    assert senior("it'll", "PNP+VM0") == "·It·Tea·Utter·Low"
 
 
 def test_that_is_spelt_in_full_only_when_demonstrative() -> None:
@@ -219,10 +238,25 @@ def test_a_listed_contraction_does_not_reach_the_senior_column() -> None:
     assert senior("people", "NN0") == "·Pea·Eat·Pea·Low"
 
 
+def test_doing_is_carried_under_the_terminal_ing_anchor() -> None:
+    doing = [entry for entry in CONTRACTIONS if entry.word == "doing"]
+    assert [(e.contraction, e.authority) for e in doing] == [
+        ("·Day·Oolong", "terminal-ing")
+    ]
+    assert senior("doing", "VDG") == "·Day·Ooze·Oolong"
+
+
 def test_unknown_contraction_kind(tmp_path: Path) -> None:
     rows = [["also", "", "affix", "·Awe·Low·See", "senior-contractions", ""]]
     path = write_tsv(tmp_path / "c.tsv", CONTRACTIONS_HEADER, rows)
     with pytest.raises(ValueError, match="kind must be one of"):
+        load_contractions(path)
+
+
+def test_an_unadmitted_contraction_authority(tmp_path: Path) -> None:
+    rows = [["also", "", "word", "·Awe·Low·See", "common-words", ""]]
+    path = write_tsv(tmp_path / "c.tsv", CONTRACTIONS_HEADER, rows)
+    with pytest.raises(ValueError, match="not a Manual anchor"):
         load_contractions(path)
 
 

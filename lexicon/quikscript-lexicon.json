@@ -52,7 +52,8 @@
     "'twas_PNP+VBD_𐑑𐑢𐑪𐑟": [
         {
             "Latn": "'twas",
-            "qs": "",
+            "qs": "",
+            "qs_junior": "",
             "Shaw": "𐑑𐑢𐑪𐑟",
             "pos": "PNP+VBD",
             "ipa": "twɒz",
@@ -954906,7 +954907,8 @@
     "wasn't_VBD+XX0_𐑢𐑪𐑟𐑩𐑯𐑑": [
         {
             "Latn": "wasn't",
-            "qs": "",
+            "qs": "",
+            "qs_junior": "",
             "Shaw": "𐑢𐑪𐑟𐑩𐑯𐑑",
             "pos": "VBD+XX0",
             "ipa": "ˈwɒzənt",
@@ -954916,7 +954918,8 @@
     "wasn't_VM0+XX0_𐑢𐑪𐑟𐑩𐑯𐑑": [
         {
             "Latn": "wasn't",
-            "qs": "",
+            "qs": "",
+            "qs_junior": "",
             "Shaw": "𐑢𐑪𐑟𐑩𐑯𐑑",
             "pos": "VM0+XX0",
             "ipa": "ˈwɒzənt",

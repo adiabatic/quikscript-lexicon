@@ -115,11 +115,13 @@ def test_spoken_contractions_keep_the_apostrophe(t: Transliterator) -> None:
 
 
 def test_an_aphetic_word_keeps_its_leading_apostrophe(t: Transliterator) -> None:
-    assert words(t, "'Twas the night.")[0] == "’" + qs("·Tea·Way·Ox·Zoo")
+    assert words(t, "'Twas the night.")[0] == "’" + qs("·Tea·Way·Utter·Zoo")
+    junior = words(t, "'Twas the night.", mode="junior")[0]
+    assert junior == "’" + qs("·Tea·Way·Ox·Zoo")
 
 
 def test_nt_attaches_solid(t: Transliterator) -> None:
-    assert words(t, "It wasn't here.")[1] == qs("·Way·Ox·Zoo·Utter·No·Tea")
+    assert words(t, "It wasn't here.")[1] == qs("·Way·Utter·Zoo·Utter·No·Tea")
     assert words(t, "You can't win.")[1] == qs("·Key·Ah·No·Tea")
 
 

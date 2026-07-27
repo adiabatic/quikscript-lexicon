@@ -33,7 +33,7 @@ tipped		senior	word	·Tea·It·Pea·Tea	derived	terminal-es-ed	one of the seven 
 treated		senior	word	·Tea·Roe·Eat·Tea·Day	derived	terminal-es-ed	naive ·Tea·Roe·Eat·Tea·Utter·Day; epenthetic Ə in the TD pair omitted
 wages		senior	word	·Way·Eight·Jay·Zoo	derived	terminal-es-ed	naive ·Way·Eight·Jay·Utter·Zoo; epenthetic Ə between J and Z omitted
 adding-machine	NN1	senior	word	·At·Day·Oolong-·May·Utter·She·Eat·No	derived	terminal-ing	the affix is bared inside the compound: the first element is the ·At·Day·Oolong the corpus gives adding on its own
-beings		senior	word	·Bay·Eat·Oolong·Zoo	derived	terminal-ing	naive ·Bay·Eat·It·Oolong·Zoo; affix -ing drops vowel-i, and the root contraction ·Bay·Oolong (= being) is forbidden by the changed meaning, so the root ·Bay·Eat is spelt in full
+beings		senior	word	·Bay·Eat·Oolong·Zoo	derived	terminal-ing	naive ·Bay·Eat·It·Oolong·Zoo; affix -ing drops vowel-i, and the root contraction ·Bay·Oolong (= being) is forbidden by the changed meaning, so the root ·Bay·Eat is spelt in full. What the rider restores is the root and not the affix: the section's own writings is ·Roe·I·Tea·Oolong·Zoo, a de-verbal noun plural with the affix vowel struck out
 bringing		senior	word	·Bay·Roe·It·Oolong·Oolong	manual	terminal-ing	root bring keeps its ·It; only the affix -ing loses the vowel
 calling		senior	word	·Key·Awe·Low·Oolong	manual	terminal-ing	
 canning		senior	word	·Key·At·No·Oolong	derived	terminal-ing	naive ·Key·At·No·It·Oolong; affix -ing drops vowel-i, and the can contraction ·Key is not used here because the meaning has changed, so the root ·Key·At·No is spelt in full
@@ -375,5 +375,7 @@ always		senior	word	·Awe·Low·Way·Utter·Zoo	manual	common-words
 at		senior	word	·At·Tea	manual	common-words	
 last		senior	word	·Low·At·See·Tea	manual	common-words	as after: the standard outline takes ·At
 was		senior	word	·Way·Utter·Zoo	manual	common-words	
+wasn't		senior	word	·Way·Utter·Zoo·Utter·No·Tea	derived	common-words	the was outline reaching inside a contraction the element split cannot cut, n't being written solid; the Manual's gown-shop specimen writes ·Way·Utter·Zoo·No·Tea, eliding the linking vowel as its own §III -n't contractions do, and that elision is a Senior facility this lexicon applies to no column, so the ·Utter stays here as it does in the Manual's Junior doesn't ·Day·Utter·Zoo·Utter·No·Tea
+'twas		senior	word	·Tea·Way·Utter·Zoo	derived	common-words	the aphetic 't plus the was outline, which the element split cannot reach either, 't being written straight onto the word; the Manual writes 'twas only in its Junior Mary's Lamb, ’·Tea·Way·Ox·Zoo, and that is the junior column here
 that	DT0	senior	word	·They·At·Tea	manual	common-words	
 that	CJT	senior	word	·They·Tea	manual	common-words	the Common words footnote: spelt in full only when demonstrative, otherwise ·They·Tea

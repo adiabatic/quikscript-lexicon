@@ -109,6 +109,12 @@ def test_ing_stays_bare_after_a_prefix() -> None:
     assert senior("willingness", "NN1") == "·Way·It·Low·Oolong·No·Et·See"
 
 
+def test_the_changed_meaning_rider_restores_the_root_not_the_affix() -> None:
+    assert senior("being", "NN1") == senior("being", "VBG") == "·Bay·Eat·Oolong"
+    assert senior("writings", "NN2") == "·Roe·I·Tea·Oolong·Zoo"
+    assert senior("canning", "NN1") == "·Key·At·No·Oolong"
+
+
 def test_al_omits_the_vowel_only_after_a_consonant() -> None:
     assert senior("tribal", "AJ0") == "·Tea·Roe·I·Bay·Low"
     assert senior("spaniel", "NN1") == "·See·Pea·At·No·Ye·Low"

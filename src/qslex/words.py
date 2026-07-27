@@ -15,7 +15,7 @@ SIGN_AUTHORITIES = {"junior-contractions", "common-words"}
 CONTRACTIONS_FILE = "contractions.tsv"
 CONTRACTIONS_HEADER = ["word", "pos", "kind", "contraction", "authority", "note"]
 KINDS = {"word", "clitic"}
-CONTRACTION_AUTHORITY = "senior-contractions"
+CONTRACTION_AUTHORITIES = {"senior-contractions", "terminal-ing"}
 
 # The core eight the Manual sanctions for Junior writing too, in its own order.
 CORE_EIGHT = ("the", "of", "and", "to", "it", "is", "for", "be")
@@ -111,10 +111,10 @@ def load_contractions(path: Path | None = None) -> tuple[Contraction, ...]:
                 f"{source}:{lineno}: kind must be one of {sorted(KINDS)}, "
                 f"got {entry.kind!r}"
             )
-        if entry.authority != CONTRACTION_AUTHORITY:
+        if entry.authority not in CONTRACTION_AUTHORITIES:
             raise ValueError(
-                f"{source}:{lineno}: {entry.authority!r} is not "
-                f"{CONTRACTION_AUTHORITY!r}"
+                f"{source}:{lineno}: {entry.authority!r} is not a Manual anchor "
+                f"for this table (have {sorted(CONTRACTION_AUTHORITIES)})"
             )
         unknown = unknown_names(entry.contraction)
         if unknown:

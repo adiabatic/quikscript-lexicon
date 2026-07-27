@@ -112,7 +112,7 @@ gown-shop	2	a	·Utter	senior
 gown-shop	3	pity	·Pea·It·Tea·It	senior		
 gown-shop	4	that	·They·Tea	senior		
 gown-shop	5	she	·She	contraction		
-gown-shop	6	wasn't	·Way·Utter·Zoo·No·Tea	differs	·Way·Ox·Zoo·Utter·No·Tea	Read applies the was outline inside wasn't and drops the unstressed vowel before -n't; outlines are substituted at element boundaries only, so the lexicon spells ReadLex's ˈwɒzənt out
+gown-shop	6	wasn't	·Way·Utter·Zoo·No·Tea	differs	·Way·Utter·Zoo·Utter·No·Tea	the was outline now reaches inside the contraction; what still differs is the linking vowel Read elides before -n't, as §III's own can't, couldn't, don't, didn't and haven't do, which is a Senior facility this lexicon applies to no column
 gown-shop	7	with	·Way·It	contraction		
 gown-shop	8	them	·They·May	differs	·They·Et·May	·They·May is Read's own contraction of them; §III does not list it, so no contractions.tsv row can match it
 gown-shop	9	that	·They·At·Tea	senior		
@@ -277,7 +277,7 @@ rip-van-winkle	103	own	·Owe·No	senior
 rip-van-winkle	104	but	·Bay·Tea	contraction		
 rip-van-winkle	105	as	·At	contraction		
 rip-van-winkle	106	to	·Tea	senior		
-rip-van-winkle	107	doing	·Day·Oolong	differs	·Day·Ooze·Oolong	§III's do-sign ·Day with the -ing terminal; the lexicon spells ˈduːɪŋ out
+rip-van-winkle	107	doing	·Day·Oolong	contraction		
 rip-van-winkle	108	family	·Fee·At·May·It·Low·It	senior		
 rip-van-winkle	109	duties	·Day·Ye·Ooze·Tea·It·Zoo	senior		
 rip-van-winkle	110	and	·No	senior		

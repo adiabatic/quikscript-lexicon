@@ -118,6 +118,7 @@ EXPECTED_RULE_CHANGES: dict[str, int] = {
 # says the corpus agrees with the Manual rather than that the row is idle. Counts
 # include the word inside a phrase entry.
 EXPECTED_SIGN_CHANGES: dict[str, int] = {
+    "'twas": 1,
     "after": 5,
     "always": 1,
     "at": 4,
@@ -131,11 +132,13 @@ EXPECTED_SIGN_CHANGES: dict[str, int] = {
     "that": 3,
     "to": 3,
     "was": 1,
+    "wasn't": 2,
 }
 
 # Rows whose Junior spelling diverges from the Senior one: non-demonstrative that,
-# and the two standard outlines that reduce a vowel ReadLex writes in full.
-EXPECTED_JUNIOR_DIVERGENCES = 5
+# and the standard outlines that reduce a vowel ReadLex writes in full, was among them
+# both on its own and inside the two contractions that leave it no boundary.
+EXPECTED_JUNIOR_DIVERGENCES = 8
 
 # Words the Manual spells out that ReadLex has no entry for, so the fixture records
 # them without being able to reproduce them.
@@ -161,11 +164,11 @@ EXPECTED_ROUNDTRIP_EDITS: dict[tuple[str, str], int] = {
 }
 
 # Spellings that read straight back to their own IPA, with nothing elided or levelled.
-EXPECTED_ROUNDTRIP_IDENTICAL = 76621
+EXPECTED_ROUNDTRIP_IDENTICAL = 76618
 
 # A word sign or standard outline stands for the written word rather than for its
 # sounds, so a row one rewrites has nothing to read back.
-EXPECTED_ROUNDTRIP_SKIPPED = 34
+EXPECTED_ROUNDTRIP_SKIPPED = 37
 
 FORBIDDEN_RAW_PATTERNS = {
     "bare ɪR (schwa-less EAR)": r"ɪ[ˈˌ]?R",
@@ -234,7 +237,7 @@ def passages(
         if word.verdict == "contraction":
             if word.spelling not in contracted.get(word.latin, set()):
                 failures.append(
-                    f"{where} is the §III contraction {word.spelling}, "
+                    f"{where} is the contraction {word.spelling}, "
                     f"which contractions.tsv does not carry"
                 )
         elif word.verdict == "absent":

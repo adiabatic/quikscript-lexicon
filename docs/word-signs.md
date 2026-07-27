@@ -6,8 +6,8 @@ Authority links go to the [AMS Manual transcription][manual]; every letter-name 
 
 ## Artifacts
 
-- `src/qslex/data/word-signs.tsv` — the 103 rows that reach a column: the core eight, the three abbreviations, and the Manual's standard word-outlines. Columns: `word`, `pos`, `tier`, `senior`, `junior`, `full`, `authority`, `note`.
-- `src/qslex/data/contractions.tsv` — the [§III contraction list][senior], which reaches **no** column. Its ~50 printed entries make 78 rows: several cover an inflected set (`be/ing/en`, `come/s/ing`, `make/ing, made`), and two are the clitics generalised below. Columns: `word`, `pos`, `kind`, `contraction`, `authority`, `note`.
+- `src/qslex/data/word-signs.tsv` — the 105 rows that reach a column: the core eight, the three abbreviations, the Manual's standard word-outlines, and the two rows that list one of those outlines again so that it reaches inside a contraction ([Tier 3](#tier-3-the-standard-word-outlines)). Columns: `word`, `pos`, `tier`, `senior`, `junior`, `full`, `authority`, `note`.
+- `src/qslex/data/contractions.tsv` — the [§III contraction list][senior], which reaches **no** column. Its ~50 printed entries make 78 rows: several cover an inflected set (`be/ing/en`, `come/s/ing`, `make/ing, made`), and two are the clitics generalised below. A 79th comes from the [terminal -ing][ing] section instead, which prints ·Day·Oolong = doing among its Root Contractions plus Affix where the §III list itself stops at do, did, don't and didn't; `authority` names which of the two anchors a row has. Columns: `word`, `pos`, `kind`, `contraction`, `authority`, `note`.
 - `src/qslex/words.py` — the loaders and the substitution, which rejects an unknown tier, a Manual anchor that does not belong to this table, a Junior spelling that merely repeats the Senior one, a part-of-speech row that a general row already shadows, and a missing core sign.
 - `src/qslex/letters.py` — the letter-name primitives this layer shares with the rules.
 - `src/qslex/elements.py` — the split into elements it shares with them too, so that neither layer can disagree with the other about where a boundary is.
@@ -47,15 +47,23 @@ For the there is no fuller spelling to record beyond the specimens' ·They·Utte
 
 [§ Common words][common] prints 69 headwords, several of them covering an inflected pair (`day/s`, `know/n`, `use/d (v.)`), for 84 words in 92 rows once the parts of speech are split out. **Seventy-nine of the 84 are already exactly what ReadLex's IPA gives** once the orthographic rules have run. They ship anyway, for the reason the eleven no-op rules do: a corpus row that ever contradicts the Manual gets corrected rather than passed through, and the validator pins the count so a word that starts mattering is visible.
 
-Three of the five that do rewrite are word-level standardisations:
+Two more rows belong to this tier without being among the 84: **wasn't** and **'twas**. An outline is substituted at the boundaries [`src/qslex/elements.py`](../src/qslex/elements.py) cuts, and neither clitic leaves one — `n't` attaches solid, and the aphetic `'t` is written straight onto the word — so each is one Latin part facing one spelt run with no boundary inside it for was to be matched at, and the outline cannot reach the word without a row naming it.
+
+Listing the two is deliberately narrower than generalising, and eight corpus rows over six distinct words would come out differently under the rule these rows decline to write. It would spell isn't and 'tis with the core sign for is, as ·Zoo·Utter·No·Tea and ·Tea·Zoo; it would spell it's, it'd and it'll with the core sign for it, as ·It·See, ·It·Utter·Day and ·It·Utter·Low; and it would spell mustn't ·May·Utter·See·Tea·Utter·No·Tea, inserting a ·Tea that neither ReadLex's `ˈmʌsənt` nor the Manual has. The Manual writes none of those six, and the it family shows what writing them anyway would cost: ·It·See is letter for letter the [§III][senior] contraction `contractions.tsv` carries for it's, so the generalisation would put a Senior contraction into the senior column, which the ruling that keeps people at ·Pea·Eat·Pea·Low forbids. What separates was is that the Manual writes its outline inside both of these words itself — the Senior form inside gown-shop's wasn't, the Junior one inside Mary's Lamb's 'twas — and the `was` row's own Senior/Junior split then supplies the other column of each. The only other contractions it writes an outline inside are doesn't ·Day·Utter·Zoo·Utter·No·Tea and they'll ·They·Eight’·Low, where the does and they outlines are already what the rules give, so neither needs a row.
+
+Five of the seven that do rewrite are word-level standardisations:
 
 | Word | Senior | Junior | Why |
 |---|---|---|---|
 | always | ·Awe·Low·Way·Utter·Zoo | ·Awe·Low·Way·Eight·Zoo | the standard outline reduces -ways; ReadLex has `ˈɔːlweɪz` |
 | was | ·Way·Utter·Zoo | ·Way·Ox·Zoo | the standard outline takes the weak vowel; ReadLex has `wɒz` |
+| wasn't | ·Way·Utter·Zoo·Utter·No·Tea | ·Way·Ox·Zoo·Utter·No·Tea | the same outline, reaching inside the contraction; ReadLex has `ˈwɒzənt` |
+| 'twas | ·Tea·Way·Utter·Zoo | ·Tea·Way·Ox·Zoo | the same again, after the aphetic 't; ReadLex has `twɒz` |
 | that (not demonstrative) | ·They·Tea | ·They·At·Tea | the Common words footnote: "spelt in full only when demonstrative; otherwise — ·They·Tea" |
 
 `was` is the one the ticket did not predict, and the Manual's specimens confirm the split independently, in the same word: the Senior gown-shop passage on p.23 writes wasn't ·Way·**Utter**·Zoo·No·Tea, while the Junior Mary's Lamb on p.26 writes was twice as ·Way·**Ox**·Zoo — "its fleece was white as snow" and "her lamb was sure to go" — and 'twas as ’·Tea·Way·**Ox**·Zoo.
+
+That specimen also elides the vowel between the outline and the `n't`, and this column does not follow it there. Every other place the Manual writes a bare ·No·Tea straight onto a stem is an entry in the [§III][senior] list — can't ·Key·No·Tea, couldn't ·Key·Day·No·Tea, haven't ·He·Vie·No·Tea — which puts the elision with the contractions rather than with the spelling, and a Senior contraction reaches no column here, by the ruling that keeps people at ·Pea·Eat·Pea·Low. The un-elided shape is the Manual's too, in the Junior doesn't ·Day·Utter·Zoo·Utter·No·Tea on p.26 — which is letter for letter what the corpus already gives this lexicon for doesn't, so wasn't is now its counterpart rather than the one n't word in the column that contracts. The gown-shop row in `manual-passages.tsv` stays a `differs` for that one letter.
 
 The other two rewrite for a different reason. **after and last take ·At.** The Manual writes after = ·At·Fee·Tea·Utter·Roe and last = ·Low·At·See·Tea, which agrees with ReadLex's `Æ` rows and overrules its `Ɑː` ones. That is not an accident of Read's own accent — it is the point of the section: "The choice of standard spellings is convenient for writing and reading. It implies no preference in pronunciation" ([p.22][note]). So the BATH set is standardised on ·At and the variant rows collapse for these two words, whichever way [#8][plan]'s rhotic-RP-only decision finally falls in [#4][pipeline].
 
@@ -96,6 +104,7 @@ Two guards keep it honest. A row is only applied inside a phrase if it holds for
 
 | Word | Result |
 |---|---|
+| 'twas | → ·Tea·Way·Utter·Zoo |
 | after | the `Ɑː` rows, and the `Ɑː` half of the PRE entry after- → ·At·Fee·Tea·Utter·Roe |
 | always | → ·Awe·Low·Way·Utter·Zoo |
 | at | at-home, at-homes, gentleman-at-arms, gentlemen-at-arms — ReadLex's weak `ət` → ·At·Tea |
@@ -109,12 +118,13 @@ Two guards keep it honest. A row is only applied inside a phrase if it holds for
 | that | that AJ0, AV0, CJT → ·They·Tea |
 | to | lean-to ×2, set-to → ·Tea |
 | was | → ·Way·Utter·Zoo |
+| wasn't | both rows → ·Way·Utter·Zoo·Utter·No·Tea |
 
 lean-to and set-to are worth a second look, since the to in each is a lexicalised particle rather than the preposition. They stay, because ReadLex writes exactly the same particle with its own word sign in stand-to `stænd-ˈT`, talking-to `ˈtɔːkɪŋ-T` and to-do `T-ˈduː`; substituting here makes upstream's treatment of the pattern uniform rather than departing from it.
 
 ## The junior column
 
-Per [#8][plan] the senior column is the default and junior is populated only where the Junior spelling genuinely differs at word level. After this ticket that is **five rows** — that ×3, always, was — and no others: the Manual's terminal, affix and prefix conventions are universal ([#2][rules]), the core eight are Junior-sanctioned, and the abbreviations are given in the Junior section.
+Per [#8][plan] the senior column is the default and junior is populated only where the Junior spelling genuinely differs at word level. After this ticket that is **eight rows** — that ×3, always, was, wasn't ×2, 'twas — and no others: the Manual's terminal, affix and prefix conventions are universal ([#2][rules]), the core eight are Junior-sanctioned, and the abbreviations are given in the Junior section.
 
 The column obeys one invariant, which the validator checks: **a Junior spelling is exactly the spelling with the override left unapplied.** A junior form is never independently authored; it is what the rules alone produce. If a word ever needs a Junior spelling that is neither the Senior outline nor the plain rules output, the build fails and the model has to be revisited rather than quietly bent.
 
@@ -135,6 +145,10 @@ The Manual states almost nothing about apostrophes and demonstrates a great deal
 The sharpest datum is internal to a single six-line rhyme on p.26: **doesn't without an apostrophe and they'll with one, two lines apart.**
 
 So the conditioning is not phonological and not about letter class — it is about whether the clitic's letters could be read as a continuation of the word. `n't` and `'s` add letters that are already ordinary word-final spellings, so they attach solid; `'d`, `'ll` and aphetic `'t` would be misread, so the apostrophe stays. The ruling for the unattested three is to follow `'d` and `'ll` and keep the apostrophe: I'm = ·I’·May, you've = ·Ye·Ooze’·Vie, we're = ·Way·Eat’·Utter·Roe. `contractions.tsv` records `'ll` = ’·Low and `n't` = ·No·Tea as its two `clitic` rows, each carrying the note that says what it was generalised from.
+
+**Attaching solid is not the same as eliding.** wasn't and doesn't join the clitic identically and treat the vowel before it differently — the Senior specimen writes ·Way·Utter·Zoo·No·Tea, the Junior rhyme ·Day·Utter·Zoo·Utter·No·Tea — so the elision goes with §III's own can't and couldn't, as a Senior facility rather than as the spelling, and no column takes it. The columns spell both words the Junior way.
+
+The mark is independent of the outline in the same way. p.26's 'Twas fixes where the apostrophe goes and says nothing about the vowel behind it, being Junior text: the senior column writes ·Tea·Way·**Utter**·Zoo with that same ’ in front of it ([Tier 3](#tier-3-the-standard-word-outlines)), which is why the spellings this table cites are not all the ones the columns carry.
 
 **Where the possessive meets the -es rule.** [`terminal-es-ed`][es-ed] already omits the separating vowel between the seven pairs the Manual names — SZ, ShZ, ChZ, JZ, ZZ, DD, TD — so a possessive after a sibilant is a bare ·Zoo with nothing before it, and Jones's comes out ·Jay·Owe·No·Zoo·Zoo. The -Z of a plural or possessive becoming -S after a voiceless consonant (cups = ·Key·Utter·Pea·See against cubs = ·Key·Utter·Bay·Zoo) needs no rule at all: ReadLex's IPA writes /s/ there already.
 
@@ -160,6 +174,7 @@ The word-sign section of [`src/qslex/validate.py`](../src/qslex/validate.py) fai
 [other]: https://adiabatic.github.io/abbots-morton-spaceport/the-manual.html#other-conventions
 [spelling]: https://adiabatic.github.io/abbots-morton-spaceport/the-manual.html#spelling
 [tips]: https://adiabatic.github.io/abbots-morton-spaceport/the-manual.html#writing-tips
+[ing]: https://adiabatic.github.io/abbots-morton-spaceport/the-manual.html#terminal-ing
 [note]: https://adiabatic.github.io/abbots-morton-spaceport/the-manual.html#examples-note
 [plan]: https://github.com/adiabatic/quikscript-lexicon/issues/8
 [rules]: https://github.com/adiabatic/quikscript-lexicon/issues/2

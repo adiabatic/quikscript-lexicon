@@ -20,6 +20,7 @@ do		word	·Day	senior-contractions
 did		word	·Day·Day	senior-contractions	
 don't		word	·Day·No·Tea	senior-contractions	written solid, no apostrophe
 didn't		word	·Day·Day·No·Tea	senior-contractions	written solid, no apostrophe
+doing		word	·Day·Oolong	terminal-ing	the terminal -ing section prints ·Day·Oolong = doing among its Root Contractions plus Affix, where this list stops at do, did, don't and didn't; the anchor is that section rather than the list, and doing is the only form it adds
 ever		word	·Et·Vie	senior-contractions	
 every		word	·Et·Vie·It	senior-contractions	
 from		word	·Fee·May	senior-contractions	

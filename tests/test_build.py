@@ -82,7 +82,13 @@ def test_the_x_column_is_confined_to_words_with_an_x() -> None:
 
 def test_the_junior_column_is_confined_to_the_word_level_cases() -> None:
     juniors = [entry for entry in ENTRIES if entry.junior]
-    assert {entry.latin for entry in juniors} == {"always", "that", "was"}
+    assert {entry.latin for entry in juniors} == {
+        "always",
+        "that",
+        "was",
+        "wasn't",
+        "'twas",
+    }
 
 
 def test_every_qs_string_is_letters_and_separators() -> None:
