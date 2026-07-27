@@ -60,7 +60,7 @@ def _resolve(
     conditions = mapping.lookup[token]
     if "" in conditions:
         return conditions[""]
-    if rule is not None and rule.token == token:
+    if rule is not None:
         return conditions[rule.condition]
     if "stressed" in conditions:
         return conditions["stressed" if is_stressed(ipa, position) else "unstressed"]

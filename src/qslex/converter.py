@@ -18,12 +18,13 @@ REASONS = {"html-entity", "tokenizer-split"}
 FALLBACK = "0"
 JOIN = "⬌"
 
-# The order tagged rows are written in. Proper nouns come first on purpose: a consumer
-# that falls back from NNP to the NN row — which is what latin2shaw.py does — reaches
-# that fallback before the exact NNP row if NN is written first, so upstream's own file
-# makes the proper-noun spelling of august, derby, reading, slough and 23 others
-# unreachable. Everything after NNP is alphabetical, because nothing else needs an
-# opinion and an arbitrary order would only invite one.
+# The Penn tags a row may name, and the order the tagged rows are written in. Proper
+# nouns come first on purpose: a consumer that falls back from NNP to the NN row —
+# which is what latin2shaw.py does — reaches that fallback before the exact NNP row if
+# NN is written first, so upstream's own file makes the proper-noun spelling of august,
+# derby, reading, slough and 23 others unreachable. Everything after NNP is
+# alphabetical, because nothing else needs an opinion and an arbitrary order would only
+# invite one.
 PROPER_NOUN = "NNP"
 PENN_TAGS = frozenset(
     {
@@ -90,7 +91,8 @@ def load_penn(path: Path | None = None) -> dict[str, TagMap]:
             )
         if entry.penn not in PENN_TAGS:
             raise ValueError(
-                f"{source}:{lineno}: {entry.penn!r} has no place in the row order"
+                f"{source}:{lineno}: {entry.penn!r} is not a Penn tag "
+                f"this table carries (have {sorted(PENN_TAGS)})"
             )
         if not entry.note:
             raise ValueError(f"{source}:{lineno}: every mapping needs a note")

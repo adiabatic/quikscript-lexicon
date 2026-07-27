@@ -7,7 +7,7 @@ from pathlib import Path
 
 from qslex.elements import DIVIDERS, chunks, components, elements
 from qslex.letters import VOWELS, Letters, names, parse
-from qslex.rules import AL, ALLY, ENT, ING_TAILS, Tables
+from qslex.rules import AL, ALLY, ENT, ING_TAILS, LIGATURE_LETTERS, Tables
 from qslex.tables import rows_of
 from qslex.tokenizer import marked
 
@@ -21,7 +21,6 @@ DEFECT = "known-defect"
 
 REDUCIBLE = frozenset({"It", "Utter"})
 VOWEL_CHARS = frozenset("ɪieæaɑɒɔʊuʌəɜːƏIÆⱭ")
-LIGATURES = frozenset({"Excite", "Exam"})
 
 # "While L needs no preceding vowel in Spaniel, one is clearly needed wherever -al
 # follows on a vowel-sound" — so ·Ye counts here as the vowel it stands in for.
@@ -204,7 +203,7 @@ def initial_ex_et(site: Site, tables: Tables) -> str:
     spelt = site.ligated
     if not site.latin.startswith("ex") or len(spelt) < 2:
         return ""
-    if spelt[1] not in LIGATURES or site.stressed:
+    if spelt[1] not in LIGATURE_LETTERS or site.stressed:
         return ""
     return f"·{spelt[0]} before the ligature, not ·Et" if spelt[0] != "Et" else ""
 
@@ -213,7 +212,7 @@ def ligature_only_with_x(site: Site, tables: Tables) -> str:
     """ "but only where Orthodox spells these sounds with X … and only one ·Excite in
     Xerxes." (section-2)
     """
-    used = sum(1 for name in site.ligated if name in LIGATURES)
+    used = sum(1 for name in site.ligated if name in LIGATURE_LETTERS)
     available = site.latin.count("x")
     if used <= available:
         return ""

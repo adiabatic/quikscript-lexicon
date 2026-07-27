@@ -173,7 +173,7 @@ Where the Manual and ReadLex disagree about a word's *pronunciation* rather than
 
 The rules section of [`src/qslex/validate.py`](../src/qslex/validate.py) runs over every corpus row and fails unless:
 
-- every rule rewrites exactly as many rows as `EXPECTED_RULE_CHANGES` pins;
+- every rule rewrites exactly as many rows as `EXPECTED_RULE_CHANGES` pins, and that table pins every rule and nothing else, so a deleted rule cannot leave its pin behind;
 - every terminal claims at least one word — counted per element, so a terminal that only ever owns the end of a word inside a compound still has to claim it. The ten rules that are not terminals — -es/-ed, -ing and the eight prefixes — carry no pattern to be claimed by, because each decides inside its own `apply` rather than by matching the end of the Latin; what holds them is their pinned count and the undecided residue below;
 - every Manual example word reproduces exactly, and exactly two are missing from ReadLex;
 - every ruling in `rule-words.tsv` and `x-ligatures.tsv` is exercised — exercised meaning the rule consulted the row, not that some corpus entry shares its key, so a row the per-element lookup can no longer reach cannot linger;
@@ -211,4 +211,3 @@ The rules section of [`src/qslex/validate.py`](../src/qslex/validate.py) runs ov
 [pre]: https://adiabatic.github.io/abbots-morton-spaceport/the-manual.html#prefix-pre-pro
 [per]: https://adiabatic.github.io/abbots-morton-spaceport/the-manual.html#prefix-per-pur
 [in]: https://adiabatic.github.io/abbots-morton-spaceport/the-manual.html#prefix-in-en
-[sec2]: https://adiabatic.github.io/abbots-morton-spaceport/the-manual.html#section-2

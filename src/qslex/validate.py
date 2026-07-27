@@ -23,6 +23,7 @@ from qslex.roundtrip import (
     spelt_phonemes,
 )
 from qslex.rules import (
+    RULE_IDS,
     RULES,
     TERMINAL_RULES,
     Context,
@@ -49,9 +50,6 @@ from qslex.variants import kept, load_var_tags
 from qslex.words import CORE_EIGHT, Contraction, load_contractions
 
 EAR = "\U0001047d"
-IAN = "\U0001047e"
-IT = "\U00010466"
-ARRAY = "\U0001047c"
 
 EXPECTED_TOKEN_COUNTS = {
     ("R", ""): 27512,
@@ -670,9 +668,14 @@ def main(argv: list[str] | None = None) -> int:
             failures.append(
                 f"rule {orthographic.id} rewrote {changed} rows, expected {pinned}"
             )
-    unpinned = [r.id for r in RULES if r.id not in EXPECTED_RULE_CHANGES]
+    unpinned = [rule for rule in RULE_IDS if rule not in EXPECTED_RULE_CHANGES]
     if unpinned:
         failures.append(f"rules with no pinned rewrite count: {unpinned}")
+    orphaned = [rule for rule in EXPECTED_RULE_CHANGES if rule not in RULE_IDS]
+    if orphaned:
+        failures.append(
+            f"pinned rewrite counts for rules that no longer exist: {orphaned}"
+        )
 
     print("\nundecided residue (must be ruled on in rule-words.tsv / x-ligatures.tsv):")
     for label in sorted(undecided):

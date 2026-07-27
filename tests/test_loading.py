@@ -445,9 +445,9 @@ def test_penn_rejects_unknown_evidence(tmp_path: Path) -> None:
         load_penn(penn_file(tmp_path, rows))
 
 
-def test_penn_rejects_a_tag_with_no_place_in_the_row_order(tmp_path: Path) -> None:
+def test_penn_rejects_an_unknown_penn_tag(tmp_path: Path) -> None:
     rows = [["CRD", "CD", "standard", "cardinal number"]]
-    with pytest.raises(ValueError, match="has no place in the row order"):
+    with pytest.raises(ValueError, match="is not a Penn tag"):
         load_penn(penn_file(tmp_path, rows))
 
 
