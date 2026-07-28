@@ -62,12 +62,12 @@ function check(name, body) {
   done.push(name);
 }
 
-check("the page's word list is the whole lexicon", () => {
-  assert.equal(UNION.length, 75568);
+check("the page's word list is the whole lexicon and the senior contractions", () => {
+  assert.equal(UNION.length, 75636);
   assert.equal(QS.try_order.length, 44);
   assert.equal(QS.rep.length, 4);
-  assert.equal(QS.pairs.length, 5);
-  assert.equal(QS.senior_only.length, 5);
+  assert.equal(QS.pairs.length, 77);
+  assert.equal(QS.senior_only.length, 73);
   assert.equal(QS.junior_only.length, 4);
 });
 
@@ -213,6 +213,23 @@ check("a senior-only spelling is offered its junior counterpart in junior mode",
   }
 });
 
+const CONTRACTION = "\uE665\uE654";
+const FULL = "\uE665\uE673\uE654";
+
+check("a senior contraction is Senior writing and is not Junior writing", () => {
+  assert.equal(accepts(SENIOR, CONTRACTION), true, show(CONTRACTION));
+  assert.equal(accepts(JUNIOR, CONTRACTION), false, show(CONTRACTION));
+  assert.ok(QS.senior_only.includes(CONTRACTION), show(CONTRACTION));
+  assert.equal(accepts(JUNIOR, FULL), true, show(FULL));
+  assert.equal(accepts(SENIOR, FULL), true, show(FULL));
+});
+
+check("a senior contraction is offered the full spelling first in junior mode", () => {
+  const offers = suggest(CONTRACTION, junior());
+  assert.equal(offers[0], FULL, `${show(offers[0])} != ${show(FULL)}`);
+  assert.equal(freq(CONTRACTION), freq(FULL), "it is as common as the word it writes");
+});
+
 check("a junior-only spelling is offered its senior counterpart in senior mode", () => {
   for (const word of QS.junior_only) {
     assert.equal(accepts(SENIOR, word), false, show(word));
@@ -270,7 +287,9 @@ check("every offer is a spelling the active set takes, and never the word itself
   }
 });
 
-const COMMON = UNION.filter((word) => freq(word) > 5000 && !word.includes("-"));
+const COMMON = UNION.filter(
+  (word) => JUNIOR.has(word) && freq(word) > 5000 && !word.includes("-"),
+);
 const RUN_ON = (() => {
   for (const left of COMMON) {
     for (const right of COMMON) {

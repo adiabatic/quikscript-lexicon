@@ -69,6 +69,23 @@ h1 {
   font-weight: 600;
 }
 
+#ignored {
+  padding: 0.125rem 0.625rem;
+  border: 1px solid var(--rule);
+  border-radius: 999px;
+  background: #fff;
+  color: var(--quiet);
+  font: inherit;
+  font-size: 0.8125rem;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+#ignored:hover,
+#ignored:focus-visible {
+  color: var(--ink);
+}
+
 #controls {
   display: flex;
   align-items: center;
@@ -295,6 +312,23 @@ main {
   font-size: 0.875rem;
   line-height: 1.4;
   color: var(--quiet);
+}
+
+#fixer .ignore {
+  margin-top: 11px;
+  padding: 11px 11px 0;
+  border-top: 1px solid var(--rule);
+  border-radius: 0;
+  font-family: system-ui, sans-serif;
+  font-size: 0.875rem;
+  line-height: 1.4;
+  color: var(--quiet);
+}
+
+#fixer .ignore:hover,
+#fixer .ignore:focus-visible {
+  background: none;
+  color: var(--ink);
 }
 
 footer {

@@ -81,6 +81,7 @@ class Element extends Fragment {
     this.textContent = "";
     this.value = "";
     this.checked = false;
+    this.hidden = false;
     this.showing = false;
     this.focused = false;
     this.selected = false;
@@ -187,13 +188,34 @@ const clipboard = {
   },
 };
 
-function stage(supports) {
+const KEPT = "qs-playground.ignored";
+
+function storage() {
+  const held = new Map();
+  return {
+    held,
+    getItem: (key) => (held.has(key) ? held.get(key) : null),
+    setItem: (key, value) => held.set(key, String(value)),
+  };
+}
+
+const sealed = {
+  getItem() {
+    throw new Error("this origin has no storage");
+  },
+  setItem() {
+    throw new Error("this origin has no storage");
+  },
+};
+
+function stage(supports, kept) {
   const parts = {
     source: new Element("textarea"),
     preview: flatten(new Element("div")),
     senior: new Element("input"),
     fixer: new Element("div"),
     copy: new Element("button"),
+    ignored: new Element("button"),
   };
   parts.source.value = SAMPLE;
   parts.copy.textContent = "Copy source";
@@ -206,6 +228,7 @@ function stage(supports) {
     Node: { ELEMENT_NODE: 1, TEXT_NODE: 3 },
     NodeFilter: { SHOW_TEXT: 4 },
     navigator: { clipboard },
+    localStorage: kept || storage(),
     CSS: { supports: () => supports },
     innerWidth: 1200,
     innerHeight: 800,
@@ -283,15 +306,29 @@ check("the first render underlines the one word the lexicon does not carry", () 
 
 const misspelt = spans()[0].dataset.w;
 
+const buttonsOf = (element) =>
+  element.childNodes.filter((node) => node.tagName === "BUTTON");
+const offersOf = (element) =>
+  buttonsOf(element).filter((node) => !node.classList.contains("ignore"));
+const ignoreOf = (element) =>
+  buttonsOf(element).filter((node) => node.classList.contains("ignore"));
+
 check("clicking the underline opens the popover with suggestions", () => {
   preview.fire("click", { target: spans()[0] });
   assert.equal(fixer.showing, true);
   assert.equal(fixer.childNodes[0].tagName, "DIV");
   assert.equal(fixer.childNodes[0].classList.contains("word"), true);
   assert.equal(fixer.childNodes[0].textContent, misspelt);
-  const buttons = fixer.childNodes.filter((node) => node.tagName === "BUTTON");
-  assert.ok(buttons.length > 0 && buttons.length <= 8, `${buttons.length} offers`);
-  for (const button of buttons) assert.equal(button.type, "button");
+  const offers = offersOf(fixer);
+  assert.ok(offers.length > 0 && offers.length <= 8, `${offers.length} offers`);
+  for (const button of buttonsOf(fixer)) assert.equal(button.type, "button");
+});
+
+check("the popover offers to ignore the word, once, after the suggestions", () => {
+  const buttons = buttonsOf(fixer);
+  assert.equal(ignoreOf(fixer).length, 1);
+  assert.equal(buttons[buttons.length - 1].classList.contains("ignore"), true);
+  assert.equal(buttons[buttons.length - 1].textContent, "Ignore");
 });
 
 check("the popover is pinned inside the viewport when anchoring is unavailable", () => {
@@ -301,7 +338,7 @@ check("the popover is pinned inside the viewport when anchoring is unavailable",
 });
 
 check("choosing a suggestion edits the source, shuts the popover and re-renders", () => {
-  const button = fixer.childNodes.find((node) => node.tagName === "BUTTON");
+  const button = offersOf(fixer)[0];
   const fix = button.textContent;
   button.fire("click");
   assert.equal(fixer.showing, false);
@@ -384,6 +421,54 @@ check("only one span carries the anchor name at a time", () => {
   assert.equal(shown[1].style.props.get("anchor-name"), "--qs-miss");
   assert.equal(shown[0].dataset.occ, "0");
   assert.equal(shown[1].dataset.occ, "1");
+});
+
+const shelf = storage();
+const excusing = stage(false, shelf);
+const flagged = (held) => marked(held.parts.preview).map((span) => span.dataset.w);
+
+function ignoreTheMisspelling(held) {
+  const shown = marked(held.parts.preview);
+  held.parts.preview.fire("click", { target: shown[0] });
+  ignoreOf(held.parts.fixer)[0].fire("click");
+}
+
+check("the chip stays out of sight until something has been ignored", () => {
+  assert.equal(excusing.parts.ignored.hidden, true);
+  assert.deepEqual(flagged(excusing), [misspelt]);
+  assert.equal(shelf.held.has(KEPT), false, "nothing is written before there is any");
+});
+
+check("ignoring a word drops its underline and writes the word down", () => {
+  ignoreTheMisspelling(excusing);
+  assert.equal(excusing.parts.fixer.showing, false, "the popover shuts behind it");
+  assert.deepEqual(flagged(excusing), []);
+  assert.equal(excusing.parts.ignored.hidden, false);
+  assert.equal(excusing.parts.ignored.textContent, "Ignored: 1 — clear");
+  assert.deepEqual(JSON.parse(shelf.held.get(KEPT)), [misspelt]);
+});
+
+check("a page opened again over the same storage starts out knowing", () => {
+  const again = stage(false, shelf);
+  assert.deepEqual(flagged(again), []);
+  assert.equal(again.parts.ignored.hidden, false);
+  assert.equal(again.parts.ignored.textContent, "Ignored: 1 — clear");
+});
+
+check("the chip clears the list, the storage and the underline it was hiding", () => {
+  excusing.parts.ignored.fire("click");
+  assert.equal(excusing.parts.ignored.hidden, true);
+  assert.deepEqual(JSON.parse(shelf.held.get(KEPT)), []);
+  assert.deepEqual(flagged(excusing), [misspelt]);
+  assert.deepEqual(flagged(stage(false, shelf)), [misspelt]);
+});
+
+check("an origin whose storage throws still ignores for the session", () => {
+  const sessional = stage(false, sealed);
+  assert.deepEqual(flagged(sessional), [misspelt]);
+  ignoreTheMisspelling(sessional);
+  assert.deepEqual(flagged(sessional), []);
+  assert.equal(sessional.parts.ignored.textContent, "Ignored: 1 — clear");
 });
 
 const typed = stage(false);

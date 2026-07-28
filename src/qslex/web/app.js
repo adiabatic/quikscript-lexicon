@@ -3,6 +3,7 @@ const preview = document.getElementById("preview");
 const grade = document.getElementById("senior");
 const fixer = document.getElementById("fixer");
 const copier = document.getElementById("copy");
+const excused = document.getElementById("ignored");
 
 const DELAY = 150;
 const HELD = 1500;
@@ -14,6 +15,8 @@ const RESTING = copier.textContent;
 const EMPTY = "No suggestions";
 const DONE = "Copied";
 const BY_HAND = "Press ⌘C";
+const IGNORE = "Ignore";
+const KEPT = "qs-playground.ignored";
 
 const counts = new Map();
 for (const line of QS.words.split("\n")) {
@@ -26,6 +29,17 @@ const JUNIOR = new Set(counts.keys());
 for (const word of QS.senior_only) JUNIOR.delete(word);
 const SENIOR = new Set(counts.keys());
 for (const word of QS.junior_only) SENIOR.delete(word);
+
+function remembered() {
+  try {
+    const held = JSON.parse(localStorage.getItem(KEPT) || "[]");
+    return Array.isArray(held) ? held.filter((word) => typeof word === "string") : [];
+  } catch {
+    return [];
+  }
+}
+
+const ignored = new Set(remembered());
 
 let pending = 0;
 let restore = 0;
@@ -90,7 +104,8 @@ function mark() {
     for (const hit of found) {
       const occurrence = seen.get(hit.word) || 0;
       seen.set(hit.word, occurrence + 1);
-      if (!quoted && !accepts(set, hit.word)) flagged.push([hit, occurrence]);
+      if (quoted || ignored.has(hit.word)) continue;
+      if (!accepts(set, hit.word)) flagged.push([hit, occurrence]);
     }
     if (flagged.length > 0) wrap(text, flagged);
   }
@@ -101,6 +116,28 @@ function render() {
   dismiss();
   preview.innerHTML = marked.parse(source.value);
   mark();
+}
+
+function tally() {
+  excused.hidden = ignored.size === 0;
+  excused.textContent = `Ignored: ${ignored.size} — clear`;
+}
+
+function store() {
+  try {
+    localStorage.setItem(KEPT, JSON.stringify([...ignored]));
+  } catch {}
+}
+
+function revise() {
+  store();
+  tally();
+  render();
+}
+
+function excuse(word) {
+  ignored.add(word);
+  revise();
 }
 
 function schedule() {
@@ -151,6 +188,12 @@ function propose(span) {
     button.addEventListener("click", () => choose(word, occurrence, fix));
     fixer.append(button);
   }
+  const leave = document.createElement("button");
+  leave.type = "button";
+  leave.className = "ignore";
+  leave.textContent = IGNORE;
+  leave.addEventListener("click", () => excuse(word));
+  fixer.append(leave);
 
   if (ANCHORING) {
     if (anchor) anchor.style.removeProperty("anchor-name");
@@ -193,6 +236,11 @@ preview.addEventListener("click", (event) => {
   if (span) propose(span);
 });
 
+excused.addEventListener("click", () => {
+  ignored.clear();
+  revise();
+});
+
 copier.addEventListener("click", () => {
   if (!navigator.clipboard) {
     byHand();
@@ -204,4 +252,5 @@ copier.addEventListener("click", () => {
 marked.use({ gfm: true });
 if (ANCHORING) fixer.classList.add("anchored");
 regrade();
+tally();
 render();

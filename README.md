@@ -67,7 +67,7 @@ spaCy tokenizes and tags, `lexicon/qs_converter.json` supplies the spellings, th
 
 ## Playground
 
-[`site/index.html`](site/index.html) is the lexicon with a user interface on it: type Markdown in one pane, read it set in Quikscript in the other, and every Quikscript word the lexicon does not carry gets a dotted red underline you can click for suggestions that edit the source back. A checkbox switches Junior/Senior, which moves the face and the accepted spelling set together.
+[`site/index.html`](site/index.html) is the lexicon with a user interface on it: type Markdown in one pane, read it set in Quikscript in the other, and every Quikscript word the grade you are writing in does not accept gets a dotted red underline you can click for suggestions that edit the source back, or to ignore the word from then on. A checkbox switches Junior/Senior, which moves the face and the accepted spelling set together — Senior additionally taking the Manual's §III contractions, which no column carries.
 
 ```sh
 make site          # rewrite site/index.html

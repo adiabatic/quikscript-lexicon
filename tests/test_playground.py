@@ -9,6 +9,7 @@ import pytest
 
 from qslex.build import HUNSPELL_AFF, HUNSPELL_DIC
 from qslex.hunspell import LIGATURES, by_frequency
+from qslex.letters import parse, render_qs
 from qslex.playground import (
     CORE,
     MARKED_JS,
@@ -22,6 +23,7 @@ from qslex.playground import (
     artifact,
     asset,
     build,
+    contracted,
     crosscheck,
     load_records,
     main,
@@ -32,11 +34,16 @@ from qslex.playground import (
     word_list,
 )
 from qslex.readlex import repo_root
+from qslex.words import Contraction, load_contractions
 
 ROOT = repo_root()
 RECORDS = load_records(ROOT)
 BUILT, COVERAGE = build()
 LEXICON = COVERAGE.lexicon
+
+CONTRACTIONS = load_contractions()
+MATCHED = contracted(CONTRACTIONS, RECORDS)
+CONTRACTED = frozenset(written for written, _ in MATCHED)
 
 DIVERGENT = tuple(row for row in RECORDS if row.junior)
 SAMPLE = sample(RECORDS, LEXICON)
@@ -44,8 +51,8 @@ QUIKSCRIPT = SAMPLE.splitlines()[-1].split(" ")
 
 NODE = shutil.which("node")
 HERE = Path(__file__).resolve().parent
-CORE_TESTS, CORE_CHECKS = "playground_core.js", 27
-PAGE_TESTS, PAGE_CHECKS = "playground_page.js", 14
+CORE_TESTS, CORE_CHECKS = "playground_core.js", 29
+PAGE_TESTS, PAGE_CHECKS = "playground_page.js", 20
 
 
 def directive(name: str, keyword: str) -> str:
@@ -62,12 +69,13 @@ def test_building_the_page_twice_is_byte_identical() -> None:
 
 def test_the_word_set_is_the_dictionary_the_lexicon_ships() -> None:
     counted, *listed = artifact(HUNSPELL_DIC, ROOT).splitlines()
-    assert counted == str(len(LEXICON.union))
-    assert tuple(listed) == LEXICON.union
+    assert counted == str(len(LEXICON.listed))
+    assert tuple(listed) == LEXICON.listed
 
 
 def test_the_letter_order_is_the_affix_files_try_order() -> None:
-    assert directive(HUNSPELL_AFF, "TRY") == by_frequency(LEXICON.union)
+    assert directive(HUNSPELL_AFF, "TRY") == by_frequency(LEXICON.listed)
+    assert json.loads(payload(LEXICON))["try_order"] == by_frequency(LEXICON.listed)
 
 
 def test_the_replacement_table_is_the_affix_files_own() -> None:
@@ -84,7 +92,7 @@ def test_the_two_grades_cover_every_spelling_between_them() -> None:
     assert LEXICON.senior | LEXICON.junior == frozenset(LEXICON.union)
 
 
-def test_the_grades_diverge_only_where_the_junior_column_does() -> None:
+def test_the_grades_diverge_where_the_junior_column_does_and_where_a_sign_is() -> None:
     assert {row.latin for row in DIVERGENT} == {
         "always",
         "that",
@@ -92,11 +100,86 @@ def test_the_grades_diverge_only_where_the_junior_column_does() -> None:
         "wasn't",
         "'twas",
     }
-    assert set(LEXICON.senior_only) <= {row.qs for row in DIVERGENT}
+    assert set(LEXICON.senior_only) <= {row.qs for row in DIVERGENT} | CONTRACTED
     assert set(LEXICON.junior_only) <= {row.junior for row in DIVERGENT}
-    assert len(LEXICON.senior_only) == 5
+    assert len(LEXICON.senior_only) == 73
     assert len(LEXICON.junior_only) == 4
-    assert len(LEXICON.pairs) == 5
+    assert len(LEXICON.pairs) == 77
+
+
+def test_the_page_carries_the_dictionary_and_the_senior_contractions() -> None:
+    assert LEXICON.union == tuple(sorted(frozenset(LEXICON.listed) | CONTRACTED))
+    assert len(LEXICON.listed) == 75568
+    assert len(CONTRACTED) == 74
+    assert len(LEXICON.union) == 75636
+
+
+def test_the_contractions_the_dictionary_already_lists_widen_nothing() -> None:
+    """Six of the 74 are spellings the columns carry anyway, for six reasons.
+
+    be and that are Manual word signs the senior column already writes, cannot is
+    spelt as the list spells it, and do, think and she collide with an unrelated
+    entry each — the ordinals nd/rd and th, and the interjection sh. Set arithmetic
+    gets all six right; a count of rows would not.
+    """
+    assert len(CONTRACTED & frozenset(LEXICON.listed)) == 6
+    assert len(LEXICON.union) - len(LEXICON.listed) == 68
+
+
+def test_the_senior_contractions_are_senior_writing_and_nothing_else() -> None:
+    """Senior gains them, Junior does not, and senior_only is what says so.
+
+    The two sources overlap by one: the §III list contracts that to ·They·Tea and the
+    Common words list already spells conjunctive that that way, so it is both a
+    contraction and a divergent row's senior form. 5 and 69 make 73, not 74.
+    """
+    divergent = {row.qs for row in DIVERGENT} - LEXICON.junior
+    assert LEXICON.senior >= CONTRACTED
+    assert frozenset(LEXICON.senior_only) == (CONTRACTED - LEXICON.junior) | divergent
+    assert len(divergent) == 5
+    assert len(CONTRACTED - LEXICON.junior) == 69
+    assert len(divergent & CONTRACTED) == 1
+
+
+def test_only_the_word_rows_of_the_contraction_list_reach_the_page() -> None:
+    clitics = [entry for entry in CONTRACTIONS if entry.kind == "clitic"]
+    assert {entry.word for entry in clitics} == {"'ll", "n't"}
+    assert {
+        render_qs(parse(entry.contraction))
+        for entry in CONTRACTIONS
+        if entry.kind == "word"
+    } == CONTRACTED
+    for entry in clitics:
+        assert render_qs(parse(entry.contraction)) not in frozenset(LEXICON.union)
+
+
+def test_every_contraction_pairs_with_the_full_spelling_junior_writes() -> None:
+    paired = {written: full for written, full in LEXICON.pairs}
+    for written, row in MATCHED:
+        full = row.junior or row.qs
+        assert written in paired or full == written
+        if full != written:
+            assert (written, full) in LEXICON.pairs
+    assert all(written in LEXICON.senior for written in paired)
+
+
+def test_a_contraction_takes_the_frequency_of_the_word_it_writes() -> None:
+    for written, row in MATCHED:
+        assert LEXICON.frequency[written] >= row.frequency
+
+
+def test_a_contraction_matching_no_lexicon_row_is_refused() -> None:
+    stray = Contraction("qwertyuiop", "", "word", "·Key", "senior-contractions", "")
+    with pytest.raises(PageError, match="matches no row"):
+        contracted((stray,), RECORDS)
+
+
+def test_a_contraction_tagged_for_a_part_of_speech_matches_only_that_tag() -> None:
+    tagged = [entry for entry in CONTRACTIONS if entry.pos]
+    assert {entry.word for entry in tagged} == {"that"}
+    for entry in tagged:
+        for _, row in contracted((entry,), RECORDS):
+            assert (row.latin.lower(), row.pos) == (entry.word, entry.pos)
 
 
 def test_the_junior_that_is_a_senior_spelling_too_and_so_is_not_junior_only() -> None:
@@ -135,8 +218,14 @@ def test_the_word_list_writes_a_frequency_only_where_there_is_one() -> None:
 
 
 def test_a_word_set_the_dictionary_does_not_list_is_refused() -> None:
-    doctored = dataclasses.replace(LEXICON, union=LEXICON.union[:-1])
+    doctored = dataclasses.replace(LEXICON, listed=LEXICON.listed[:-1])
     with pytest.raises(PageError, match="make artifacts"):
+        crosscheck(doctored, ROOT)
+
+
+def test_a_page_the_two_grades_do_not_cover_between_them_is_refused() -> None:
+    doctored = dataclasses.replace(LEXICON, union=LEXICON.union[:-1])
+    with pytest.raises(PageError, match="do not cover every spelling"):
         crosscheck(doctored, ROOT)
 
 

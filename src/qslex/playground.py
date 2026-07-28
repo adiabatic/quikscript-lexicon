@@ -23,7 +23,9 @@ from pathlib import Path
 
 from qslex.build import ARTIFACTS, HUNSPELL_AFF, HUNSPELL_DIC, LEXICON_JSON
 from qslex.hunspell import LIGATURES, by_frequency, spellings
+from qslex.letters import parse, render_qs
 from qslex.readlex import repo_root
+from qslex.words import Contraction, load_contractions
 
 SITE = "site"
 PAGE = "index.html"
@@ -35,6 +37,8 @@ CORE = "core.js"
 APP = "app.js"
 
 MARKED_VERSION = "18.0.7"
+
+WORD_ROW = "word"
 
 FONTS = {
     "SANS_JUNIOR_REGULAR": "AbbotsMortonSpaceportSansJunior-Regular.woff2",
@@ -102,8 +106,14 @@ class Lexicon:
     switches between them at runtime: Junior accepts `junior`, Senior accepts
     `senior`, and the ligature column is in both, being a way of writing a spelling
     rather than a grade of its own.
+
+    `listed` is what the hunspell dictionary carries — the three columns and nothing
+    else — and `union` is that plus the §III Senior contractions, which reach no
+    column but are Senior writing all the same. Everything held against the shipped
+    `.dic` and `.aff` is held against `listed`; everything the page loads is `union`.
     """
 
+    listed: tuple[str, ...]
     union: tuple[str, ...]
     senior: frozenset[str]
     junior: frozenset[str]
@@ -132,7 +142,10 @@ class Coverage:
 
     def report(self) -> str:
         return (
-            f"{len(self.lexicon.union)} spellings, of which "
+            f"{len(self.lexicon.union)} spellings — {len(self.lexicon.listed)} the "
+            f"dictionary lists, plus "
+            f"{len(self.lexicon.union) - len(self.lexicon.listed)} senior "
+            f"contractions it does not — of which "
             f"{len(self.lexicon.senior_only)} senior-only and "
             f"{len(self.lexicon.junior_only)} junior-only\n"
             f"{self.size} bytes, self-contained"
@@ -193,7 +206,43 @@ def load_records(root: Path) -> tuple[Record, ...]:
     )
 
 
-def derive(records: Iterable[Record]) -> Lexicon:
+def contracted(
+    contractions: Iterable[Contraction], records: Iterable[Record]
+) -> tuple[tuple[str, Record], ...]:
+    """Each §III Senior contraction written out, beside every row it stands for.
+
+    Only the `word` rows are taken. The two `clitic` rows stay out because neither
+    can ever be a token the page checks: `n't` attaches solid, so it is never written
+    on its own, and a bare `'ll` after an apostrophe is flagged here for the same
+    reason the dictionary flags it, the apostrophe being deliberately outside
+    `WORDCHARS` (docs/pipeline.md). A row's part-of-speech tag narrows the match to
+    the rows carrying that tag; where it carries none, every row for the headword
+    counts, and the rows are what the full spelling to suggest comes from.
+    """
+    rows: dict[str, list[Record]] = {}
+    for record in records:
+        rows.setdefault(record.latin.lower(), []).append(record)
+    out: list[tuple[str, Record]] = []
+    for entry in contractions:
+        if entry.kind != WORD_ROW:
+            continue
+        matched = [
+            record
+            for record in rows.get(entry.word, ())
+            if not entry.pos or record.pos == entry.pos
+        ]
+        if not matched:
+            raise PageError(
+                f"the contraction for {entry.word!r} ({entry.pos or 'any pos'}) "
+                f"matches no row of {LEXICON_JSON}, so the page would carry a "
+                f"spelling it could not suggest a full form for"
+            )
+        written = render_qs(parse(entry.contraction))
+        out.extend((written, record) for record in matched)
+    return tuple(out)
+
+
+def derive(records: Iterable[Record], contractions: Iterable[Contraction]) -> Lexicon:
     """The word sets, the frequencies and the cross-grade pairs the page needs.
 
     Senior is what `qs` says and Junior is what `qs_junior` says where it says
@@ -201,28 +250,47 @@ def derive(records: Iterable[Record]) -> Lexicon:
     highest any row writing it carries, in any column: a ligature or junior form is
     the same word as the row's own spelling, so it inherits that row's count rather
     than falling to zero and sorting last in a suggestion list.
+
+    The §III contractions join `senior` and nothing else, which is what a Tier 2
+    facility is (docs/word-signs.md): correct Senior writing, never the spelling a
+    column carries. Each takes the frequency of the word it contracts, so the
+    suggester ranks it as common as that word, and each pairs with the full spelling
+    Junior would write — with itself dropped, because a contraction that is already
+    how the word is spelt in full is no move from one grade to the other.
     """
     rows = tuple(records)
+    matched = contracted(contractions, rows)
+    carried = frozenset(spellings((written, "", "") for written, _ in matched))
+
     frequency: dict[str, int] = {}
     for row in rows:
         for word in spellings((row.columns(),)):
             frequency[word] = max(frequency.get(word, 0), row.frequency)
+    for written, row in matched:
+        if written in carried:
+            frequency[written] = max(frequency.get(written, 0), row.frequency)
+
+    pairs = {
+        (row.qs, row.junior)
+        for row in rows
+        if row.junior and " " not in row.qs and " " not in row.junior
+    }
+    for written, row in matched:
+        full = row.junior or row.qs
+        if written in carried and full and full != written and " " not in full:
+            pairs.add((written, full))
+
+    listed = spellings(row.columns() for row in rows)
     return Lexicon(
-        union=spellings(row.columns() for row in rows),
-        senior=frozenset(spellings((row.qs, row.ligature, "") for row in rows)),
+        listed=listed,
+        union=tuple(sorted(frozenset(listed) | carried)),
+        senior=frozenset(spellings((row.qs, row.ligature, "") for row in rows))
+        | carried,
         junior=frozenset(
             spellings((row.junior or row.qs, row.ligature, "") for row in rows)
         ),
         frequency=frequency,
-        pairs=tuple(
-            sorted(
-                {
-                    (row.qs, row.junior)
-                    for row in rows
-                    if row.junior and " " not in row.qs and " " not in row.junior
-                }
-            )
-        ),
+        pairs=tuple(sorted(pairs)),
     )
 
 
@@ -233,15 +301,21 @@ def crosscheck(lexicon: Lexicon, root: Path) -> None:
     the `.aff`, so that the page and the dictionary cannot disagree quietly. They are
     the same two derivations `qslex.hunspell` makes for hunspell, so a mismatch means
     one of the two artifacts is stale, not that the page wants a wider set.
+
+    What is held to the `.dic` is `listed`, the three columns alone. The page accepts
+    the §III contractions on top of that, and its letter order stays the `.aff`'s TRY
+    over the dictionary's own word set rather than one recounted over the wider one:
+    the suggester is walking hunspell's alphabet, and 68 more spellings would not
+    move it far enough to be worth two orders that have to be kept apart.
     """
-    listed = artifact(HUNSPELL_DIC, root).splitlines()
-    count, words = listed[0], tuple(listed[1:])
+    lines = artifact(HUNSPELL_DIC, root).splitlines()
+    count, words = lines[0], tuple(lines[1:])
     if count != str(len(words)):
         raise PageError(f"{HUNSPELL_DIC} counts {count} entries and lists {len(words)}")
-    if words != lexicon.union:
+    if words != lexicon.listed:
         raise PageError(
-            f"the page's {len(lexicon.union)} spellings are not the {len(words)} "
-            f"{HUNSPELL_DIC} lists; run `make artifacts`"
+            f"the page's {len(lexicon.listed)} listed spellings are not the "
+            f"{len(words)} {HUNSPELL_DIC} lists; run `make artifacts`"
         )
     if lexicon.senior | lexicon.junior != frozenset(lexicon.union):
         raise PageError("the two grades do not cover every spelling between them")
@@ -253,14 +327,14 @@ def crosscheck(lexicon: Lexicon, root: Path) -> None:
     ]
     if len(written) != 1:
         raise PageError(f"{HUNSPELL_AFF} declares {len(written)} TRY lines, wanted 1")
-    if written[0] != by_frequency(lexicon.union):
+    if written[0] != by_frequency(lexicon.listed):
         raise PageError(f"the page's letter order is not {HUNSPELL_AFF}'s TRY order")
 
 
 def word_list(lexicon: Lexicon) -> str:
     """The word set and its frequencies as one string, one spelling to a line.
 
-    A JSON object of 75,568 short keys is several hundred kilobytes of quoting and
+    A JSON object of 75,636 short keys is several hundred kilobytes of quoting and
     punctuation in a file that is fetched whole; a tab-separated block costs one
     split at startup and nothing else. The frequency is left off where it is zero,
     which is most of the list.
@@ -324,7 +398,7 @@ def payload(lexicon: Lexicon) -> str:
         "pairs": [list(pair) for pair in lexicon.pairs],
         "rep": [list(pair) for pair in replacements()],
         "senior_only": list(lexicon.senior_only),
-        "try_order": by_frequency(lexicon.union),
+        "try_order": by_frequency(lexicon.listed),
         "words": word_list(lexicon),
     }
     return json.dumps(data, ensure_ascii=False, sort_keys=True)
@@ -356,7 +430,7 @@ def substitute(text: str, chunks: Mapping[str, str]) -> str:
 def build(root: Path | None = None) -> tuple[str, Coverage]:
     root = root if root is not None else repo_root()
     records = load_records(root)
-    lexicon = derive(records)
+    lexicon = derive(records, load_contractions())
     crosscheck(lexicon, root)
 
     stylesheet = substitute(
