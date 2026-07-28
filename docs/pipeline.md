@@ -1,6 +1,6 @@
 # The build, the row policy, and the artifacts
 
-This is the spec for [`src/qslex/build.py`](../src/qslex/build.py), [`src/qslex/variants.py`](../src/qslex/variants.py) and [`src/qslex/converter.py`](../src/qslex/converter.py) — the layer that runs after the segment mapping ([`docs/ipa-to-qs.md`](ipa-to-qs.md)), the orthographic rules ([`docs/orthographic-rules.md`](orthographic-rules.md)) and the word signs ([`docs/word-signs.md`](word-signs.md)) have decided how a word is spelt, and turns 108,425 spelt rows into files.
+This is the spec for [`src/qslex/build.py`](../src/qslex/build.py), [`src/qslex/variants.py`](../src/qslex/variants.py), [`src/qslex/converter.py`](../src/qslex/converter.py) and [`src/qslex/hunspell.py`](../src/qslex/hunspell.py) — the layer that runs after the segment mapping ([`docs/ipa-to-qs.md`](ipa-to-qs.md)), the orthographic rules ([`docs/orthographic-rules.md`](orthographic-rules.md)) and the word signs ([`docs/word-signs.md`](word-signs.md)) have decided how a word is spelt, and turns 108,425 spelt rows into files.
 
 It decides nothing about spelling. Everything below is about which rows are carried, what shape they are written in, and how the result is kept honest.
 
@@ -15,6 +15,7 @@ Everything is generated into [`lexicon/`](../lexicon) and committed, so the file
 | `qs_converter.json` | Latin → spellings for the transliterator, 78,135 keys, 79,217 rows. |
 | `qs_converter_phrases.txt` | The 1,600 entries a tokenizer must match whole. |
 | `letters.tsv` | All 44 Quikscript letters with their codepoints — the decoder ring for the PUA text in every other file. |
+| `en-Qaas.dic` / `en-Qaas.aff` | The Hunspell spelling dictionary, 75,568 entries. |
 
 **JSON-primary, and strictly so.** `quikscript-lexicon.json` is built first and everything else is projected from it in one reshape. Nothing is emitted in parallel, because parallel generation is what produced upstream's duplicate-row TSV ([Shavian-info/readlex#124](https://github.com/Shavian-info/readlex/pull/124)) — the exact bug this arrangement makes structurally impossible. There is one master per layer: `readlex.json` upstream, the rule and override tables in `src/qslex/data/`, `quikscript-lexicon.json` out. Nothing downstream of the build is hand-edited.
 
@@ -132,6 +133,26 @@ It is also *shorter* in eight places, and those are real: at-home, lean-to, set-
 ### letters.tsv
 
 `codepoint`, `qs`, `name`, `class`, `ipa` for all 44 letters, derived from `src/qslex/csur.py` and the segment mapping. The `name` column is the letter's own example word, which is how [the CSUR proposal](https://www.quikscript.net/csur/) names them; the `ipa` column lists every mapping token that produces the letter, and is empty for ·Excite and ·Exam, which no segment mapping can reach.
+
+### en-Qaas.dic / en-Qaas.aff
+
+A [Hunspell](https://github.com/hunspell/hunspell) dictionary, named for the language tag [the README](../README.md#encoding) says to write Quikscript text under. Point a checker at it with `hunspell -i utf-8 -d lexicon/en-Qaas`. The `-i` is not optional. hunspell decodes its input in the locale's encoding and every Quikscript letter is outside ASCII, so under `LC_ALL=C` a line of Quikscript is skipped in silence — nothing accepted, nothing flagged, the same failure mode `WORDCHARS` fixes from the other side — and with no locale set at all hunspell errors out of iconv and prints mangled tokens instead. Naming the input encoding is correct in every locale.
+
+The `.dic` is **every distinct spelling any of the three columns ships**, one per line, sorted by codepoint, counted on the first line as the format wants. All three go in, so the dictionary accepts Senior, Junior and the ligature form alike; a spelling several rows share is listed once.
+
+Two rulings shape it:
+
+- **Spaced entries are dropped**, 605 of the 76,173 distinct spellings. A tokenizer splits at a space before it consults a dictionary, so no such string can ever reach hunspell, and listing one would be a line that cannot match. Hyphenated entries are kept whole, and are reachable — see `WORDCHARS` below.
+- **No word carries an affix flag.** ReadLex lists every inflected form as a row of its own, so the affix machinery would encode nothing the word list does not already state, and a flag standing for no rule is a flag that can only go wrong. The `.aff` declares no `PFX` or `SFX` at all.
+
+The `.aff` is four directives, all of them derived:
+
+- **`SET UTF-8`**, because the spellings are.
+- **`WORDCHARS`**, all 44 letters and the hyphen. Without it hunspell's own tokenizer takes PUA codepoints for punctuation and skips every Quikscript word silently — neither accepted nor flagged. The hyphen is in it against the en_US precedent, which leaves it out: 569 of the 6,058 hyphenated entries have a non-empty piece that is not itself an entry — papier-mache, bob-omb, terra-cotta — and without it the tokenizer splits them and flags the pieces. The 43 prefix-style entries that end in a hyphen, pre- among them, are outside that count, because the empty piece an edge hyphen leaves is nothing to look up and they pass either way. Nothing is lost by including it, because hunspell's default `BREAK` still checks the pieces of a hyphenated word the dictionary does not carry whole. The cost is that a bare hyphen run becomes a token of its own and is flagged — a spaced dash, `--` or `---` between spaces, the `- ` opening a Markdown-style bullet — though a hyphen run inside a word is still accepted. Recorded and not fixed: that same default `BREAK` accepts any hyphenated join of two entries whether or not the join is a word, and with 20 single-letter entries in the `.dic` that reaches down to ·Zoo-·Vie.
+- **`TRY`**, the 44 letters ordered by how often each occurs across the word list, commonest first, ties by codepoint. hunspell walks it in order when it tries one letter in place of another, so it is counted off the list rather than chosen.
+- **`REP`**, bridging ·Excite to ·Key·See and ·Exam to ·Gay·Zoo, in both directions. Both directions earn their place, because the letters around a ligature change with it: expect is ·It·Key·See·Pea·Et·Key·Tea in `qs` and ·Et·Excite·Pea·Et·Key·Tea in `qs_x`, so neither form is a single-letter edit from the other. Without the table the ngram suggester still turns the other form up about half the time, but buried in a list and effectively never first; with it, writing either a ligature or the pair it stands for gets exactly one suggestion and it is the right form. A `MAP` table over the same two pairs was tried and dropped: on its own it works, and beside `REP` it changed no suggestion.
+
+**The apostrophe stays out of `WORDCHARS`**, and that is a ruling rather than an omission. No spelling column carries an apostrophe anywhere, so no `.dic` entry can: the corpus spells they'll solid, ·They·Eight·Low. The transliterator does write one — [`src/qslex/latin2qs.py`](../src/qslex/latin2qs.py) reinserts U+2019 before a kept clitic's letters in every mode, giving the Manual's ·They·Eight’·Low ([Apostrophes](latin2qs.md#apostrophes)) — and against this `.aff` hunspell splits at it, passes the host word and flags the clitic half ·Low alone. Putting ’ in `WORDCHARS` would be strictly worse: the whole token would then be looked up, no entry carries an apostrophe, and default `BREAK` does not break at one, so the entire word would be flagged instead of just the clitic. Clitic-bearing transliterator output is outside what a dictionary generated from the columns can bless, and the cheaper failure is the one that still blesses the host word.
 
 ## Regenerating
 

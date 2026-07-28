@@ -2,7 +2,9 @@
 
 Generated. Do not edit anything here by hand — `make artifacts` rewrites all of it, and `make check` fails if what is committed differs from a fresh build. The spec is [`docs/pipeline.md`](../docs/pipeline.md).
 
-What the five files are, and how many rows each carries, is the spec's [Artifacts](../docs/pipeline.md#artifacts) table; the shape of each is under [Artifact shapes](../docs/pipeline.md#artifact-shapes).
+What the files are, and how many rows each carries, is the spec's [Artifacts](../docs/pipeline.md#artifacts) table; the shape of each is under [Artifact shapes](../docs/pipeline.md#artifact-shapes).
+
+`en-Qaas.dic` and `en-Qaas.aff` are the pair a spell checker wants: `hunspell -i utf-8 -d lexicon/en-Qaas` checks Quikscript text against every unspaced spelling the three columns ship. The `-i` matters — without it hunspell reads the input in the locale's encoding, and under a non-UTF-8 one it skips every Quikscript line without a word of complaint.
 
 ## Reading it
 

@@ -2,6 +2,8 @@ import json
 
 from qslex.build import (
     CONVERTER_JSON,
+    HUNSPELL_AFF,
+    HUNSPELL_DIC,
     LETTERS_HEADER,
     LETTERS_TSV,
     LEXICON_JSON,
@@ -9,16 +11,15 @@ from qslex.build import (
     PHRASES_TXT,
     TSV_HEADER,
     artifacts,
-    convert,
     letters_tsv,
 )
 from qslex.csur import CODEPOINT_OF
 from qslex.letters import VOWELS
 
-from conftest import KEPT, MAPPING
+from conftest import MAPPING, built, entries
 
-ENTRIES = convert(KEPT, MAPPING)
-BUILT = artifacts(ENTRIES, MAPPING)
+ENTRIES = entries()
+BUILT = built()
 
 ALPHABET = frozenset(chr(codepoint) for codepoint in CODEPOINT_OF.values())
 SEPARATORS = frozenset(" -'’./0123456789")
@@ -36,6 +37,8 @@ def test_the_build_emits_every_declared_artifact() -> None:
         CONVERTER_JSON,
         PHRASES_TXT,
         LETTERS_TSV,
+        HUNSPELL_DIC,
+        HUNSPELL_AFF,
     }
 
 

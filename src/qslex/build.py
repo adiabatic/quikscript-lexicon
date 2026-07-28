@@ -9,6 +9,7 @@ from pathlib import Path
 
 from qslex.converter import converter, load_penn, load_phrase_exceptions, phrases
 from qslex.csur import CODEPOINT_OF
+from qslex.hunspell import affix, dictionary, spellings
 from qslex.letters import VOWELS, parse, render_qs
 from qslex.mapping import Mapping, load_mapping
 from qslex.overrides import load_overrides
@@ -24,6 +25,8 @@ LEXICON_TSV = "quikscript-lexicon.tsv"
 CONVERTER_JSON = "qs_converter.json"
 PHRASES_TXT = "qs_converter_phrases.txt"
 LETTERS_TSV = "letters.tsv"
+HUNSPELL_DIC = "en-Qaas.dic"
+HUNSPELL_AFF = "en-Qaas.aff"
 
 TSV_HEADER = ("Latn", "qs", "qs_junior", "qs_x", "Shaw", "pos", "ipa", "freq")
 LETTERS_HEADER = ("codepoint", "qs", "name", "class", "ipa")
@@ -186,12 +189,15 @@ def artifacts(entries: tuple[Entry, ...], mapping: Mapping) -> dict[str, str]:
         ((e.latin, e.pos, e.qs, e.junior, e.ligature) for e in entries), load_penn()
     )
     listed = phrases(rows, load_phrase_exceptions())
+    checkable = spellings((e.qs, e.junior, e.ligature) for e in entries)
     return {
         LEXICON_JSON: lexicon_json(entries),
         LEXICON_TSV: lexicon_tsv(entries),
         CONVERTER_JSON: json.dumps(rows, ensure_ascii=False, indent=4) + "\n",
         PHRASES_TXT: "\n".join(listed) + "\n",
         LETTERS_TSV: letters_tsv(mapping),
+        HUNSPELL_DIC: dictionary(checkable),
+        HUNSPELL_AFF: affix(checkable),
     }
 
 

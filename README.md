@@ -13,6 +13,7 @@ Generated into [`lexicon/`](lexicon) and committed, so it can be used without ru
 - [`lexicon/qs_converter.json`](lexicon/qs_converter.json) — Latin → spellings by part of speech, for a transliterator
 - [`lexicon/qs_converter_phrases.txt`](lexicon/qs_converter_phrases.txt) — entries a tokenizer must match whole
 - [`lexicon/letters.tsv`](lexicon/letters.tsv) — every Quikscript letter and its codepoint
+- [`lexicon/en-Qaas.dic`](lexicon/en-Qaas.dic) and [`lexicon/en-Qaas.aff`](lexicon/en-Qaas.aff) — a Hunspell spelling dictionary; check Quikscript text with `hunspell -i utf-8 -d lexicon/en-Qaas`
 
 Three spelling columns: **`qs`** is Senior, the default; **`qs_junior`** and **`qs_x`** (the ·Excite/·Exam ligature form) are populated only where they differ from it. [`lexicon/README.md`](lexicon/README.md) explains the columns; [`docs/pipeline.md`](docs/pipeline.md) specifies the build.
 
