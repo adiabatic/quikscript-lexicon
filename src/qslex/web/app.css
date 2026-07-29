@@ -332,20 +332,6 @@ main {
   color: var(--ink);
 }
 
-footer {
-  padding: 0.5rem 0.75rem;
-  border-top: 1px solid var(--rule);
-  background: var(--chrome);
-  font-size: 11px;
-  color: var(--quiet);
-  white-space: nowrap;
-  overflow-x: auto;
-}
-
-footer a {
-  color: inherit;
-}
-
 @media (max-width: 800px) {
   main {
     grid-template-columns: 1fr;

@@ -36,8 +36,6 @@ STYLESHEET = "app.css"
 CORE = "core.js"
 APP = "app.js"
 
-MARKED_VERSION = "18.0.7"
-
 WORD_ROW = "word"
 
 FONTS = {
@@ -405,7 +403,6 @@ def build(root: Path | None = None) -> tuple[str, Coverage]:
         {
             "__QS_CSS__": stylesheet,
             "__QS_SAMPLE__": html.escape(sample(records, lexicon)),
-            "__QS_MARKED_VERSION__": MARKED_VERSION,
             "__QS_MARKED__": asset(MARKED_JS, root).decode("utf-8"),
             "__QS_DATA__": payload(lexicon),
             "__QS_CORE__": (WEB / CORE).read_text(encoding="utf-8"),
