@@ -189,6 +189,7 @@ const clipboard = {
 };
 
 const KEPT = "qs-playground.ignored";
+const CHOSEN = "qs-playground.senior";
 
 function storage() {
   const held = new Map();
@@ -354,11 +355,10 @@ check("the copy button writes the source and flips its label", () => {
   assert.equal(copied, source.value);
 });
 
-check("the grade toggle swaps the font class and the active set", () => {
+check("the grade toggle swaps the font class and nothing else", () => {
   const QS = vm.runInContext("QS", box);
-  const older = QS.senior_only[0];
-  const younger = QS.junior_only[0];
-  source.value = `# heading\n\n${older} ${younger}\n`;
+  const listed = QS.words.slice(0, QS.words.indexOf("\n")).split("\t")[0];
+  source.value = `# heading\n\n${listed} ${misspelt}\n`;
   grade.checked = false;
   grade.fire("change");
   box.render();
@@ -366,8 +366,8 @@ check("the grade toggle swaps the font class and the active set", () => {
   assert.equal(fixer.classList.contains("senior"), false);
   assert.deepEqual(
     spans().map((span) => span.dataset.w),
-    [older],
-    "junior mode refuses the senior-only spelling",
+    [misspelt],
+    "junior face, same vocabulary",
   );
 
   grade.checked = true;
@@ -377,17 +377,13 @@ check("the grade toggle swaps the font class and the active set", () => {
   assert.equal(fixer.classList.contains("senior"), true);
   assert.deepEqual(
     spans().map((span) => span.dataset.w),
-    [younger],
-    "senior mode refuses the junior-only spelling",
+    [misspelt],
+    "the accepted words do not move with the face",
   );
 });
 
 check("occurrence indices count every token, code spans included", () => {
-  const QS = vm.runInContext("QS", box);
-  const wrong = QS.senior_only[0];
-  grade.checked = false;
-  grade.fire("change");
-  source.value = `${wrong} \`${wrong}\` ${wrong}\n`;
+  source.value = `${misspelt} \`${misspelt}\` ${misspelt}\n`;
   box.render();
   assert.deepEqual(
     spans().map((span) => span.dataset.occ),
@@ -469,6 +465,34 @@ check("an origin whose storage throws still ignores for the session", () => {
   ignoreTheMisspelling(sessional);
   assert.deepEqual(flagged(sessional), []);
   assert.equal(sessional.parts.ignored.textContent, "Ignored: 1 — clear");
+});
+
+const dressed = storage();
+const graded = stage(false, dressed);
+
+check("a grade choice is written down when the toggle moves", () => {
+  graded.parts.senior.checked = true;
+  graded.parts.senior.fire("change");
+  assert.equal(dressed.held.get(CHOSEN), "senior");
+  graded.parts.senior.checked = false;
+  graded.parts.senior.fire("change");
+  assert.equal(dressed.held.get(CHOSEN), "junior");
+});
+
+check("a page opened again over the same storage starts in the grade it left", () => {
+  graded.parts.senior.checked = true;
+  graded.parts.senior.fire("change");
+  const again = stage(false, dressed);
+  assert.equal(again.parts.senior.checked, true);
+  assert.equal(again.parts.preview.classList.contains("senior"), true);
+});
+
+check("an origin whose storage throws still switches grade for the session", () => {
+  const sessional = stage(false, sealed);
+  assert.equal(sessional.parts.senior.checked, false);
+  sessional.parts.senior.checked = true;
+  sessional.parts.senior.fire("change");
+  assert.equal(sessional.parts.preview.classList.contains("senior"), true);
 });
 
 const typed = stage(false);

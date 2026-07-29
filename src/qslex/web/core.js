@@ -44,12 +44,6 @@ function bridged(word, rep) {
   return out;
 }
 
-function counterpart(word, pairs, senior) {
-  const written = senior ? 1 : 0;
-  const wanted = senior ? 0 : 1;
-  return pairs.filter((pair) => pair[written] === word).map((pair) => pair[wanted]);
-}
-
 function nearby(word, letters) {
   const out = [];
   for (let i = 0; i < word.length; i += 1) {
@@ -95,7 +89,6 @@ function suggest(word, ctx) {
   };
 
   take(bridged(word, ctx.rep));
-  take(counterpart(word, ctx.pairs, ctx.senior));
   take(
     ranked(
       nearby(word, ctx.letters).filter((candidate) => offered(active, candidate)),

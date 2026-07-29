@@ -47,7 +47,10 @@ body {
   height: 100dvh;
   display: grid;
   grid-template-rows: auto minmax(0, 1fr) auto;
-  font-family: system-ui, sans-serif;
+  font-family: var(--junior);
+  -webkit-font-smoothing: none;
+  -moz-osx-font-smoothing: unset;
+  font-smooth: never;
   color: var(--ink);
   background: #fff;
 }
@@ -65,8 +68,8 @@ header {
 
 h1 {
   margin: 0;
-  font-size: 1rem;
-  font-weight: 600;
+  font-size: 22px;
+  font-weight: 700;
 }
 
 #ignored {
@@ -76,7 +79,7 @@ h1 {
   background: #fff;
   color: var(--quiet);
   font: inherit;
-  font-size: 0.8125rem;
+  font-size: 11px;
   white-space: nowrap;
   cursor: pointer;
 }
@@ -90,7 +93,7 @@ h1 {
   display: flex;
   align-items: center;
   gap: 0.75rem;
-  font-size: 0.875rem;
+  font-size: 11px;
 }
 
 #grade {
@@ -135,9 +138,6 @@ main {
   overflow-wrap: break-word;
   font-size: 22px;
   line-height: 33px;
-  -webkit-font-smoothing: none;
-  -moz-osx-font-smoothing: unset;
-  font-smooth: never;
 }
 
 #source {
@@ -260,9 +260,6 @@ main {
   font-family: var(--junior);
   font-size: 22px;
   line-height: 33px;
-  -webkit-font-smoothing: none;
-  -moz-osx-font-smoothing: unset;
-  font-smooth: never;
 }
 
 #fixer.senior {
@@ -308,8 +305,7 @@ main {
 
 #fixer .none {
   margin: 0;
-  font-family: system-ui, sans-serif;
-  font-size: 0.875rem;
+  font-size: 11px;
   line-height: 1.4;
   color: var(--quiet);
 }
@@ -319,8 +315,7 @@ main {
   padding: 11px 11px 0;
   border-top: 1px solid var(--rule);
   border-radius: 0;
-  font-family: system-ui, sans-serif;
-  font-size: 0.875rem;
+  font-size: 11px;
   line-height: 1.4;
   color: var(--quiet);
 }
@@ -335,7 +330,7 @@ footer {
   padding: 0.5rem 0.75rem;
   border-top: 1px solid var(--rule);
   background: var(--chrome);
-  font-size: 0.75rem;
+  font-size: 11px;
   color: var(--quiet);
   white-space: nowrap;
   overflow-x: auto;

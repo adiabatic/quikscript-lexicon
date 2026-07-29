@@ -18,7 +18,7 @@ The five `.woff2` files are vendored verbatim from [adiabatic/abbots-morton-spac
 
 ## Which face is which
 
-Sans **Junior** is unligated and Sans **Senior** joins its letters, which is the grade the lexicon's `qs_junior` column records from the other side — so the playground's Junior/Senior toggle switches the face and the accepted spelling set together, and neither can drift from the other. **Mono** bundles the whole of [Departure Mono](https://departuremono.com/) alongside the Quikscript letters, so it stands alone as the textarea's face and sits behind Sans as its Latin fallback. Only the five faces the page loads are vendored; the release also ships `.otf`s and a Mono Bold, which nothing here uses.
+Sans **Junior** is unligated and Sans **Senior** joins its letters, which is the grade the lexicon's `qs_junior` column records from the other side — the playground's Junior/Senior toggle switches between the two faces, and the face alone. **Mono** bundles the whole of [Departure Mono](https://departuremono.com/) alongside the Quikscript letters, so it stands alone as the textarea's face and sits behind Sans as its Latin fallback. Only the five faces the page loads are vendored; the release also ships `.otf`s and a Mono Bold, which nothing here uses.
 
 Two rules from upstream's README that the page follows rather than reinvents: **every font size on Quikscript-bearing text is a multiple of 11px**, because the glyphs are pixels and anything else blurs them, and font smoothing is turned off with all three of `-webkit-font-smoothing: none`, `-moz-osx-font-smoothing: unset` and `font-smooth: never`. The Bold weight is a half-pixel overstrike of the Regular, which needs 22px or better to read — the size the page sets.
 

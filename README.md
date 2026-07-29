@@ -67,13 +67,13 @@ spaCy tokenizes and tags, `lexicon/qs_converter.json` supplies the spellings, th
 
 ## Playground
 
-[`site/index.html`](site/index.html) is the lexicon with a user interface on it: type Markdown in one pane, read it set in Quikscript in the other, and every Quikscript word the grade you are writing in does not accept gets a dotted red underline you can click for suggestions that edit the source back, or to ignore the word from then on. A checkbox switches Junior/Senior, which moves the face and the accepted spelling set together — Senior additionally taking the Manual's §III contractions, which no column carries.
+[`site/index.html`](site/index.html) is the lexicon with a user interface on it: type Markdown in one pane, read it set in Quikscript in the other, and every Quikscript word the lexicon does not accept gets a dotted red underline you can click for suggestions that edit the source back, or to ignore the word from then on. A checkbox switches Junior/Senior, which swaps the face alone — the accepted set is always the whole lexicon plus the Manual's §III contractions, which no column carries.
 
 ```sh
 make site          # rewrite site/index.html
 ```
 
-Then open the file — there is nothing to install, no server to run and no request to anywhere, because the whole word list, [marked](https://github.com/markedjs/marked) and five [Abbots Morton Spaceport](https://github.com/adiabatic/abbots-morton-spaceport) faces (SIL OFL 1.1, © Nathan Galt) are inlined in it. Those faces are pixel fonts, so every size the page sets on Quikscript-bearing text is a multiple of 11px. The spec is [`docs/playground.md`](docs/playground.md).
+Then open the file — there is nothing to install, no server to run and no request to anywhere, because the whole word list, [marked](https://github.com/markedjs/marked) and five [Abbots Morton Spaceport](https://github.com/adiabatic/abbots-morton-spaceport) faces (SIL OFL 1.1, © Nathan Galt) are inlined in it. Those faces are pixel fonts, so every font size the page sets is a multiple of 11px. The spec is [`docs/playground.md`](docs/playground.md).
 
 ## Regenerating
 

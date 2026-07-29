@@ -17,6 +17,9 @@ const DONE = "Copied";
 const BY_HAND = "Press ⌘C";
 const IGNORE = "Ignore";
 const KEPT = "qs-playground.ignored";
+const CHOSEN = "qs-playground.senior";
+const SENIOR_GRADE = "senior";
+const JUNIOR_GRADE = "junior";
 
 const counts = new Map();
 for (const line of QS.words.split("\n")) {
@@ -25,10 +28,7 @@ for (const line of QS.words.split("\n")) {
   else counts.set(line.slice(0, tab), Number(line.slice(tab + 1)));
 }
 
-const JUNIOR = new Set(counts.keys());
-for (const word of QS.senior_only) JUNIOR.delete(word);
-const SENIOR = new Set(counts.keys());
-for (const word of QS.junior_only) SENIOR.delete(word);
+const ACCEPTED = new Set(counts.keys());
 
 function remembered() {
   try {
@@ -41,22 +41,30 @@ function remembered() {
 
 const ignored = new Set(remembered());
 
+function recalled() {
+  try {
+    return localStorage.getItem(CHOSEN) === SENIOR_GRADE;
+  } catch {
+    return false;
+  }
+}
+
+function keep() {
+  try {
+    localStorage.setItem(CHOSEN, grade.checked ? SENIOR_GRADE : JUNIOR_GRADE);
+  } catch {}
+}
+
 let pending = 0;
 let restore = 0;
 let anchor = null;
 
-function active() {
-  return grade.checked ? SENIOR : JUNIOR;
-}
-
 function advice() {
   return {
-    active: active(),
+    active: ACCEPTED,
     freq: counts,
     letters: QS.try_order,
-    pairs: QS.pairs,
     rep: QS.rep,
-    senior: grade.checked,
   };
 }
 
@@ -95,7 +103,6 @@ function mark() {
   for (let node = walker.nextNode(); node; node = walker.nextNode()) texts.push(node);
 
   const seen = new Map();
-  const set = active();
   for (const text of texts) {
     const found = tokens(text.data);
     if (found.length === 0) continue;
@@ -105,7 +112,7 @@ function mark() {
       const occurrence = seen.get(hit.word) || 0;
       seen.set(hit.word, occurrence + 1);
       if (quoted || ignored.has(hit.word)) continue;
-      if (!accepts(set, hit.word)) flagged.push([hit, occurrence]);
+      if (!accepts(ACCEPTED, hit.word)) flagged.push([hit, occurrence]);
     }
     if (flagged.length > 0) wrap(text, flagged);
   }
@@ -226,9 +233,8 @@ function regrade() {
 source.addEventListener("input", schedule);
 
 grade.addEventListener("change", () => {
+  keep();
   regrade();
-  dismiss();
-  schedule();
 });
 
 preview.addEventListener("click", (event) => {
@@ -251,6 +257,7 @@ copier.addEventListener("click", () => {
 
 marked.use({ gfm: true });
 if (ANCHORING) fixer.classList.add("anchored");
+grade.checked = recalled();
 regrade();
 tally();
 render();

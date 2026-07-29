@@ -154,7 +154,7 @@ The `.aff` is four directives, all of them derived:
 
 **The apostrophe stays out of `WORDCHARS`**, and that is a ruling rather than an omission. No spelling column carries an apostrophe anywhere, so no `.dic` entry can: the corpus spells they'll solid, ·They·Eight·Low. The transliterator does write one — [`src/qslex/latin2qs.py`](../src/qslex/latin2qs.py) reinserts U+2019 before a kept clitic's letters in every mode, giving the Manual's ·They·Eight’·Low ([Apostrophes](latin2qs.md#apostrophes)) — and against this `.aff` hunspell splits at it, passes the host word and flags the clitic half ·Low alone. Putting ’ in `WORDCHARS` would be strictly worse: the whole token would then be looked up, no entry carries an apostrophe, and default `BREAK` does not break at one, so the entire word would be flagged instead of just the clitic. Clitic-bearing transliterator output is outside what a dictionary generated from the columns can bless, and the cheaper failure is the one that still blesses the host word.
 
-This word set, this `TRY` order and this `REP` table are also what [the playground](playground.md) checks against in a browser — widened only by [the §III contractions](playground.md#the-iii-senior-contractions) its Senior mode adds, which no column and so no `.dic` entry can carry — re-derived from the master and asserted against these two files on every build of it.
+This word set, this `TRY` order and this `REP` table are also what [the playground](playground.md) checks against in a browser — widened only by [the §III contractions](playground.md#the-iii-senior-contractions) its checker adds, which no column and so no `.dic` entry can carry — re-derived from the master and asserted against these two files on every build of it.
 
 ## Regenerating
 

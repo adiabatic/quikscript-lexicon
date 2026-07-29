@@ -51,8 +51,8 @@ QUIKSCRIPT = SAMPLE.splitlines()[-1].split(" ")
 
 NODE = shutil.which("node")
 HERE = Path(__file__).resolve().parent
-CORE_TESTS, CORE_CHECKS = "playground_core.js", 29
-PAGE_TESTS, PAGE_CHECKS = "playground_page.js", 20
+CORE_TESTS, CORE_CHECKS = "playground_core.js", 26
+PAGE_TESTS, PAGE_CHECKS = "playground_page.js", 23
 
 
 def directive(name: str, keyword: str) -> str:
@@ -88,11 +88,9 @@ def test_the_replacement_table_is_the_affix_files_own() -> None:
     assert len(replacements()) == 2 * len(LIGATURES)
 
 
-def test_the_two_grades_cover_every_spelling_between_them() -> None:
-    assert LEXICON.senior | LEXICON.junior == frozenset(LEXICON.union)
-
-
-def test_the_grades_diverge_where_the_junior_column_does_and_where_a_sign_is() -> None:
+def test_both_forms_of_a_divergent_row_are_accepted() -> None:
+    """The toggle swaps the face alone, so neither grade narrows the word set."""
+    accepted = frozenset(LEXICON.union)
     assert {row.latin for row in DIVERGENT} == {
         "always",
         "that",
@@ -100,11 +98,9 @@ def test_the_grades_diverge_where_the_junior_column_does_and_where_a_sign_is() -
         "wasn't",
         "'twas",
     }
-    assert set(LEXICON.senior_only) <= {row.qs for row in DIVERGENT} | CONTRACTED
-    assert set(LEXICON.junior_only) <= {row.junior for row in DIVERGENT}
-    assert len(LEXICON.senior_only) == 73
-    assert len(LEXICON.junior_only) == 4
-    assert len(LEXICON.pairs) == 77
+    for row in DIVERGENT:
+        assert row.qs in accepted
+        assert row.junior in accepted
 
 
 def test_the_page_carries_the_dictionary_and_the_senior_contractions() -> None:
@@ -126,21 +122,6 @@ def test_the_contractions_the_dictionary_already_lists_widen_nothing() -> None:
     assert len(LEXICON.union) - len(LEXICON.listed) == 68
 
 
-def test_the_senior_contractions_are_senior_writing_and_nothing_else() -> None:
-    """Senior gains them, Junior does not, and senior_only is what says so.
-
-    The two sources overlap by one: the §III list contracts that to ·They·Tea and the
-    Common words list already spells conjunctive that that way, so it is both a
-    contraction and a divergent row's senior form. 5 and 69 make 73, not 74.
-    """
-    divergent = {row.qs for row in DIVERGENT} - LEXICON.junior
-    assert LEXICON.senior >= CONTRACTED
-    assert frozenset(LEXICON.senior_only) == (CONTRACTED - LEXICON.junior) | divergent
-    assert len(divergent) == 5
-    assert len(CONTRACTED - LEXICON.junior) == 69
-    assert len(divergent & CONTRACTED) == 1
-
-
 def test_only_the_word_rows_of_the_contraction_list_reach_the_page() -> None:
     clitics = [entry for entry in CONTRACTIONS if entry.kind == "clitic"]
     assert {entry.word for entry in clitics} == {"'ll", "n't"}
@@ -151,16 +132,6 @@ def test_only_the_word_rows_of_the_contraction_list_reach_the_page() -> None:
     } == CONTRACTED
     for entry in clitics:
         assert render_qs(parse(entry.contraction)) not in frozenset(LEXICON.union)
-
-
-def test_every_contraction_pairs_with_the_full_spelling_junior_writes() -> None:
-    paired = {written: full for written, full in LEXICON.pairs}
-    for written, row in MATCHED:
-        full = row.junior or row.qs
-        assert written in paired or full == written
-        if full != written:
-            assert (written, full) in LEXICON.pairs
-    assert all(written in LEXICON.senior for written in paired)
 
 
 def test_a_contraction_takes_the_frequency_of_the_word_it_writes() -> None:
@@ -180,20 +151,6 @@ def test_a_contraction_tagged_for_a_part_of_speech_matches_only_that_tag() -> No
     for entry in tagged:
         for _, row in contracted((entry,), RECORDS):
             assert (row.latin.lower(), row.pos) == (entry.word, entry.pos)
-
-
-def test_the_junior_that_is_a_senior_spelling_too_and_so_is_not_junior_only() -> None:
-    junior = next(row.junior for row in DIVERGENT if row.latin == "that")
-    assert junior in LEXICON.senior
-    assert junior not in LEXICON.junior_only
-    assert {row.junior for row in DIVERGENT} - set(LEXICON.junior_only) == {junior}
-
-
-def test_every_pair_is_a_senior_spelling_and_the_junior_form_beside_it() -> None:
-    assert LEXICON.pairs == tuple(sorted(LEXICON.pairs))
-    for senior, junior in LEXICON.pairs:
-        assert senior in LEXICON.senior
-        assert junior in LEXICON.junior
 
 
 def test_every_spelling_carries_a_frequency() -> None:
@@ -220,12 +177,6 @@ def test_the_word_list_writes_a_frequency_only_where_there_is_one() -> None:
 def test_a_word_set_the_dictionary_does_not_list_is_refused() -> None:
     doctored = dataclasses.replace(LEXICON, listed=LEXICON.listed[:-1])
     with pytest.raises(PageError, match="make artifacts"):
-        crosscheck(doctored, ROOT)
-
-
-def test_a_page_the_two_grades_do_not_cover_between_them_is_refused() -> None:
-    doctored = dataclasses.replace(LEXICON, union=LEXICON.union[:-1])
-    with pytest.raises(PageError, match="do not cover every spelling"):
         crosscheck(doctored, ROOT)
 
 
@@ -298,14 +249,7 @@ def test_no_injected_chunk_closes_a_script_element_early() -> None:
 def test_the_page_carries_its_data_as_one_json_object() -> None:
     written = payload(LEXICON)
     assert written in BUILT
-    assert sorted(json.loads(written)) == [
-        "junior_only",
-        "pairs",
-        "rep",
-        "senior_only",
-        "try_order",
-        "words",
-    ]
+    assert sorted(json.loads(written)) == ["rep", "try_order", "words"]
 
 
 def test_check_reports_a_page_that_is_not_there(

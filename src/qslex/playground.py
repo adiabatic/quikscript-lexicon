@@ -102,31 +102,17 @@ class Record:
 class Lexicon:
     """Everything the page checks a word against, derived from the master alone.
 
-    The two grades are held whole rather than as one set and a diff, because the page
-    switches between them at runtime: Junior accepts `junior`, Senior accepts
-    `senior`, and the ligature column is in both, being a way of writing a spelling
-    rather than a grade of its own.
-
     `listed` is what the hunspell dictionary carries — the three columns and nothing
     else — and `union` is that plus the §III Senior contractions, which reach no
-    column but are Senior writing all the same. Everything held against the shipped
-    `.dic` and `.aff` is held against `listed`; everything the page loads is `union`.
+    column but are correct writing all the same. Everything held against the shipped
+    `.dic` and `.aff` is held against `listed`; the one set the page checks against
+    is `union`. The Junior/Senior toggle swaps the face alone, so neither grade
+    needs a word set of its own.
     """
 
     listed: tuple[str, ...]
     union: tuple[str, ...]
-    senior: frozenset[str]
-    junior: frozenset[str]
     frequency: Mapping[str, int]
-    pairs: tuple[tuple[str, str], ...]
-
-    @property
-    def senior_only(self) -> tuple[str, ...]:
-        return tuple(sorted(self.senior - self.junior))
-
-    @property
-    def junior_only(self) -> tuple[str, ...]:
-        return tuple(sorted(self.junior - self.senior))
 
 
 @dataclass(frozen=True)
@@ -145,9 +131,7 @@ class Coverage:
             f"{len(self.lexicon.union)} spellings — {len(self.lexicon.listed)} the "
             f"dictionary lists, plus "
             f"{len(self.lexicon.union) - len(self.lexicon.listed)} senior "
-            f"contractions it does not — of which "
-            f"{len(self.lexicon.senior_only)} senior-only and "
-            f"{len(self.lexicon.junior_only)} junior-only\n"
+            f"contractions it does not\n"
             f"{self.size} bytes, self-contained"
         )
 
@@ -217,7 +201,7 @@ def contracted(
     reason the dictionary flags it, the apostrophe being deliberately outside
     `WORDCHARS` (docs/pipeline.md). A row's part-of-speech tag narrows the match to
     the rows carrying that tag; where it carries none, every row for the headword
-    counts, and the rows are what the full spelling to suggest comes from.
+    counts, and the rows are what the frequency the contraction inherits comes from.
     """
     rows: dict[str, list[Record]] = {}
     for record in records:
@@ -235,7 +219,7 @@ def contracted(
             raise PageError(
                 f"the contraction for {entry.word!r} ({entry.pos or 'any pos'}) "
                 f"matches no row of {LEXICON_JSON}, so the page would carry a "
-                f"spelling it could not suggest a full form for"
+                f"spelling with no word to take a frequency from"
             )
         written = render_qs(parse(entry.contraction))
         out.extend((written, record) for record in matched)
@@ -243,20 +227,17 @@ def contracted(
 
 
 def derive(records: Iterable[Record], contractions: Iterable[Contraction]) -> Lexicon:
-    """The word sets, the frequencies and the cross-grade pairs the page needs.
+    """The one word set and the frequencies the page needs.
 
-    Senior is what `qs` says and Junior is what `qs_junior` says where it says
-    anything, which is the sparse encoding read back. A spelling's frequency is the
-    highest any row writing it carries, in any column: a ligature or junior form is
-    the same word as the row's own spelling, so it inherits that row's count rather
-    than falling to zero and sorting last in a suggestion list.
+    A spelling's frequency is the highest any row writing it carries, in any column:
+    a ligature or junior form is the same word as the row's own spelling, so it
+    inherits that row's count rather than falling to zero and sorting last in a
+    suggestion list.
 
-    The §III contractions join `senior` and nothing else, which is what a Tier 2
-    facility is (docs/word-signs.md): correct Senior writing, never the spelling a
-    column carries. Each takes the frequency of the word it contracts, so the
-    suggester ranks it as common as that word, and each pairs with the full spelling
-    Junior would write — with itself dropped, because a contraction that is already
-    how the word is spelt in full is no move from one grade to the other.
+    The §III contractions join the union outright, which is what a Tier 2 facility
+    is (docs/word-signs.md): correct writing the checker accepts whichever face is
+    showing, never the spelling a column carries. Each takes the frequency of the
+    word it contracts, so the suggester ranks it as common as that word.
     """
     rows = tuple(records)
     matched = contracted(contractions, rows)
@@ -270,27 +251,11 @@ def derive(records: Iterable[Record], contractions: Iterable[Contraction]) -> Le
         if written in carried:
             frequency[written] = max(frequency.get(written, 0), row.frequency)
 
-    pairs = {
-        (row.qs, row.junior)
-        for row in rows
-        if row.junior and " " not in row.qs and " " not in row.junior
-    }
-    for written, row in matched:
-        full = row.junior or row.qs
-        if written in carried and full and full != written and " " not in full:
-            pairs.add((written, full))
-
     listed = spellings(row.columns() for row in rows)
     return Lexicon(
         listed=listed,
         union=tuple(sorted(frozenset(listed) | carried)),
-        senior=frozenset(spellings((row.qs, row.ligature, "") for row in rows))
-        | carried,
-        junior=frozenset(
-            spellings((row.junior or row.qs, row.ligature, "") for row in rows)
-        ),
         frequency=frequency,
-        pairs=tuple(sorted(pairs)),
     )
 
 
@@ -317,8 +282,6 @@ def crosscheck(lexicon: Lexicon, root: Path) -> None:
             f"the page's {len(lexicon.listed)} listed spellings are not the "
             f"{len(words)} {HUNSPELL_DIC} lists; run `make artifacts`"
         )
-    if lexicon.senior | lexicon.junior != frozenset(lexicon.union):
-        raise PageError("the two grades do not cover every spelling between them")
 
     written = [
         line.removeprefix("TRY ")
@@ -390,14 +353,11 @@ def sample(records: Iterable[Record], lexicon: Lexicon) -> str:
 def payload(lexicon: Lexicon) -> str:
     """Everything the page's JavaScript reads, as one JSON object.
 
-    Sorted keys and a list of pairs for every table, so that a rebuilt page differs
-    only where the lexicon did.
+    Sorted keys and a list of pairs for the replacement table, so that a rebuilt
+    page differs only where the lexicon did.
     """
     data = {
-        "junior_only": list(lexicon.junior_only),
-        "pairs": [list(pair) for pair in lexicon.pairs],
         "rep": [list(pair) for pair in replacements()],
-        "senior_only": list(lexicon.senior_only),
         "try_order": by_frequency(lexicon.listed),
         "words": word_list(lexicon),
     }
