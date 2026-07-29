@@ -65,28 +65,16 @@ marked (bundled below) is MIT licensed; see its own header for the notice.
 }
 
 :root {
-  --paper: #fff;
-  --rule: #d4d4d8;
-  --chrome: #f4f4f5;
-  --ink: #18181b;
-  --quiet: #71717a;
-  --miss: red;
-  --shadow: rgb(0 0 0 / 0.15);
+  --paper: light-dark(#fff, #18181b);
+  --rule: light-dark(#d4d4d8, #3f3f46);
+  --chrome: light-dark(#f4f4f5, #27272a);
+  --ink: light-dark(#18181b, #f4f4f5);
+  --quiet: light-dark(#71717a, #a1a1aa);
+  --miss: light-dark(red, #f87171);
+  --shadow: light-dark(rgb(0 0 0 / 0.15), rgb(0 0 0 / 0.4));
   --junior: 'Abbots Morton Spaceport Sans Junior', 'Abbots Morton Spaceport Mono', monospace;
   --senior: 'Abbots Morton Spaceport Sans Senior', 'Abbots Morton Spaceport Mono', monospace;
   color-scheme: light dark;
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --paper: #18181b;
-    --rule: #3f3f46;
-    --chrome: #27272a;
-    --ink: #f4f4f5;
-    --quiet: #a1a1aa;
-    --miss: #f87171;
-    --shadow: rgb(0 0 0 / 0.4);
-  }
 }
 
 * {
