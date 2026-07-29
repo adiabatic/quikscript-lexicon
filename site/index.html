@@ -392,7 +392,7 @@ main {
 <h1>Quikscript playground</h1>
 <button type="button" id="ignored" hidden></button>
 <div id="controls">
-<label id="grade"><span>Junior</span><input type="checkbox" id="senior" autocomplete="off" aria-label="Senior Quikscript"><span>Senior</span></label>
+<label id="grade"><input type="checkbox" id="senior" autocomplete="off" aria-label="Senior Quikscript"><span>Senior</span></label>
 <button type="button" id="copy">Copy source</button>
 </div>
 </header>
@@ -660,9 +660,9 @@ function spot(word, occurrence) {
 
 function recalled() {
   try {
-    return localStorage.getItem(CHOSEN) === SENIOR_GRADE;
+    return localStorage.getItem(CHOSEN) !== JUNIOR_GRADE;
   } catch {
-    return false;
+    return true;
   }
 }
 

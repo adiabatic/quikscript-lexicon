@@ -545,10 +545,10 @@ check("a page opened again over the same storage starts in the grade it left", (
 
 check("an origin whose storage throws still switches grade for the session", () => {
   const sessional = stage(false, sealed);
-  assert.equal(sessional.parts.senior.checked, false);
-  sessional.parts.senior.checked = true;
+  assert.equal(sessional.parts.senior.checked, true);
+  sessional.parts.senior.checked = false;
   sessional.parts.senior.fire("change");
-  assert.equal(sessional.parts.preview.classList.contains("senior"), true);
+  assert.equal(sessional.parts.preview.classList.contains("senior"), false);
 });
 
 const typed = stage(false);

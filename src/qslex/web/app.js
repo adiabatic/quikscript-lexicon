@@ -49,9 +49,9 @@ function spot(word, occurrence) {
 
 function recalled() {
   try {
-    return localStorage.getItem(CHOSEN) === SENIOR_GRADE;
+    return localStorage.getItem(CHOSEN) !== JUNIOR_GRADE;
   } catch {
-    return false;
+    return true;
   }
 }
 
