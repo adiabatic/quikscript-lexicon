@@ -128,7 +128,7 @@ function mark() {
 function render() {
   clearTimeout(pending);
   dismiss();
-  preview.innerHTML = marked.parse(source.value);
+  preview.innerHTML = marked.parse(stripFrontMatter(source.value));
   mark();
 }
 

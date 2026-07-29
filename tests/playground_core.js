@@ -5,7 +5,9 @@ const path = require("node:path");
 const [CORE, PAGE] = process.argv.slice(2);
 assert.ok(CORE && PAGE, "usage: node playground_core.js <core.js> <index.html>");
 
-const { TOKEN, tokens, accepts, suggest, replaceOccurrence } = require(path.resolve(CORE));
+const { TOKEN, tokens, accepts, suggest, replaceOccurrence, stripFrontMatter } = require(
+  path.resolve(CORE),
+);
 const page = fs.readFileSync(PAGE, "utf8");
 
 const OPEN = "<script>const QS = ";
@@ -114,6 +116,34 @@ check("the shared regex is not left mid-string between calls", () => {
   assert.deepEqual(tokens(text), tokens(text));
   TOKEN.lastIndex = 3;
   assert.equal(tokens(text).length, 2);
+});
+
+check("a leading YAML front matter block is stripped", () => {
+  const body = "# heading\n\nprose\n";
+  assert.equal(stripFrontMatter(`---\ntitle: x\ndraft: true\n---\n${body}`), body);
+  assert.equal(stripFrontMatter(`---\r\ntitle: x\r\n---\r\n${body}`), body);
+  assert.equal(stripFrontMatter(`---\n---\n${body}`), body, "an empty block still strips");
+});
+
+check("front matter is only recognised at the very start of the document", () => {
+  const prose = "not front matter\n\n---\ntitle: x\n---\n";
+  assert.equal(stripFrontMatter(prose), prose);
+  assert.equal(stripFrontMatter(`\n---\ntitle: x\n---\nbody\n`), `\n---\ntitle: x\n---\nbody\n`);
+});
+
+check("an unterminated opening delimiter is left alone", () => {
+  const open = "---\ntitle: x\n\nno closing delimiter\n";
+  assert.equal(stripFrontMatter(open), open);
+});
+
+check("a Quikscript word inside stripped front matter never reaches a token scan", () => {
+  const word = UNION[0];
+  const stripped = stripFrontMatter(`---\ntitle: ${word}\n---\n\n${word}\n`);
+  assert.deepEqual(
+    tokens(stripped).map((hit) => hit.word),
+    [word],
+    "only the copy after the front matter tokenizes",
+  );
 });
 
 const SHORT = UNION.find((word) => word.length === 3);

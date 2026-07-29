@@ -394,6 +394,24 @@ check("occurrence indices count every token, code spans included", () => {
   );
 });
 
+check("YAML front matter never reaches the preview", () => {
+  source.value = `---\ntitle: ${misspelt}\n---\n\n# heading\n\n${misspelt}\n`;
+  box.render();
+  assert.ok(!preview.html.includes("title:"), "the front matter block was never handed to marked");
+  assert.deepEqual(
+    spans().map((span) => span.dataset.occ),
+    ["0"],
+    "the body's occurrence is the only one the preview ever sees",
+  );
+});
+
+check("an empty front matter block is stripped too", () => {
+  source.value = `---\n---\n\n${misspelt}\n`;
+  box.render();
+  assert.equal(spans().length, 1);
+  assert.ok(!preview.html.includes("<hr"), "no leftover thematic breaks from the delimiters");
+});
+
 check("anchor positioning is used where the browser has it", () => {
   const anchored = stage(true);
   assert.equal(anchored.parts.fixer.classList.contains("anchored"), true);

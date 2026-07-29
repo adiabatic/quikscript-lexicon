@@ -2,6 +2,11 @@ const TOKEN = /[\uE650-\uE67E][\uE650-\uE67E-]*/g;
 const HYPHEN = "-";
 const SPACE = " ";
 const OFFERS = 8;
+const FRONT_MATTER = /^---\r?\n(?:[\s\S]*?\r?\n)?---[ \t]*\r?\n?/;
+
+function stripFrontMatter(text) {
+  return text.replace(FRONT_MATTER, "");
+}
 
 function tokens(text) {
   const found = [];
@@ -112,5 +117,5 @@ function replaceOccurrence(source, word, occurrence, replacement) {
 }
 
 if (typeof module !== "undefined") {
-  module.exports = { TOKEN, tokens, accepts, suggest, replaceOccurrence };
+  module.exports = { TOKEN, tokens, accepts, suggest, replaceOccurrence, stripFrontMatter };
 }
