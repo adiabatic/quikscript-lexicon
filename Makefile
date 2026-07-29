@@ -6,7 +6,7 @@ artifacts:
 	uv run python -m qslex.build
 
 site:
-	uv run python -m qslex.playground
+	uv run python -m qslex.desk
 
 check: lint test validate freshness
 
@@ -23,4 +23,4 @@ validate:
 
 freshness:
 	uv run python -m qslex.build --check
-	uv run python -m qslex.playground --check
+	uv run python -m qslex.desk --check

@@ -8,9 +8,7 @@ from pathlib import Path
 import pytest
 
 from qslex.build import HUNSPELL_AFF, HUNSPELL_DIC
-from qslex.hunspell import LIGATURES, by_frequency
-from qslex.letters import parse, render_qs
-from qslex.playground import (
+from qslex.desk import (
     CORE,
     MARKED_JS,
     PAGE,
@@ -33,6 +31,8 @@ from qslex.playground import (
     substitute,
     word_list,
 )
+from qslex.hunspell import LIGATURES, by_frequency
+from qslex.letters import parse, render_qs
 from qslex.readlex import repo_root
 from qslex.words import Contraction, load_contractions
 
@@ -51,8 +51,8 @@ QUIKSCRIPT = SAMPLE.splitlines()[-1].split(" ")
 
 NODE = shutil.which("node")
 HERE = Path(__file__).resolve().parent
-CORE_TESTS, CORE_CHECKS = "playground_core.js", 30
-PAGE_TESTS, PAGE_CHECKS = "playground_page.js", 28
+CORE_TESTS, CORE_CHECKS = "desk_core.js", 30
+PAGE_TESTS, PAGE_CHECKS = "desk_page.js", 28
 
 
 def directive(name: str, keyword: str) -> str:

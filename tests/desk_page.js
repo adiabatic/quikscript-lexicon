@@ -3,7 +3,7 @@ const fs = require("node:fs");
 const vm = require("node:vm");
 
 const [PAGE] = process.argv.slice(2);
-assert.ok(PAGE, "usage: node playground_page.js <index.html>");
+assert.ok(PAGE, "usage: node desk_page.js <index.html>");
 const page = fs.readFileSync(PAGE, "utf8");
 
 const scripts = [];
@@ -196,8 +196,8 @@ const clipboard = {
   },
 };
 
-const KEPT = "qs-playground.ignored";
-const CHOSEN = "qs-playground.senior";
+const KEPT = "qs-desk.ignored";
+const CHOSEN = "qs-desk.senior";
 
 function storage() {
   const held = new Map();

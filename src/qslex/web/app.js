@@ -17,8 +17,8 @@ const DONE = "Copied";
 const BY_HAND = "Press ⌘C";
 const IGNORE_ONE = "Ignore one";
 const IGNORE_ALL = "Ignore all";
-const KEPT = "qs-playground.ignored";
-const CHOSEN = "qs-playground.senior";
+const KEPT = "qs-desk.ignored";
+const CHOSEN = "qs-desk.senior";
 const SENIOR_GRADE = "senior";
 const JUNIOR_GRADE = "junior";
 

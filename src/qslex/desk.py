@@ -1,11 +1,11 @@
-"""The Quikscript playground page, projected from the lexicon like every artifact.
+"""The Quikscript Desk page, projected from the lexicon like every artifact.
 
 site/index.html is generated, never hand-edited: the word set it checks against, the
 suggestion tables it offers, the fonts it renders in and the Markdown parser it runs
 are all inlined here from the committed master and the pinned vendored assets. That
 makes the page a single file that works from a file: URL with no request to anywhere,
 and it makes a page that disagrees with lexicon/ a freshness failure rather than a
-discovery. The page itself is specified in docs/playground.md.
+discovery. The page itself is specified in docs/desk.md.
 """
 
 from __future__ import annotations
@@ -68,7 +68,7 @@ SHA256 = {
 }
 
 SAMPLE_WORDS = (("hello", "ITJ"), ("world", "NN1"), ("quick", "AJ0"), ("script", "NN1"))
-SAMPLE_HEADING = "# Quikscript playground"
+SAMPLE_HEADING = "# Quikscript Desk"
 SAMPLE_PROSE = (
     "Write Markdown on the left and read it on the right. A Quikscript word the "
     "lexicon does not carry gets a dotted red underline; click an underlined word "
@@ -117,7 +117,7 @@ class Lexicon:
 class Coverage:
     """What the page carries, for the log.
 
-    Every number is pinned in tests/test_playground.py, so this is a convenience for
+    Every number is pinned in tests/test_desk.py, so this is a convenience for
     whoever is watching a change land rather than a check of its own.
     """
 
@@ -159,7 +159,7 @@ def asset(name: Path, root: Path) -> bytes:
     if actual != SHA256[name]:
         raise PageError(
             f"{path} has SHA-256 {actual}, expected {SHA256[name]}. The digest is "
-            f"pinned in src/qslex/playground.py and in that directory's README; "
+            f"pinned in src/qslex/desk.py and in that directory's README; "
             f"bump both together."
         )
     return data
@@ -414,7 +414,7 @@ def build(root: Path | None = None) -> tuple[str, Coverage]:
 
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(
-        description="Build the Quikscript playground page from the lexicon"
+        description="Build the Quikscript Desk page from the lexicon"
     )
     parser.add_argument("--out", type=Path, default=repo_root() / SITE / PAGE)
     parser.add_argument(

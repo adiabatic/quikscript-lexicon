@@ -3,7 +3,7 @@ const fs = require("node:fs");
 const path = require("node:path");
 
 const [CORE, PAGE] = process.argv.slice(2);
-assert.ok(CORE && PAGE, "usage: node playground_core.js <core.js> <index.html>");
+assert.ok(CORE && PAGE, "usage: node desk_core.js <core.js> <index.html>");
 
 const { TOKEN, tokens, accepts, suggest, replaceOccurrence, stripFrontMatter } = require(
   path.resolve(CORE),

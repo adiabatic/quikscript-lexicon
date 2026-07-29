@@ -1,6 +1,6 @@
 # Vendored marked
 
-`marked.umd.js` is vendored verbatim from the published [marked](https://github.com/markedjs/marked) tarball so that [`site/index.html`](../../docs/playground.md) is reproducible from a clean checkout, with no network access. The page inlines it in a `<script>` of its own, which is also what lets it work from a `file:` URL with nothing else installed.
+`marked.umd.js` is vendored verbatim from the published [marked](https://github.com/markedjs/marked) tarball so that [`site/index.html`](../../docs/desk.md) is reproducible from a clean checkout, with no network access. The page inlines it in a `<script>` of its own, which is also what lets it work from a `file:` URL with nothing else installed.
 
 | | |
 |---|---|
@@ -19,4 +19,4 @@ The tarball's digest is recorded beside the file's own because npm's published a
 
 ## Bumping it
 
-`src/qslex/playground.py` pins the file's digest above and verifies it before inlining, so a marked bump is a deliberate, reviewable change rather than a silent one: replace the file, update the digests here and in that module, then run `make site` and `make check`. The footer of the generated page names the version, so it moves too.
+`src/qslex/desk.py` pins the file's digest above and verifies it before inlining, so a marked bump is a deliberate, reviewable change rather than a silent one: replace the file, update the digests here and in that module, then run `make site` and `make check`. The footer of the generated page names the version, so it moves too.
