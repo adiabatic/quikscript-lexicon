@@ -173,7 +173,7 @@ def load_records(root: Path) -> tuple[Record, ...]:
     rather than as a page that quietly checks against a different word set than the
     hunspell dictionary next to it.
     """
-    grouped = json.loads(artifact(LEXICON_JSON, root))
+    master = json.loads(artifact(LEXICON_JSON, root))
     return tuple(
         Record(
             latin=entry["Latn"],
@@ -183,7 +183,7 @@ def load_records(root: Path) -> tuple[Record, ...]:
             ligature=entry.get("qs_x", ""),
             frequency=entry["freq"],
         )
-        for group in grouped.values()
+        for group in master["entries"].values()
         for entry in group
     )
 

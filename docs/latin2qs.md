@@ -2,7 +2,9 @@
 
 This is the spec for [`src/qslex/latin2qs.py`](../src/qslex/latin2qs.py), the layer that consumes what the build produces: ReadLex's `latin2shaw.py`, ported to emit Quikscript. It converts running Latin-alphabet English to Quikscript text, [issue #6](https://github.com/adiabatic/quikscript-lexicon/issues/6).
 
-The architecture is upstream's wholesale — spaCy tokenization and tagging, phrase matching for entries the tokenizer would split, dictionary lookup against [`lexicon/qs_converter.json`](../lexicon/qs_converter.json) with part-of-speech disambiguation for heteronyms, affix fallbacks for words the lexicon lacks — and only the lookup values and the letter-class logic change. Anything not stated below behaves as `latin2shaw.py` behaves.
+The architecture is upstream's wholesale — spaCy tokenization and tagging, phrase matching for entries the tokenizer would split, dictionary lookup against the [converter shape](pipeline.md#the-converter-shape) with part-of-speech disambiguation for heteronyms, affix fallbacks for words the lexicon lacks — and only the lookup values and the letter-class logic change. Anything not stated below behaves as `latin2shaw.py` behaves.
+
+Upstream reads that shape out of a file. This reads [`lexicon/quikscript-lexicon.json`](../lexicon/quikscript-lexicon.json) and rebuilds it, because the master carries every input it takes and a file of its own would only be the master's data a second time. It costs about a third of a second at startup, once.
 
 ## Running it
 
@@ -15,11 +17,11 @@ uv run python -m qslex.latin2qs --mode junior input.txt
 uv run python -m qslex.latin2qs --mode x --contractions input.txt
 ```
 
-`--lexicon DIR` points at a directory holding `qs_converter.json` and `qs_converter_phrases.txt` when the repo layout is not available. Input that begins with `<!doctype html` is converted around its markup, style and script blocks; anything else is treated as plain text, line by line.
+`--lexicon DIR` points at a directory holding `quikscript-lexicon.json` when the repo layout is not available. Input that begins with `<!doctype html` is converted around its markup, style and script blocks; anything else is treated as plain text, line by line.
 
 ## Output modes
 
-The three modes select among the artifact's three spelling columns, falling back to `qs` where a sparse column is absent, exactly as the [column model](pipeline.md#qs_converterjson) intends:
+The three modes select among the artifact's three spelling columns, falling back to `qs` where a sparse column is absent, exactly as the [column model](pipeline.md#the-converter-shape) intends:
 
 | Mode               | Column      | What it is                                         |
 | ------------------ | ----------- | -------------------------------------------------- |
@@ -82,13 +84,13 @@ Upstream constructs words the dictionary lacks from ~40 affixes and marks them �
 
 ## Ambiguity the tags cannot settle
 
-Where the converter row is a `⬌`-joined pair, the transliterator emits it verbatim, exactly as `latin2shaw.py` emits its own joined rows — the artifact [punts on this disambiguation](pipeline.md#qs_converterjson) and the consumer keeps the punt visible rather than picking silently. One consequence of the [row policy](pipeline.md#row-policy-the-rrp-family-only) is that again and against, whose second RRP pronunciations upstream drops, are always joined here; a proofreader resolves ⬌ the same way they resolve ⚠️.
+Where the converter row is a `⬌`-joined pair, the transliterator emits it verbatim, exactly as `latin2shaw.py` emits its own joined rows — the artifact [punts on this disambiguation](pipeline.md#the-converter-shape) and the consumer keeps the punt visible rather than picking silently. One consequence of the [row policy](pipeline.md#row-policy-the-rrp-family-only) is that again and against, whose second RRP pronunciations upstream drops, are always joined here; a proofreader resolves ⬌ the same way they resolve ⚠️.
 
 ## Deliberate departures from upstream
 
 Everything else is a straight port. These are the places the port does not reproduce `latin2shaw.py`'s behaviour, each on purpose:
 
-1. **Constructed words read the `0` row, not the first row.** Upstream takes `rows[0]` for affix and plural fallbacks, which was harmless when `NN` came first; this artifact [writes `NNP` first](pipeline.md#qs_converterjson), so the universal fallback row is addressed by its tag.
+1. **Constructed words read the `0` row, not the first row.** Upstream takes `rows[0]` for affix and plural fallbacks, which was harmless when `NN` came first; this artifact [writes `NNP` first](pipeline.md#the-converter-shape), so the universal fallback row is addressed by its tag.
 2. **`esque` moved to the suffixes.** Upstream files it under prefixes, where `startswith` can never match an English word.
 3. **One affix construction per token.** Upstream's loop keeps matching after a hit and can emit a word twice; here the first successful construction returns.
 4. **A verb before "to" that fails both special cases falls through to normal conversion.** Upstream emits nothing — "she has to her credit" loses the has.

@@ -4,6 +4,8 @@ Generated. Do not edit anything here by hand — `make artifacts` rewrites all o
 
 What the files are, and how many rows each carries, is the spec's [Artifacts](../docs/pipeline.md#artifacts) table; the shape of each is under [Artifact shapes](../docs/pipeline.md#artifact-shapes).
 
+`quikscript-lexicon.json` is the master, and the only JSON here. Five keys: `entries` is the lexicon itself, and `letters`, `c5_to_penn` and `phrases` are the small tables a projection needs, so that this one file regenerates every other — including the transliterator's Latin → spellings dictionary, which is [rebuilt rather than shipped](../docs/pipeline.md#the-converter-shape). `meta` records the corpus commit it came from and the counts it holds. The other four files are here because they are formats this one is not: a spreadsheet reads the TSV, hunspell reads the `.dic`.
+
 `en-Qaas.dic` and `en-Qaas.aff` are the pair a spell checker wants: `hunspell -i utf-8 -d lexicon/en-Qaas` checks Quikscript text against every unspaced spelling the three columns ship. The `-i` matters — without it hunspell reads the input in the locale's encoding, and under a non-UTF-8 one it skips every Quikscript line without a word of complaint.
 
 ## Reading it

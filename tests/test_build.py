@@ -1,7 +1,6 @@
 import json
 
 from qslex.build import (
-    CONVERTER_JSON,
     HUNSPELL_AFF,
     HUNSPELL_DIC,
     LETTERS_HEADER,
@@ -9,10 +8,12 @@ from qslex.build import (
     LEXICON_JSON,
     LEXICON_TSV,
     PHRASES_TXT,
+    SCHEMA_VERSION,
     TSV_HEADER,
     artifacts,
     letters_tsv,
 )
+from qslex.converter import TagMap, converter, load_penn
 from qslex.csur import CODEPOINT_OF
 from qslex.letters import VOWELS
 
@@ -30,11 +31,13 @@ def table(text: str) -> tuple[list[str], list[list[str]]]:
     return lines[0].split("\t"), [line.split("\t") for line in lines[1:]]
 
 
+MASTER = json.loads(BUILT[LEXICON_JSON])
+
+
 def test_the_build_emits_every_declared_artifact() -> None:
     assert set(BUILT) == {
         LEXICON_JSON,
         LEXICON_TSV,
-        CONVERTER_JSON,
         PHRASES_TXT,
         LETTERS_TSV,
         HUNSPELL_DIC,
@@ -57,7 +60,7 @@ def test_the_tsv_projection_is_deduplicated() -> None:
 
 def test_the_two_lexicon_artifacts_are_the_same_projection() -> None:
     _, rows = table(BUILT[LEXICON_TSV])
-    grouped = json.loads(BUILT[LEXICON_JSON])
+    grouped = MASTER["entries"]
     assert set(grouped) == {entry.headword for entry in ENTRIES}
     records = [record for group in grouped.values() for record in group]
     assert len(records) == len(ENTRIES)
@@ -111,6 +114,54 @@ def test_rendering_the_same_entries_twice_is_byte_identical() -> None:
     assert {name: text.encode("utf-8") for name, text in again.items()} == {
         name: text.encode("utf-8") for name, text in BUILT.items()
     }
+
+
+def test_the_master_declares_what_it_holds() -> None:
+    assert MASTER["meta"]["version"] == SCHEMA_VERSION
+    assert MASTER["meta"]["counts"] == {
+        "headwords": len({entry.headword for entry in ENTRIES}),
+        "entries": len(ENTRIES),
+        "phrases": len(BUILT[PHRASES_TXT].splitlines()),
+    }
+    assert set(MASTER) == {"meta", "letters", "c5_to_penn", "phrases", "entries"}
+
+
+def test_the_master_carries_the_converter_shape_it_no_longer_ships() -> None:
+    """The proof that dropping qs_converter.json lost nothing.
+
+    Rebuilt from the master's own entries and its own tag map — no other file read —
+    and held to what the build derives from the entries in memory.
+    """
+    rebuilt = converter(
+        (
+            (
+                entry["Latn"],
+                entry["pos"],
+                entry["qs"],
+                entry.get("qs_junior", ""),
+                entry.get("qs_x", ""),
+            )
+            for group in MASTER["entries"].values()
+            for entry in group
+        ),
+        {
+            c5: TagMap(c5, penn, "upstream", "")
+            for c5, penn in MASTER["c5_to_penn"].items()
+        },
+    )
+    assert rebuilt == converter(
+        ((e.latin, e.pos, e.qs, e.junior, e.ligature) for e in ENTRIES), load_penn()
+    )
+
+
+def test_the_masters_tag_map_is_the_table_the_converter_reads() -> None:
+    assert MASTER["c5_to_penn"] == {c5: tag.penn for c5, tag in load_penn().items()}
+
+
+def test_the_masters_sidecars_are_the_files_beside_it() -> None:
+    assert MASTER["phrases"] == BUILT[PHRASES_TXT].splitlines()
+    header, rows = table(BUILT[LETTERS_TSV])
+    assert MASTER["letters"] == [dict(zip(header, row, strict=True)) for row in rows]
 
 
 def test_letters_tsv_names_every_codepoint() -> None:

@@ -10,14 +10,15 @@ Everything is generated into [`lexicon/`](../lexicon) and committed, so the file
 
 | File                          | What it is                                                                                               |
 | ----------------------------- | -------------------------------------------------------------------------------------------------------- |
-| `quikscript-lexicon.json`     | The master. Grouped by headword, 56,649 of them, 108,425 entries.                                        |
+| `quikscript-lexicon.json`     | The master, and the only JSON. Grouped by headword, 56,649 of them, 108,425 entries.                     |
 | `quikscript-lexicon.tsv`      | The flat projection, 108,375 rows after deduplication.                                                   |
-| `qs_converter.json`           | Latin → spellings for the transliterator, 78,135 keys, 79,217 rows.                                      |
 | `qs_converter_phrases.txt`    | The 1,600 entries a tokenizer must match whole.                                                          |
 | `letters.tsv`                 | All 44 Quikscript letters with their codepoints — the decoder ring for the PUA text in every other file. |
 | `en-Qaas.dic` / `en-Qaas.aff` | The Hunspell spelling dictionary, 75,568 entries.                                                        |
 
 **JSON-primary, and strictly so.** `quikscript-lexicon.json` is built first and everything else is projected from it in one reshape. Nothing is emitted in parallel, because parallel generation is what produced upstream's duplicate-row TSV ([Shavian-info/readlex#124](https://github.com/Shavian-info/readlex/pull/124)) — the exact bug this arrangement makes structurally impossible. There is one master per layer: `readlex.json` upstream, the rule and override tables in `src/qslex/data/`, `quikscript-lexicon.json` out. Nothing downstream of the build is hand-edited.
+
+**One JSON, and only one.** A second JSON was shipped until it was measured: `qs_converter.json` covered the same 78,135 words, carried the same spelling in every one of the three columns, and differed only in writing a Penn tag where the master writes the C5 tag it is a rename of. Nine megabytes to say what the master already said. It is [rebuilt, not shipped](#the-converter-shape) — the master now carries the tag map it is keyed by, so the file it used to be comes back byte for byte from the master alone. The other four artifacts stay committed because they are formats, not restatements: a spreadsheet reads the TSV and hunspell reads the `.dic`, and neither can read JSON.
 
 ## Encoding
 
@@ -66,21 +67,33 @@ One consequence is worth stating plainly, because it looks like a regression and
 
 ### quikscript-lexicon.json
 
-Upstream's headword key, verbatim, mapping to the entries under it:
+Five top-level keys, of which `entries` is all but forty kilobytes of the file:
 
 ```json
-"again_AV0_𐑩𐑜𐑧𐑯": [
-    {"Latn": "again", "qs": "…", "Shaw": "𐑩𐑜𐑧𐑯", "pos": "AV0", "ipa": "əˈɡen", "freq": 12345}
-]
+{
+    "meta": {"version": 1, "source": {"repo": "…", "commit": "…", "sha256": "…"},
+             "encoding": {"block": "U+E650–U+E67E"},
+             "counts": {"headwords": 56649, "entries": 108425, "phrases": 1600}},
+    "letters": [{"codepoint": "U+E650", "qs": "…", "name": "Pea", "class": "consonant", "ipa": "p"}],
+    "c5_to_penn": {"AJ0": "JJ", "AJC": "JJR"},
+    "phrases": ["&amp;", "'em", "'neath"],
+    "entries": {
+        "again_AV0_𐑩𐑜𐑧𐑯": [{"Latn": "again", "qs": "…", "Shaw": "𐑩𐑜𐑧𐑯", "pos": "AV0", "ipa": "əˈɡen", "freq": 12345}]
+    }
+}
 ```
 
-The key is treated as an opaque upstream identifier, not as data — it is kept so that every group is traceable to the group it came from and an upstream bump diffs cleanly. It is *not* re-derived: upstream's own keys can be stale with respect to the entries under them (`'twas_PNP+VBD_𐑑𐑢𐑪𐑟` heads an entry whose Shavian is 𐑑𐑢𐑳𐑟), which is a further reason to carry it rather than to compute one.
+The four small keys are what makes this the only file a consumer needs. `letters` is the decoder ring, without which every QS string is a row of boxes. `c5_to_penn` is the tag map the converter shape's rows are keyed by. `phrases` is the one projection no property of the entries can reveal, because it is the orthographic rules and not the data that decide what fails to compose. `meta` says which corpus commit the file came from and how much of it there is.
+
+Each of the three duplicates a file that also ships: `letters.tsv`, `src/qslex/data/c5-to-penn.tsv`, `qs_converter_phrases.txt`. Duplication is normally how two copies drift, and it cannot here: all four are written by the same pass of `build.artifacts()`, and `make check` rebuilds and byte-compares every one of them.
+
+The `entries` key is upstream's headword key, verbatim, mapping to the entries under it. The key is treated as an opaque upstream identifier, not as data — it is kept so that every group is traceable to the group it came from and an upstream bump diffs cleanly. It is *not* re-derived: upstream's own keys can be stale with respect to the entries under them (`'twas_PNP+VBD_𐑑𐑢𐑪𐑟` heads an entry whose Shavian is 𐑑𐑢𐑳𐑟), which is a further reason to carry it rather than to compute one.
 
 `Shaw` is kept. It costs little, it is what the validator's EAR oracle reads, and it makes a row diffable against upstream. `var` is dropped, per the row policy. `qs_junior` and `qs_x` are **absent unless they differ** from `qs` — the sparse encoding, so that the delta stays obvious and a diff stays small.
 
 `ipa` is the **quirk-normalised** string, not the corpus's own, so that every row explains its own spelling rather than the one upstream's unrepaired IPA would have produced. It differs on 124 rows; upstream's original is in the vendored corpus, which is where a diff against ReadLex should read from.
 
-4-space indent, `ensure_ascii=False`, LF, trailing newline, headwords in corpus order.
+**One headword to a line**, and one letter and one phrase to a line likewise; `meta` and `c5_to_penn` are small enough to indent four spaces in the ordinary way. The file is generated, so the diff worth reading is which entries moved, and that reads as one changed line each rather than as a field adrift in a nine-line block. It costs ten megabytes less than a field to a line did. `ensure_ascii=False`, LF, trailing newline, headwords in corpus order.
 
 ### quikscript-lexicon.tsv
 
@@ -90,9 +103,11 @@ Sparse columns are empty strings where they do not diverge: 2,347 rows carry a `
 
 The projection **deduplicates**. Two headwords can list the same inflected form — ax and axe both own axed — which is 50 rows in this corpus, and flattening without collapsing them is precisely upstream's #124 bug.
 
-### qs_converter.json
+### The converter shape
 
-Latin → a list of rows, for [#6](https://github.com/adiabatic/quikscript-lexicon/issues/6)'s transliterator:
+Not an artifact. It is built on the way to the phrase list, handed to the transliterator, and never written — but it is still a shape this repository specifies, because [#6](https://github.com/adiabatic/quikscript-lexicon/issues/6)'s transliterator is a port of `latin2shaw.py` and the shape is what makes the port a port.
+
+Latin → a list of rows:
 
 ```json
 "absent": [
@@ -117,6 +132,25 @@ Two deliberate departures from upstream's file:
 - **The row set is our row policy's, not upstream's.** Upstream's converter keeps `var == "RRP"` strictly, so it drops the 16 `RRPVar`/`RRPvar` rows its own TSV also drops. We keep them, so a handful of keys carry one more alternative than upstream's file does.
 
 Quikscript also makes heteronyms Shavian does not. `that` is one spelling in ReadLex and two here — ·They·Tea for the conjunction against ·They·At·Tea for the demonstrative — which is why `CJT` and `DT0` need Penn equivalents that upstream's file never forced.
+
+**Rebuilding it.** Every input is in the master: the five fields `converter()` reads are `entries`, and the tag map is `c5_to_penn`. Nothing else is opened.
+
+```python
+import json
+from qslex.converter import TagMap, converter
+
+master = json.load(open("lexicon/quikscript-lexicon.json", encoding="utf-8"))
+rows = converter(
+    (
+        (e["Latn"], e["pos"], e["qs"], e.get("qs_junior", ""), e.get("qs_x", ""))
+        for group in master["entries"].values()
+        for e in group
+    ),
+    {c5: TagMap(c5, penn, "upstream", "") for c5, penn in master["c5_to_penn"].items()},
+)
+```
+
+That reproduces the 9 MB file this repository used to commit byte for byte, and a test holds it to the rows the build derives in memory, so the shape cannot quietly stop being recoverable.
 
 ### qs_converter_phrases.txt
 

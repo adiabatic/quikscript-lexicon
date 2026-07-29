@@ -6,11 +6,10 @@ A spelling dictionary of 108,425 rows under 56,649 headwords, generated from the
 
 ## The lexicon
 
-Generated into [`lexicon/`](lexicon) and committed, so it can be used without running the build:
+Generated into [`lexicon/`](lexicon) and committed, so you can just use them without building anything:
 
 - [`lexicon/quikscript-lexicon.json`](lexicon/quikscript-lexicon.json) — the master, grouped by headword
 - [`lexicon/quikscript-lexicon.tsv`](lexicon/quikscript-lexicon.tsv) — the flat projection
-- [`lexicon/qs_converter.json`](lexicon/qs_converter.json) — Latin → spellings by part of speech, for a transliterator
 - [`lexicon/qs_converter_phrases.txt`](lexicon/qs_converter_phrases.txt) — entries a tokenizer must match whole
 - [`lexicon/letters.tsv`](lexicon/letters.tsv) — every Quikscript letter and its codepoint
 - [`lexicon/en-Qaas.dic`](lexicon/en-Qaas.dic) and [`lexicon/en-Qaas.aff`](lexicon/en-Qaas.aff) — a Hunspell spelling dictionary; check Quikscript text with `hunspell -i utf-8 -d lexicon/en-Qaas`
@@ -19,7 +18,7 @@ Three spelling columns: **`qs`** is Senior, the default; **`qs_junior`** and **`
 
 **The JSON is canonical.** Every other artifact is projected from it in a single reshape, never emitted alongside it — which is what makes upstream's duplicate-row bug ([readlex#124](https://github.com/Shavian-info/readlex/pull/124)) structurally impossible here, and what [`docs/pipeline.md`](docs/pipeline.md#artifacts) means by one master per layer.
 
-Only **rhotic RP** is spelt. ReadLex's TrapBath, General American and General Australian rows are dropped; its two RRP-variant tags are kept and normalised. See [Row policy](docs/pipeline.md#row-policy-the-rrp-family-only).
+It is also the **only** JSON, and it is self-contained: beside its entries it carries the letter table, the C5 → Penn tag map and the phrase list, so that one file regenerates every other. The four that stay are formats rather than restatements — a spreadsheet reads the TSV, hunspell reads the `.dic`. The transliterator's own Latin → spellings dictionary used to be a second 9 MB JSON here; it said nothing the master did not, so it is [rebuilt from the master](docs/pipeline.md#the-converter-shape) instead of shipped.
 
 ## Encoding
 
@@ -63,7 +62,7 @@ uv run python -m qslex.latin2qs < input.txt                    # Senior
 uv run python -m qslex.latin2qs --mode x --contractions in.txt # ligatures + §III contractions
 ```
 
-spaCy tokenizes and tags, `lexicon/qs_converter.json` supplies the spellings, the part of speech settles the heteronyms, and the Manual's conventions govern namer dots, apostrophes and punctuation. Words the lexicon lacks are constructed from affixes and flagged ⚠️, or passed through flagged ✢. The spec, the output modes and every deliberate departure from upstream's `latin2shaw.py` are in [`docs/latin2qs.md`](docs/latin2qs.md).
+spaCy tokenizes and tags, the master supplies the spellings, the part of speech settles the heteronyms, and the Manual's conventions govern namer dots, apostrophes and punctuation. Words the lexicon lacks are constructed from affixes and flagged ⚠️, or passed through flagged ✢. The spec, the output modes and every deliberate departure from upstream's `latin2shaw.py` are in [`docs/latin2qs.md`](docs/latin2qs.md).
 
 ## Desk
 

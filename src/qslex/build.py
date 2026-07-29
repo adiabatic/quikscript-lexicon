@@ -7,14 +7,27 @@ from collections.abc import Iterable
 from dataclasses import dataclass
 from pathlib import Path
 
-from qslex.converter import converter, load_penn, load_phrase_exceptions, phrases
+from qslex.converter import (
+    TagMap,
+    converter,
+    load_penn,
+    load_phrase_exceptions,
+    phrases,
+)
 from qslex.csur import CODEPOINT_OF
 from qslex.hunspell import affix, dictionary, spellings
 from qslex.letters import VOWELS, parse, render_qs
 from qslex.mapping import Mapping, load_mapping
 from qslex.overrides import load_overrides
 from qslex.quirks import load_quirks, normalize
-from qslex.readlex import Row, load_rows, repo_root
+from qslex.readlex import (
+    CORPUS_COMMIT,
+    CORPUS_SHA256,
+    CORPUS_URL,
+    Row,
+    load_rows,
+    repo_root,
+)
 from qslex.rules import Context, load_tables, spell
 from qslex.tokenizer import tokenize
 from qslex.variants import load_var_tags, select
@@ -22,7 +35,6 @@ from qslex.variants import load_var_tags, select
 ARTIFACTS = "lexicon"
 LEXICON_JSON = "quikscript-lexicon.json"
 LEXICON_TSV = "quikscript-lexicon.tsv"
-CONVERTER_JSON = "qs_converter.json"
 PHRASES_TXT = "qs_converter_phrases.txt"
 LETTERS_TSV = "letters.tsv"
 HUNSPELL_DIC = "en-Qaas.dic"
@@ -30,6 +42,9 @@ HUNSPELL_AFF = "en-Qaas.aff"
 
 TSV_HEADER = ("Latn", "qs", "qs_junior", "qs_x", "Shaw", "pos", "ipa", "freq")
 LETTERS_HEADER = ("codepoint", "qs", "name", "class", "ipa")
+
+SCHEMA_VERSION = 1
+PUA_BLOCK = "U+E650–U+E67E"
 
 LIGATURES = frozenset({"Excite", "Exam"})
 
@@ -129,11 +144,94 @@ def convert(rows: Iterable[Row], mapping: Mapping) -> tuple[Entry, ...]:
     return tuple(out)
 
 
-def lexicon_json(entries: Iterable[Entry]) -> str:
+def _nested(value: object) -> str:
+    """A small top-level value, its own lines pushed in by one step."""
+    return json.dumps(value, ensure_ascii=False, indent=4).replace("\n", "\n    ")
+
+
+def _per_line(items: Iterable[str], brackets: str) -> str:
+    """A large top-level collection, one element to a line."""
+    body = ",\n".join(f"        {item}" for item in items)
+    if not body:
+        return brackets
+    return f"{brackets[0]}\n{body}\n    {brackets[1]}"
+
+
+def lexicon_json(
+    entries: Iterable[Entry],
+    mapping: Mapping,
+    penn: dict[str, TagMap],
+    listed: Iterable[str],
+) -> str:
+    """The master, and the only JSON this repository ships.
+
+    Everything else in `lexicon/` is a projection of this file, so it carries the three
+    things a projection needs that the entries alone cannot give: the letter table the
+    PUA text is read with, the C5-to-Penn map the converter shape's tagged rows are
+    keyed by, and the phrase list, which no property of the entries can reveal because
+    it is the orthographic rules, not the data, that decide what fails to compose.
+    Holding this one file is holding the lexicon.
+
+    Those three duplicate `letters.tsv`, `c5-to-penn.tsv` and the phrases file. They
+    cannot drift from them: all four are written by this one pass, and `make check`
+    rebuilds and byte-compares every one of them.
+
+    One headword to a line, rather than a field to a line. The file is generated, so
+    the useful diff is which entries moved, and that reads as one changed line each.
+    """
     grouped: dict[str, list[dict[str, str | int]]] = {}
     for entry in entries:
         grouped.setdefault(entry.headword, []).append(entry.record())
-    return json.dumps(grouped, ensure_ascii=False, indent=4) + "\n"
+    phrase_list = tuple(listed)
+    meta = {
+        "version": SCHEMA_VERSION,
+        "source": {
+            "repo": CORPUS_URL,
+            "commit": CORPUS_COMMIT,
+            "sha256": CORPUS_SHA256,
+        },
+        "encoding": {"block": PUA_BLOCK},
+        "counts": {
+            "headwords": len(grouped),
+            "entries": sum(len(group) for group in grouped.values()),
+            "phrases": len(phrase_list),
+        },
+    }
+    sections = (
+        ("meta", _nested(meta)),
+        (
+            "letters",
+            _per_line(
+                (
+                    json.dumps(
+                        dict(zip(LETTERS_HEADER, row, strict=True)), ensure_ascii=False
+                    )
+                    for row in letters_rows(mapping)
+                ),
+                "[]",
+            ),
+        ),
+        ("c5_to_penn", _nested({c5: tag.penn for c5, tag in penn.items()})),
+        (
+            "phrases",
+            _per_line(
+                (json.dumps(phrase, ensure_ascii=False) for phrase in phrase_list), "[]"
+            ),
+        ),
+        (
+            "entries",
+            _per_line(
+                (
+                    f"{json.dumps(headword, ensure_ascii=False)}: "
+                    f"{json.dumps(group, ensure_ascii=False)}"
+                    for headword, group in grouped.items()
+                ),
+                "{}",
+            ),
+        ),
+    )
+    body = ",\n".join(f"    {json.dumps(name)}: {value}" for name, value in sections)
+    return "{\n" + body + "\n}\n"
 
 
 def lexicon_tsv(entries: Iterable[Entry]) -> str:
@@ -155,14 +253,18 @@ def lexicon_tsv(entries: Iterable[Entry]) -> str:
     return "\n".join(lines) + "\n"
 
 
-def letters_tsv(mapping: Mapping) -> str:
-    """The decoder ring: PUA text is opaque without a Quikscript font, so name it."""
+def letters_rows(mapping: Mapping) -> tuple[tuple[str, ...], ...]:
+    """The decoder ring: PUA text is opaque without a Quikscript font, so name it.
+
+    Written twice, into `letters.tsv` and into the master's own `letters`, from here so
+    that the two cannot disagree about what a codepoint is.
+    """
     sources: dict[str, list[str]] = {name: [] for name in CODEPOINT_OF}
     for entry in mapping.entries:
         for name in entry.letters:
             if entry.ipa not in sources[name]:
                 sources[name].append(entry.ipa)
-    lines = ["\t".join(LETTERS_HEADER)]
+    rows: list[tuple[str, ...]] = []
     for name, codepoint in CODEPOINT_OF.items():
         if name in LIGATURES:
             kind = "ligature"
@@ -170,30 +272,40 @@ def letters_tsv(mapping: Mapping) -> str:
             kind = "vowel"
         else:
             kind = "consonant"
-        lines.append(
-            "\t".join(
-                (
-                    f"U+{codepoint:04X}",
-                    chr(codepoint),
-                    name,
-                    kind,
-                    " ".join(sources[name]),
-                )
+        rows.append(
+            (
+                f"U+{codepoint:04X}",
+                chr(codepoint),
+                name,
+                kind,
+                " ".join(sources[name]),
             )
         )
+    return tuple(rows)
+
+
+def letters_tsv(mapping: Mapping) -> str:
+    lines = ["\t".join(LETTERS_HEADER)]
+    lines.extend("\t".join(row) for row in letters_rows(mapping))
     return "\n".join(lines) + "\n"
 
 
 def artifacts(entries: tuple[Entry, ...], mapping: Mapping) -> dict[str, str]:
+    """The six files, every one of them a projection of the same entries.
+
+    The converter shape is built here and not written: `phrases` is derived from it,
+    and the master carries everything the shape itself is rebuilt from, so shipping it
+    as a second JSON would only be shipping the master's own data twice.
+    """
+    penn = load_penn()
     rows = converter(
-        ((e.latin, e.pos, e.qs, e.junior, e.ligature) for e in entries), load_penn()
+        ((e.latin, e.pos, e.qs, e.junior, e.ligature) for e in entries), penn
     )
     listed = phrases(rows, load_phrase_exceptions())
     checkable = spellings((e.qs, e.junior, e.ligature) for e in entries)
     return {
-        LEXICON_JSON: lexicon_json(entries),
+        LEXICON_JSON: lexicon_json(entries, mapping, penn, listed),
         LEXICON_TSV: lexicon_tsv(entries),
-        CONVERTER_JSON: json.dumps(rows, ensure_ascii=False, indent=4) + "\n",
         PHRASES_TXT: "\n".join(listed) + "\n",
         LETTERS_TSV: letters_tsv(mapping),
         HUNSPELL_DIC: dictionary(checkable),

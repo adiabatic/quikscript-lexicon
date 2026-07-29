@@ -30,14 +30,13 @@ from spacy.util import (
     filter_spans,
 )
 
-from qslex.converter import load_penn
+from qslex.converter import converter, load_penn
 from qslex.csur import CODEPOINT_OF
 from qslex.letters import parse, render_qs
 from qslex.readlex import repo_root
 from qslex.words import load_contractions
 
-CONVERTER_JSON = "qs_converter.json"
-PHRASES_TXT = "qs_converter_phrases.txt"
+LEXICON_JSON = "quikscript-lexicon.json"
 
 MODES = ("senior", "junior", "x")
 COLUMN_OF = {"senior": "qs", "junior": "qs_junior", "x": "qs_x"}
@@ -314,15 +313,35 @@ def _apostrophized(lower: str, spelling: str) -> str:
 
 
 class Transliterator:
-    """The spaCy pipeline and the lookup tables, loaded once and reused."""
+    """The spaCy pipeline and the lookup tables, loaded once and reused.
+
+    The Latin-to-spellings shape is rebuilt here from the master rather than read out
+    of a file of its own. It carries nothing the master does not — its Penn tags are
+    the master's C5 tags through `c5-to-penn.tsv`, which this module already loads for
+    the contractions — so shipping it beside the master would be shipping the same data
+    twice. Deriving it costs about a third of a second at startup, once.
+    """
 
     def __init__(self, lexicon: Path | None = None) -> None:
         lexicon = lexicon if lexicon is not None else repo_root() / "lexicon"
-        with (lexicon / CONVERTER_JSON).open(encoding="utf-8") as f:
-            self.rows_of: dict[str, Rows] = json.load(f)
-        phrases = (lexicon / PHRASES_TXT).read_text(encoding="utf-8").splitlines()
-
+        master = json.loads((lexicon / LEXICON_JSON).read_text(encoding="utf-8"))
         penn = load_penn()
+        self.rows_of: dict[str, Rows] = converter(
+            (
+                (
+                    entry["Latn"],
+                    entry["pos"],
+                    entry["qs"],
+                    entry.get("qs_junior", ""),
+                    entry.get("qs_x", ""),
+                )
+                for group in master["entries"].values()
+                for entry in group
+            ),
+            penn,
+        )
+        phrases = master["phrases"]
+
         self.contraction_words: dict[tuple[str, str], str] = {}
         self.contraction_end: dict[str, str] = dict(CONTRACTION_END)
         for entry in load_contractions():
