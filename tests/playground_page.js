@@ -115,6 +115,14 @@ class Element extends Fragment {
     return this.attributes.has(name);
   }
 
+  setAttribute(name, value) {
+    this.attributes.set(name, String(value));
+  }
+
+  getAttribute(name) {
+    return this.attributes.has(name) ? this.attributes.get(name) : null;
+  }
+
   matches(selector) {
     if (selector === ":popover-open") return this.showing;
     return this.classList.contains(selector.replace(".", ""));
@@ -213,7 +221,7 @@ function stage(supports, kept) {
   const parts = {
     source: new Element("textarea"),
     preview: flatten(new Element("div")),
-    senior: new Element("input"),
+    grade: new Element("button"),
     fixer: new Element("div"),
     copy: new Element("button"),
     ignored: new Element("button"),
@@ -272,7 +280,7 @@ function check(name, body) {
 }
 
 const { parts, box } = stage(false);
-const { source, preview, senior: grade, fixer, copy: copier } = parts;
+const { source, preview, grade, fixer, copy: copier } = parts;
 done.push("the four inline scripts load in order, with no name declared twice");
 
 check("marked is inlined and parses the sample", () => {
@@ -361,9 +369,11 @@ check("the grade toggle swaps the font class and nothing else", () => {
   const QS = vm.runInContext("QS", box);
   const listed = QS.words.slice(0, QS.words.indexOf("\n")).split("\t")[0];
   source.value = `# heading\n\n${listed} ${misspelt}\n`;
-  grade.checked = false;
-  grade.fire("change");
+  assert.equal(grade.getAttribute("aria-pressed"), "true", "opens in Senior");
+
+  grade.fire("click");
   box.render();
+  assert.equal(grade.textContent, "Junior");
   assert.equal(preview.classList.contains("senior"), false);
   assert.equal(fixer.classList.contains("senior"), false);
   assert.deepEqual(
@@ -372,9 +382,9 @@ check("the grade toggle swaps the font class and nothing else", () => {
     "junior face, same vocabulary",
   );
 
-  grade.checked = true;
-  grade.fire("change");
+  grade.fire("click");
   box.render();
+  assert.equal(grade.textContent, "Senior");
   assert.equal(preview.classList.contains("senior"), true);
   assert.equal(fixer.classList.contains("senior"), true);
   assert.deepEqual(
@@ -527,27 +537,23 @@ const dressed = storage();
 const graded = stage(false, dressed);
 
 check("a grade choice is written down when the toggle moves", () => {
-  graded.parts.senior.checked = true;
-  graded.parts.senior.fire("change");
-  assert.equal(dressed.held.get(CHOSEN), "senior");
-  graded.parts.senior.checked = false;
-  graded.parts.senior.fire("change");
+  assert.equal(graded.parts.grade.getAttribute("aria-pressed"), "true", "opens in Senior");
+  graded.parts.grade.fire("click");
   assert.equal(dressed.held.get(CHOSEN), "junior");
+  graded.parts.grade.fire("click");
+  assert.equal(dressed.held.get(CHOSEN), "senior");
 });
 
 check("a page opened again over the same storage starts in the grade it left", () => {
-  graded.parts.senior.checked = true;
-  graded.parts.senior.fire("change");
   const again = stage(false, dressed);
-  assert.equal(again.parts.senior.checked, true);
+  assert.equal(again.parts.grade.getAttribute("aria-pressed"), "true");
   assert.equal(again.parts.preview.classList.contains("senior"), true);
 });
 
 check("an origin whose storage throws still switches grade for the session", () => {
   const sessional = stage(false, sealed);
-  assert.equal(sessional.parts.senior.checked, true);
-  sessional.parts.senior.checked = false;
-  sessional.parts.senior.fire("change");
+  assert.equal(sessional.parts.grade.getAttribute("aria-pressed"), "true");
+  sessional.parts.grade.fire("click");
   assert.equal(sessional.parts.preview.classList.contains("senior"), false);
 });
 

@@ -1,6 +1,6 @@
 const source = document.getElementById("source");
 const preview = document.getElementById("preview");
-const grade = document.getElementById("senior");
+const grade = document.getElementById("grade");
 const fixer = document.getElementById("fixer");
 const copier = document.getElementById("copy");
 const excused = document.getElementById("ignored");
@@ -55,9 +55,18 @@ function recalled() {
   }
 }
 
+function isSenior() {
+  return grade.getAttribute("aria-pressed") === "true";
+}
+
+function paint(senior) {
+  grade.setAttribute("aria-pressed", String(senior));
+  grade.textContent = senior ? "Senior" : "Junior";
+}
+
 function keep() {
   try {
-    localStorage.setItem(CHOSEN, grade.checked ? SENIOR_GRADE : JUNIOR_GRADE);
+    localStorage.setItem(CHOSEN, isSenior() ? SENIOR_GRADE : JUNIOR_GRADE);
   } catch {}
 }
 
@@ -249,13 +258,14 @@ function byHand() {
 }
 
 function regrade() {
-  preview.classList.toggle("senior", grade.checked);
-  fixer.classList.toggle("senior", grade.checked);
+  preview.classList.toggle("senior", isSenior());
+  fixer.classList.toggle("senior", isSenior());
 }
 
 source.addEventListener("input", schedule);
 
-grade.addEventListener("change", () => {
+grade.addEventListener("click", () => {
+  paint(!isSenior());
   keep();
   regrade();
 });
@@ -281,7 +291,7 @@ copier.addEventListener("click", () => {
 
 marked.use({ gfm: true });
 if (ANCHORING) fixer.classList.add("anchored");
-grade.checked = recalled();
+paint(recalled());
 regrade();
 tally();
 render();
