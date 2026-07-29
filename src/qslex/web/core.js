@@ -2,6 +2,7 @@ const TOKEN = /[\uE650-\uE67E][\uE650-\uE67E-]*/g;
 const HYPHEN = "-";
 const SPACE = " ";
 const OFFERS = 8;
+const DISTANT = 2;
 const FRONT_MATTER = /^---\r?\n(?:[\s\S]*?\r?\n)?---[ \t]*\r?\n?/;
 
 function stripFrontMatter(text) {
@@ -70,6 +71,37 @@ function nearby(word, letters) {
   return out;
 }
 
+function distance(a, b, cap) {
+  if (Math.abs(a.length - b.length) > cap) return cap + 1;
+  let previous2 = null;
+  let previous1 = Array.from({ length: b.length + 1 }, (_, j) => j);
+  for (let i = 1; i <= a.length; i += 1) {
+    const current = [i];
+    let least = i;
+    for (let j = 1; j <= b.length; j += 1) {
+      const cost = a[i - 1] === b[j - 1] ? 0 : 1;
+      let best = Math.min(previous1[j] + 1, current[j - 1] + 1, previous1[j - 1] + cost);
+      if (i > 1 && j > 1 && a[i - 1] === b[j - 2] && a[i - 2] === b[j - 1]) {
+        best = Math.min(best, previous2[j - 2] + 1);
+      }
+      current[j] = best;
+      if (best < least) least = best;
+    }
+    if (least > cap) return cap + 1;
+    previous2 = previous1;
+    previous1 = current;
+  }
+  return previous1[b.length];
+}
+
+function distant(word, active, cap) {
+  const out = [];
+  for (const candidate of active) {
+    if (candidate !== word && distance(word, candidate, cap) <= cap) out.push(candidate);
+  }
+  return out;
+}
+
 function halves(word) {
   const out = [];
   for (let i = 1; i < word.length; i += 1) {
@@ -99,6 +131,9 @@ function suggest(word, ctx) {
       nearby(word, ctx.letters).filter((candidate) => offered(active, candidate)),
       (candidate) => frequency(counts, candidate),
     ),
+  );
+  take(
+    ranked(distant(word, active, DISTANT), (candidate) => frequency(counts, candidate)),
   );
   take(
     ranked(

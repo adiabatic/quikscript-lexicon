@@ -251,6 +251,24 @@ check("edit-distance offers come commonest first", () => {
   assert.ok(scores[0] > 0);
 });
 
+const LONGISH = UNION.find((word) => word.length >= 9 && !word.includes("-"));
+const TWO_AWAY = LONGISH[1] + LONGISH.slice(3);
+const GIBBERISH = A.repeat(10);
+
+check("a typo two edits away is still offered the word it came from", () => {
+  assert.equal(ACCEPTED.has(TWO_AWAY), false, show(TWO_AWAY));
+  const offers = suggest(TWO_AWAY, advice());
+  assert.ok(
+    offers.includes(LONGISH),
+    `${show(LONGISH)} not in ${offers.map(show).join(" | ")}`,
+  );
+});
+
+check("a typo nothing is within two edits of is offered nothing", () => {
+  assert.equal(ACCEPTED.has(GIBBERISH), false, show(GIBBERISH));
+  assert.deepEqual(suggest(GIBBERISH, advice()), []);
+});
+
 check("every offer is a spelling the accepted set takes, and never the word itself", () => {
   const sampled = [WRONG[0], CONTRACTION, ...UNION.slice(0, 40)];
   for (const word of sampled) {
