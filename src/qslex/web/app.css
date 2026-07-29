@@ -29,13 +29,28 @@
 }
 
 :root {
+  --paper: #fff;
   --rule: #d4d4d8;
   --chrome: #f4f4f5;
   --ink: #18181b;
   --quiet: #71717a;
+  --miss: red;
+  --shadow: rgb(0 0 0 / 0.15);
   --junior: 'Abbots Morton Spaceport Sans Junior', 'Abbots Morton Spaceport Mono', monospace;
   --senior: 'Abbots Morton Spaceport Sans Senior', 'Abbots Morton Spaceport Mono', monospace;
-  color-scheme: light;
+  color-scheme: light dark;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --paper: #18181b;
+    --rule: #3f3f46;
+    --chrome: #27272a;
+    --ink: #f4f4f5;
+    --quiet: #a1a1aa;
+    --miss: #f87171;
+    --shadow: rgb(0 0 0 / 0.4);
+  }
 }
 
 * {
@@ -52,7 +67,7 @@ body {
   -moz-osx-font-smoothing: unset;
   font-smooth: never;
   color: var(--ink);
-  background: #fff;
+  background: var(--paper);
 }
 
 header {
@@ -76,7 +91,7 @@ h1 {
   padding: 0.125rem 0.625rem;
   border: 1px solid var(--rule);
   border-radius: 999px;
-  background: #fff;
+  background: var(--paper);
   color: var(--quiet);
   font: inherit;
   font-size: 11px;
@@ -115,7 +130,7 @@ h1 {
   padding: 0.25rem 0.75rem;
   border: 1px solid var(--rule);
   border-radius: 0.25rem;
-  background: #fff;
+  background: var(--paper);
   cursor: pointer;
 }
 
@@ -147,7 +162,7 @@ main {
   resize: none;
   outline: none;
   color: inherit;
-  background: #fff;
+  background: var(--paper);
   font-family: 'Abbots Morton Spaceport Mono', monospace;
 }
 
@@ -236,7 +251,7 @@ main {
 }
 
 .miss {
-  text-decoration: underline dotted red;
+  text-decoration: underline dotted var(--miss);
   text-decoration-thickness: 2px;
   text-decoration-skip-ink: none;
   text-underline-offset: 4px;
@@ -252,11 +267,11 @@ main {
   padding: 11px;
   border: 1px solid var(--rule);
   border-radius: 0.25rem;
-  box-shadow: 0 4px 16px rgb(0 0 0 / 0.15);
+  box-shadow: 0 4px 16px var(--shadow);
   overflow: auto;
   overscroll-behavior: contain;
   color: var(--ink);
-  background: #fff;
+  background: var(--paper);
   font-family: var(--junior);
   font-size: 22px;
   line-height: 33px;
@@ -277,7 +292,7 @@ main {
   margin-bottom: 11px;
   padding-bottom: 11px;
   border-bottom: 1px solid var(--rule);
-  text-decoration: underline dotted red;
+  text-decoration: underline dotted var(--miss);
   text-decoration-thickness: 2px;
   text-decoration-skip-ink: none;
   text-underline-offset: 4px;
@@ -315,8 +330,6 @@ main {
   padding: 11px 11px 0;
   border-top: 1px solid var(--rule);
   border-radius: 0;
-  font-size: 11px;
-  line-height: 1.4;
   color: var(--quiet);
 }
 

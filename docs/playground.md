@@ -106,7 +106,7 @@ The popover itself is one reusable `<div popover="auto">`, so light-dismiss is t
 
 ## Ignoring
 
-Every popover ends with two buttons below the suggestions, set at 11px so they read as the secondary thing they are: **Ignore one** and **Ignore all**. Ignore all adds the word to a set the page keeps and re-renders, and every underline that word had is gone — this is hunspell's personal dictionary, which is the answer to the same problem: a lexicon of 75,568 spellings will not carry your surname, your employer or the word you just coined, and a checker that cannot be told so is a checker people stop reading. Ignore one leaves just the clicked occurrence alone; the word stays underlined everywhere else it appears.
+Every popover ends with two buttons below the suggestions, set off by a rule above them and the quieter ink rather than by smaller type — they read at the same size as the rest of the popover: **Ignore one** and **Ignore all**. Ignore all adds the word to a set the page keeps and re-renders, and every underline that word had is gone — this is hunspell's personal dictionary, which is the answer to the same problem: a lexicon of 75,568 spellings will not carry your surname, your employer or the word you just coined, and a checker that cannot be told so is a checker people stop reading. Ignore one leaves just the clicked occurrence alone; the word stays underlined everywhere else it appears.
 
 The semantics are deliberately the plainest available:
 
@@ -125,7 +125,7 @@ Abbots Morton Spaceport is a pixel font, and [its README](../data/abbots-morton-
 
 Smoothing is turned off with all three declarations the font README names — `-webkit-font-smoothing: none`, `-moz-osx-font-smoothing: unset`, `font-smooth: never` — once, on `body`, and inherited by everything on the page.
 
-The page's own furniture follows the same rule rather than being exempt from it: everything is set in Abbots Morton Spaceport, and nothing anywhere falls back to `system-ui`. The header title is 22px Bold; the controls, the ignored chip, the footer, the "No suggestions" line and the popover's Ignore button are 11px, the one size the grid offers below the body text. None of the furniture carries a Quikscript glyph, so all of it lands in the Mono face by fallthrough — the Sans faces carry the Quikscript letters, and the whole of [Departure Mono](https://departuremono.com/) sits behind them in the stack, which is how the preview's Latin (headings, prose, anything the author wrote in the Latin alphabet) has rendered all along. One pixel grid for everything, Latin and Quikscript alike.
+The page's own furniture follows the same rule rather than being exempt from it: everything is set in Abbots Morton Spaceport, and nothing anywhere falls back to `system-ui`. The header title is 22px Bold; the controls, the ignored chip, the footer and the "No suggestions" line are 11px, the one size the grid offers below the body text. None of the furniture carries a Quikscript glyph, so all of it lands in the Mono face by fallthrough — the Sans faces carry the Quikscript letters, and the whole of [Departure Mono](https://departuremono.com/) sits behind them in the stack, which is how the preview's Latin (headings, prose, anything the author wrote in the Latin alphabet) has rendered all along. One pixel grid for everything, Latin and Quikscript alike.
 
 ## What is proved, and where
 
