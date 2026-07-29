@@ -8,10 +8,10 @@ Everything below answers the same question in a different way — *does the lexi
 
 **The Manual arbitrates; everything else is suggestive.** In practice that ordering decides every awkward case in this document:
 
-| Source | Standing |
-|---|---|
-| [The Manual][manual], via the AMS transcription | arbitrates. A spelling it writes out that the rules cannot reproduce is a failure. |
-| ReadLex | the corpus. It supplies pronunciations, not spellings, and the Manual overrules it where the two conflict — recorded in `shavian-divergences.tsv` and in the rule tables. |
+| Source                                          | Standing                                                                                                                                                                  |
+| ----------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| [The Manual][manual], via the AMS transcription | arbitrates. A spelling it writes out that the rules cannot reproduce is a failure.                                                                                        |
+| ReadLex                                         | the corpus. It supplies pronunciations, not spellings, and the Manual overrules it where the two conflict — recorded in `shavian-divergences.tsv` and in the rule tables. |
 
 Page numbers and anchors below are the Manual's own. Every letter-name spelling quoted was extracted codepoint for codepoint from the transcription's PUA text, with the presentation-only ZWNJs and variation selectors stripped.
 
@@ -27,26 +27,26 @@ Page numbers and anchors below are the Manual's own. Every letter-name spelling 
 
 The rule sections of the Manual give examples a word at a time, chosen to show one convention each. The specimens are the only place it writes *running text*, which makes them the only fixture that exercises the segment mapping, the terminals and the word signs together, in the proportions English actually uses them. There are eleven, 674 words in all:
 
-| Passage | Level | Words |
-|---|---|---|
-| [No-how][no-how] | Senior | 56 |
-| [Parental advice][parental] | Senior | 51 |
-| [Gown shop][gown] | Senior | 64 |
-| [Rip van Winkle][rip] | Senior | 120 |
-| [Froude, on Drake][senior-examples] | Senior | 134 |
-| [Stevenson, *Travels with a Donkey*][senior-examples] | Senior | 51 + 66 |
+| Passage                                                                 | Level  | Words             |
+| ----------------------------------------------------------------------- | ------ | ----------------- |
+| [No-how][no-how]                                                        | Senior | 56                |
+| [Parental advice][parental]                                             | Senior | 51                |
+| [Gown shop][gown]                                                       | Senior | 64                |
+| [Rip van Winkle][rip]                                                   | Senior | 120               |
+| [Froude, on Drake][senior-examples]                                     | Senior | 134               |
+| [Stevenson, *Travels with a Donkey*][senior-examples]                   | Senior | 51 + 66           |
 | [Bo-peep, Jack Horner, Ride a-cock Horse, Mary's Lamb][junior-examples] | Junior | 25 + 29 + 31 + 47 |
 
 The Senior specimens carry their own Latin in the transcription's `data-orthodox` attribute, so the alignment of Quikscript word to Latin word is the transcriber's, not ours. The four Junior nursery rhymes carry no such attribute, and their Latin was transcribed by hand.
 
 Each word gets a **verdict**, and the verdict is what the validator holds:
 
-| Verdict | What it claims | What is checked |
-|---|---|---|
-| `senior`, `junior`, `ligature` | that column reproduces the Manual's spelling | the spelling is among the ones the lexicon carries for that word in that column |
-| `contraction` | Read reached for a contraction `contractions.tsv` carries — the [§III list][senior-contractions], plus the doing the [terminal -ing][ing] section prints and that list omits — which this lexicon applies to no column | `contractions.tsv` carries exactly that spelling for that word |
-| `absent` | ReadLex has no entry for the word | it still has none — if a corpus bump adds one, the row has to be revisited |
-| `differs` | the two genuinely disagree | it still disagrees, and the lexicon still spells what the row pins |
+| Verdict                        | What it claims                                                                                                                                                                                                         | What is checked                                                                 |
+| ------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------- |
+| `senior`, `junior`, `ligature` | that column reproduces the Manual's spelling                                                                                                                                                                           | the spelling is among the ones the lexicon carries for that word in that column |
+| `contraction`                  | Read reached for a contraction `contractions.tsv` carries — the [§III list][senior-contractions], plus the doing the [terminal -ing][ing] section prints and that list omits — which this lexicon applies to no column | `contractions.tsv` carries exactly that spelling for that word                  |
+| `absent`                       | ReadLex has no entry for the word                                                                                                                                                                                      | it still has none — if a corpus bump adds one, the row has to be revisited      |
+| `differs`                      | the two genuinely disagree                                                                                                                                                                                             | it still disagrees, and the lexicon still spells what the row pins              |
 
 A Senior passage is held to the senior and ligature columns; a Junior passage to the junior column, which is the senior spelling wherever it does not diverge. 532 of the 674 words are reproduced outright, 110 are contractions, 13 are words ReadLex does not have, and 19 differ. Every one of the 19 carries a note saying why, and they fall into five groups:
 
@@ -75,15 +75,15 @@ Two things decide whether a shape check earns its place over a generated lexicon
 
 So every check that was kept is Latin-gated, and the seven the lint still runs over the corpus run **per element**, at the boundaries [`src/qslex/elements.py`](../src/qslex/elements.py) cuts:
 
-| Check | Anchor | What the Manual requires |
-|---|---|---|
-| `terminal-ing-vowel-omitted` | [terminal-ing][ing] | "Provided it is an affix and not a root, omit vowel-i", with its own rider for roots ending in -y |
-| `terminal-al-vowel-omitted` | [terminal-al-el-le-il][al] | a final L drops the *unstressed* vowel before it, after a consonant, in the entry-final element |
-| `terminal-ent-ance-utter` | [terminal-ent-ance][ent] | -ent, -ant, -ence, -ance "written invariably with standard ·Utter·No" |
-| `terminal-land-ment-vowel-omitted` | [terminal-land-ment][land] | -land, -ment, -man omit the unstressed vowel |
-| `terminal-men-keeps-a-vowel` | [terminal-land-ment][land] | "…except in -men", the one ending that keeps it |
-| `initial-ex-et` | [§II][section-2] | an initial ex- takes ·Et before the ligature, "easier than ·It" |
-| `x-ligature-only-with-x` | [§II][section-2] | "but only where Orthodox spells these sounds with X" — and "only one ·Excite in Xerxes" |
+| Check                              | Anchor                     | What the Manual requires                                                                          |
+| ---------------------------------- | -------------------------- | ------------------------------------------------------------------------------------------------- |
+| `terminal-ing-vowel-omitted`       | [terminal-ing][ing]        | "Provided it is an affix and not a root, omit vowel-i", with its own rider for roots ending in -y |
+| `terminal-al-vowel-omitted`        | [terminal-al-el-le-il][al] | a final L drops the *unstressed* vowel before it, after a consonant, in the entry-final element   |
+| `terminal-ent-ance-utter`          | [terminal-ent-ance][ent]   | -ent, -ant, -ence, -ance "written invariably with standard ·Utter·No"                             |
+| `terminal-land-ment-vowel-omitted` | [terminal-land-ment][land] | -land, -ment, -man omit the unstressed vowel                                                      |
+| `terminal-men-keeps-a-vowel`       | [terminal-land-ment][land] | "…except in -men", the one ending that keeps it                                                   |
+| `initial-ex-et`                    | [§II][section-2]           | an initial ex- takes ·Et before the ligature, "easier than ·It"                                   |
+| `x-ligature-only-with-x`           | [§II][section-2]           | "but only where Orthodox spells these sounds with X" — and "only one ·Excite in Xerxes"           |
 
 All seven read zero over all 108,425 spelt rows, which is what an independent re-derivation of a working rule should read, and `src/qslex/data/lint-pragmas.tsv` carries no rows at all. The last check to read otherwise was `initial-ex-et`, on 36 rows under 28 headwords, every one of them the same defect: `rules.py::ligate` was the last rule still scoped to the whole entry rather than to the element, so an `ex-` that was word-initial without being entry-initial — cross-examine, pre-exist, for example, corn-exchange — took the ligature but not the ·Et the Manual asks for. The 28 declarations that recorded it went out with the fix ([#11](https://github.com/adiabatic/quikscript-lexicon/issues/11)), and had to: the validator fails on a pragma that excuses nothing, so the cleanup was never optional.
 
@@ -99,15 +99,15 @@ Half of the first one cannot move there. A row may leave the ligature column emp
 
 Seven further shapes were considered and not adopted. Each of them fires on real rows — the counts are over the corpus as it ships — and each of them turns out to be a Manual shape with the condition Read attached to it stripped off:
 
-| Candidate shape | Rows it fires on | Why it was not adopted |
-|---|---:|---|
-| starts ·Et·Key·See | 316 | The Manual prescribes ·Et for an initial ex- and writes ·Et·Key·See itself, for *necks*. The check is the Manual reversed. |
-| ends ·Et·No·Tea / ·Et·No·See | 227 | ·Et is not a reducible vowel; every hit is a genuine ReadLex /e/, and the Manual names cement as its own exception. |
-| ends ·Low·At·No·Day | 47 | The -land rule is conditioned on "the **unstressed** vowel", and ReadLex records a real /æ/. |
-| ends ·May·Utter·No·Tea | 10 | Conflates -ment with -ent: ·May·Utter·No·Tea is the Manual's *required* shape for claimant, dormant, informant. |
-| ends ·May·Et·No·Tea | 40 | As ·Et·No·Tea; document, ornament, implement and supplement are all correct. |
-| ends ·May·Utter·No | 52 | Conflates -ment with -en/-on: ·May·Utter·No is *required* for common, lemon, sermon, omen. Narrowed to `terminal-men-keeps-a-vowel`. |
-| final ·Low after ·Utter after a consonant | 473 | As written it fires on 133 -ful adjectives the Manual explicitly spells -·Fee·Utter·Low, and on 236 non-final compound elements where the Manual explicitly *restores* the vowel. Narrowed to `terminal-al-vowel-omitted`. |
+| Candidate shape                           | Rows it fires on | Why it was not adopted                                                                                                                                                                                                     |
+| ----------------------------------------- | ---------------: | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| starts ·Et·Key·See                        |              316 | The Manual prescribes ·Et for an initial ex- and writes ·Et·Key·See itself, for *necks*. The check is the Manual reversed.                                                                                                 |
+| ends ·Et·No·Tea / ·Et·No·See              |              227 | ·Et is not a reducible vowel; every hit is a genuine ReadLex /e/, and the Manual names cement as its own exception.                                                                                                        |
+| ends ·Low·At·No·Day                       |               47 | The -land rule is conditioned on "the **unstressed** vowel", and ReadLex records a real /æ/.                                                                                                                               |
+| ends ·May·Utter·No·Tea                    |               10 | Conflates -ment with -ent: ·May·Utter·No·Tea is the Manual's *required* shape for claimant, dormant, informant.                                                                                                            |
+| ends ·May·Et·No·Tea                       |               40 | As ·Et·No·Tea; document, ornament, implement and supplement are all correct.                                                                                                                                               |
+| ends ·May·Utter·No                        |               52 | Conflates -ment with -en/-on: ·May·Utter·No is *required* for common, lemon, sermon, omen. Narrowed to `terminal-men-keeps-a-vowel`.                                                                                       |
+| final ·Low after ·Utter after a consonant |              473 | As written it fires on 133 -ful adjectives the Manual explicitly spells -·Fee·Utter·Low, and on 236 non-final compound elements where the Manual explicitly *restores* the vowel. Narrowed to `terminal-al-vowel-omitted`. |
 
 The pattern is the same in every row of that table: the check is a shape without its condition. Read states almost every convention with an "unstressed", a "provided it is an affix", or a "where another syllable is added" attached, and a check that drops the condition keeps the shape and loses the rule.
 

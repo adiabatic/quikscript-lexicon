@@ -2,14 +2,14 @@
 
 `marked.umd.js` is vendored verbatim from the published [marked](https://github.com/markedjs/marked) tarball so that [`site/index.html`](../../docs/desk.md) is reproducible from a clean checkout, with no network access. The page inlines it in a `<script>` of its own, which is also what lets it work from a `file:` URL with nothing else installed.
 
-| | |
-|---|---|
-| Upstream | <https://github.com/markedjs/marked> |
-| Version | 18.0.7 |
-| Tarball | <https://registry.npmjs.org/marked/-/marked-18.0.7.tgz>, member `package/lib/marked.umd.js` |
-| Tarball SHA-256 | `edcb08b6a56e5bfa9a1177a29943f19587771297e123694134d166546e1201b6` |
-| SHA-256 | `7a1f8c5e7226b75ff16644bdb2c0130d2ae7371e7ea3106c2d6dac77ab0ff7b6` |
-| Licence | MIT, © 2018+ MarkedJS, © 2011–2018 Christopher Jeffrey — see [`LICENSE`](LICENSE) |
+|                 |                                                                                             |
+| --------------- | ------------------------------------------------------------------------------------------- |
+| Upstream        | <https://github.com/markedjs/marked>                                                        |
+| Version         | 18.0.7                                                                                      |
+| Tarball         | <https://registry.npmjs.org/marked/-/marked-18.0.7.tgz>, member `package/lib/marked.umd.js` |
+| Tarball SHA-256 | `edcb08b6a56e5bfa9a1177a29943f19587771297e123694134d166546e1201b6`                          |
+| SHA-256         | `7a1f8c5e7226b75ff16644bdb2c0130d2ae7371e7ea3106c2d6dac77ab0ff7b6`                          |
+| Licence         | MIT, © 2018+ MarkedJS, © 2011–2018 Christopher Jeffrey — see [`LICENSE`](LICENSE)           |
 
 ## Why the UMD build
 

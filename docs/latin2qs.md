@@ -21,11 +21,11 @@ uv run python -m qslex.latin2qs --mode x --contractions input.txt
 
 The three modes select among the artifact's three spelling columns, falling back to `qs` where a sparse column is absent, exactly as the [column model](pipeline.md#qs_converterjson) intends:
 
-| Mode | Column | What it is |
-|---|---|---|
-| `senior` (default) | `qs` | Read's conventions plus the standard word-outlines |
-| `junior` | `qs_junior` | word-level Junior divergences only |
-| `x` | `qs_x` | the ·Excite/·Exam ligature form, built on senior |
+| Mode               | Column      | What it is                                         |
+| ------------------ | ----------- | -------------------------------------------------- |
+| `senior` (default) | `qs`        | Read's conventions plus the standard word-outlines |
+| `junior`           | `qs_junior` | word-level Junior divergences only                 |
+| `x`                | `qs_x`      | the ·Excite/·Exam ligature form, built on senior   |
 
 `--contractions` layers the [§III Senior contractions](word-signs.md#the-three-tiers) on top — the ~50-word list `contractions.tsv` ships precisely for this consumer, applied to no column. It composes with `senior` and `x`; combined with `junior` it is an error, because the Manual's Note on p.25 says the Senior facilities are impossible as a first stage. The layer is word-level: it substitutes a listed word, attaches clitics to a contracted stem (she's = ·She·Zoo, we'll = ·Way’·Low), and generalises `n't` to unlisted stems (shouldn't = ·She·Day·No·Tea). It never touches a proper noun or a token inside a named entity, so Will Smith keeps his name. The three `that` rows carry their C5 tags through `c5-to-penn.tsv`, so only the non-demonstrative `that` contracts — which the senior column already spells ·They·Tea anyway.
 
@@ -45,13 +45,13 @@ These fire only where the transliterator builds a form itself — a possessive c
 
 The conditioning is the one [`docs/word-signs.md`](word-signs.md#contractions-possessives-and-the-apostrophe) derived from the Manual's own practice — not phonological, but whether the clitic's letters could be misread as a continuation of the word:
 
-| Class | Written | Example |
-|---|---|---|
-| possessive `'s`, `s'` | solid, apostrophe dropped, class-conditioned | Jack's = ·Jay·At·Key·See |
-| verbal `'s` | solid | it's = ·It·Tea·See |
-| `n't` | solid | wasn't, can't |
-| `'d` `'ll` `'m` `'re` `'ve` | apostrophe kept | they'll = ·They·Eight’·Low |
-| aphetic `'t...` | leading apostrophe kept | 'twas = ’·Tea·Way·Utter·Zoo, ’·Tea·Way·Ox·Zoo in junior mode |
+| Class                       | Written                                      | Example                                                      |
+| --------------------------- | -------------------------------------------- | ------------------------------------------------------------ |
+| possessive `'s`, `s'`       | solid, apostrophe dropped, class-conditioned | Jack's = ·Jay·At·Key·See                                     |
+| verbal `'s`                 | solid                                        | it's = ·It·Tea·See                                           |
+| `n't`                       | solid                                        | wasn't, can't                                                |
+| `'d` `'ll` `'m` `'re` `'ve` | apostrophe kept                              | they'll = ·They·Eight’·Low                                   |
+| aphetic `'t...`             | leading apostrophe kept                      | 'twas = ’·Tea·Way·Utter·Zoo, ’·Tea·Way·Ox·Zoo in junior mode |
 
 The corpus's spellings carry no apostrophes at all, so for the keeping classes the transliterator reinserts one: a dictionary spelling that ends in the clitic's own letters gets ’ placed before them. That reproduces the Manual's ·They·Eight’·Low from the artifact's ·They·Eight·Low, in every mode — the Bo-peep specimen keeping the apostrophe is Junior text.
 

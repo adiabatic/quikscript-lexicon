@@ -2,14 +2,14 @@
 
 `readlex.json` is vendored verbatim from [Shavian-info/readlex](https://github.com/Shavian-info/readlex) so that the build and the validator's coverage proof are reproducible from a clean checkout, with no network access.
 
-| | |
-|---|---|
-| Upstream | <https://github.com/Shavian-info/readlex> |
-| Commit | `8343343090385938bf8a901748117dce94d9e570` ("Add words", 2026-03-01) |
-| SHA-256 | `0e026ee523fe7beea0a34186e17043d6443e8bbe06a699ed175ad2cf31c332e9` |
-| Headwords | 56,649 |
-| Entries | 111,214 |
-| Licence | MIT, © 2024 Shavian-info — see [`LICENSE`](LICENSE) |
+|           |                                                                      |
+| --------- | -------------------------------------------------------------------- |
+| Upstream  | <https://github.com/Shavian-info/readlex>                            |
+| Commit    | `8343343090385938bf8a901748117dce94d9e570` ("Add words", 2026-03-01) |
+| SHA-256   | `0e026ee523fe7beea0a34186e17043d6443e8bbe06a699ed175ad2cf31c332e9`   |
+| Headwords | 56,649                                                               |
+| Entries   | 111,214                                                              |
+| Licence   | MIT, © 2024 Shavian-info — see [`LICENSE`](LICENSE)                  |
 
 Words are grouped by headword. Each entry carries the Latin spelling, the Shavian spelling, the [C5](http://www.natcorp.ox.ac.uk/docs/c5spec.html) part of speech, the IPA, the BNC frequency, and a `var` tag naming the accent it transcribes.
 

@@ -25,24 +25,24 @@ The headline finding is that **eleven of the twenty-six rules never rewrite anyt
 
 How many rows each rule rewrites, counted over the rows the lexicon spells, is pinned in `EXPECTED_RULE_CHANGES` in [`src/qslex/validate.py`](../src/qslex/validate.py), which is the only place to read those counts; `make validate` prints the tally rule by rule. What each one does:
 
-| Rule | What it does |
-|---|---|
-| [`terminal-ing`][ing] | affix -ing loses vowel-i: calling ·Key·Awe·Low·Oolong |
-| [`terminal-es-ed`][es-ed] | the epenthetic vowel goes: kisses ·Key·It·See·Zoo |
-| [`terminal-al-el-le-il`][al] | vowel omitted before a final L: tribal ·Tea·Roe·I·Bay·Low |
-| [`terminal-tion`][tion] | vowel omitted before N: action ·At·Key·She·No |
-| [`terminal-ess-est`][ess] | ·Et, not ·Utter: highest ·He·I·Et·See·Tea |
-| [`prefix-con-com`][con] | unstressed con-/com- lose the vowel: content (adj) ·Key·No·Tea·Et·No·Tea |
-| [`terminal-ally-able`][ally] | -·Utter·Low·It, -·Utter·Bay·Low, -·Utter·Bay·Low·It |
-| [`terminal-land-ment`][land] | vowel omitted: England ·It·Oolong·Gay·Low·No·Day |
-| [`terminal-age`][age] | -·Utter·Jay, but -·It·Jay after a -y root |
-| [`terminal-ward`][ward] | contracted: eastward ·Eat·See·Tea·Way·Day |
-| [`terminal-en-on`][en-on] | invariably -·Utter·No: chicken ·Cheer·It·Key·Utter·No |
-| [`terminal-ain`][ain] | unstressed -·Utter·No: captain ·Key·At·Pea·Tea·Utter·No |
-| [`terminal-y`][yy] | the unstressed terminal vowel is ·It, a full ·Eat included: tilde ·Tea·It·Low·Day·It, algae ·At·Low·Gay·It |
-| [`terminal-ia-ea`][ia] | stressed -·Eat·Utter: European ·Ye·Ooze·Utter·Roe·Utter·Pea·Eat·Utter·No |
-| [`terminal-us-ous`][ous] | invariably -·Utter·See: hippolytus |
-| [`terminal-ent-ance`][ent], [`terminal-er`][er], [`terminal-ier-ior`][ier], [`terminal-ful`][ful], [`prefix-un`][un], [`prefix-an-al-ar`][an], [`prefix-ob-of`][ob], [`prefix-be-de-re`][be], [`prefix-pre-pro`][pre], [`prefix-per-pur`][per], [`prefix-in-en`][in] | no-ops on this corpus; see below |
+| Rule                                                                                                                                                                                                                                                                 | What it does                                                                                               |
+| -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------- |
+| [`terminal-ing`][ing]                                                                                                                                                                                                                                                | affix -ing loses vowel-i: calling ·Key·Awe·Low·Oolong                                                      |
+| [`terminal-es-ed`][es-ed]                                                                                                                                                                                                                                            | the epenthetic vowel goes: kisses ·Key·It·See·Zoo                                                          |
+| [`terminal-al-el-le-il`][al]                                                                                                                                                                                                                                         | vowel omitted before a final L: tribal ·Tea·Roe·I·Bay·Low                                                  |
+| [`terminal-tion`][tion]                                                                                                                                                                                                                                              | vowel omitted before N: action ·At·Key·She·No                                                              |
+| [`terminal-ess-est`][ess]                                                                                                                                                                                                                                            | ·Et, not ·Utter: highest ·He·I·Et·See·Tea                                                                  |
+| [`prefix-con-com`][con]                                                                                                                                                                                                                                              | unstressed con-/com- lose the vowel: content (adj) ·Key·No·Tea·Et·No·Tea                                   |
+| [`terminal-ally-able`][ally]                                                                                                                                                                                                                                         | -·Utter·Low·It, -·Utter·Bay·Low, -·Utter·Bay·Low·It                                                        |
+| [`terminal-land-ment`][land]                                                                                                                                                                                                                                         | vowel omitted: England ·It·Oolong·Gay·Low·No·Day                                                           |
+| [`terminal-age`][age]                                                                                                                                                                                                                                                | -·Utter·Jay, but -·It·Jay after a -y root                                                                  |
+| [`terminal-ward`][ward]                                                                                                                                                                                                                                              | contracted: eastward ·Eat·See·Tea·Way·Day                                                                  |
+| [`terminal-en-on`][en-on]                                                                                                                                                                                                                                            | invariably -·Utter·No: chicken ·Cheer·It·Key·Utter·No                                                      |
+| [`terminal-ain`][ain]                                                                                                                                                                                                                                                | unstressed -·Utter·No: captain ·Key·At·Pea·Tea·Utter·No                                                    |
+| [`terminal-y`][yy]                                                                                                                                                                                                                                                   | the unstressed terminal vowel is ·It, a full ·Eat included: tilde ·Tea·It·Low·Day·It, algae ·At·Low·Gay·It |
+| [`terminal-ia-ea`][ia]                                                                                                                                                                                                                                               | stressed -·Eat·Utter: European ·Ye·Ooze·Utter·Roe·Utter·Pea·Eat·Utter·No                                   |
+| [`terminal-us-ous`][ous]                                                                                                                                                                                                                                             | invariably -·Utter·See: hippolytus                                                                         |
+| [`terminal-ent-ance`][ent], [`terminal-er`][er], [`terminal-ier-ior`][ier], [`terminal-ful`][ful], [`prefix-un`][un], [`prefix-an-al-ar`][an], [`prefix-ob-of`][ob], [`prefix-be-de-re`][be], [`prefix-pre-pro`][pre], [`prefix-per-pur`][per], [`prefix-in-en`][in] | no-ops on this corpus; see below                                                                           |
 
 The zeroes are not idle. `per-/pur-` is automatic because ɜː and ə both map to ·Utter, so the Manual's "stressed or not" needs no rule. `in-/en-` is automatic because ReadLex writes en- words with ɪn (enquiry `ɪnˈkwaɪəri`), which is exactly the Manual's "alike unless stressed". `un-` is automatic including the doubled N of unknown `ˌʌnˈnəʊn`. `-ier/-ior` and most of `-ia/-ea` were already settled by #1's stressed/unstressed ɪə conditioning. `-ful` is automatic because ReadLex itself splits the adjective and adverb (`fəl`, 246 rows) from the noun (`fʊl`), exactly as the Manual does; the four rows that cross that line are handled below.
 
@@ -100,16 +100,16 @@ The alignment is mechanical where it can be, and it is per **word** of the entry
 
 Word-initial means the *word* and not the entry, so cross-examine and for example take the ·Et on a word that is not the one the entry begins with. Unstressed means ReadLex's own mark at the head of that element's chunk, and not the stress the tokenizer reads off it: corn-exchange `ˈkɔːRn-ɪkstʃeɪndʒ` writes its one mark on corn, which leaves the ex- of exchange unstressed and takes the ·Et, while exquisite `ˈɪkskwɪzɪt` marks the ex- itself and keeps its ·It, as sixty does. [Rule 3's fallback](ipa-to-qs.md#the-stress-rule-for-ɪə) answers a different question — it reads a mark-less chunk as a word keeping the stress it has standing alone, which is right for the monosyllables and compound elements it was written for and wrong for a polysyllable whose own mark is not initial — so this rider asks the narrower one instead of widening that. Concretely:
 
-| | senior | `qs_x` |
-|---|---|---|
-| expect | ·It·Key·See·Pea·Et·Key·Tea | ·Et·Excite·Pea·Et·Key·Tea |
-| exam | ·It·Gay·Zoo·At·May | ·Et·Exam·At·May |
-| next | ·No·Et·Key·See·Tea | ·No·Et·Excite·Tea |
-| sixty | ·See·It·Key·See·Tea·It | ·See·It·Excite·Tea·It |
-| exquisite | ·It·Key·See·Key·Way·It·Zoo·It·Tea | ·It·Excite·Key·Way·It·Zoo·It·Tea |
-| cross-examine | ·Key·Roe·Ox·See-·It·Gay·Zoo·At·May·It·No | ·Key·Roe·Ox·See-·Et·Exam·At·May·It·No |
+|               | senior                                         | `qs_x`                                        |
+| ------------- | ---------------------------------------------- | --------------------------------------------- |
+| expect        | ·It·Key·See·Pea·Et·Key·Tea                     | ·Et·Excite·Pea·Et·Key·Tea                     |
+| exam          | ·It·Gay·Zoo·At·May                             | ·Et·Exam·At·May                               |
+| next          | ·No·Et·Key·See·Tea                             | ·No·Et·Excite·Tea                             |
+| sixty         | ·See·It·Key·See·Tea·It                         | ·See·It·Excite·Tea·It                         |
+| exquisite     | ·It·Key·See·Key·Way·It·Zoo·It·Tea              | ·It·Excite·Key·Way·It·Zoo·It·Tea              |
+| cross-examine | ·Key·Roe·Ox·See-·It·Gay·Zoo·At·May·It·No       | ·Key·Roe·Ox·See-·Et·Exam·At·May·It·No         |
 | corn-exchange | ·Key·Awe·Roe·No-·It·Key·See·Cheer·Eight·No·Jay | ·Key·Awe·Roe·No-·Et·Excite·Cheer·Eight·No·Jay |
-| tacks | ·Tea·At·Key·See | — |
+| tacks         | ·Tea·At·Key·See                                | —                                             |
 
 The Manual writes only three ligature words out in full anywhere outside the §II rule statement, all in the prose specimens on pages 24–25, and **the generator reproduces all three**: next = ·No·Et·Excite·Tea, sixty-five = ·See·It·Excite·Tea·It-·Fee·I·Vie, and experiment = ·Et·Excite·Pea·Et·Roe·It·May·No·Tea — the last of which also applies `terminal-land-ment`, so it is independent confirmation of that rule as well as of the ligature.
 

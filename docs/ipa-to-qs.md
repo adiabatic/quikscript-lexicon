@@ -39,21 +39,21 @@ Simple vowels: ɪ→·It iː→·Eat e→·Et eɪ→·Eight æ→·At aɪ→·I 
 
 ## Non-obvious rows, with one example each
 
-| Row | Example | Result | Authority |
-|---|---|---|---|
-| `R` → ·Roe, always | baker `ˈbeɪkəR` | ·Bay·Eight·Key·Utter·Roe | [§ Spell all R's][rs]; [§ Vowels + R][vr] (-er = ·Utter·Roe) |
-| happY `i` → ·It | money, coffee | final ·It | [§ Terminal -y][y] |
-| weak `u` → ·Ooze | visual `ˈvɪʒuəl` | ·Vie·It·Zhivago·Ooze·Utter·Low | [§ -al, -el, -le, -il][al] — see decision below, which explains the ·Zhivago |
-| `juː` → ·Ye + ·Ooze (compositional) | few `fjuː` | ·Fee·Ye·Ooze | [alphabet chart][chart] ("Ewe, Use, Few") |
-| `eə` pre-r → ·Eight | there `ðeəR` | ·They·Eight·Roe | [alphabet chart][chart] ("Pair, Dare, There"); common-words there = ·They·Eight·Roe |
-| `eə` no-r → ·Et·Utter | yeah `ˈjeə` | ·Ye·Et·Utter | lexical-scale: attested only in yeah and elo; Shavian 𐑘𐑧𐑩 precedent — but see the note below |
-| `ʊə` → ·Ooze·Utter | moor `mʊəR` | ·May·Ooze·Utter·Roe | [§II][sec2] join table: moor |
-| `ɪə` stressed → ·Eat·Utter | career `kəˈrɪəR` | ·Key·Utter·Roe·Eat·Utter·Roe | [§ Terminal -ier, -ior][ier]; [§ -ia, -ea][ia] (Korea, idea); §II (dear, mere, fear) |
-| `ɪə` unstressed → ·It·Utter | carrier `ˈkærɪəR` | ·Key·At·Roe·It·Utter·Roe | [§ Terminal -ier, -ior][ier] (happier, senior, junior); [§ -ia, -ea][ia] (India, area) |
-| `aɪə` pre-r → ·I (schwa absorbed) | mire `ˈmaɪəR` | ·May·I·Roe | [§II][sec2]: mire = ·May·I·Roe |
-| `aʊə` pre-r → ·Out (schwa absorbed) | our `ˈaʊəR` | ·Out·Roe | [§II][sec2] (sour); [§ Common words][common]: our = ·Out·Roe |
-| `aɪə` no-r → ·I·Utter | science `ˈsaɪəns` | ·See·I·Utter·No·See | decision below |
-| `aʊə` no-r → ·Out·Utter | bowel `ˈbaʊəl` | ·Bay·Out·Utter·Low | decision below |
+| Row                                 | Example           | Result                         | Authority                                                                                    |
+| ----------------------------------- | ----------------- | ------------------------------ | -------------------------------------------------------------------------------------------- |
+| `R` → ·Roe, always                  | baker `ˈbeɪkəR`   | ·Bay·Eight·Key·Utter·Roe       | [§ Spell all R's][rs]; [§ Vowels + R][vr] (-er = ·Utter·Roe)                                 |
+| happY `i` → ·It                     | money, coffee     | final ·It                      | [§ Terminal -y][y]                                                                           |
+| weak `u` → ·Ooze                    | visual `ˈvɪʒuəl`  | ·Vie·It·Zhivago·Ooze·Utter·Low | [§ -al, -el, -le, -il][al] — see decision below, which explains the ·Zhivago                 |
+| `juː` → ·Ye + ·Ooze (compositional) | few `fjuː`        | ·Fee·Ye·Ooze                   | [alphabet chart][chart] ("Ewe, Use, Few")                                                    |
+| `eə` pre-r → ·Eight                 | there `ðeəR`      | ·They·Eight·Roe                | [alphabet chart][chart] ("Pair, Dare, There"); common-words there = ·They·Eight·Roe          |
+| `eə` no-r → ·Et·Utter               | yeah `ˈjeə`       | ·Ye·Et·Utter                   | lexical-scale: attested only in yeah and elo; Shavian 𐑘𐑧𐑩 precedent — but see the note below |
+| `ʊə` → ·Ooze·Utter                  | moor `mʊəR`       | ·May·Ooze·Utter·Roe            | [§II][sec2] join table: moor                                                                 |
+| `ɪə` stressed → ·Eat·Utter          | career `kəˈrɪəR`  | ·Key·Utter·Roe·Eat·Utter·Roe   | [§ Terminal -ier, -ior][ier]; [§ -ia, -ea][ia] (Korea, idea); §II (dear, mere, fear)         |
+| `ɪə` unstressed → ·It·Utter         | carrier `ˈkærɪəR` | ·Key·At·Roe·It·Utter·Roe       | [§ Terminal -ier, -ior][ier] (happier, senior, junior); [§ -ia, -ea][ia] (India, area)       |
+| `aɪə` pre-r → ·I (schwa absorbed)   | mire `ˈmaɪəR`     | ·May·I·Roe                     | [§II][sec2]: mire = ·May·I·Roe                                                               |
+| `aʊə` pre-r → ·Out (schwa absorbed) | our `ˈaʊəR`       | ·Out·Roe                       | [§II][sec2] (sour); [§ Common words][common]: our = ·Out·Roe                                 |
+| `aɪə` no-r → ·I·Utter               | science `ˈsaɪəns` | ·See·I·Utter·No·See            | decision below                                                                               |
+| `aʊə` no-r → ·Out·Utter             | bowel `ˈbaʊəl`    | ·Bay·Out·Utter·Low             | decision below                                                                               |
 
 The pre-r rows are conditioned on r, not on capital `R`: intervocalic lowercase r (firing, dowry) triggers the same absorption, so the token-level pre-r counts run ahead of the capital-R rows.
 
@@ -82,10 +82,10 @@ Two recorded interpretations, where the rule as first stated was silent:
 
 The rule above reads ReadLex's stress marks, and ReadLex does not mark stress inside compounds. So rule 2 demotes the second element of any **unhyphenated** compound — the first element's vowel is in the same chunk — while the hyphenated form comes out right, because the hyphen starts a new chunk:
 
-| | mechanical | standalone form |
-|---|---|---|
+|             | mechanical               | standalone form                  |
+| ----------- | ------------------------ | -------------------------------- |
 | `musk-deer` | ·Day·**Eat**·Utter·Roe ✓ | deer `dɪəR` → ·Day·Eat·Utter·Roe |
-| `reindeer` | ·Day·**It**·Utter·Roe ✗ | same morpheme, no hyphen |
+| `reindeer`  | ·Day·**It**·Utter·Roe ✗  | same morpheme, no hyphen         |
 
 The same fault ran through -sphere (atmosphere, biosphere, stratosphere…), -mere placenames, headgear, greybeard, compeer, godfearing, and — via rule 3's pre-tonic branch — hereafter/hereby/hereof/hereto, which split from herein/herewith purely on whether ReadLex happened to write a `ˌ`. There is no IPA-only signal that separates reindeer from happier: both are stress-mark + full vowel + Cɪə(R) at chunk end. Relaxing rule 2 would wreck the far larger body of non-rhotic occurrences the Manual explicitly makes unstressed (Austria, India, Virginia, area).
 
@@ -127,25 +127,25 @@ The original question was whether the handful of non-rhotic aɪə/aʊə (if any)
 
 ## Tagged pass-throughs (owned by later layers)
 
-| Token | Naive value | Tag semantics | Owner |
-|---|---|---|---|
-| `Ə` | ·Utter | Shavian epenthetic-vowel site in -es/-ed (kisses `ˈkɪsƏz`); QS convention differs | rules layer |
-| `I` | ·It | unstressed-ɪ site where Shavian writes schwa (banquet `ˈbæŋkwIt`) | rules layer |
-| `Ɑː`/`Æ` | ·Ah / ·At | TRAP-BATH dual variant rows (bath `bⱭːθ`/`bÆθ`) | row policy |
-| `Ð T N V F` | ·They ·Tea ·No ·Vie ·Fee | word signs the/to/and/of/for | canonical word-sign spellings |
+| Token       | Naive value              | Tag semantics                                                                     | Owner                         |
+| ----------- | ------------------------ | --------------------------------------------------------------------------------- | ----------------------------- |
+| `Ə`         | ·Utter                   | Shavian epenthetic-vowel site in -es/-ed (kisses `ˈkɪsƏz`); QS convention differs | rules layer                   |
+| `I`         | ·It                      | unstressed-ɪ site where Shavian writes schwa (banquet `ˈbæŋkwIt`)                 | rules layer                   |
+| `Ɑː`/`Æ`    | ·Ah / ·At                | TRAP-BATH dual variant rows (bath `bⱭːθ`/`bÆθ`)                                   | row policy                    |
+| `Ð T N V F` | ·They ·Tea ·No ·Vie ·Fee | word signs the/to/and/of/for                                                      | canonical word-sign spellings |
 
 ## What a segment mapping cannot do
 
 A total function from IPA segments to letters cannot see suffix identity, so several of the Manual's prescriptions are structurally out of reach here. They are listed so that nobody mistakes this table's silence for the Manual's. All belong to the rules layer, which is now built: see [`docs/orthographic-rules.md`](orthographic-rules.md).
 
-| Manual rule | Manual spelling | This mapping | Notes |
-|---|---|---|---|
-| [§ Terminals -ess, -est, -less, -ness][ess]: "Distinguished from the -us, -ous terminal by writing vowel No. 28 ·Et" | hostess `-·Et·See`, highest `-·Et·See·Tea`, hopeless `-·Low·Et·See`, goodness `-·No·Et·See` | ·Utter, because ReadLex writes plain `ə` in both families | a large family; the contrasting [-us/-ous][us] family is correctly ·Utter |
-| [§ Terminal -al, -el, -le, -il][al]: "omit any unstressed vowel sound between L and the preceding consonant" | final, rifle, couple, easel, devil lose the vowel; Spaniel = ·See·Pea·At·No·Ye·Low | keeps it: final = ·Fee·I·No·Utter·Low | the same section that authorises weak-u = ·Ooze |
-| [§ Terminal -ing][ing]: affix -ing omits the vowel | calling = ·Key·Awe·Low·Oolong (but root wing keeps ·It) | ·It always | affix/root distinction is morphological |
-| [§ Terminal -tion][tion], [§ -land, -ment][land] | action = ·At·Key·She·No | ·At·Key·She·Utter·No | |
-| [§ Terminal -age][age] | manage = `-·Utter·Jay`, marriage = `-·It·Jay` after a -y root | ·It, since ReadLex writes plain `ɪ` — so the `I` tag does not catch it | |
-| [§ Terminal -y][y] | algae = `-·Gay·It`, ·Eat kept only "where the terminal is stressed" | ·Eat, because the row for `iː` is unconditional | the happY `i` row above already carries `terminal-y` as its authority; whether a full `iː` at that terminal is stressed is the rules layer's question |
+| Manual rule                                                                                                          | Manual spelling                                                                             | This mapping                                                           | Notes                                                                                                                                                 |
+| -------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------- |
+| [§ Terminals -ess, -est, -less, -ness][ess]: "Distinguished from the -us, -ous terminal by writing vowel No. 28 ·Et" | hostess `-·Et·See`, highest `-·Et·See·Tea`, hopeless `-·Low·Et·See`, goodness `-·No·Et·See` | ·Utter, because ReadLex writes plain `ə` in both families              | a large family; the contrasting [-us/-ous][us] family is correctly ·Utter                                                                             |
+| [§ Terminal -al, -el, -le, -il][al]: "omit any unstressed vowel sound between L and the preceding consonant"         | final, rifle, couple, easel, devil lose the vowel; Spaniel = ·See·Pea·At·No·Ye·Low          | keeps it: final = ·Fee·I·No·Utter·Low                                  | the same section that authorises weak-u = ·Ooze                                                                                                       |
+| [§ Terminal -ing][ing]: affix -ing omits the vowel                                                                   | calling = ·Key·Awe·Low·Oolong (but root wing keeps ·It)                                     | ·It always                                                             | affix/root distinction is morphological                                                                                                               |
+| [§ Terminal -tion][tion], [§ -land, -ment][land]                                                                     | action = ·At·Key·She·No                                                                     | ·At·Key·She·Utter·No                                                   |                                                                                                                                                       |
+| [§ Terminal -age][age]                                                                                               | manage = `-·Utter·Jay`, marriage = `-·It·Jay` after a -y root                               | ·It, since ReadLex writes plain `ɪ` — so the `I` tag does not catch it |                                                                                                                                                       |
+| [§ Terminal -y][y]                                                                                                   | algae = `-·Gay·It`, ·Eat kept only "where the terminal is stressed"                         | ·Eat, because the row for `iː` is unconditional                        | the happY `i` row above already carries `terminal-y` as its authority; whether a full `iː` at that terminal is stressed is the rules layer's question |
 
 The pattern is consistent: Quikscript's terminal conventions are keyed to the *spelling* of the suffix, and the IPA column does not carry that information. The rules layer owns them; this mapping deliberately produces the segment-faithful form and lets that layer rewrite it. Two entries in the tagged pass-through table above resolve there too: `Ə` is dropped outright by [§ Terminal -es, -ed][esed], and `I` is normalised by whichever terminal claims the word.
 

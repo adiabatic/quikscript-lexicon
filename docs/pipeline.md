@@ -8,14 +8,14 @@ It decides nothing about spelling. Everything below is about which rows are carr
 
 Everything is generated into [`lexicon/`](../lexicon) and committed, so the files can be used without running the build.
 
-| File | What it is |
-|---|---|
-| `quikscript-lexicon.json` | The master. Grouped by headword, 56,649 of them, 108,425 entries. |
-| `quikscript-lexicon.tsv` | The flat projection, 108,375 rows after deduplication. |
-| `qs_converter.json` | Latin → spellings for the transliterator, 78,135 keys, 79,217 rows. |
-| `qs_converter_phrases.txt` | The 1,600 entries a tokenizer must match whole. |
-| `letters.tsv` | All 44 Quikscript letters with their codepoints — the decoder ring for the PUA text in every other file. |
-| `en-Qaas.dic` / `en-Qaas.aff` | The Hunspell spelling dictionary, 75,568 entries. |
+| File                          | What it is                                                                                               |
+| ----------------------------- | -------------------------------------------------------------------------------------------------------- |
+| `quikscript-lexicon.json`     | The master. Grouped by headword, 56,649 of them, 108,425 entries.                                        |
+| `quikscript-lexicon.tsv`      | The flat projection, 108,375 rows after deduplication.                                                   |
+| `qs_converter.json`           | Latin → spellings for the transliterator, 78,135 keys, 79,217 rows.                                      |
+| `qs_converter_phrases.txt`    | The 1,600 entries a tokenizer must match whole.                                                          |
+| `letters.tsv`                 | All 44 Quikscript letters with their codepoints — the decoder ring for the PUA text in every other file. |
+| `en-Qaas.dic` / `en-Qaas.aff` | The Hunspell spelling dictionary, 75,568 entries.                                                        |
 
 **JSON-primary, and strictly so.** `quikscript-lexicon.json` is built first and everything else is projected from it in one reshape. Nothing is emitted in parallel, because parallel generation is what produced upstream's duplicate-row TSV ([Shavian-info/readlex#124](https://github.com/Shavian-info/readlex/pull/124)) — the exact bug this arrangement makes structurally impossible. There is one master per layer: `readlex.json` upstream, the rule and override tables in `src/qslex/data/`, `quikscript-lexicon.json` out. Nothing downstream of the build is hand-edited.
 
@@ -37,10 +37,10 @@ The corpus is vendored at a pinned commit with its SHA-256 recorded, and the loa
 
 ReadLex carries four accents. This lexicon spells one: **rhotic RP**, which is the standard the corpus is transcribed in and the one Read's own rules assume. `src/qslex/data/var-tags.tsv` states the policy tag by tag and pins the row count for each, and is the only place to read those counts; the validator fails on a count that has drifted.
 
-| Policy | Tags |
-|---|---|
-| keep, normalised to `RRP` | `RRP`, `RRPVar`, `RRPvar` |
-| drop | `TrapBath`, `GenAm`, `Gen Am`, `GenAus`, `SSB` |
+| Policy                    | Tags                                           |
+| ------------------------- | ---------------------------------------------- |
+| keep, normalised to `RRP` | `RRP`, `RRPVar`, `RRPvar`                      |
+| drop                      | `TrapBath`, `GenAm`, `Gen Am`, `GenAus`, `SSB` |
 
 Four of them are malformed — `RRPVar`/`RRPvar` are the same tag under two capitalisations, `Gen Am` is `GenAm` with a space, and `SSB` is an accent label nothing else in the corpus uses. They are enumerated in [#7](https://github.com/adiabatic/quikscript-lexicon/issues/7); normalising them is done here rather than there because the filter cannot run without it. Every tag outside upstream's documented four must declare the words it covers, and the validator holds it to that list, so an upstream fix shows up as a rule that stopped matching rather than as a silent change of contents.
 

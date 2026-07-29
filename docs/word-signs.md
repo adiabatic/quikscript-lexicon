@@ -14,11 +14,11 @@ Authority links go to the [AMS Manual transcription][manual]; every letter-name 
 
 ## The three tiers
 
-| | Manual | What it is | Where it lands |
-|---|---|---|---|
-| 1 | [§ Contractions, p.12][junior] | the eight single-letter word signs | both columns |
-| 2 | [§ Contractions, p.17][senior] | ~50 Senior contractions | no column — the converter's table |
-| 3 | [§ Common words, p.16][common] | 69 headwords of standard word-outlines | the senior column, with a junior form where it diverges |
+|     | Manual                         | What it is                             | Where it lands                                          |
+| --- | ------------------------------ | -------------------------------------- | ------------------------------------------------------- |
+| 1   | [§ Contractions, p.12][junior] | the eight single-letter word signs     | both columns                                            |
+| 2   | [§ Contractions, p.17][senior] | ~50 Senior contractions                | no column — the converter's table                       |
+| 3   | [§ Common words, p.16][common] | 69 headwords of standard word-outlines | the senior column, with a junior form where it diverges |
 
 Tier 2 is the odd one out and stays that way, for the same reason [`docs/orthographic-rules.md`](orthographic-rules.md) keeps often at ·Ox·Fee·Utter·No rather than the listed ·Ox·Fee·No: it is an optional Senior facility, not how the word is spelt. So the senior column has people = ·Pea·Eat·Pea·Low against the list's ·Pea·Pea·Low, and think = ·Thaw·It·Oolong·Key against ·Thaw. The list is shipped for [#6][converter] to apply as a mode, and [the desk](desk.md#the-iii-senior-contractions) adds it to the set its checker accepts on exactly that footing: correct Senior writing, never a column.
 
@@ -26,16 +26,16 @@ Tier 2 is the odd one out and stays that way, for the same reason [`docs/orthogr
 
 "Here are eight words of two or three letters which even writers of Junior Quickscript should soon contract to single letters" ([p.12][junior]). They are therefore these words' standard spellings in *both* columns, mirroring what ReadLex already does with `Ð T N V F`.
 
-| Word | Sign | Uncontracted, as the Manual writes it | Where |
-|---|---|---|---|
-| the | ·They | ·They·Utter | p.11, p.24 |
-| of | ·Vie | ·Ox·Vie | p.11, p.24 |
-| and | ·No | ·At·No·Day | p.11, p.24 |
-| to | ·Tea | ·Tea·Foot | p.11, p.24 |
-| it | ·It | ·It·Tea | p.11, p.24 |
-| is | ·Zoo | ·It·Zoo | p.11, p.24 |
-| for | ·Fee | ·Fee·Awe·Roe | p.11, p.24 |
-| be | ·Bay | ·Bay·Eat | p.24 |
+| Word | Sign  | Uncontracted, as the Manual writes it | Where      |
+| ---- | ----- | ------------------------------------- | ---------- |
+| the  | ·They | ·They·Utter                           | p.11, p.24 |
+| of   | ·Vie  | ·Ox·Vie                               | p.11, p.24 |
+| and  | ·No   | ·At·No·Day                            | p.11, p.24 |
+| to   | ·Tea  | ·Tea·Foot                             | p.11, p.24 |
+| it   | ·It   | ·It·Tea                               | p.11, p.24 |
+| is   | ·Zoo  | ·It·Zoo                               | p.11, p.24 |
+| for  | ·Fee  | ·Fee·Awe·Roe                          | p.11, p.24 |
+| be   | ·Bay  | ·Bay·Eat                              | p.24       |
 
 Five of the eight need no work: ReadLex writes the capital, the segment mapping writes the sign. The other three — it `ɪt`, is `ɪz`, be `biː` — carry ordinary IPA, so the sign is supplied here.
 
@@ -53,13 +53,13 @@ Listing the two is deliberately narrower than generalising, and eight corpus row
 
 Five of the seven that do rewrite are word-level standardisations:
 
-| Word | Senior | Junior | Why |
-|---|---|---|---|
-| always | ·Awe·Low·Way·Utter·Zoo | ·Awe·Low·Way·Eight·Zoo | the standard outline reduces -ways; ReadLex has `ˈɔːlweɪz` |
-| was | ·Way·Utter·Zoo | ·Way·Ox·Zoo | the standard outline takes the weak vowel; ReadLex has `wɒz` |
-| wasn't | ·Way·Utter·Zoo·Utter·No·Tea | ·Way·Ox·Zoo·Utter·No·Tea | the same outline, reaching inside the contraction; ReadLex has `ˈwɒzənt` |
-| 'twas | ·Tea·Way·Utter·Zoo | ·Tea·Way·Ox·Zoo | the same again, after the aphetic 't; ReadLex has `twɒz` |
-| that (not demonstrative) | ·They·Tea | ·They·At·Tea | the Common words footnote: "spelt in full only when demonstrative; otherwise — ·They·Tea" |
+| Word                     | Senior                      | Junior                   | Why                                                                                       |
+| ------------------------ | --------------------------- | ------------------------ | ----------------------------------------------------------------------------------------- |
+| always                   | ·Awe·Low·Way·Utter·Zoo      | ·Awe·Low·Way·Eight·Zoo   | the standard outline reduces -ways; ReadLex has `ˈɔːlweɪz`                                |
+| was                      | ·Way·Utter·Zoo              | ·Way·Ox·Zoo              | the standard outline takes the weak vowel; ReadLex has `wɒz`                              |
+| wasn't                   | ·Way·Utter·Zoo·Utter·No·Tea | ·Way·Ox·Zoo·Utter·No·Tea | the same outline, reaching inside the contraction; ReadLex has `ˈwɒzənt`                  |
+| 'twas                    | ·Tea·Way·Utter·Zoo          | ·Tea·Way·Ox·Zoo          | the same again, after the aphetic 't; ReadLex has `twɒz`                                  |
+| that (not demonstrative) | ·They·Tea                   | ·They·At·Tea             | the Common words footnote: "spelt in full only when demonstrative; otherwise — ·They·Tea" |
 
 `was` is the one the ticket did not predict, and the Manual's specimens confirm the split independently, in the same word: the Senior gown-shop passage on p.23 writes wasn't ·Way·**Utter**·Zoo·No·Tea, while the Junior Mary's Lamb on p.26 writes was twice as ·Way·**Ox**·Zoo — "its fleece was white as snow" and "her lamb was sure to go" — and 'twas as ’·Tea·Way·**Ox**·Zoo.
 
@@ -84,11 +84,11 @@ Everything else holds for every tag ReadLex gives the word, which the validator 
 
 Written "without a break between letters" and name-dotted ([p.12][junior]). ReadLex expands them in the IPA column, so all three rewrite:
 
-| | Quikscript | Manual's letter numbers | ReadLex IPA |
-|---|---|---|---|
-| Mr | ·May·Roe | 22/25 | `ˈmɪstəR` |
-| Mrs | ·May·Zoo | 22/12 | `ˈmɪsəz`, `ˈmɪsɪz` |
-| Dr | ·Day·Utter·Roe | 4/36/25 | `ˈdɒktəR` |
+|     | Quikscript     | Manual's letter numbers | ReadLex IPA        |
+| --- | -------------- | ----------------------- | ------------------ |
+| Mr  | ·May·Roe       | 22/25                   | `ˈmɪstəR`          |
+| Mrs | ·May·Zoo       | 22/12                   | `ˈmɪsəz`, `ˈmɪsɪz` |
+| Dr  | ·Day·Utter·Roe | 4/36/25                 | `ˈdɒktəR`          |
 
 The name-dot itself is not in the column — the same convention `manual-spellings.tsv` already uses for England — because it is a rendering decision that belongs to [#6][converter]. The Manual's own specimen is ··May·Roe ·He·At·Roe·Utter·Low·Day ·Jay·Owe·No·Zoo for "Mr Harold Jones", with the dot on Mr only.
 
@@ -102,23 +102,23 @@ Two guards keep it honest. A row is only applied inside a phrase if it holds for
 
 `EXPECTED_SIGN_CHANGES` in [`src/qslex/validate.py`](../src/qslex/validate.py) pins how many rows each word rewrites and is the only place to read those counts; `make validate` prints them word by word. Every word it lists, in that order:
 
-| Word | Result |
-|---|---|
-| 'twas | → ·Tea·Way·Utter·Zoo |
-| after | the `Ɑː` rows, and the `Ɑː` half of the PRE entry after- → ·At·Fee·Tea·Utter·Roe |
-| always | → ·Awe·Low·Way·Utter·Zoo |
-| at | at-home, at-homes, gentleman-at-arms, gentlemen-at-arms — ReadLex's weak `ət` → ·At·Tea |
-| be | be VBB, be VBI, would-be → ·Bay |
-| dr | → ·Day·Utter·Roe |
-| is | is VBZ, that is → ·Zoo |
-| it | it PNP, as it were → ·It |
-| last | last ×3, at last, last-ditch → ·Low·At·See·Tea |
-| mr | both rows → ·May·Roe |
-| mrs | `ˈmɪsəz` and `ˈmɪsɪz` → ·May·Zoo |
-| that | that AJ0, AV0, CJT → ·They·Tea |
-| to | lean-to ×2, set-to → ·Tea |
-| was | → ·Way·Utter·Zoo |
-| wasn't | both rows → ·Way·Utter·Zoo·Utter·No·Tea |
+| Word   | Result                                                                                  |
+| ------ | --------------------------------------------------------------------------------------- |
+| 'twas  | → ·Tea·Way·Utter·Zoo                                                                    |
+| after  | the `Ɑː` rows, and the `Ɑː` half of the PRE entry after- → ·At·Fee·Tea·Utter·Roe        |
+| always | → ·Awe·Low·Way·Utter·Zoo                                                                |
+| at     | at-home, at-homes, gentleman-at-arms, gentlemen-at-arms — ReadLex's weak `ət` → ·At·Tea |
+| be     | be VBB, be VBI, would-be → ·Bay                                                         |
+| dr     | → ·Day·Utter·Roe                                                                        |
+| is     | is VBZ, that is → ·Zoo                                                                  |
+| it     | it PNP, as it were → ·It                                                                |
+| last   | last ×3, at last, last-ditch → ·Low·At·See·Tea                                          |
+| mr     | both rows → ·May·Roe                                                                    |
+| mrs    | `ˈmɪsəz` and `ˈmɪsɪz` → ·May·Zoo                                                        |
+| that   | that AJ0, AV0, CJT → ·They·Tea                                                          |
+| to     | lean-to ×2, set-to → ·Tea                                                               |
+| was    | → ·Way·Utter·Zoo                                                                        |
+| wasn't | both rows → ·Way·Utter·Zoo·Utter·No·Tea                                                 |
 
 lean-to and set-to are worth a second look, since the to in each is a lexicalised particle rather than the preposition. They stay, because ReadLex writes exactly the same particle with its own word sign in stand-to `stænd-ˈT`, talking-to `ˈtɔːkɪŋ-T` and to-do `T-ˈduː`; substituting here makes upstream's treatment of the pattern uniform rather than departing from it.
 
@@ -132,15 +132,15 @@ The column obeys one invariant, which the validator checks: **a Junior spelling 
 
 The Manual states almost nothing about apostrophes and demonstrates a great deal. Every instance in the whole text:
 
-| Class | Apostrophe? | Evidence |
-|---|---|---|
-| possessive | **no** | "Possessive apostrophes are usually omitted without loss of meaning" ([§ Punctuation etc][punct], p.8); "··May·Roe ·Jay·Owe·No·Zoo·Zoo clearly means 'Mr Jones's': with one name-dot, no apostrophe" ([§ Terminal -es, -ed][es-ed], p.18); anybody's = ·Et·No·It·Bay·Ox·Day·It·Zoo (p.24); world/'s = ·Way·Utter·Roe·Low·Day·Zoo ([p.16][common]) |
-| `n't` | **no** | all nine instances: can't, couldn't, don't, didn't, haven't, wouldn't in the §III list, plus running-text wasn't ·Way·Utter·Zoo·No·Tea, doesn't ·Day·Utter·Zoo·Utter·No·Tea and wouldn't ·Way·Day·No·Tea |
-| verbal `'s` | **no** | She's = ·She·Zoo (p.23); the list gives its and it's one spelling, ·It·See |
-| `'d` | **yes** | He'd = ·He’·Day (p.24) |
-| `'ll` | **yes** | they'll = ·They·Eight’·Low (p.26), the ·Low being the listed will/'ll contraction |
-| aphetic `'t` | **yes** | 'Twas = ’·Tea·Way·Ox·Zoo (p.26) |
-| `'ve`, `'m`, `'re` | unattested | the Manual never writes one |
+| Class              | Apostrophe? | Evidence                                                                                                                                                                                                                                                                                                                                          |
+| ------------------ | ----------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| possessive         | **no**      | "Possessive apostrophes are usually omitted without loss of meaning" ([§ Punctuation etc][punct], p.8); "··May·Roe ·Jay·Owe·No·Zoo·Zoo clearly means 'Mr Jones's': with one name-dot, no apostrophe" ([§ Terminal -es, -ed][es-ed], p.18); anybody's = ·Et·No·It·Bay·Ox·Day·It·Zoo (p.24); world/'s = ·Way·Utter·Roe·Low·Day·Zoo ([p.16][common]) |
+| `n't`              | **no**      | all nine instances: can't, couldn't, don't, didn't, haven't, wouldn't in the §III list, plus running-text wasn't ·Way·Utter·Zoo·No·Tea, doesn't ·Day·Utter·Zoo·Utter·No·Tea and wouldn't ·Way·Day·No·Tea                                                                                                                                          |
+| verbal `'s`        | **no**      | She's = ·She·Zoo (p.23); the list gives its and it's one spelling, ·It·See                                                                                                                                                                                                                                                                        |
+| `'d`               | **yes**     | He'd = ·He’·Day (p.24)                                                                                                                                                                                                                                                                                                                            |
+| `'ll`              | **yes**     | they'll = ·They·Eight’·Low (p.26), the ·Low being the listed will/'ll contraction                                                                                                                                                                                                                                                                 |
+| aphetic `'t`       | **yes**     | 'Twas = ’·Tea·Way·Ox·Zoo (p.26)                                                                                                                                                                                                                                                                                                                   |
+| `'ve`, `'m`, `'re` | unattested  | the Manual never writes one                                                                                                                                                                                                                                                                                                                       |
 
 The sharpest datum is internal to a single six-line rhyme on p.26: **doesn't without an apostrophe and they'll with one, two lines apart.**
 
