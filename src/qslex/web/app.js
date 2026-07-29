@@ -15,7 +15,8 @@ const RESTING = copier.textContent;
 const EMPTY = "No suggestions";
 const DONE = "Copied";
 const BY_HAND = "Press ⌘C";
-const IGNORE = "Ignore";
+const IGNORE_ONE = "Ignore one";
+const IGNORE_ALL = "Ignore all";
 const KEPT = "qs-playground.ignored";
 const CHOSEN = "qs-playground.senior";
 const SENIOR_GRADE = "senior";
@@ -40,6 +41,11 @@ function remembered() {
 }
 
 const ignored = new Set(remembered());
+const overlooked = new Set();
+
+function spot(word, occurrence) {
+  return `${word}\t${occurrence}`;
+}
 
 function recalled() {
   try {
@@ -112,6 +118,7 @@ function mark() {
       const occurrence = seen.get(hit.word) || 0;
       seen.set(hit.word, occurrence + 1);
       if (quoted || ignored.has(hit.word)) continue;
+      if (overlooked.has(spot(hit.word, occurrence))) continue;
       if (!accepts(ACCEPTED, hit.word)) flagged.push([hit, occurrence]);
     }
     if (flagged.length > 0) wrap(text, flagged);
@@ -126,8 +133,9 @@ function render() {
 }
 
 function tally() {
-  excused.hidden = ignored.size === 0;
-  excused.textContent = `Ignored: ${ignored.size} — clear`;
+  const held = ignored.size + overlooked.size;
+  excused.hidden = held === 0;
+  excused.textContent = `Ignored: ${held} — clear`;
 }
 
 function store() {
@@ -144,7 +152,16 @@ function revise() {
 
 function excuse(word) {
   ignored.add(word);
+  for (const key of overlooked) {
+    if (key.startsWith(`${word}\t`)) overlooked.delete(key);
+  }
   revise();
+}
+
+function overlook(word, occurrence) {
+  overlooked.add(spot(word, occurrence));
+  tally();
+  render();
 }
 
 function schedule() {
@@ -195,10 +212,16 @@ function propose(span) {
     button.addEventListener("click", () => choose(word, occurrence, fix));
     fixer.append(button);
   }
+  const once = document.createElement("button");
+  once.type = "button";
+  once.className = "ignore";
+  once.textContent = IGNORE_ONE;
+  once.addEventListener("click", () => overlook(word, occurrence));
+  fixer.append(once);
   const leave = document.createElement("button");
   leave.type = "button";
   leave.className = "ignore";
-  leave.textContent = IGNORE;
+  leave.textContent = IGNORE_ALL;
   leave.addEventListener("click", () => excuse(word));
   fixer.append(leave);
 
@@ -244,6 +267,7 @@ preview.addEventListener("click", (event) => {
 
 excused.addEventListener("click", () => {
   ignored.clear();
+  overlooked.clear();
   revise();
 });
 

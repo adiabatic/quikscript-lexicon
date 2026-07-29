@@ -52,7 +52,7 @@ QUIKSCRIPT = SAMPLE.splitlines()[-1].split(" ")
 NODE = shutil.which("node")
 HERE = Path(__file__).resolve().parent
 CORE_TESTS, CORE_CHECKS = "playground_core.js", 26
-PAGE_TESTS, PAGE_CHECKS = "playground_page.js", 23
+PAGE_TESTS, PAGE_CHECKS = "playground_page.js", 26
 
 
 def directive(name: str, keyword: str) -> str:

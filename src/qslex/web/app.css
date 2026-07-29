@@ -320,6 +320,12 @@ main {
   color: var(--quiet);
 }
 
+#fixer .ignore + .ignore {
+  margin-top: 0;
+  padding-top: 0;
+  border-top: 0;
+}
+
 #fixer .ignore:hover,
 #fixer .ignore:focus-visible {
   background: none;

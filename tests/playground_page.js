@@ -325,11 +325,13 @@ check("clicking the underline opens the popover with suggestions", () => {
   for (const button of buttonsOf(fixer)) assert.equal(button.type, "button");
 });
 
-check("the popover offers to ignore the word, once, after the suggestions", () => {
+check("the popover ends with Ignore one and Ignore all, after the suggestions", () => {
   const buttons = buttonsOf(fixer);
-  assert.equal(ignoreOf(fixer).length, 1);
+  assert.equal(ignoreOf(fixer).length, 2);
+  assert.equal(buttons[buttons.length - 2].textContent, "Ignore one");
+  assert.equal(buttons[buttons.length - 1].textContent, "Ignore all");
+  assert.equal(buttons[buttons.length - 2].classList.contains("ignore"), true);
   assert.equal(buttons[buttons.length - 1].classList.contains("ignore"), true);
-  assert.equal(buttons[buttons.length - 1].textContent, "Ignore");
 });
 
 check("the popover is pinned inside the viewport when anchoring is unavailable", () => {
@@ -426,7 +428,7 @@ const flagged = (held) => marked(held.parts.preview).map((span) => span.dataset.
 function ignoreTheMisspelling(held) {
   const shown = marked(held.parts.preview);
   held.parts.preview.fire("click", { target: shown[0] });
-  ignoreOf(held.parts.fixer)[0].fire("click");
+  ignoreOf(held.parts.fixer)[1].fire("click");
 }
 
 check("the chip stays out of sight until something has been ignored", () => {
@@ -465,6 +467,42 @@ check("an origin whose storage throws still ignores for the session", () => {
   ignoreTheMisspelling(sessional);
   assert.deepEqual(flagged(sessional), []);
   assert.equal(sessional.parts.ignored.textContent, "Ignored: 1 — clear");
+});
+
+const briefly = storage();
+const passing = stage(false, briefly);
+
+function ignoreOneOccurrence(held, at) {
+  const shown = marked(held.parts.preview);
+  held.parts.preview.fire("click", { target: shown[at] });
+  ignoreOf(held.parts.fixer)[0].fire("click");
+}
+
+check("ignoring one occurrence leaves the other underlined and writes nothing", () => {
+  passing.parts.source.value = `${misspelt} ${misspelt}\n`;
+  passing.box.render();
+  assert.equal(marked(passing.parts.preview).length, 2);
+  ignoreOneOccurrence(passing, 0);
+  const shown = marked(passing.parts.preview);
+  assert.equal(shown.length, 1);
+  assert.equal(shown[0].dataset.occ, "1", "the second occurrence is the one still flagged");
+  assert.equal(passing.parts.ignored.hidden, false);
+  assert.equal(passing.parts.ignored.textContent, "Ignored: 1 — clear");
+  assert.equal(briefly.held.has(KEPT), false, "an occurrence ignore is session-only");
+});
+
+check("the chip clears occurrence ignores too", () => {
+  passing.parts.ignored.fire("click");
+  assert.equal(passing.parts.ignored.hidden, true);
+  assert.equal(marked(passing.parts.preview).length, 2);
+});
+
+check("ignoring the word everywhere absorbs its occurrence ignores", () => {
+  ignoreOneOccurrence(passing, 0);
+  ignoreTheMisspelling(passing);
+  assert.deepEqual(flagged(passing), []);
+  assert.equal(passing.parts.ignored.textContent, "Ignored: 1 — clear");
+  assert.deepEqual(JSON.parse(briefly.held.get(KEPT)), [misspelt]);
 });
 
 const dressed = storage();
