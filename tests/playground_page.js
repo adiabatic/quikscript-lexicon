@@ -459,7 +459,7 @@ function ignoreTheMisspelling(held) {
   ignoreOf(held.parts.fixer)[1].fire("click");
 }
 
-check("the chip stays out of sight until something has been ignored", () => {
+check("the button stays out of sight until something has been ignored", () => {
   assert.equal(excusing.parts.ignored.hidden, true);
   assert.deepEqual(flagged(excusing), [misspelt]);
   assert.equal(shelf.held.has(KEPT), false, "nothing is written before there is any");
@@ -470,7 +470,7 @@ check("ignoring a word drops its underline and writes the word down", () => {
   assert.equal(excusing.parts.fixer.showing, false, "the popover shuts behind it");
   assert.deepEqual(flagged(excusing), []);
   assert.equal(excusing.parts.ignored.hidden, false);
-  assert.equal(excusing.parts.ignored.textContent, "Ignored: 1 — clear");
+  assert.equal(excusing.parts.ignored.textContent, "Unignore 1");
   assert.deepEqual(JSON.parse(shelf.held.get(KEPT)), [misspelt]);
 });
 
@@ -478,10 +478,10 @@ check("a page opened again over the same storage starts out knowing", () => {
   const again = stage(false, shelf);
   assert.deepEqual(flagged(again), []);
   assert.equal(again.parts.ignored.hidden, false);
-  assert.equal(again.parts.ignored.textContent, "Ignored: 1 — clear");
+  assert.equal(again.parts.ignored.textContent, "Unignore 1");
 });
 
-check("the chip clears the list, the storage and the underline it was hiding", () => {
+check("the button clears the list, the storage and the underline it was hiding", () => {
   excusing.parts.ignored.fire("click");
   assert.equal(excusing.parts.ignored.hidden, true);
   assert.deepEqual(JSON.parse(shelf.held.get(KEPT)), []);
@@ -494,7 +494,7 @@ check("an origin whose storage throws still ignores for the session", () => {
   assert.deepEqual(flagged(sessional), [misspelt]);
   ignoreTheMisspelling(sessional);
   assert.deepEqual(flagged(sessional), []);
-  assert.equal(sessional.parts.ignored.textContent, "Ignored: 1 — clear");
+  assert.equal(sessional.parts.ignored.textContent, "Unignore 1");
 });
 
 const briefly = storage();
@@ -515,11 +515,11 @@ check("ignoring one occurrence leaves the other underlined and writes nothing", 
   assert.equal(shown.length, 1);
   assert.equal(shown[0].dataset.occ, "1", "the second occurrence is the one still flagged");
   assert.equal(passing.parts.ignored.hidden, false);
-  assert.equal(passing.parts.ignored.textContent, "Ignored: 1 — clear");
+  assert.equal(passing.parts.ignored.textContent, "Unignore 1");
   assert.equal(briefly.held.has(KEPT), false, "an occurrence ignore is session-only");
 });
 
-check("the chip clears occurrence ignores too", () => {
+check("the button clears occurrence ignores too", () => {
   passing.parts.ignored.fire("click");
   assert.equal(passing.parts.ignored.hidden, true);
   assert.equal(marked(passing.parts.preview).length, 2);
@@ -529,7 +529,7 @@ check("ignoring the word everywhere absorbs its occurrence ignores", () => {
   ignoreOneOccurrence(passing, 0);
   ignoreTheMisspelling(passing);
   assert.deepEqual(flagged(passing), []);
-  assert.equal(passing.parts.ignored.textContent, "Ignored: 1 — clear");
+  assert.equal(passing.parts.ignored.textContent, "Unignore 1");
   assert.deepEqual(JSON.parse(briefly.held.get(KEPT)), [misspelt]);
 });
 

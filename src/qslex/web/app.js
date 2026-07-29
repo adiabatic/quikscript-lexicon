@@ -144,7 +144,7 @@ function render() {
 function tally() {
   const held = ignored.size + overlooked.size;
   excused.hidden = held === 0;
-  excused.textContent = `Ignored: ${held} — clear`;
+  excused.textContent = `Unignore ${held}`;
 }
 
 function store() {

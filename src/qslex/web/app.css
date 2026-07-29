@@ -75,23 +75,6 @@ h1 {
   font-weight: 700;
 }
 
-#ignored {
-  padding: 0.125rem 0.625rem;
-  border: 1px solid var(--rule);
-  border-radius: 999px;
-  background: var(--paper);
-  color: var(--quiet);
-  font: inherit;
-  font-size: 11px;
-  white-space: nowrap;
-  cursor: pointer;
-}
-
-#ignored:hover,
-#ignored:focus-visible {
-  color: var(--ink);
-}
-
 #controls {
   display: flex;
   align-items: center;
@@ -99,6 +82,7 @@ h1 {
   font-size: 11px;
 }
 
+#ignored,
 #grade {
   min-width: 4.5em;
   padding: 0.25rem 0.75rem;
@@ -110,6 +94,8 @@ h1 {
   cursor: pointer;
 }
 
+#ignored:hover,
+#ignored:focus-visible,
 #grade:hover,
 #grade:focus-visible {
   background: var(--chrome);
