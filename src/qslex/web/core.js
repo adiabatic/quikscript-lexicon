@@ -1,4 +1,4 @@
-const TOKEN = /[\uE650-\uE67E][\uE650-\uE67E-]*/g;
+const TOKEN = /[\uE650-\uE66C\uE670-\uE67E][\uE650-\uE66C\uE670-\uE67E-]*/g;
 const HYPHEN = "-";
 const SPACE = " ";
 const OFFERS = 8;

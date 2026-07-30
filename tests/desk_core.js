@@ -61,6 +61,9 @@ const [A, B, C] = [...QS.try_order];
 const DOT = "·";
 const NAMER = "⸱";
 const APOSTROPHE = "’";
+const ANGLE_OPEN = "\uE66E";
+const ANGLE_CLOSE = "\uE66F";
+const UNASSIGNED = "\uE66D";
 
 check("tokens are runs of Quikscript letters with their offsets", () => {
   assert.deepEqual(tokens(""), []);
@@ -87,6 +90,23 @@ check("a right single quote splits a run", () => {
   assert.deepEqual(
     tokens(`${A}${B}${APOSTROPHE}${C}`).map((hit) => hit.word),
     [A + B, C],
+  );
+});
+
+check("an angled parenthesis splits a run", () => {
+  assert.deepEqual(
+    tokens(`${ANGLE_OPEN}${A}${B}${C}${ANGLE_CLOSE}`).map((hit) => hit.word),
+    [A + B + C],
+  );
+  assert.deepEqual(
+    tokens(`${A}${ANGLE_CLOSE} ${ANGLE_OPEN}${B}`).map((hit) => hit.word),
+    [A, B],
+  );
+  assert.deepEqual(tokens(`${ANGLE_OPEN}${ANGLE_CLOSE}`), [], "a bare pair is not a word");
+  assert.deepEqual(
+    tokens(`${A}${UNASSIGNED}${B}`).map((hit) => hit.word),
+    [A, B],
+    "the third codepoint in the same gap carries no letter either",
   );
 });
 
