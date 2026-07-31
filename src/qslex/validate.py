@@ -96,6 +96,7 @@ EXPECTED_RULE_CHANGES: dict[str, int] = {
     "terminal-tion": 2751,
     "terminal-ess-est": 1860,
     "terminal-land-ment": 893,
+    "terminal-nt": 21,
     "terminal-ent-ance": 0,
     "terminal-us-ous": 1,
     "terminal-ward": 71,
@@ -134,9 +135,10 @@ EXPECTED_SIGN_CHANGES: dict[str, int] = {
 }
 
 # Rows whose Junior spelling diverges from the Senior one: non-demonstrative that,
-# and the standard outlines that reduce a vowel ReadLex writes in full, was among them
-# both on its own and inside the two contractions that leave it no boundary.
-EXPECTED_JUNIOR_DIVERGENCES = 8
+# the standard outlines that reduce a vowel ReadLex writes in full — was among them
+# both on its own and inside the two contractions that leave it no boundary — and
+# the rows terminal-nt rewrites, whose linking vowel the junior column keeps.
+EXPECTED_JUNIOR_DIVERGENCES = 27
 
 # Words the Manual spells out that ReadLex has no entry for, so the fixture records
 # them without being able to reproduce them.
@@ -147,7 +149,7 @@ EXPECTED_MANUAL_ABSENT = 2
 # `EDITS` the mapping and the conventions license, and each is pinned here, so a rule
 # that starts eliding a vowel it has no business eliding shows up as a count that moved.
 EXPECTED_ROUNDTRIP_EDITS: dict[tuple[str, str], int] = {
-    ("ə", ""): 19508,
+    ("ə", ""): 19527,
     ("ɪ", ""): 11243,
     ("ə", "e"): 1870,
     ("e", "eɪ"): 1354,
@@ -461,11 +463,12 @@ def main(argv: list[str] | None = None) -> int:
                     roundtrip.update(edits)
             if result.junior:
                 junior_rows += 1
-                bare = spell(context, unsigned).senior
-                if result.junior != bare:
+                bare = spell(context, unsigned)
+                plain = bare.junior or bare.senior
+                if result.junior != plain:
                     junior_drift.append(
                         f"{word!r} [{row.pos}] declares Junior {result.junior}, but "
-                        f"leaving the sign unapplied gives {bare}"
+                        f"the sign left unapplied and terminal-nt unfired give {plain}"
                     )
 
         claimed = row.shavian.count(EAR)

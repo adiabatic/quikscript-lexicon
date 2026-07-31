@@ -170,6 +170,7 @@ seaman		senior	terminal	·May·No	manual	terminal-land-ment	naive ·See·Eat·Ma
 seamen		senior	terminal	·May·Et·No	manual	terminal-land-ment	no-op and the stated exemption: ReadLex ˈsiːmen already gives ·May·Et·No, so -men keeps its vowel by phonology as well as by rule
 settlement		senior	terminal	·May·No·Tea	manual	terminal-land-ment	naive ·See·Et·Tea·Utter·Low·May·Utter·No·Tea; only the -ment ·Utter is this rule's, the -tle ·Utter belongs to terminal-al-el-le-il
 unman		senior	word	·Utter·No·May·At·No	derived	terminal-land-ment	stressed-vowel exception: ˌʌnˈmæn has stressed æ in -man so ·At stays and the naive spelling is unchanged
+doesn't		senior	word	·Day·Utter·Zoo·No·Tea	derived	terminal-nt	the linking vowel before n't goes, generalised from the bare ·No·Tea of every §III n't contraction and of the gown-shop wasn't; the elision is the senior column's alone, and the junior column keeps the vowel the Manual's own Junior bo-peep writes in ·Day·Utter·Zoo·Utter·No·Tea
 distance		senior	terminal	·Utter·No·See	manual	terminal-ent-ance	no-op: naive ˈdɪstəns already ends ·Utter·No·See. The 'penlift' the Manual prescribes is a joining instruction, not a letter
 distant		senior	terminal	·Utter·No·Tea	manual	terminal-ent-ance	no-op: naive ˈdɪstənt already ends ·Utter·No·Tea. The Manual's point is that -ant and -ent come out alike
 presence		senior	terminal	·Utter·No·See	manual	terminal-ent-ance	no-op: naive ˈprezəns already ends ·Utter·No·See
@@ -375,7 +376,7 @@ always		senior	word	·Awe·Low·Way·Utter·Zoo	manual	common-words
 at		senior	word	·At·Tea	manual	common-words	
 last		senior	word	·Low·At·See·Tea	manual	common-words	as after: the standard outline takes ·At
 was		senior	word	·Way·Utter·Zoo	manual	common-words	
-wasn't		senior	word	·Way·Utter·Zoo·Utter·No·Tea	derived	common-words	the was outline reaching inside a contraction the element split cannot cut, n't being written solid; the Manual's gown-shop specimen writes ·Way·Utter·Zoo·No·Tea, eliding the linking vowel as its own §III -n't contractions do, and that elision is a Senior facility this lexicon applies to no column, so the ·Utter stays here as it does in the Manual's Junior doesn't ·Day·Utter·Zoo·Utter·No·Tea
+wasn't		senior	word	·Way·Utter·Zoo·No·Tea	manual	common-words	the gown-shop specimen on p.23, written out in full: the was outline reaching inside a contraction the element split cannot cut, n't being written solid, and the linking vowel elided by terminal-nt
 'twas		senior	word	·Tea·Way·Utter·Zoo	derived	common-words	the aphetic 't plus the was outline, which the element split cannot reach either, 't being written straight onto the word; the Manual writes 'twas only in its Junior Mary's Lamb, ’·Tea·Way·Ox·Zoo, and that is the junior column here
 that	DT0	senior	word	·They·At·Tea	manual	common-words	
 that	CJT	senior	word	·They·Tea	manual	common-words	the Common words footnote: spelt in full only when demonstrative, otherwise ·They·Tea

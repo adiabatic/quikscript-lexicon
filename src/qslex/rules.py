@@ -22,6 +22,7 @@ GATED_RULES = {
     "terminal-ing",
     "terminal-y",
 }
+SENIOR_ONLY = frozenset({"terminal-nt"})
 
 LIGATURES_FILE = "x-ligatures.tsv"
 LIGATURES_HEADER = ["word", "ligature", "reason", "note"]
@@ -444,6 +445,17 @@ def apply_land(context: Context, letters: Letters, match: re.Match[str]) -> Lett
     return letters
 
 
+def apply_nt(context: Context, letters: Letters, match: re.Match[str]) -> Letters:
+    """Nothing inflects an n't, so `NT` alone carries no trailing group.
+
+    `_offset` reads that group and would raise here; the offset is the zero it
+    would have returned. The elision is also the senior column's alone — the
+    junior column keeps the vowel, as the Manual's Junior bo-peep writes doesn't
+    — which `SENIOR_ONLY` tells `_stack`.
+    """
+    return _omit(letters, 0, ("No", "Tea"))
+
+
 def apply_ent(context: Context, letters: Letters, match: re.Match[str]) -> Letters:
     offset = _offset(match, letters)
     for shape in (("No", "Tea"), ("No", "See")):
@@ -579,6 +591,7 @@ ALLY = _pattern(r"(ally|ably|ibly|able|ible)(s)?$")
 TION = _pattern(r"(shion|tion|cean|sion|gion)(s|es)?$")
 ESS = _pattern(r"(est|ess)(es)?$")
 LAND = _pattern(r"(land|ment|man|men)(s)?$")
+NT = _pattern(r"n't$")
 ENT = _pattern(r"(ence|ance|ent|ant)(s)?$")
 OUS = _pattern(r"(us)(es)?$")
 WARD = _pattern(r"ward(s)?$")
@@ -609,6 +622,7 @@ TERMINAL_RULES: tuple[Terminal, ...] = (
     Terminal("terminal-tion", apply_tion, TION),
     Terminal("terminal-ess-est", apply_ess, ESS),
     Terminal("terminal-land-ment", apply_land, LAND),
+    Terminal("terminal-nt", apply_nt, NT),
     Terminal("terminal-ent-ance", apply_ent, ENT),
     Terminal("terminal-us-ous", apply_ous, OUS),
     Terminal("terminal-ward", apply_ward, WARD),
@@ -878,7 +892,14 @@ def _gated(rule: Rule | Terminal, context: Context, tables: Tables) -> bool:
     return rule.id in GATED_RULES and tables.skipped(rule.id, context.latin)
 
 
-def _stack(element: Element, tables: Tables) -> tuple[Letters, tuple[str, ...]]:
+def _stack(
+    element: Element, tables: Tables
+) -> tuple[Letters, Letters, tuple[str, ...]]:
+    """One word through the rules: senior letters, junior letters, rules fired.
+
+    The two spellings part company only at a `SENIOR_ONLY` terminal, whose
+    rewrite the junior letters decline.
+    """
     context = element.context
     letters = element.letters
     applied: list[str] = []
@@ -891,34 +912,43 @@ def _stack(element: Element, tables: Tables) -> tuple[Letters, tuple[str, ...]]:
             letters = after
     found = terminal_for(context)
     if found is None:
-        return letters, tuple(applied)
+        return letters, letters, tuple(applied)
     terminal, match = found
     if _gated(terminal, context, tables):
-        return letters, tuple(applied)
+        return letters, letters, tuple(applied)
     after = terminal.apply(context, letters, match)
+    junior = letters if terminal.id in SENIOR_ONLY else after
     if after != letters:
         applied.append(terminal.id)
         letters = after
-    return letters, tuple(applied)
+    return letters, junior, tuple(applied)
 
 
 def spell(context: Context, tables: Tables = NO_TABLES) -> Spelling:
     out: list[Letter] = []
+    kept: list[Letter] = []
     fired: set[str] = set()
     rulings: set[tuple[str, str]] = set()
     parts = split(context, naive(context))
     for element in parts:
         if not element.word:
             out.extend(element.letters)
+            kept.extend(element.letters)
             continue
-        after, applied = _stack(element, tables)
+        after, declined, applied = _stack(element, tables)
         out.extend(after)
+        kept.extend(declined)
         fired.update(applied)
         rulings.update(tables.consulted(applied, element.context.latin))
     letters = tuple(out)
+    unelided = tuple(kept)
     senior, junior, signed, consulted = apply_signs(
         context.latin, context.pos, letters, tables.signs
     )
+    if unelided != letters:
+        _, junior, _, _ = apply_signs(
+            context.latin, context.pos, unelided, tables.signs
+        )
     lig, hits = ligate(context, senior, tables)
     return Spelling(
         senior=render(senior),

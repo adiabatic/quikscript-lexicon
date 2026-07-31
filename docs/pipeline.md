@@ -14,7 +14,7 @@ Everything is generated into [`lexicon/`](../lexicon) and committed, so the file
 | `quikscript-lexicon.tsv`      | The flat projection, 108,375 rows after deduplication.                                                   |
 | `qs_converter_phrases.txt`    | The 1,600 entries a tokenizer must match whole.                                                          |
 | `letters.tsv`                 | All 44 Quikscript letters with their codepoints — the decoder ring for the PUA text in every other file. |
-| `en-Qaas.dic` / `en-Qaas.aff` | The Hunspell spelling dictionary, 75,568 entries.                                                        |
+| `en-Qaas.dic` / `en-Qaas.aff` | The Hunspell spelling dictionary, 75,581 entries.                                                        |
 
 **JSON-primary, and strictly so.** `quikscript-lexicon.json` is built first and everything else is projected from it in one reshape. Nothing is emitted in parallel, because parallel generation is what produced upstream's duplicate-row TSV ([Shavian-info/readlex#124](https://github.com/Shavian-info/readlex/pull/124)) — the exact bug this arrangement makes structurally impossible. There is one master per layer: `readlex.json` upstream, the rule and override tables in `src/qslex/data/`, `quikscript-lexicon.json` out. Nothing downstream of the build is hand-edited.
 
@@ -99,7 +99,7 @@ The `entries` key is upstream's headword key, verbatim, mapping to the entries u
 
 `Latn`, `qs`, `qs_junior`, `qs_x`, `Shaw`, `pos`, `ipa`, `freq` — upstream's five columns with the Quikscript spelling taking the position the Shavian one held, and the Shavian pushed right rather than dropped. Unlike upstream's, it carries a header row, because eight columns of which two are usually empty are not self-describing.
 
-Sparse columns are empty strings where they do not diverge: 2,347 rows carry a `qs_x`, 8 carry a `qs_junior`. Those bounds are checked, not assumed — `qs_x` may differ only on a word with an `x` in it, and `qs_junior` only on the word-level cases [#3](https://github.com/adiabatic/quikscript-lexicon/issues/3) enumerates.
+Sparse columns are empty strings where they do not diverge: 2,347 rows carry a `qs_x`, 27 carry a `qs_junior`. Those bounds are checked, not assumed — `qs_x` may differ only on a word with an `x` in it, and `qs_junior` only on the word-level cases [#3](https://github.com/adiabatic/quikscript-lexicon/issues/3) enumerates plus the rows whose linking vowel [`terminal-nt`](orthographic-rules.md#decisions) elides in senior alone.
 
 The projection **deduplicates**. Two headwords can list the same inflected form — ax and axe both own axed — which is 50 rows in this corpus, and flattening without collapsing them is precisely upstream's #124 bug.
 
@@ -176,7 +176,7 @@ The `.dic` is **every distinct spelling any of the three columns ships**, one pe
 
 Two rulings shape it:
 
-- **Spaced entries are dropped**, 605 of the 76,173 distinct spellings. A tokenizer splits at a space before it consults a dictionary, so no such string can ever reach hunspell, and listing one would be a line that cannot match. Hyphenated entries are kept whole, and are reachable — see `WORDCHARS` below.
+- **Spaced entries are dropped**, 605 of the 76,186 distinct spellings. A tokenizer splits at a space before it consults a dictionary, so no such string can ever reach hunspell, and listing one would be a line that cannot match. Hyphenated entries are kept whole, and are reachable — see `WORDCHARS` below.
 - **No word carries an affix flag.** ReadLex lists every inflected form as a row of its own, so the affix machinery would encode nothing the word list does not already state, and a flag standing for no rule is a flag that can only go wrong. The `.aff` declares no `PFX` or `SFX` at all.
 
 The `.aff` is four directives, all of them derived:

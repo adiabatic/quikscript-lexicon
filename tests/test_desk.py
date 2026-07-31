@@ -95,8 +95,21 @@ def test_both_forms_of_a_divergent_row_are_accepted() -> None:
         "always",
         "that",
         "was",
-        "wasn't",
         "'twas",
+        "couldn't",
+        "didn't",
+        "doesn't",
+        "hadn't",
+        "hasn't",
+        "haven't",
+        "isn't",
+        "mightn't",
+        "mustn't",
+        "needn't",
+        "oughtn't",
+        "shouldn't",
+        "wasn't",
+        "wouldn't",
     }
     for row in DIVERGENT:
         assert row.qs in accepted
@@ -105,9 +118,9 @@ def test_both_forms_of_a_divergent_row_are_accepted() -> None:
 
 def test_the_page_carries_the_dictionary_and_the_senior_contractions() -> None:
     assert LEXICON.union == tuple(sorted(frozenset(LEXICON.listed) | CONTRACTED))
-    assert len(LEXICON.listed) == 75568
+    assert len(LEXICON.listed) == 75581
     assert len(CONTRACTED) == 74
-    assert len(LEXICON.union) == 75636
+    assert len(LEXICON.union) == 75649
 
 
 def test_the_contractions_the_dictionary_already_lists_widen_nothing() -> None:

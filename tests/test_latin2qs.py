@@ -121,7 +121,9 @@ def test_an_aphetic_word_keeps_its_leading_apostrophe(t: Transliterator) -> None
 
 
 def test_nt_attaches_solid(t: Transliterator) -> None:
-    assert words(t, "It wasn't here.")[1] == qs("·Way·Utter·Zoo·Utter·No·Tea")
+    assert words(t, "It wasn't here.")[1] == qs("·Way·Utter·Zoo·No·Tea")
+    junior = words(t, "It wasn't here.", mode="junior")[1]
+    assert junior == qs("·Way·Ox·Zoo·Utter·No·Tea")
     assert words(t, "You can't win.")[1] == qs("·Key·Ah·No·Tea")
 
 

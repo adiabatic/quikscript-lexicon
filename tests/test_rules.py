@@ -16,6 +16,8 @@ from qslex.rules import (
     ALLY,
     LIGATURES_HEADER,
     RULE_IDS,
+    SENIOR_ONLY,
+    TERMINAL_RULES,
     WARD,
     Tables,
     apply_ally,
@@ -165,6 +167,16 @@ def test_land_ment_drops_the_vowel_except_in_men() -> None:
     assert senior("seaman", "NN1") == "·See·Eat·May·No"
     assert senior("seamen", "NN2") == "·See·Eat·May·Et·No"
     assert senior("cement", "NN1") == "·See·It·May·Et·No·Tea"
+
+
+def test_nt_elides_the_linking_vowel() -> None:
+    assert senior("shouldn't") == "·She·Foot·Day·No·Tea"
+    assert senior("oughtn't") == "·Awe·Tea·No·Tea"
+    assert senior("hadn't") == "·He·At·Day·No·Tea"
+    assert senior("don't") == "·Day·Owe·No·Tea"
+    assert senior("weren't") == "·Way·Utter·Roe·No·Tea"
+    assert senior("aren't") == "·Ah·Roe·No·Tea"
+    assert senior("don't-know", "NN1") == "·Day·Owe·No·Tea-·No·Owe"
 
 
 def test_ess_est_writes_et_but_only_where_the_terminal_is_real() -> None:
@@ -453,6 +465,13 @@ def test_a_terminal_owns_the_end_of_each_of_these_words() -> None:
 
 def test_rule_ids_are_unique() -> None:
     assert len(RULE_IDS) == len(set(RULE_IDS))
+
+
+def test_senior_only_names_only_terminals() -> None:
+    """The junior column declines a SENIOR_ONLY rewrite in `_stack`'s terminal
+    branch alone, so a word rule or a misspelt id in the set would be a silent
+    no-op rather than an error."""
+    assert {terminal.id for terminal in TERMINAL_RULES} >= SENIOR_ONLY
 
 
 def test_parse_round_trips_a_spelling_with_separators() -> None:

@@ -89,29 +89,33 @@ def test_abbreviations_beat_the_expanded_pronunciation() -> None:
     assert senior("dr", "NP0") == "·Day·Utter·Roe"
 
 
-def test_junior_diverges_only_where_a_row_says_so() -> None:
+def test_junior_diverges_only_for_a_row_or_the_senior_only_elision() -> None:
     assert spelling("always", "AV0") == (
         "·Awe·Low·Way·Utter·Zoo",
         "·Awe·Low·Way·Eight·Zoo",
     )
     assert spelling("was", "VBD") == ("·Way·Utter·Zoo", "·Way·Ox·Zoo")
     assert spelling("one", "CRD") == ("·Way·Utter·No", "·Way·Utter·No")
+    assert spelling("isn't", "VBZ+XX0") == ("·It·Zoo·No·Tea", "·It·Zoo·Utter·No·Tea")
 
 
 def test_the_was_outline_reaches_inside_both_its_contractions() -> None:
     for pos in ("VBD+XX0", "VM0+XX0"):
         assert spelling("wasn't", pos) == (
-            "·Way·Utter·Zoo·Utter·No·Tea",
+            "·Way·Utter·Zoo·No·Tea",
             "·Way·Ox·Zoo·Utter·No·Tea",
         )
     assert spelling("'twas", "PNP+VBD") == ("·Tea·Way·Utter·Zoo", "·Tea·Way·Ox·Zoo")
-    assert senior("doesn't", "VDZ+XX0") == "·Day·Utter·Zoo·Utter·No·Tea"
+    assert spelling("doesn't", "VDZ+XX0") == (
+        "·Day·Utter·Zoo·No·Tea",
+        "·Day·Utter·Zoo·Utter·No·Tea",
+    )
 
 
 def test_no_unlisted_stem_is_substituted_inside_one() -> None:
-    assert senior("isn't", "VBZ+XX0") == "·It·Zoo·Utter·No·Tea"
+    assert senior("isn't", "VBZ+XX0") == "·It·Zoo·No·Tea"
     assert senior("'tis", "PNP+VBZ") == "·Tea·It·Zoo"
-    assert senior("mustn't", "VM0+XX0") == "·May·Utter·See·Utter·No·Tea"
+    assert senior("mustn't", "VM0+XX0") == "·May·Utter·See·No·Tea"
     assert senior("it's", "PNP+VBZ") == "·It·Tea·See"
     assert senior("it'd", "PNI+VHD") == "·It·Tea·Utter·Day"
     assert senior("it'll", "PNP+VM0") == "·It·Tea·Utter·Low"

@@ -295,7 +295,7 @@ def crosscheck(lexicon: Lexicon, root: Path) -> None:
 def word_list(lexicon: Lexicon) -> str:
     """The word set and its frequencies as one string, one spelling to a line.
 
-    A JSON object of 75,636 short keys is several hundred kilobytes of quoting and
+    A JSON object of 75,649 short keys is several hundred kilobytes of quoting and
     punctuation in a file that is fetched whole; a tab-separated block costs one
     split at startup and nothing else. The frequency is left off where it is zero,
     which is most of the list.

@@ -86,14 +86,27 @@ def test_the_x_column_is_confined_to_words_with_an_x() -> None:
     assert all("x" in entry.latin.lower() for entry in ligatures)
 
 
-def test_the_junior_column_is_confined_to_the_word_level_cases() -> None:
+def test_the_junior_column_is_confined_to_the_word_level_cases_and_nt() -> None:
     juniors = [entry for entry in ENTRIES if entry.junior]
     assert {entry.latin for entry in juniors} == {
         "always",
         "that",
         "was",
-        "wasn't",
         "'twas",
+        "couldn't",
+        "didn't",
+        "doesn't",
+        "hadn't",
+        "hasn't",
+        "haven't",
+        "isn't",
+        "mightn't",
+        "mustn't",
+        "needn't",
+        "oughtn't",
+        "shouldn't",
+        "wasn't",
+        "wouldn't",
     }
 
 

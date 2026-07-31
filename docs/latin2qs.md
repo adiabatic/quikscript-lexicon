@@ -26,7 +26,7 @@ The three modes select among the artifact's three spelling columns, falling back
 | Mode               | Column      | What it is                                         |
 | ------------------ | ----------- | -------------------------------------------------- |
 | `senior` (default) | `qs`        | Read's conventions plus the standard word-outlines |
-| `junior`           | `qs_junior` | word-level Junior divergences only                 |
+| `junior`           | `qs_junior` | word-level divergences and the kept n't vowel      |
 | `x`                | `qs_x`      | the ·Excite/·Exam ligature form, built on senior   |
 
 `--contractions` layers the [§III Senior contractions](word-signs.md#the-three-tiers) on top — the ~50-word list `contractions.tsv` ships precisely for this consumer, applied to no column. It composes with `senior` and `x`; combined with `junior` it is an error, because the Manual's Note on p.25 says the Senior facilities are impossible as a first stage. The layer is word-level: it substitutes a listed word, attaches clitics to a contracted stem (she's = ·She·Zoo, we'll = ·Way’·Low), and generalises `n't` to unlisted stems (shouldn't = ·She·Day·No·Tea). It never touches a proper noun or a token inside a named entity, so Will Smith keeps his name. The three `that` rows carry their C5 tags through `c5-to-penn.tsv`, so only the non-demonstrative `that` contracts — which the senior column already spells ·They·Tea anyway.
