@@ -331,7 +331,7 @@ check("clicking the underline opens the popover with suggestions", () => {
   assert.equal(fixer.childNodes[0].classList.contains("word"), true);
   assert.equal(fixer.childNodes[0].textContent, misspelt);
   const offers = offersOf(fixer);
-  assert.ok(offers.length > 0 && offers.length <= 8, `${offers.length} offers`);
+  assert.ok(offers.length > 0 && offers.length <= 10, `${offers.length} offers`);
   for (const button of buttonsOf(fixer)) assert.equal(button.type, "button");
 });
 

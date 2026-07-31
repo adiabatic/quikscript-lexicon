@@ -78,6 +78,7 @@ function advice() {
   return {
     active: ACCEPTED,
     freq: counts,
+    groups: QS.confusions,
     letters: QS.try_order,
     rep: QS.rep,
   };

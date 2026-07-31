@@ -21,6 +21,7 @@ from qslex.desk import (
     artifact,
     asset,
     build,
+    confusions,
     contracted,
     crosscheck,
     load_records,
@@ -51,7 +52,7 @@ QUIKSCRIPT = SAMPLE.splitlines()[-1].split(" ")
 
 NODE = shutil.which("node")
 HERE = Path(__file__).resolve().parent
-CORE_TESTS, CORE_CHECKS = "desk_core.js", 33
+CORE_TESTS, CORE_CHECKS = "desk_core.js", 35
 PAGE_TESTS, PAGE_CHECKS = "desk_page.js", 28
 
 
@@ -86,6 +87,12 @@ def test_the_replacement_table_is_the_affix_files_own() -> None:
     ]
     assert [list(pair) for pair in replacements()] == written
     assert len(replacements()) == 2 * len(LIGATURES)
+
+
+def test_the_confusion_group_is_the_vowels() -> None:
+    """Pinned to the codepoint block, not re-derived from the names the builder uses."""
+    assert confusions() == ("".join(map(chr, range(0xE670, 0xE67F))),)
+    assert json.loads(payload(LEXICON))["confusions"] == list(confusions())
 
 
 def test_both_forms_of_a_divergent_row_are_accepted() -> None:
@@ -262,7 +269,7 @@ def test_no_injected_chunk_closes_a_script_element_early() -> None:
 def test_the_page_carries_its_data_as_one_json_object() -> None:
     written = payload(LEXICON)
     assert written in BUILT
-    assert sorted(json.loads(written)) == ["rep", "try_order", "words"]
+    assert sorted(json.loads(written)) == ["confusions", "rep", "try_order", "words"]
 
 
 def test_check_reports_a_page_that_is_not_there(

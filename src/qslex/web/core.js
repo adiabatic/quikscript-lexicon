@@ -1,7 +1,7 @@
 const TOKEN = /[\uE650-\uE66C\uE670-\uE67E][\uE650-\uE66C\uE670-\uE67E-]*/g;
 const HYPHEN = "-";
 const SPACE = " ";
-const OFFERS = 8;
+const OFFERS = 10;
 const DISTANT = 2;
 const FRONT_MATTER = /^---\r?\n(?:[\s\S]*?\r?\n)?---[ \t]*\r?\n?/;
 
@@ -45,6 +45,19 @@ function bridged(word, rep) {
   for (const [written, meant] of rep) {
     for (let at = word.indexOf(written); at >= 0; at = word.indexOf(written, at + 1)) {
       out.push(word.slice(0, at) + meant + word.slice(at + written.length));
+    }
+  }
+  return out;
+}
+
+function confused(word, groups) {
+  const out = [];
+  for (const group of groups) {
+    for (let i = 0; i < word.length; i += 1) {
+      if (!group.includes(word[i])) continue;
+      for (const letter of group) {
+        if (letter !== word[i]) out.push(word.slice(0, i) + letter + word.slice(i + 1));
+      }
     }
   }
   return out;
@@ -128,6 +141,12 @@ function suggest(word, ctx) {
   take(bridged(word, ctx.rep));
   take(
     ranked(
+      confused(word, ctx.groups).filter((candidate) => offered(active, candidate)),
+      (candidate) => frequency(counts, candidate),
+    ),
+  );
+  take(
+    ranked(
       nearby(word, ctx.letters).filter((candidate) => offered(active, candidate)),
       (candidate) => frequency(counts, candidate),
     ),
@@ -152,5 +171,13 @@ function replaceOccurrence(source, word, occurrence, replacement) {
 }
 
 if (typeof module !== "undefined") {
-  module.exports = { TOKEN, tokens, accepts, suggest, replaceOccurrence, stripFrontMatter };
+  module.exports = {
+    TOKEN,
+    tokens,
+    accepts,
+    distance,
+    suggest,
+    replaceOccurrence,
+    stripFrontMatter,
+  };
 }

@@ -22,8 +22,9 @@ from dataclasses import dataclass
 from pathlib import Path
 
 from qslex.build import ARTIFACTS, HUNSPELL_AFF, HUNSPELL_DIC, LEXICON_JSON
+from qslex.csur import CODEPOINT_OF
 from qslex.hunspell import LIGATURES, by_frequency, spellings
-from qslex.letters import parse, render_qs
+from qslex.letters import VOWELS, parse, render_qs
 from qslex.readlex import repo_root
 from qslex.words import Contraction, load_contractions
 
@@ -320,6 +321,20 @@ def replacements() -> tuple[tuple[str, str], ...]:
     )
 
 
+def confusions() -> tuple[str, ...]:
+    """The letter groups a writer mistakes within, one group to a string.
+
+    A phonemic script invites a particular misspelling: the right consonant skeleton
+    around the wrong vowel, because the writer heard a vowel the accent or the schwa
+    reduced to something else. So the suggester offers a candidate that stays inside
+    a group ahead of every other single edit, however rare the word — a frequency
+    rank alone buries a common word's contraction under consonant swaps that happen
+    to be commoner. The vowels are the one group so far; a set of frequently
+    confused consonants would be one more string here, sorted the same way.
+    """
+    return ("".join(sorted(chr(CODEPOINT_OF[name]) for name in VOWELS)),)
+
+
 def variants(word: str) -> tuple[str, ...]:
     """The candidate misspellings of a word, in the order the sample tries them."""
     if len(word) < 2:
@@ -355,6 +370,7 @@ def payload(lexicon: Lexicon) -> str:
     page differs only where the lexicon did.
     """
     data = {
+        "confusions": list(confusions()),
         "rep": [list(pair) for pair in replacements()],
         "try_order": by_frequency(lexicon.listed),
         "words": word_list(lexicon),

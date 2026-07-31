@@ -5,16 +5,15 @@ const path = require("node:path");
 const [CORE, PAGE] = process.argv.slice(2);
 assert.ok(CORE && PAGE, "usage: node desk_core.js <core.js> <index.html>");
 
-const { TOKEN, tokens, accepts, suggest, replaceOccurrence, stripFrontMatter } = require(
-  path.resolve(CORE),
-);
+const { TOKEN, tokens, accepts, distance, suggest, replaceOccurrence, stripFrontMatter } =
+  require(path.resolve(CORE));
 const page = fs.readFileSync(PAGE, "utf8");
 
 const OPEN = "<script>const QS = ";
 const at = page.indexOf(OPEN);
 assert.ok(at > 0, "the page carries its data script");
 const QS = JSON.parse(page.slice(at + OPEN.length, page.indexOf(";</script>", at)));
-assert.deepEqual(Object.keys(QS).sort(), ["rep", "try_order", "words"]);
+assert.deepEqual(Object.keys(QS).sort(), ["confusions", "rep", "try_order", "words"]);
 
 const counts = new Map();
 for (const line of QS.words.split("\n")) {
@@ -30,6 +29,7 @@ const advice = (extra) =>
     {
       active: ACCEPTED,
       freq: counts,
+      groups: QS.confusions,
       letters: QS.try_order,
       rep: QS.rep,
     },
@@ -55,6 +55,7 @@ check("the page's word list is the whole lexicon and the senior contractions", (
   assert.equal(UNION.length, 75649);
   assert.equal(QS.try_order.length, 44);
   assert.equal(QS.rep.length, 4);
+  assert.equal(QS.confusions.length, 1);
 });
 
 const [A, B, C] = [...QS.try_order];
@@ -235,6 +236,42 @@ check("the rep table bridges the other way too", () => {
   assert.ok(listed.length > 0, "the spelt-out to ligature direction has listed targets");
 });
 
+const GROUP = QS.confusions[0];
+const MISVOWELLED = "\uE663\uE67A\uE652\uE65A";
+const WHATS = "\uE663\uE678\uE652\uE65A";
+
+const misgrouped = (word) => (offer) => {
+  if (offer.length !== word.length) return false;
+  const differing = [...offer]
+    .map((letter, slot) => [letter, word[slot]])
+    .filter(([one, other]) => one !== other);
+  return (
+    differing.length === 1 &&
+    QS.confusions.some((group) => differing[0].every((letter) => group.includes(letter)))
+  );
+};
+
+check("the confusion group is the fifteen vowels", () => {
+  assert.equal(GROUP.length, 15);
+  assert.equal(new Set(GROUP).size, 15);
+  for (const letter of GROUP) {
+    const held = letter.codePointAt(0);
+    assert.ok(held >= 0xe670 && held <= 0xe67e, show(letter));
+  }
+});
+
+check("a wrong vowel is fixed ahead of every other kind of edit", () => {
+  assert.equal(accepts(ACCEPTED, MISVOWELLED), false, show(MISVOWELLED));
+  assert.equal(accepts(ACCEPTED, WHATS), true, show(WHATS));
+  assert.equal(freq(WHATS), 0, "a corpus bump that counts it needs a new specimen");
+  const offers = suggest(MISVOWELLED, advice());
+  const at = offers.indexOf(WHATS);
+  assert.ok(at >= 0, `${show(WHATS)} not in ${offers.map(show).join(" | ")}`);
+  for (const offer of offers.slice(0, at)) {
+    assert.ok(misgrouped(MISVOWELLED)(offer), show(offer));
+  }
+});
+
 const CONTRACTION = "\uE665\uE654";
 const FULL = "\uE665\uE673\uE654";
 
@@ -256,19 +293,28 @@ check("the sample opens with exactly one word the lexicon does not carry", () =>
 check("the sample's misspelling is an edit away from the word it was made from", () => {
   const offers = suggest(WRONG[0], advice());
   assert.ok(offers.length > 0);
-  assert.ok(offers.length <= 8);
+  assert.ok(offers.length <= 10);
   const meant = SAMPLE_WORDS[0];
   assert.ok(offers.includes(meant), `${show(meant)} not in ${offers.map(show).join(" | ")}`);
 });
 
-check("edit-distance offers come commonest first", () => {
+check("edit-distance offers come commonest first within their tier", () => {
   const offers = suggest(WRONG[0], advice());
   const single = offers.filter((offer) => !offer.includes(" "));
   const bridged = QS.rep.some(([written]) => WRONG[0].includes(written));
   assert.equal(bridged, false);
-  const scores = single.map(freq);
-  assert.deepEqual(scores, [...scores].sort((one, other) => other - one), scores.join(","));
-  assert.ok(scores[0] > 0);
+  const grouped = misgrouped(WRONG[0]);
+  const tiers = [
+    single.filter(grouped),
+    single.filter((offer) => !grouped(offer) && distance(WRONG[0], offer, 2) === 1),
+    single.filter((offer) => !grouped(offer) && distance(WRONG[0], offer, 2) === 2),
+  ];
+  assert.deepEqual(single, tiers.flat(), "in-group fixes, then one edit, then two");
+  for (const tier of tiers) {
+    const scores = tier.map(freq);
+    assert.deepEqual(scores, [...scores].sort((one, other) => other - one), scores.join(","));
+  }
+  assert.ok(freq(single[0]) > 0);
 });
 
 const LONGISH = UNION.find((word) => word.length >= 9 && !word.includes("-"));
@@ -294,7 +340,7 @@ check("every offer is a spelling the accepted set takes, and never the word itse
   for (const word of sampled) {
     const ctx = advice();
     const offers = suggest(word, ctx);
-    assert.ok(offers.length <= 8);
+    assert.ok(offers.length <= 10);
     assert.equal(new Set(offers).size, offers.length, show(word));
     for (const offer of offers) {
       assert.notEqual(offer, word);
