@@ -272,7 +272,10 @@ grade.addEventListener("click", () => {
 
 preview.addEventListener("click", (event) => {
   const span = event.target.closest?.(".miss");
-  if (span) propose(span);
+  if (span) {
+    event.preventDefault();
+    propose(span);
+  }
 });
 
 excused.addEventListener("click", () => {

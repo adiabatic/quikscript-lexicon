@@ -108,7 +108,9 @@ class Element extends Fragment {
   fire(kind, event) {
     const listeners = this.handlers.get(kind) || [];
     assert.ok(listeners.length > 0, `nothing listens for ${kind}`);
-    for (const listener of listeners) listener(event || { target: this });
+    const dispatched = event || { target: this };
+    if (!("preventDefault" in dispatched)) dispatched.preventDefault = () => {};
+    for (const listener of listeners) listener(dispatched);
   }
 
   hasAttribute(name) {
