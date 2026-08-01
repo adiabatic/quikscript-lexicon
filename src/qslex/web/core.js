@@ -2,7 +2,7 @@ const TOKEN = /[\uE650-\uE66C\uE670-\uE67E][\uE650-\uE66C\uE670-\uE67E-]*/g;
 const HYPHEN = "-";
 const SPACE = " ";
 const OFFERS = 10;
-const DISTANT = 2;
+const DISTANT = 3;
 const FRONT_MATTER = /^---\r?\n(?:[\s\S]*?\r?\n)?---[ \t]*\r?\n?/;
 
 function stripFrontMatter(text) {
@@ -110,7 +110,9 @@ function distance(a, b, cap) {
 function distant(word, active, cap) {
   const out = [];
   for (const candidate of active) {
-    if (candidate !== word && distance(word, candidate, cap) <= cap) out.push(candidate);
+    if (candidate === word) continue;
+    const edits = distance(word, candidate, cap);
+    if (edits <= cap) out.push({ candidate, edits });
   }
   return out;
 }
@@ -151,9 +153,15 @@ function suggest(word, ctx) {
       (candidate) => frequency(counts, candidate),
     ),
   );
-  take(
-    ranked(distant(word, active, DISTANT), (candidate) => frequency(counts, candidate)),
-  );
+  const far = distant(word, active, DISTANT);
+  for (let edits = 1; edits <= DISTANT; edits += 1) {
+    take(
+      ranked(
+        far.filter((hit) => hit.edits === edits).map((hit) => hit.candidate),
+        (candidate) => frequency(counts, candidate),
+      ),
+    );
+  }
   take(
     ranked(
       halves(word).filter((pair) => accepts(active, pair[0]) && accepts(active, pair[1])),

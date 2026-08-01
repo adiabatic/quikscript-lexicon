@@ -306,10 +306,15 @@ check("edit-distance offers come commonest first within their tier", () => {
   const grouped = misgrouped(WRONG[0]);
   const tiers = [
     single.filter(grouped),
-    single.filter((offer) => !grouped(offer) && distance(WRONG[0], offer, 2) === 1),
-    single.filter((offer) => !grouped(offer) && distance(WRONG[0], offer, 2) === 2),
+    single.filter((offer) => !grouped(offer) && distance(WRONG[0], offer, 3) === 1),
+    single.filter((offer) => !grouped(offer) && distance(WRONG[0], offer, 3) === 2),
+    single.filter((offer) => !grouped(offer) && distance(WRONG[0], offer, 3) === 3),
   ];
-  assert.deepEqual(single, tiers.flat(), "in-group fixes, then one edit, then two");
+  assert.deepEqual(
+    single,
+    tiers.flat(),
+    "in-group fixes, then one edit, then two, then three",
+  );
   for (const tier of tiers) {
     const scores = tier.map(freq);
     assert.deepEqual(scores, [...scores].sort((one, other) => other - one), scores.join(","));
@@ -319,6 +324,14 @@ check("edit-distance offers come commonest first within their tier", () => {
 
 const LONGISH = UNION.find((word) => word.length >= 9 && !word.includes("-"));
 const TWO_AWAY = LONGISH[1] + LONGISH.slice(3);
+const swap = (letter) => (letter === A ? B : A);
+const THREE_AWAY =
+  swap(LONGISH[0]) +
+  LONGISH[1] +
+  swap(LONGISH[2]) +
+  LONGISH[3] +
+  swap(LONGISH[4]) +
+  LONGISH.slice(5);
 const GIBBERISH = A.repeat(10);
 
 check("a typo two edits away is still offered the word it came from", () => {
@@ -330,7 +343,31 @@ check("a typo two edits away is still offered the word it came from", () => {
   );
 });
 
-check("a typo nothing is within two edits of is offered nothing", () => {
+check("a typo three edits away is still offered the word it came from", () => {
+  assert.equal(ACCEPTED.has(THREE_AWAY), false, show(THREE_AWAY));
+  assert.equal(distance(THREE_AWAY, LONGISH, 3), 3);
+  const offers = suggest(THREE_AWAY, advice());
+  assert.ok(
+    offers.includes(LONGISH),
+    `${show(LONGISH)} not in ${offers.map(show).join(" | ")}`,
+  );
+});
+
+check("a two-edit offer outranks a commoner offer three edits out", () => {
+  const offers = suggest(TWO_AWAY, advice()).filter((offer) => !offer.includes(" "));
+  const edits = offers.map((offer) => distance(TWO_AWAY, offer, 3));
+  const near = edits.indexOf(2);
+  const far = edits.indexOf(3);
+  assert.ok(near >= 0, "no two-edit offer to hold ahead");
+  assert.ok(far >= 0, "no three-edit offer to hold behind");
+  assert.ok(edits.lastIndexOf(2) < far, offers.map(show).join(" | "));
+  assert.ok(
+    freq(offers[far]) > freq(offers[near]),
+    "the far offer must be commoner, or frequency alone would order these",
+  );
+});
+
+check("a typo nothing is within three edits of is offered nothing", () => {
   assert.equal(ACCEPTED.has(GIBBERISH), false, show(GIBBERISH));
   assert.deepEqual(suggest(GIBBERISH, advice()), []);
 });
