@@ -36,7 +36,6 @@ ARTIFACTS = "lexicon"
 LEXICON_JSON = "quikscript-lexicon.json"
 LEXICON_TSV = "quikscript-lexicon.tsv"
 PHRASES_TXT = "qs_converter_phrases.txt"
-LETTERS_TSV = "letters.tsv"
 HUNSPELL_DIC = "en-Qaas.dic"
 HUNSPELL_AFF = "en-Qaas.aff"
 
@@ -172,9 +171,10 @@ def lexicon_json(
     it is the orthographic rules, not the data, that decide what fails to compose.
     Holding this one file is holding the lexicon.
 
-    Those three duplicate `letters.tsv`, `c5-to-penn.tsv` and the phrases file. They
-    cannot drift from them: all four are written by this one pass, and `make check`
-    rebuilds and byte-compares every one of them.
+    Two of the three duplicate `c5-to-penn.tsv` and the phrases file. They cannot
+    drift from them: all three are written by this one pass, and `make check`
+    rebuilds and byte-compares every one of them. The letter table ships nowhere
+    else.
 
     One headword to a line, rather than a field to a line. The file is generated, so
     the useful diff is which entries moved, and that reads as one changed line each.
@@ -254,11 +254,7 @@ def lexicon_tsv(entries: Iterable[Entry]) -> str:
 
 
 def letters_rows(mapping: Mapping) -> tuple[tuple[str, ...], ...]:
-    """The decoder ring: PUA text is opaque without a Quikscript font, so name it.
-
-    Written twice, into `letters.tsv` and into the master's own `letters`, from here so
-    that the two cannot disagree about what a codepoint is.
-    """
+    """The decoder ring: PUA text is opaque without a Quikscript font, so name it."""
     sources: dict[str, list[str]] = {name: [] for name in CODEPOINT_OF}
     for entry in mapping.entries:
         for name in entry.letters:
@@ -284,14 +280,8 @@ def letters_rows(mapping: Mapping) -> tuple[tuple[str, ...], ...]:
     return tuple(rows)
 
 
-def letters_tsv(mapping: Mapping) -> str:
-    lines = ["\t".join(LETTERS_HEADER)]
-    lines.extend("\t".join(row) for row in letters_rows(mapping))
-    return "\n".join(lines) + "\n"
-
-
 def artifacts(entries: tuple[Entry, ...], mapping: Mapping) -> dict[str, str]:
-    """The six files, every one of them a projection of the same entries.
+    """The five files, every one of them a projection of the same entries.
 
     The converter shape is built here and not written: `phrases` is derived from it,
     and the master carries everything the shape itself is rebuilt from, so shipping it
@@ -307,7 +297,6 @@ def artifacts(entries: tuple[Entry, ...], mapping: Mapping) -> dict[str, str]:
         LEXICON_JSON: lexicon_json(entries, mapping, penn, listed),
         LEXICON_TSV: lexicon_tsv(entries),
         PHRASES_TXT: "\n".join(listed) + "\n",
-        LETTERS_TSV: letters_tsv(mapping),
         HUNSPELL_DIC: dictionary(checkable),
         HUNSPELL_AFF: affix(checkable),
     }

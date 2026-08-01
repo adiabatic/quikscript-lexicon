@@ -4,14 +4,12 @@ from qslex.build import (
     HUNSPELL_AFF,
     HUNSPELL_DIC,
     LETTERS_HEADER,
-    LETTERS_TSV,
     LEXICON_JSON,
     LEXICON_TSV,
     PHRASES_TXT,
     SCHEMA_VERSION,
     TSV_HEADER,
     artifacts,
-    letters_tsv,
 )
 from qslex.converter import TagMap, converter, load_penn
 from qslex.csur import CODEPOINT_OF
@@ -39,7 +37,6 @@ def test_the_build_emits_every_declared_artifact() -> None:
         LEXICON_JSON,
         LEXICON_TSV,
         PHRASES_TXT,
-        LETTERS_TSV,
         HUNSPELL_DIC,
         HUNSPELL_AFF,
     }
@@ -171,28 +168,24 @@ def test_the_masters_tag_map_is_the_table_the_converter_reads() -> None:
     assert MASTER["c5_to_penn"] == {c5: tag.penn for c5, tag in load_penn().items()}
 
 
-def test_the_masters_sidecars_are_the_files_beside_it() -> None:
+def test_the_masters_phrases_are_the_file_beside_them() -> None:
     assert MASTER["phrases"] == BUILT[PHRASES_TXT].splitlines()
-    header, rows = table(BUILT[LETTERS_TSV])
-    assert MASTER["letters"] == [dict(zip(header, row, strict=True)) for row in rows]
 
 
-def test_letters_tsv_names_every_codepoint() -> None:
-    header, rows = table(letters_tsv(MAPPING))
-    assert tuple(header) == LETTERS_HEADER
-    assert [row[2] for row in rows] == list(CODEPOINT_OF)
+def test_the_masters_letters_name_every_codepoint() -> None:
+    assert {tuple(letter) for letter in MASTER["letters"]} == {LETTERS_HEADER}
+    assert [letter["name"] for letter in MASTER["letters"]] == list(CODEPOINT_OF)
 
 
 def test_each_letter_row_carries_the_character_for_its_codepoint() -> None:
-    _, rows = table(letters_tsv(MAPPING))
-    for codepoint, character, name, _, _ in rows:
-        assert int(codepoint.removeprefix("U+"), 16) == CODEPOINT_OF[name]
-        assert character == chr(CODEPOINT_OF[name])
+    for letter in MASTER["letters"]:
+        codepoint = CODEPOINT_OF[letter["name"]]
+        assert int(letter["codepoint"].removeprefix("U+"), 16) == codepoint
+        assert letter["qs"] == chr(codepoint)
 
 
 def test_every_letter_is_a_consonant_a_vowel_or_a_ligature() -> None:
-    _, rows = table(letters_tsv(MAPPING))
-    kinds = {row[2]: row[3] for row in rows}
+    kinds = {letter["name"]: letter["class"] for letter in MASTER["letters"]}
     assert set(kinds.values()) == {"consonant", "vowel", "ligature"}
     assert {name for name, kind in kinds.items() if kind == "vowel"} == set(VOWELS)
     assert {name for name, kind in kinds.items() if kind == "ligature"} == {

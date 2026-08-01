@@ -13,12 +13,11 @@ Everything is generated into [`lexicon/`](../lexicon) and committed, so the file
 | `quikscript-lexicon.json`     | The master, and the only JSON. Grouped by headword, 56,649 of them, 108,425 entries.                     |
 | `quikscript-lexicon.tsv`      | The flat projection, 108,375 rows after deduplication.                                                   |
 | `qs_converter_phrases.txt`    | The 1,600 entries a tokenizer must match whole.                                                          |
-| `letters.tsv`                 | All 44 Quikscript letters with their codepoints — the decoder ring for the PUA text in every other file. |
 | `en-Qaas.dic` / `en-Qaas.aff` | The Hunspell spelling dictionary, 75,581 entries.                                                        |
 
 **JSON-primary, and strictly so.** `quikscript-lexicon.json` is built first and everything else is projected from it in one reshape. Nothing is emitted in parallel, because parallel generation is what produced upstream's duplicate-row TSV ([Shavian-info/readlex#124](https://github.com/Shavian-info/readlex/pull/124)) — the exact bug this arrangement makes structurally impossible. There is one master per layer: `readlex.json` upstream, the rule and override tables in `src/qslex/data/`, `quikscript-lexicon.json` out. Nothing downstream of the build is hand-edited.
 
-**One JSON, and only one.** A second JSON was shipped until it was measured: `qs_converter.json` covered the same 78,135 words, carried the same spelling in every one of the three columns, and differed only in writing a Penn tag where the master writes the C5 tag it is a rename of. Nine megabytes to say what the master already said. It is [rebuilt, not shipped](#the-converter-shape) — the master now carries the tag map it is keyed by, so the file it used to be comes back byte for byte from the master alone. The other four artifacts stay committed because they are formats, not restatements: a spreadsheet reads the TSV and hunspell reads the `.dic`, and neither can read JSON.
+**One JSON, and only one.** A second JSON was shipped until it was measured: `qs_converter.json` covered the same 78,135 words, carried the same spelling in every one of the three columns, and differed only in writing a Penn tag where the master writes the C5 tag it is a rename of. Nine megabytes to say what the master already said. It is [rebuilt, not shipped](#the-converter-shape) — the master now carries the tag map it is keyed by, so the file it used to be comes back byte for byte from the master alone. The other three artifacts stay committed because they are formats, not restatements: a spreadsheet reads the TSV and hunspell reads the `.dic`, and neither can read JSON.
 
 ## Encoding
 
@@ -83,9 +82,9 @@ Five top-level keys, of which `entries` is all but forty kilobytes of the file:
 }
 ```
 
-The four small keys are what makes this the only file a consumer needs. `letters` is the decoder ring, without which every QS string is a row of boxes. `c5_to_penn` is the tag map the converter shape's rows are keyed by. `phrases` is the one projection no property of the entries can reveal, because it is the orthographic rules and not the data that decide what fails to compose. `meta` says which corpus commit the file came from and how much of it there is.
+The four small keys are what makes this the only file a consumer needs. `letters` is the decoder ring, without which every QS string is a row of boxes: `codepoint`, `qs`, `name`, `class`, `ipa` for all 44 letters, derived from `src/qslex/csur.py` and the segment mapping. The `name` is the letter's own example word, which is how [the CSUR proposal](https://www.quikscript.net/csur/) names them; the `ipa` lists every mapping token that produces the letter, and is empty for ·Excite and ·Exam, which no segment mapping can reach. `c5_to_penn` is the tag map the converter shape's rows are keyed by. `phrases` is the one projection no property of the entries can reveal, because it is the orthographic rules and not the data that decide what fails to compose. `meta` says which corpus commit the file came from and how much of it there is.
 
-Each of the three duplicates a file that also ships: `letters.tsv`, `src/qslex/data/c5-to-penn.tsv`, `qs_converter_phrases.txt`. Duplication is normally how two copies drift, and it cannot here: all four are written by the same pass of `build.artifacts()`, and `make check` rebuilds and byte-compares every one of them.
+Two of the three duplicate a file that also ships: `src/qslex/data/c5-to-penn.tsv` and `qs_converter_phrases.txt`. Duplication is normally how two copies drift, and it cannot here: all three are written by the same pass of `build.artifacts()`, and `make check` rebuilds and byte-compares every one of them. `letters` ships nowhere else — the master is the only place the alphabet is named.
 
 The `entries` key is upstream's headword key, verbatim, mapping to the entries under it. The key is treated as an opaque upstream identifier, not as data — it is kept so that every group is traceable to the group it came from and an upstream bump diffs cleanly. It is *not* re-derived: upstream's own keys can be stale with respect to the entries under them (`'twas_PNP+VBD_𐑑𐑢𐑪𐑟` heads an entry whose Shavian is 𐑑𐑢𐑳𐑟), which is a further reason to carry it rather than to compute one.
 
@@ -163,10 +162,6 @@ The predicate is compositionality, not a character test: an entry is listed when
 The list is longer than upstream's — 1,600 against 1,406 — and the reason is real: Quikscript's terminal and prefix conventions are genuinely more context-sensitive than Shavian's, so hundreds of compounds legitimately fail to compose where their Shavian spellings do. It was longer still, 2,171, until the rules learnt to see inside a compound ([#9](https://github.com/adiabatic/quikscript-lexicon/issues/9)); 571 entries were on it only because their elements were spelt one way alone and another way in the compound. The list is regenerated from the spellings either way, so it cannot disagree with them.
 
 It is also *shorter* in eight places, and those are real: at-home, lean-to, set-to, aged care, school-aged and three more compose in Quikscript because a standard word-outline collapses a stressed/unstressed pair that Shavian spells two ways.
-
-### letters.tsv
-
-`codepoint`, `qs`, `name`, `class`, `ipa` for all 44 letters, derived from `src/qslex/csur.py` and the segment mapping. The `name` column is the letter's own example word, which is how [the CSUR proposal](https://www.quikscript.net/csur/) names them; the `ipa` column lists every mapping token that produces the letter, and is empty for ·Excite and ·Exam, which no segment mapping can reach.
 
 ### en-Qaas.dic / en-Qaas.aff
 
