@@ -20,8 +20,6 @@ Three spelling columns: **`qs`** is Senior, the default; **`qs_junior`** and **`
 
 Quikscript is written in the Private Use Area, **U+E650–U+E67E**, one codepoint per letter, per the [quikscript.net CSUR proposal](https://www.quikscript.net/csur/). Without a Quikscript font every QS column renders as blank boxes; the `letters` table in [`lexicon/quikscript-lexicon.json`](lexicon/quikscript-lexicon.json) names each codepoint so the text can be read without one.
 
-Worth stating honestly: that range is the de-facto community assignment, but the live Evertype CSUR index still lists it as *unassigned*. The authority here is the proposal, not a registration.
-
 Tag Quikscript text `en-Qaas`, per [quikscript.net/on-the-web](https://www.quikscript.net/on-the-web/).
 
 ## Layout
