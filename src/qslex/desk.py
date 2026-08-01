@@ -23,7 +23,7 @@ from pathlib import Path
 
 from qslex.build import ARTIFACTS, HUNSPELL_AFF, HUNSPELL_DIC, LEXICON_JSON
 from qslex.csur import CODEPOINT_OF
-from qslex.hunspell import LIGATURES, by_frequency, spellings
+from qslex.hunspell import X_LETTERS, by_frequency, spellings
 from qslex.letters import VOWELS, parse, render_qs
 from qslex.readlex import repo_root
 from qslex.words import Contraction, load_contractions
@@ -90,11 +90,11 @@ class Record:
     pos: str
     qs: str
     junior: str
-    ligature: str
+    x_letter: str
     frequency: int
 
     def columns(self) -> tuple[str, str, str]:
-        return (self.qs, self.junior, self.ligature)
+        return (self.qs, self.junior, self.x_letter)
 
 
 @dataclass(frozen=True)
@@ -181,7 +181,7 @@ def load_records(root: Path) -> tuple[Record, ...]:
             pos=entry["pos"],
             qs=entry["qs"],
             junior=entry.get("qs_junior", ""),
-            ligature=entry.get("qs_x", ""),
+            x_letter=entry.get("qs_x", ""),
             frequency=entry["freq"],
         )
         for group in master["entries"].values()
@@ -229,7 +229,7 @@ def derive(records: Iterable[Record], contractions: Iterable[Contraction]) -> Le
     """The one word set and the frequencies the page needs.
 
     A spelling's frequency is the highest any row writing it carries, in any column:
-    a ligature or junior form is the same word as the row's own spelling, so it
+    an X-letter or junior form is the same word as the row's own spelling, so it
     inherits that row's count rather than falling to zero and sorting last in a
     suggestion list.
 
@@ -308,16 +308,16 @@ def word_list(lexicon: Lexicon) -> str:
 
 
 def replacements() -> tuple[tuple[str, str], ...]:
-    """Each ligature bridged to the letter pair it stands for, both ways.
+    """Each X-letter bridged to the letter pair it stands for, both ways.
 
-    The table the `.aff` writes as REP, and for the same reason: the letters around a
-    ligature change with it, so neither form of a word is a single-letter edit from
+    The table the `.aff` writes as REP, and for the same reason: the letters around an
+    X-letter change with it, so neither form of a word is a single-letter edit from
     the other and no edit-distance suggester alone will turn it up.
     """
     return tuple(
         (written, meant)
-        for ligature, pair in LIGATURES
-        for written, meant in ((ligature, pair), (pair, ligature))
+        for x_letter, pair in X_LETTERS
+        for written, meant in ((x_letter, pair), (pair, x_letter))
     )
 
 

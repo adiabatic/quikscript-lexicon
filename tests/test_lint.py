@@ -15,8 +15,8 @@ from qslex.rules import NO_TABLES
 from tsv import write_tsv
 
 
-def broken(word: str, spelling: str, ipa: str, ligature: str = "") -> set[str]:
-    return {check for check, _, _ in lint(word, spelling, ligature, ipa, NO_TABLES)}
+def broken(word: str, spelling: str, ipa: str, x_letter: str = "") -> set[str]:
+    return {check for check, _, _ in lint(word, spelling, x_letter, ipa, NO_TABLES)}
 
 
 def pragma_file(tmp_path: Path, rows: list[list[str]]) -> Path:
@@ -101,7 +101,7 @@ def test_men_is_the_one_that_keeps_its_vowel() -> None:
     )
 
 
-def test_an_initial_ex_takes_et_before_the_ligature() -> None:
+def test_an_initial_ex_takes_et_before_the_x_letter() -> None:
     assert "initial-ex-et" in broken(
         "excite", "·It·Key·See·I·Tea", "ɪkˈsaɪt", "·It·Excite·I·Tea"
     )
@@ -116,11 +116,11 @@ def test_a_stressed_ex_keeps_its_own_vowel() -> None:
     )
 
 
-def test_no_more_ligatures_than_the_latin_has_x() -> None:
-    assert "x-ligature-only-with-x" in broken(
+def test_no_more_x_letters_than_the_latin_has_x() -> None:
+    assert "x-letter-only-with-x" in broken(
         "next", "·No·Et·Key·See·Tea", "nekst", "·No·Et·Excite·Excite"
     )
-    assert "x-ligature-only-with-x" not in broken(
+    assert "x-letter-only-with-x" not in broken(
         "xerox", "·Zhivago·Eat·Roe·Ox·Key·See", "ˈzɪəRɒks", "·Zhivago·Eat·Roe·Ox·Excite"
     )
 

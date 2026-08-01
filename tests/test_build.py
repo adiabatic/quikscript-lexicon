@@ -78,9 +78,9 @@ def test_the_two_lexicon_artifacts_are_the_same_projection() -> None:
 
 
 def test_the_x_column_is_confined_to_words_with_an_x() -> None:
-    ligatures = [entry for entry in ENTRIES if entry.ligature]
-    assert ligatures
-    assert all("x" in entry.latin.lower() for entry in ligatures)
+    x_letters = [entry for entry in ENTRIES if entry.x_letter]
+    assert x_letters
+    assert all("x" in entry.latin.lower() for entry in x_letters)
 
 
 def test_the_junior_column_is_confined_to_the_word_level_cases_and_nt() -> None:
@@ -112,7 +112,7 @@ def test_every_qs_string_is_letters_and_separators() -> None:
     stray = {
         character
         for entry in ENTRIES
-        for column in (entry.qs, entry.junior, entry.ligature)
+        for column in (entry.qs, entry.junior, entry.x_letter)
         for character in column
         if character not in allowed
     }
@@ -160,7 +160,7 @@ def test_the_master_carries_the_converter_shape_it_no_longer_ships() -> None:
         },
     )
     assert rebuilt == converter(
-        ((e.latin, e.pos, e.qs, e.junior, e.ligature) for e in ENTRIES), load_penn()
+        ((e.latin, e.pos, e.qs, e.junior, e.x_letter) for e in ENTRIES), load_penn()
     )
 
 
@@ -184,11 +184,11 @@ def test_each_letter_row_carries_the_character_for_its_codepoint() -> None:
         assert letter["qs"] == chr(codepoint)
 
 
-def test_every_letter_is_a_consonant_a_vowel_or_a_ligature() -> None:
+def test_every_letter_is_a_consonant_a_vowel_or_an_x_letter() -> None:
     kinds = {letter["name"]: letter["class"] for letter in MASTER["letters"]}
-    assert set(kinds.values()) == {"consonant", "vowel", "ligature"}
+    assert set(kinds.values()) == {"consonant", "vowel", "x-letter"}
     assert {name for name, kind in kinds.items() if kind == "vowel"} == set(VOWELS)
-    assert {name for name, kind in kinds.items() if kind == "ligature"} == {
+    assert {name for name, kind in kinds.items() if kind == "x-letter"} == {
         "Excite",
         "Exam",
     }

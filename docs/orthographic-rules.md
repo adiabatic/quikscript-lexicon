@@ -2,15 +2,15 @@
 
 Quikscript spelling is not naive transcription. [`docs/ipa-to-qs.md`](ipa-to-qs.md) maps IPA segments to letters and stops there, with a section — [What a segment mapping cannot do](ipa-to-qs.md#what-a-segment-mapping-cannot-do) — listing the Manual's terminal and affix conventions as structurally out of reach, because they are keyed to the *spelling* of a suffix rather than to its sounds. This is the layer that owns them.
 
-Section III of the Manual is the complete inventory: eighteen terminal rules and eight prefix rules, plus the §II X-ligature substitution — and one rule of this project's own, `terminal-nt`, generalised from the bare ·No·Tea that §III's [contraction list][nt] and the gown-shop specimen write straight onto every `n't` stem ([Decisions](#decisions)). Per [#8][plan] the Manual's rules are not Senior-only — they are simply how Quikscript is spelt, in every column. `terminal-nt` alone is Senior's: its evidence is, and the junior column keeps the vowel it elides. Authority links go to the [AMS Manual transcription][manual]; every letter-name spelling quoted below was extracted codepoint-for-codepoint from its PUA text, with the presentation-only ZWNJs stripped.
+Section III of the Manual is the complete inventory: eighteen terminal rules and eight prefix rules, plus the §II X-letter substitution — and one rule of this project's own, `terminal-nt`, generalised from the bare ·No·Tea that §III's [contraction list][nt] and the gown-shop specimen write straight onto every `n't` stem ([Decisions](#decisions)). Per [#8][plan] the Manual's rules are not Senior-only — they are simply how Quikscript is spelt, in every column. `terminal-nt` alone is Senior's: its evidence is, and the junior column keeps the vowel it elides. Authority links go to the [AMS Manual transcription][manual]; every letter-name spelling quoted below was extracted codepoint-for-codepoint from its PUA text, with the presentation-only ZWNJs stripped.
 
 ## Artifacts
 
 - `src/qslex/rules.py` — the engine and the twenty-seven rules. Pure functions over a `Context` of (Latin spelling, POS, quirk-normalised IPA, tokens, and whether the entry ends with this word); the rulings a single row cannot make for itself come from declared tables, not from corpus lookups inside a rule.
 - `src/qslex/elements.py` — where an entry's boundaries are. One split into elements, shared with the word-sign layer, so the two cannot disagree about them ([One entry, several words](#one-entry-several-words)).
-- `src/qslex/data/manual-spellings.tsv` — the fixture: 381 rows covering every rule, 137 of them spellings the Manual writes out itself. Twenty belong to the word-sign layer rather than to a rule ([`docs/word-signs.md`](word-signs.md)). Columns: `word`, `pos`, `column` (`senior`/`ligature`), `kind` (`word`/`terminal`/`prefix`), `spelling`, `source`, `rule`, `note`.
+- `src/qslex/data/manual-spellings.tsv` — the fixture: 381 rows covering every rule, 137 of them spellings the Manual writes out itself. Twenty belong to the word-sign layer rather than to a rule ([`docs/word-signs.md`](word-signs.md)). Columns: `word`, `pos`, `column` (`senior`/`x-letter`), `kind` (`word`/`terminal`/`prefix`), `spelling`, `source`, `rule`, `note`.
 - `src/qslex/data/rule-words.tsv` — per-word rulings for the five rules whose trigger the data cannot settle: 453 rows, each `apply` or `skip` with an authority and a note.
-- `src/qslex/data/x-ligatures.tsv` — the ten words where the mechanical Latin-`x` ↔ letter-pair alignment cannot place the ligature by itself.
+- `src/qslex/data/x-rulings.tsv` — the ten words where the mechanical Latin-`x` ↔ letter-pair alignment cannot place the X-letter by itself.
 - `src/qslex/manual.py` — the fixture loader, which rejects an unknown rule anchor, an unknown letter name, or a derived spelling with no note.
 
 Run the proofs:
@@ -93,9 +93,9 @@ fricassee needs nothing: ReadLex marks the verb final-stressed, so fricasseed an
 
 ### 6. Where Orthodox spells the sounds with x
 
-·Excite substitutes for ·Key·See and ·Exam for ·Gay·Zoo, "**but only where Orthodox spells these sounds with X**". tax and tacks are homophones; next and necks are homophones. The choice is unrecoverable from IPA, so the lexicon stores the ligature form rather than deriving it, in a `qs_x` column built on top of senior ([#8][plan]).
+·Excite substitutes for ·Key·See and ·Exam for ·Gay·Zoo, "**but only where Orthodox spells these sounds with X**". tax and tacks are homophones; next and necks are homophones. The choice is unrecoverable from IPA, so the lexicon stores the X-letter form rather than deriving it, in a `qs_x` column built on top of senior ([#8][plan]).
 
-The alignment is mechanical where it can be, and it is per **word** of the entry ([One entry, several words](#one-entry-several-words)): one `x` in a word's Latin, one ·Key·See or ·Gay·Zoo pair in that word's spelling, substitute there. A word with no such pair gets no ligature and needs no ruling — anxious (/ŋkʃ/), sexual (/kʃu/), luxury, faux, xenon, xylophone are all correctly left alone. The ten words where that fails — two x's (xerox, executrix, vaxxed) or one x and several pairs (textbooks, waxworks, alexics) — are ruled on in `x-ligatures.tsv`.
+The alignment is mechanical where it can be, and it is per **word** of the entry ([One entry, several words](#one-entry-several-words)): one `x` in a word's Latin, one ·Key·See or ·Gay·Zoo pair in that word's spelling, substitute there. A word with no such pair gets no X-letter and needs no ruling — anxious (/ŋkʃ/), sexual (/kʃu/), luxury, faux, xenon, xylophone are all correctly left alone. The ten words where that fails — two x's (xerox, executrix, vaxxed) or one x and several pairs (textbooks, waxworks, alexics) — are ruled on in `x-rulings.tsv`.
 
 **·Et is scoped to a word-initial unstressed ex-.** The Manual's rider — "·Et·Excite for Excite, Extreme, Expect with an initial vowel ·Et easier than ·It" — is a convenience that concedes ·It as the sound, and the Manual's own `sixty` = ·See·It·Excite·Tea·It keeps ·It, so it is not a blanket vowel rule. The senior column simply follows the IPA (ReadLex has unstressed ex- as /ɪk/-/ɪɡ/-, giving ·It·Key·See, with ·Et only for genuine DRESS: next, text, texture, expert).
 
@@ -112,9 +112,9 @@ Word-initial means the *word* and not the entry, so cross-examine and for exampl
 | corn-exchange | ·Key·Awe·Roe·No-·It·Key·See·Cheer·Eight·No·Jay | ·Key·Awe·Roe·No-·Et·Excite·Cheer·Eight·No·Jay |
 | tacks         | ·Tea·At·Key·See                                | —                                             |
 
-The Manual writes only three ligature words out in full anywhere outside the §II rule statement, all in the prose specimens on pages 24–25, and **the generator reproduces all three**: next = ·No·Et·Excite·Tea, sixty-five = ·See·It·Excite·Tea·It-·Fee·I·Vie, and experiment = ·Et·Excite·Pea·Et·Roe·It·May·No·Tea — the last of which also applies `terminal-land-ment`, so it is independent confirmation of that rule as well as of the ligature.
+The Manual writes only three X-letter words out in full anywhere outside the §II rule statement, all in the prose specimens on pages 24–25, and **the generator reproduces all three**: next = ·No·Et·Excite·Tea, sixty-five = ·See·It·Excite·Tea·It-·Fee·I·Vie, and experiment = ·Et·Excite·Pea·Et·Roe·It·May·No·Tea — the last of which also applies `terminal-land-ment`, so it is independent confirmation of that rule as well as of the X-letter substitution.
 
-No superfluous S-letter is needed for the C in excite or excess: ReadLex writes /ks/ once, so the naive spelling already has a single ·See for the ligature to absorb.
+No superfluous S-letter is needed for the C in excite or excess: ReadLex writes /ks/ once, so the naive spelling already has a single ·See for the X-letter to absorb.
 
 ## One entry, several words
 
@@ -130,7 +130,7 @@ The cut is the word-sign layer's ([§ Phrase entries](word-signs.md#phrase-entri
 
 **The rulings are keyed on the element, not on the entry.** 38 rows keyed on a compound went away with this, because the element each was really about was already ruled on — gas-ring and napkin-ring and wedding-ring all say what `ring` already says. Two were re-keyed onto the element that asks for them, barrow-in-furness to `furness` and spring-mattress to `mattress`, and nine words the split newly exposes were ruled on: `revoir` inside au revoir, and eight -ing words that are not ReadLex entries in their own right, so no `VVG` tag reaches them (`circuiting` from short-circuiting, `poohing` from pooh-poohing, `ding` from ding-dong, and five more).
 
-`x-ligatures.tsv` has since followed ([#11][ligature]), the X-ligature having been the last rule still matched against the whole entry. Its exercise-books row retired with the move: per element, exercise has one x against one pair, and the ·Key·See that books keeps — spelling its ks with k + s, as the ruling recorded — is no longer a second pair of exercise's, only the x-count gate protecting it, so the mechanical path now reproduces what the ruling declared. The ten rulings left are all single words, and what a ruling means has widened with the key — a row keyed `xerox` would fire inside a compound containing xerox, which is what keying on the element is for, and since no entry in the corpus reaches the difference, a synthetic ruling on the `box` of ballot-box pins it instead of a word.
+`x-rulings.tsv` has since followed ([#11][x-letter]), the X-letter substitution having been the last rule still matched against the whole entry. Its exercise-books row retired with the move: per element, exercise has one x against one pair, and the ·Key·See that books keeps — spelling its ks with k + s, as the ruling recorded — is no longer a second pair of exercise's, only the x-count gate protecting it, so the mechanical path now reproduces what the ruling declared. The ten rulings left are all single words, and what a ruling means has widened with the key — a row keyed `xerox` would fire inside a compound containing xerox, which is what keying on the element is for, and since no entry in the corpus reaches the difference, a synthetic ruling on the `box` of ballot-box pins it instead of a word.
 
 ## Decisions
 
@@ -182,15 +182,15 @@ The rules section of [`src/qslex/validate.py`](../src/qslex/validate.py) runs ov
 - `terminal-nt` stays out of the junior column: its rewrites and the word-level sign cases are the only rows carrying a Junior spelling, pinned as `EXPECTED_JUNIOR_DIVERGENCES` and each held to the unfired spelling ([`docs/word-signs.md`](word-signs.md#what-the-validator-checks));
 - every terminal claims at least one word — counted per element, so a terminal that only ever owns the end of a word inside a compound still has to claim it. The ten rules that are not terminals — -es/-ed, -ing and the eight prefixes — carry no pattern to be claimed by, because each decides inside its own `apply` rather than by matching the end of the Latin; what holds them is their pinned count and the undecided residue below;
 - every Manual example word reproduces exactly, and exactly two are missing from ReadLex;
-- every ruling in `rule-words.tsv` and `x-ligatures.tsv` is exercised — exercised meaning the rule consulted the row, not that some corpus entry shares its key, so a row the per-element lookup can no longer reach cannot linger;
-- no -ing, -est/-ess, -ful, -y, be-/de-/re- or ligature decision is left undecided;
-- no ligature is emitted for a word with no `x` in it, and no word whose ruling declares it takes none still ships a ·Key·See or ·Gay·Zoo pair in its own run.
+- every ruling in `rule-words.tsv` and `x-rulings.tsv` is exercised — exercised meaning the rule consulted the row, not that some corpus entry shares its key, so a row the per-element lookup can no longer reach cannot linger;
+- no -ing, -est/-ess, -ful, -y, be-/de-/re- or X-letter decision is left undecided;
+- no X-letter is emitted for a word with no `x` in it, and no word whose ruling declares it takes none still ships a ·Key·See or ·Gay·Zoo pair in its own run.
 
 [manual]: https://adiabatic.github.io/abbots-morton-spaceport/the-manual.html
 [plan]: https://github.com/adiabatic/quikscript-lexicon/issues/8
 [quirks]: https://github.com/adiabatic/quikscript-lexicon/issues/7
 [compound]: https://github.com/adiabatic/quikscript-lexicon/issues/9
-[ligature]: https://github.com/adiabatic/quikscript-lexicon/issues/11
+[x-letter]: https://github.com/adiabatic/quikscript-lexicon/issues/11
 [es-ed]: https://adiabatic.github.io/abbots-morton-spaceport/the-manual.html#terminal-es-ed
 [ing]: https://adiabatic.github.io/abbots-morton-spaceport/the-manual.html#terminal-ing
 [al]: https://adiabatic.github.io/abbots-morton-spaceport/the-manual.html#terminal-al-el-le-il

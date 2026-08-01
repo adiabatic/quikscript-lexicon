@@ -24,10 +24,10 @@ GATED_RULES = {
 }
 SENIOR_ONLY = frozenset({"terminal-nt"})
 
-LIGATURES_FILE = "x-ligatures.tsv"
-LIGATURES_HEADER = ["word", "ligature", "reason", "note"]
-LIGATURE_REASONS = {"multiple-x", "unaligned"}
-LIGATURE_LETTERS = frozenset({"Excite", "Exam"})
+X_RULINGS_FILE = "x-rulings.tsv"
+X_RULINGS_HEADER = ["word", "x-letter", "reason", "note"]
+X_RULING_REASONS = {"multiple-x", "unaligned"}
+X_LETTERS = frozenset({"Excite", "Exam"})
 
 EPENTHESIS = "Ə"
 
@@ -68,7 +68,8 @@ class Context:
         The IPA and its tokens stay the whole entry's, so `ipa` seen from the exchange
         of corn-exchange is still `ˈkɔːRn-ɪkstʃeɪndʒ`, carrying corn's mark and not
         exchange's want of one. A rule that wants this element's sounds cuts them for
-        itself with `elements.chunks`, as `ligate` does, rather than reading them here.
+        itself with `elements.chunks`, as `substitute_x` does, rather than reading
+        them here.
         """
         return dataclasses.replace(self, latin=latin, final=final)
 
@@ -77,12 +78,12 @@ class Context:
 class Spelling:
     senior: str
     junior: str
-    ligature: str
+    x_letter: str
     applied: tuple[str, ...]
     ruled: tuple[tuple[str, str], ...]
     signed: tuple[str, ...]
     signs: tuple[tuple[str, str], ...]
-    ligated: tuple[tuple[str, str], ...]
+    x_rulings: tuple[tuple[str, str], ...]
     elements: tuple[Element, ...]
 
 
@@ -205,9 +206,9 @@ class RuleWord:
 
 
 @dataclass(frozen=True)
-class LigatureRule:
+class XLetterRule:
     word: str
-    ligature: str
+    x_letter: str
     reason: str
     note: str
 
@@ -215,7 +216,7 @@ class LigatureRule:
 @dataclass(frozen=True)
 class Tables:
     words: dict[tuple[str, str], RuleWord] = field(default_factory=dict)
-    ligatures: dict[str, LigatureRule] = field(default_factory=dict)
+    x_rulings: dict[str, XLetterRule] = field(default_factory=dict)
     signs: Signs = field(default_factory=dict)
 
     def skipped(self, rule: str, latin: str) -> bool:
@@ -233,8 +234,8 @@ class Tables:
         keys.update((rule, latin) for rule in GATED_RULES if self.skipped(rule, latin))
         return tuple(sorted(keys & self.words.keys()))
 
-    def ligature_for(self, latin: str) -> LigatureRule | None:
-        return self.ligatures.get(latin)
+    def x_ruling_for(self, latin: str) -> XLetterRule | None:
+        return self.x_rulings.get(latin)
 
 
 NO_TABLES = Tables()
@@ -265,35 +266,37 @@ def load_rule_words(path: Path | None = None) -> dict[tuple[str, str], RuleWord]
     return known
 
 
-def load_x_ligatures(path: Path | None = None) -> dict[str, LigatureRule]:
-    known: dict[str, LigatureRule] = {}
-    for lineno, source, row in rows_of(path, LIGATURES_FILE, LIGATURES_HEADER):
-        rule = LigatureRule(*row)
-        if rule.reason not in LIGATURE_REASONS:
+def load_x_rulings(path: Path | None = None) -> dict[str, XLetterRule]:
+    known: dict[str, XLetterRule] = {}
+    for lineno, source, row in rows_of(path, X_RULINGS_FILE, X_RULINGS_HEADER):
+        rule = XLetterRule(*row)
+        if rule.reason not in X_RULING_REASONS:
             raise ValueError(
                 f"{source}:{lineno}: reason must be one of "
-                f"{sorted(LIGATURE_REASONS)}, got {rule.reason!r}"
+                f"{sorted(X_RULING_REASONS)}, got {rule.reason!r}"
             )
         if "x" not in rule.word:
-            raise ValueError(f"{source}:{lineno}: {rule.word!r} has no x to ligate")
+            raise ValueError(
+                f"{source}:{lineno}: {rule.word!r} has no x to take an X-letter"
+            )
         if not rule.note:
-            raise ValueError(f"{source}:{lineno}: every ligature call needs a note")
-        unknown = unknown_names(rule.ligature)
+            raise ValueError(f"{source}:{lineno}: every X-letter ruling needs a note")
+        unknown = unknown_names(rule.x_letter)
         if unknown:
             raise ValueError(f"{source}:{lineno}: unknown letter names {unknown}")
-        spelt = names(parse(rule.ligature))
-        if rule.ligature and not LIGATURE_LETTERS.intersection(spelt):
+        spelt = names(parse(rule.x_letter))
+        if rule.x_letter and not X_LETTERS.intersection(spelt):
             raise ValueError(
-                f"{source}:{lineno}: {rule.ligature} carries no ligature; leave "
+                f"{source}:{lineno}: {rule.x_letter} carries no X-letter; leave "
                 f"the column empty to rule that this word takes none"
             )
         if "xc" in rule.word and any(
-            first in LIGATURE_LETTERS and second == "See"
+            first in X_LETTERS and second == "See"
             for first, second in zip(spelt, spelt[1:], strict=False)
         ):
             raise ValueError(
-                f"{source}:{lineno}: {rule.ligature} adds a ·See after the "
-                f"ligature that the ligature already covers"
+                f"{source}:{lineno}: {rule.x_letter} adds a ·See after the "
+                f"X-letter that the X-letter already covers"
             )
         if rule.word in known:
             raise ValueError(f"{source}:{lineno}: duplicate row for {rule.word!r}")
@@ -302,7 +305,7 @@ def load_x_ligatures(path: Path | None = None) -> dict[str, LigatureRule]:
 
 
 def load_tables() -> Tables:
-    return Tables(load_rule_words(), load_x_ligatures(), load_word_signs())
+    return Tables(load_rule_words(), load_x_rulings(), load_word_signs())
 
 
 def apply_es_ed(context: Context, letters: Letters) -> Letters:
@@ -713,12 +716,12 @@ def _pairs(letters: Letters) -> list[tuple[int, str]]:
     return found
 
 
-def ligatable(spelling: str) -> bool:
-    """Whether a shipped spelling still carries a pair the ligature would cover."""
+def substitutable(spelling: str) -> bool:
+    """Whether a shipped spelling still carries a pair the X-letter would cover."""
     return bool(_pairs(parse(spelling)))
 
 
-def _ligated(latin: str, said: str, letters: Letters) -> Letters:
+def _substituted(latin: str, said: str, letters: Letters) -> Letters:
     """One word's substitution, taking ·Et where its own chunk carries no stress mark.
 
     ·Et is a convenience the Manual offers for an *unstressed* initial ex- — "with an
@@ -744,10 +747,10 @@ def _ligated(latin: str, said: str, letters: Letters) -> Letters:
     return out
 
 
-def ligate(
+def substitute_x(
     context: Context, letters: Letters, tables: Tables
 ) -> tuple[Letters, tuple[tuple[str, str], ...]]:
-    """The X-ligature per word of the entry, with the rulings the entry reached.
+    """The X-letter substitution per word, with the rulings the entry reached.
 
     An x and the letter pair it stands for belong to a word, not to an entry, so
     matching the whole string left cross-examine and corn-exchange with an ex- that is
@@ -761,7 +764,7 @@ def ligate(
     a rule and the check that re-derives it cannot read a different stress mark.
 
     A ruling comes back with the run the entry ships for its word, because the check
-    that a row naming no ligature leaves no pair behind is about that word and not
+    that a row naming no X-letter leaves no pair behind is about that word and not
     about whatever the elements beside it ship.
     """
     parts = split(context, letters)
@@ -775,13 +778,13 @@ def ligate(
             out.extend(part.letters)
             continue
         latin = part.context.latin
-        declared = tables.ligature_for(latin)
+        declared = tables.x_ruling_for(latin)
         if declared is not None:
-            shipped = parse(declared.ligature) if declared.ligature else part.letters
+            shipped = parse(declared.x_letter) if declared.x_letter else part.letters
             hits.append((latin, render(shipped)))
             out.extend(shipped)
             continue
-        out.extend(_ligated(latin, chunk, part.letters))
+        out.extend(_substituted(latin, chunk, part.letters))
     return tuple(out), tuple(hits)
 
 
@@ -875,10 +878,10 @@ def undecided_ful(context: Context, letters: Letters, tables: Tables) -> bool:
     return apply_ful(context, letters, match) != letters
 
 
-def undecided_ligature(context: Context, letters: Letters, tables: Tables) -> str:
+def undecided_x_letter(context: Context, letters: Letters, tables: Tables) -> str:
     """Why the mechanical alignment declined, for the validator's residue report."""
     latin = context.latin
-    if "x" not in latin or tables.ligature_for(latin) is not None:
+    if "x" not in latin or tables.x_ruling_for(latin) is not None:
         return ""
     if latin.count("x") > 1:
         return "multiple-x"
@@ -949,15 +952,15 @@ def spell(context: Context, tables: Tables = NO_TABLES) -> Spelling:
         _, junior, _, _ = apply_signs(
             context.latin, context.pos, unelided, tables.signs
         )
-    lig, hits = ligate(context, senior, tables)
+    lig, hits = substitute_x(context, senior, tables)
     return Spelling(
         senior=render(senior),
         junior="" if names(junior) == names(senior) else render(junior),
-        ligature="" if names(lig) == names(senior) else render(lig),
+        x_letter="" if names(lig) == names(senior) else render(lig),
         applied=tuple(rule.id for rule in RULES if rule.id in fired),
         ruled=tuple(sorted(rulings)),
         signed=signed,
         signs=consulted,
-        ligated=hits,
+        x_rulings=hits,
         elements=parts,
     )

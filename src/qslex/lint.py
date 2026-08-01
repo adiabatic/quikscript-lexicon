@@ -7,7 +7,7 @@ from pathlib import Path
 
 from qslex.elements import DIVIDERS, chunks, components, elements
 from qslex.letters import VOWELS, Letters, names, parse
-from qslex.rules import AL, ALLY, ENT, ING_TAILS, LIGATURE_LETTERS, Tables
+from qslex.rules import AL, ALLY, ENT, ING_TAILS, X_LETTERS, Tables
 from qslex.tables import rows_of
 from qslex.tokenizer import marked
 
@@ -44,7 +44,7 @@ class Site:
     word: str
     latin: str
     letters: Letters
-    ligature: Letters
+    x_letter: Letters
     ipa: str
     last: bool
 
@@ -53,8 +53,8 @@ class Site:
         return names(self.letters)
 
     @property
-    def ligated(self) -> tuple[str, ...]:
-        return names(self.ligature or self.letters)
+    def x_spelt(self) -> tuple[str, ...]:
+        return names(self.x_letter or self.letters)
 
     @property
     def stressed(self) -> bool:
@@ -200,23 +200,23 @@ def initial_ex_et(site: Site, tables: Tables) -> str:
     """ "·Et·Excite for Excite, Extreme, Expect, with an initial vowel ·Et easier than
     ·It." (section-2)
     """
-    spelt = site.ligated
+    spelt = site.x_spelt
     if not site.latin.startswith("ex") or len(spelt) < 2:
         return ""
-    if spelt[1] not in LIGATURE_LETTERS or site.stressed:
+    if spelt[1] not in X_LETTERS or site.stressed:
         return ""
-    return f"·{spelt[0]} before the ligature, not ·Et" if spelt[0] != "Et" else ""
+    return f"·{spelt[0]} before the X-letter, not ·Et" if spelt[0] != "Et" else ""
 
 
-def ligature_only_with_x(site: Site, tables: Tables) -> str:
+def x_letter_only_with_x(site: Site, tables: Tables) -> str:
     """ "but only where Orthodox spells these sounds with X … and only one ·Excite in
     Xerxes." (section-2)
     """
-    used = sum(1 for name in site.ligated if name in LIGATURE_LETTERS)
+    used = sum(1 for name in site.x_spelt if name in X_LETTERS)
     available = site.latin.count("x")
     if used <= available:
         return ""
-    return f"{used} ligatures for {available} x in the Latin"
+    return f"{used} X-letters for {available} x in the Latin"
 
 
 CHECKS: tuple[Check, ...] = (
@@ -247,13 +247,13 @@ CHECKS: tuple[Check, ...] = (
     ),
     Check(
         "initial-ex-et",
-        "an initial ex- takes ·Et before the ligature",
+        "an initial ex- takes ·Et before the X-letter",
         initial_ex_et,
     ),
     Check(
-        "x-ligature-only-with-x",
-        "no more ligatures than the Latin has x",
-        ligature_only_with_x,
+        "x-letter-only-with-x",
+        "no more X-letters than the Latin has x",
+        x_letter_only_with_x,
     ),
 )
 
@@ -286,7 +286,7 @@ def load_pragmas(path: Path | None = None) -> dict[tuple[str, str], str]:
     return pragmas
 
 
-def sites(word: str, spelling: str, ligature: str, ipa: str) -> tuple[Site, ...]:
+def sites(word: str, spelling: str, x_letter: str, ipa: str) -> tuple[Site, ...]:
     """One Site per element, cut where `qslex.elements` cuts.
 
     Where the Latin, the spelling and the IPA do not agree about how many pieces an
@@ -295,21 +295,21 @@ def sites(word: str, spelling: str, ligature: str, ipa: str) -> tuple[Site, ...]
     """
     letters = parse(spelling)
     pairs = elements(word, letters)
-    ligated = elements(word, parse(ligature)) if ligature else None
+    x_elements = elements(word, parse(x_letter)) if x_letter else None
     if pairs is None:
-        return (Site(word, word, letters, parse(ligature), ipa, True),)
+        return (Site(word, word, letters, parse(x_letter), ipa, True),)
     words = [part for part in components(word) if part not in DIVIDERS]
     runs = [run for part, run in pairs if part not in DIVIDERS]
-    ligature_runs = (
-        [run for part, run in ligated if part not in DIVIDERS]
-        if ligated is not None and len(ligated) == len(pairs)
+    x_letter_runs = (
+        [run for part, run in x_elements if part not in DIVIDERS]
+        if x_elements is not None and len(x_elements) == len(pairs)
         else [()] * len(runs)
     )
     said = chunks(ipa, len(words))
     return tuple(
         Site(word, latin, run, tuple(other), chunk, index == len(words) - 1)
         for index, (latin, run, other, chunk) in enumerate(
-            zip(words, runs, ligature_runs, said, strict=True)
+            zip(words, runs, x_letter_runs, said, strict=True)
         )
     )
 
@@ -317,13 +317,13 @@ def sites(word: str, spelling: str, ligature: str, ipa: str) -> tuple[Site, ...]
 def lint(
     word: str,
     spelling: str,
-    ligature: str,
+    x_letter: str,
     ipa: str,
     tables: Tables,
 ) -> tuple[tuple[str, str, str], ...]:
     """Every check this entry breaks, as (check id, element, what is wrong)."""
     out: list[tuple[str, str, str]] = []
-    for site in sites(word, spelling, ligature, ipa):
+    for site in sites(word, spelling, x_letter, ipa):
         for check in CHECKS:
             complaint = check.test(site, tables)
             if complaint:

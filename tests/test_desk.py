@@ -32,7 +32,7 @@ from qslex.desk import (
     substitute,
     word_list,
 )
-from qslex.hunspell import LIGATURES, by_frequency
+from qslex.hunspell import X_LETTERS, by_frequency
 from qslex.letters import parse, render_qs
 from qslex.readlex import repo_root
 from qslex.words import Contraction, load_contractions
@@ -86,7 +86,7 @@ def test_the_replacement_table_is_the_affix_files_own() -> None:
         if line.startswith("REP ") and line.count(" ") == 2
     ]
     assert [list(pair) for pair in replacements()] == written
-    assert len(replacements()) == 2 * len(LIGATURES)
+    assert len(replacements()) == 2 * len(X_LETTERS)
 
 
 def test_the_confusion_group_is_the_vowels() -> None:
@@ -179,7 +179,7 @@ def test_every_spelling_carries_a_frequency() -> None:
 
 def test_a_sparse_column_inherits_the_frequency_of_the_row_that_writes_it() -> None:
     for row in RECORDS:
-        for word in (row.qs, row.junior, row.ligature):
+        for word in (row.qs, row.junior, row.x_letter):
             if word and " " not in word:
                 assert LEXICON.frequency[word] >= row.frequency
 

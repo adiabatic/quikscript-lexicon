@@ -310,56 +310,56 @@ ribbon		senior	terminal	·Bay·Utter·No	manual	terminal-en-on	whole word ·Roe�
 taken		senior	terminal	·Key·Utter·No	manual	terminal-en-on	whole word ·Tea·Eight·Key·Utter·No; the rule is identity against the naive spelling, which already ends ·Utter·No.
 waggon		senior	terminal	·Gay·Utter·No	manual	terminal-en-on	whole word ·Way·At·Gay·Utter·No; the rule is identity against the naive spelling, which already ends ·Utter·No. ReadLex also has the wagon spelling, same IPA ˈwæɡən; the Manual spells it waggon
 wooden		senior	terminal	·Day·Utter·No	manual	terminal-en-on	whole word ·Way·Foot·Day·Utter·No; the rule is identity against the naive spelling, which already ends ·Utter·No.
-bucks		senior	word	·Bay·Utter·Key·See	derived	section-2	qs_x = senior: Orthodox has no x, so no ligature. Manual states ·Key·See in Bucks; NN2 NP0 VVZ share one IPA
-buxom		ligature	word	·Bay·Utter·Excite·Utter·May	derived	section-2	qs_x: Manual names Buxom; a word-medial x also ligates; senior = ·Bay·Utter·Key·See·Utter·May
-buxom		senior	word	·Bay·Utter·Key·See·Utter·May	derived	section-2	senior: IPA-faithful, no ligature; qs_x = ·Bay·Utter·Excite·Utter·May
-corn-exchange	NN1	ligature	word	·Key·Awe·Roe·No-·Et·Excite·Cheer·Eight·No·Jay	derived	section-2	qs_x: the ex- is word-initial without being entry-initial, and ReadLex writes the entry's one mark on corn (ˈkɔːRn-ɪkstʃeɪndʒ), so the ex- of exchange is unstressed and takes ·Et; senior = ·Key·Awe·Roe·No-·It·Key·See·Cheer·Eight·No·Jay
-corn-exchange	NN1	senior	word	·Key·Awe·Roe·No-·It·Key·See·Cheer·Eight·No·Jay	derived	section-2	senior: IPA-faithful, no ligature; qs_x = ·Key·Awe·Roe·No-·Et·Excite·Cheer·Eight·No·Jay
-cross-examine		ligature	word	·Key·Roe·Ox·See-·Et·Exam·At·May·It·No	derived	section-2	qs_x: the ligature and its ·Et are scoped to the word, so the ex- of examine takes both inside a compound exactly as examine does standing alone; VVB and VVI share one IPA; senior = ·Key·Roe·Ox·See-·It·Gay·Zoo·At·May·It·No
-cross-examine		senior	word	·Key·Roe·Ox·See-·It·Gay·Zoo·At·May·It·No	derived	section-2	senior: IPA-faithful, no ligature; qs_x = ·Key·Roe·Ox·See-·Et·Exam·At·May·It·No
-examine		ligature	word	·Et·Exam·At·May·It·No	derived	section-2	qs_x: Manual writes the fragment ·Et·Exam for Examine; ·Gay·Zoo becomes ·Exam and ·It becomes ·Et; senior = ·It·Gay·Zoo·At·May·It·No
-examine		senior	word	·It·Gay·Zoo·At·May·It·No	derived	section-2	senior: IPA-faithful, no ligature; qs_x = ·Et·Exam·At·May·It·No
-example	NN1	ligature	word	·Et·Exam·Ah·May·Pea·Low	derived	section-2	qs_x: Manual writes the fragment ·Et·Exam for Example. The row policy keeps only the BATH row ɪɡˈzⱭːmpəl, whose naive form is ·Et·Exam·Ah·May·Pea·Utter·Low; the dropped TRAP row ɪɡˈzÆmpəl gave ·Et·Exam·At·May·Pea·Low, which is the vowel the Manual itself writes. Out of slice, terminal-al-el-le-il would give -·Pea·Low; senior = ·It·Gay·Zoo·Ah·May·Pea·Low; terminal-al-el-le-il also fires
-example	NN1	senior	word	·It·Gay·Zoo·Ah·May·Pea·Low	derived	section-2	senior: IPA-faithful, no ligature — the BATH row ɪɡˈzⱭːmpəl gives naive ·It·Gay·Zoo·Ah·May·Pea·Utter·Low, and the dropped TRAP row gave ·It·Gay·Zoo·At·May·Pea·Low; qs_x = ·Et·Exam·Ah·May·Pea·Low; terminal-al-el-le-il also fires
-excess		ligature	word	·Et·Excite·Et·See	derived	section-2	qs_x: both ReadLex rows converge here — NN1 ɪkˈses takes the ·It-to-·Et substitution, AJ0 ˈekses already has ·Et. The Manual's beware a superfluous S-letter for the C is automatic: naive has one ·See for the ks and one for the -ess, and only the first is absorbed. Senior forms differ by POS, see the next two rows
-excess	NN1	senior	word	·It·Key·See·Et·See	derived	section-2	senior: IPA-faithful, no ligature; qs_x = ·Et·Excite·Et·See
-excess	AJ0	senior	word	·Et·Key·See·Et·See	derived	section-2	senior: IPA-faithful, no ligature; qs_x = ·Et·Excite·Et·See
-excite		ligature	word	·Et·Excite·I·Tea	derived	section-2	qs_x: Manual writes the fragment ·Et·Excite for Excite; ·Key·See becomes ·Excite and the initial ·It becomes ·Et. The c of ex-c-ite gets no S-letter — naive already has only one ·See, which the ·Excite absorbs; senior = ·It·Key·See·I·Tea
-excite		senior	word	·It·Key·See·I·Tea	derived	section-2	senior: IPA-faithful, no ligature; qs_x = ·Et·Excite·I·Tea
-exhibit		ligature	word	·Et·Exam·It·Bay·It·Tea	derived	section-2	qs_x: Manual writes the fragment ·Et·Exam for Exhibit; the second ·It is the root vowel and stays; senior = ·It·Gay·Zoo·It·Bay·It·Tea
-exhibit		senior	word	·It·Gay·Zoo·It·Bay·It·Tea	derived	section-2	senior: IPA-faithful, no ligature; qs_x = ·Et·Exam·It·Bay·It·Tea
-expect		ligature	word	·Et·Excite·Pea·Et·Key·Tea	derived	section-2	qs_x: Manual writes the fragment ·Et·Excite for Expect; senior = ·It·Key·See·Pea·Et·Key·Tea
-expect		senior	word	·It·Key·See·Pea·Et·Key·Tea	derived	section-2	senior: IPA-faithful, no ligature; qs_x = ·Et·Excite·Pea·Et·Key·Tea
-experiment		ligature	word	·Et·Excite·Pea·Et·Roe·It·May·No·Tea	manual	section-2	qs_x: the Manual writes this word out in full in the p.25 Stevenson passage. It also applies the out-of-slice terminal-land-ment rule (-·May·No·Tea); §II alone on the ReadLex IPA gives ·Et·Excite·Pea·Et·Roe·It·May·Utter·No·Tea. senior = ·It·Key·See·Pea·Et·Roe·It·May·Utter·No·Tea
-experiment		senior	word	·It·Key·See·Pea·Et·Roe·It·May·No·Tea	derived	section-2	senior: IPA-faithful, no ligature, no -ment contraction; qs_x = ·Et·Excite·Pea·Et·Roe·It·May·Utter·No·Tea before terminal-land-ment, ·Et·Excite·Pea·Et·Roe·It·May·No·Tea as the Manual writes it; terminal-land-ment also fires, as the Manual's own ligature spelling of this word confirms
-exquisite	AJ0	ligature	word	·It·Excite·Key·Way·It·Zoo·It·Tea	derived	section-2	qs_x: ·It stays — ReadLex marks the ex- itself (ˈɪkskwɪzɪt), and the ·Et substitution is scoped to an unstressed word-initial ex-, as sixty and fix already record; senior = ·It·Key·See·Key·Way·It·Zoo·It·Tea
-exquisite	AJ0	senior	word	·It·Key·See·Key·Way·It·Zoo·It·Tea	derived	section-2	senior: IPA-faithful, no ligature; qs_x = ·It·Excite·Key·Way·It·Zoo·It·Tea
-extreme		ligature	word	·Et·Excite·Tea·Roe·Eat·May	derived	section-2	qs_x: Manual writes the fragment ·Et·Excite for Extreme; senior = ·It·Key·See·Tea·Roe·Eat·May
-extreme		senior	word	·It·Key·See·Tea·Roe·Eat·May	derived	section-2	senior: IPA-faithful, no ligature; qs_x = ·Et·Excite·Tea·Roe·Eat·May
-fix		ligature	word	·Fee·It·Excite	derived	section-2	qs_x: Manual names Fix; ·It stays — the ·Et substitution is scoped to word-initial ex-; senior = ·Fee·It·Key·See
-fix		senior	word	·Fee·It·Key·See	derived	section-2	senior: IPA-faithful, no ligature; qs_x = ·Fee·It·Excite
-hugs		senior	word	·He·Utter·Gay·Zoo	derived	section-2	qs_x = senior: Orthodox has no x, so no ligature. Manual states ·Gay·Zoo in Hugs
-legs		senior	word	·Low·Et·Gay·Zoo	derived	section-2	qs_x = senior: Orthodox has no x, so no ligature. Manual states ·Gay·Zoo in Legs; only ReadLex POS is NN2
-licks		senior	word	·Low·It·Key·See	derived	section-2	qs_x = senior: Orthodox has no x, so no ligature. Manual states ·Key·See in Licks
-locks		senior	word	·Low·Ox·Key·See	derived	section-2	qs_x = senior: Orthodox has no x, so no ligature. Manual states ·Key·See in Locks
-logs		senior	word	·Low·Ox·Gay·Zoo	derived	section-2	qs_x = senior: Orthodox has no x, so no ligature. Manual states ·Gay·Zoo in Logs
-necks		senior	word	·No·Et·Key·See	derived	section-2	qs_x = senior: Orthodox spells this cks, not x, so no ligature. Manual states ·Et·Key·See in Necks — the minimal pair against next
-next		ligature	word	·No·Et·Excite·Tea	manual	section-2	qs_x: the Manual writes this word out in full in the No-how passage on p.24 (·No·Et·Excite·Tea) as well as naming it in the §II rule; senior = ·No·Et·Key·See·Tea. Only ReadLex POS is ORD
-next		senior	word	·No·Et·Key·See·Tea	derived	section-2	senior: IPA-faithful, no ligature; qs_x = ·No·Et·Excite·Tea
-ox		ligature	word	·Ox·Excite	derived	section-2	qs_x: Manual names Ox; senior = ·Ox·Key·See
-ox		senior	word	·Ox·Key·See	derived	section-2	senior: IPA-faithful, no ligature; qs_x = ·Ox·Excite
-sex		ligature	word	·See·Et·Excite	derived	section-2	qs_x: Manual names Sex in the ·Et·Excite list; senior = ·See·Et·Key·See
-sex		senior	word	·See·Et·Key·See	derived	section-2	senior: IPA-faithful, no ligature; qs_x = ·See·Et·Excite
-sixty		ligature	word	·See·It·Excite·Tea·It	manual	section-2	qs_x: the Manual writes sixty-five out in full on p.25 as ·See·It·Excite·Tea·It-·Fee·I·Vie. Decisive evidence that ·It is KEPT — the ·Et substitution is scoped to word-initial unstressed ex-. senior = ·See·It·Key·See·Tea·It
-sixty		senior	word	·See·It·Key·See·Tea·It	derived	section-2	senior: IPA-faithful, no ligature; qs_x = ·See·It·Excite·Tea·It
-sixty-five		ligature	word	·See·It·Excite·Tea·It-·Fee·I·Vie	manual	section-2	the Manual writes this compound out on page 25; ReadLex has sixty and five separately
-tacks		senior	word	·Tea·At·Key·See	derived	section-2	qs_x = senior: Orthodox has no x, so no ligature. Manual states ·Key·See in Tacks — homophone of tax, which does ligate
-tags		senior	word	·Tea·At·Gay·Zoo	derived	section-2	qs_x = senior: Orthodox has no x, so no ligature. Manual states ·Gay·Zoo in Tags
-tax		ligature	word	·Tea·At·Excite	derived	section-2	qs_x: Manual names Tax; ·Excite with various vowels, so ·At stays. NN1 VVB VVI share one IPA; senior = ·Tea·At·Key·See
-tax		senior	word	·Tea·At·Key·See	derived	section-2	senior: IPA-faithful, no ligature; qs_x = ·Tea·At·Excite
-vex		ligature	word	·Vie·Et·Excite	derived	section-2	qs_x: Manual names Vex in the ·Et·Excite list; here ·Et is simply the /e/, not a prefix substitution; senior = ·Vie·Et·Key·See
-vex		senior	word	·Vie·Et·Key·See	derived	section-2	senior: IPA-faithful, no ligature; qs_x = ·Vie·Et·Excite
-xylophone		senior	word	·Zoo·I·Low·Utter·Fee·Owe·No	derived	section-2	qs_x = senior: Manual states ·Zoo in Xylophone — initial X spelling a /z/ takes the plain Z-letter, never a ligature
+bucks		senior	word	·Bay·Utter·Key·See	derived	section-2	qs_x = senior: Orthodox has no x, so no X-letter. Manual states ·Key·See in Bucks; NN2 NP0 VVZ share one IPA
+buxom		x-letter	word	·Bay·Utter·Excite·Utter·May	derived	section-2	qs_x: Manual names Buxom; a word-medial x also takes the X-letter; senior = ·Bay·Utter·Key·See·Utter·May
+buxom		senior	word	·Bay·Utter·Key·See·Utter·May	derived	section-2	senior: IPA-faithful, no X-letter; qs_x = ·Bay·Utter·Excite·Utter·May
+corn-exchange	NN1	x-letter	word	·Key·Awe·Roe·No-·Et·Excite·Cheer·Eight·No·Jay	derived	section-2	qs_x: the ex- is word-initial without being entry-initial, and ReadLex writes the entry's one mark on corn (ˈkɔːRn-ɪkstʃeɪndʒ), so the ex- of exchange is unstressed and takes ·Et; senior = ·Key·Awe·Roe·No-·It·Key·See·Cheer·Eight·No·Jay
+corn-exchange	NN1	senior	word	·Key·Awe·Roe·No-·It·Key·See·Cheer·Eight·No·Jay	derived	section-2	senior: IPA-faithful, no X-letter; qs_x = ·Key·Awe·Roe·No-·Et·Excite·Cheer·Eight·No·Jay
+cross-examine		x-letter	word	·Key·Roe·Ox·See-·Et·Exam·At·May·It·No	derived	section-2	qs_x: the X-letter and its ·Et are scoped to the word, so the ex- of examine takes both inside a compound exactly as examine does standing alone; VVB and VVI share one IPA; senior = ·Key·Roe·Ox·See-·It·Gay·Zoo·At·May·It·No
+cross-examine		senior	word	·Key·Roe·Ox·See-·It·Gay·Zoo·At·May·It·No	derived	section-2	senior: IPA-faithful, no X-letter; qs_x = ·Key·Roe·Ox·See-·Et·Exam·At·May·It·No
+examine		x-letter	word	·Et·Exam·At·May·It·No	derived	section-2	qs_x: Manual writes the fragment ·Et·Exam for Examine; ·Gay·Zoo becomes ·Exam and ·It becomes ·Et; senior = ·It·Gay·Zoo·At·May·It·No
+examine		senior	word	·It·Gay·Zoo·At·May·It·No	derived	section-2	senior: IPA-faithful, no X-letter; qs_x = ·Et·Exam·At·May·It·No
+example	NN1	x-letter	word	·Et·Exam·Ah·May·Pea·Low	derived	section-2	qs_x: Manual writes the fragment ·Et·Exam for Example. The row policy keeps only the BATH row ɪɡˈzⱭːmpəl, whose naive form is ·Et·Exam·Ah·May·Pea·Utter·Low; the dropped TRAP row ɪɡˈzÆmpəl gave ·Et·Exam·At·May·Pea·Low, which is the vowel the Manual itself writes. Out of slice, terminal-al-el-le-il would give -·Pea·Low; senior = ·It·Gay·Zoo·Ah·May·Pea·Low; terminal-al-el-le-il also fires
+example	NN1	senior	word	·It·Gay·Zoo·Ah·May·Pea·Low	derived	section-2	senior: IPA-faithful, no X-letter — the BATH row ɪɡˈzⱭːmpəl gives naive ·It·Gay·Zoo·Ah·May·Pea·Utter·Low, and the dropped TRAP row gave ·It·Gay·Zoo·At·May·Pea·Low; qs_x = ·Et·Exam·Ah·May·Pea·Low; terminal-al-el-le-il also fires
+excess		x-letter	word	·Et·Excite·Et·See	derived	section-2	qs_x: both ReadLex rows converge here — NN1 ɪkˈses takes the ·It-to-·Et substitution, AJ0 ˈekses already has ·Et. The Manual's beware a superfluous S-letter for the C is automatic: naive has one ·See for the ks and one for the -ess, and only the first is absorbed. Senior forms differ by POS, see the next two rows
+excess	NN1	senior	word	·It·Key·See·Et·See	derived	section-2	senior: IPA-faithful, no X-letter; qs_x = ·Et·Excite·Et·See
+excess	AJ0	senior	word	·Et·Key·See·Et·See	derived	section-2	senior: IPA-faithful, no X-letter; qs_x = ·Et·Excite·Et·See
+excite		x-letter	word	·Et·Excite·I·Tea	derived	section-2	qs_x: Manual writes the fragment ·Et·Excite for Excite; ·Key·See becomes ·Excite and the initial ·It becomes ·Et. The c of ex-c-ite gets no S-letter — naive already has only one ·See, which the ·Excite absorbs; senior = ·It·Key·See·I·Tea
+excite		senior	word	·It·Key·See·I·Tea	derived	section-2	senior: IPA-faithful, no X-letter; qs_x = ·Et·Excite·I·Tea
+exhibit		x-letter	word	·Et·Exam·It·Bay·It·Tea	derived	section-2	qs_x: Manual writes the fragment ·Et·Exam for Exhibit; the second ·It is the root vowel and stays; senior = ·It·Gay·Zoo·It·Bay·It·Tea
+exhibit		senior	word	·It·Gay·Zoo·It·Bay·It·Tea	derived	section-2	senior: IPA-faithful, no X-letter; qs_x = ·Et·Exam·It·Bay·It·Tea
+expect		x-letter	word	·Et·Excite·Pea·Et·Key·Tea	derived	section-2	qs_x: Manual writes the fragment ·Et·Excite for Expect; senior = ·It·Key·See·Pea·Et·Key·Tea
+expect		senior	word	·It·Key·See·Pea·Et·Key·Tea	derived	section-2	senior: IPA-faithful, no X-letter; qs_x = ·Et·Excite·Pea·Et·Key·Tea
+experiment		x-letter	word	·Et·Excite·Pea·Et·Roe·It·May·No·Tea	manual	section-2	qs_x: the Manual writes this word out in full in the p.25 Stevenson passage. It also applies the out-of-slice terminal-land-ment rule (-·May·No·Tea); §II alone on the ReadLex IPA gives ·Et·Excite·Pea·Et·Roe·It·May·Utter·No·Tea. senior = ·It·Key·See·Pea·Et·Roe·It·May·Utter·No·Tea
+experiment		senior	word	·It·Key·See·Pea·Et·Roe·It·May·No·Tea	derived	section-2	senior: IPA-faithful, no X-letter, no -ment contraction; qs_x = ·Et·Excite·Pea·Et·Roe·It·May·Utter·No·Tea before terminal-land-ment, ·Et·Excite·Pea·Et·Roe·It·May·No·Tea as the Manual writes it; terminal-land-ment also fires, as the Manual's own X-letter spelling of this word confirms
+exquisite	AJ0	x-letter	word	·It·Excite·Key·Way·It·Zoo·It·Tea	derived	section-2	qs_x: ·It stays — ReadLex marks the ex- itself (ˈɪkskwɪzɪt), and the ·Et substitution is scoped to an unstressed word-initial ex-, as sixty and fix already record; senior = ·It·Key·See·Key·Way·It·Zoo·It·Tea
+exquisite	AJ0	senior	word	·It·Key·See·Key·Way·It·Zoo·It·Tea	derived	section-2	senior: IPA-faithful, no X-letter; qs_x = ·It·Excite·Key·Way·It·Zoo·It·Tea
+extreme		x-letter	word	·Et·Excite·Tea·Roe·Eat·May	derived	section-2	qs_x: Manual writes the fragment ·Et·Excite for Extreme; senior = ·It·Key·See·Tea·Roe·Eat·May
+extreme		senior	word	·It·Key·See·Tea·Roe·Eat·May	derived	section-2	senior: IPA-faithful, no X-letter; qs_x = ·Et·Excite·Tea·Roe·Eat·May
+fix		x-letter	word	·Fee·It·Excite	derived	section-2	qs_x: Manual names Fix; ·It stays — the ·Et substitution is scoped to word-initial ex-; senior = ·Fee·It·Key·See
+fix		senior	word	·Fee·It·Key·See	derived	section-2	senior: IPA-faithful, no X-letter; qs_x = ·Fee·It·Excite
+hugs		senior	word	·He·Utter·Gay·Zoo	derived	section-2	qs_x = senior: Orthodox has no x, so no X-letter. Manual states ·Gay·Zoo in Hugs
+legs		senior	word	·Low·Et·Gay·Zoo	derived	section-2	qs_x = senior: Orthodox has no x, so no X-letter. Manual states ·Gay·Zoo in Legs; only ReadLex POS is NN2
+licks		senior	word	·Low·It·Key·See	derived	section-2	qs_x = senior: Orthodox has no x, so no X-letter. Manual states ·Key·See in Licks
+locks		senior	word	·Low·Ox·Key·See	derived	section-2	qs_x = senior: Orthodox has no x, so no X-letter. Manual states ·Key·See in Locks
+logs		senior	word	·Low·Ox·Gay·Zoo	derived	section-2	qs_x = senior: Orthodox has no x, so no X-letter. Manual states ·Gay·Zoo in Logs
+necks		senior	word	·No·Et·Key·See	derived	section-2	qs_x = senior: Orthodox spells this cks, not x, so no X-letter. Manual states ·Et·Key·See in Necks — the minimal pair against next
+next		x-letter	word	·No·Et·Excite·Tea	manual	section-2	qs_x: the Manual writes this word out in full in the No-how passage on p.24 (·No·Et·Excite·Tea) as well as naming it in the §II rule; senior = ·No·Et·Key·See·Tea. Only ReadLex POS is ORD
+next		senior	word	·No·Et·Key·See·Tea	derived	section-2	senior: IPA-faithful, no X-letter; qs_x = ·No·Et·Excite·Tea
+ox		x-letter	word	·Ox·Excite	derived	section-2	qs_x: Manual names Ox; senior = ·Ox·Key·See
+ox		senior	word	·Ox·Key·See	derived	section-2	senior: IPA-faithful, no X-letter; qs_x = ·Ox·Excite
+sex		x-letter	word	·See·Et·Excite	derived	section-2	qs_x: Manual names Sex in the ·Et·Excite list; senior = ·See·Et·Key·See
+sex		senior	word	·See·Et·Key·See	derived	section-2	senior: IPA-faithful, no X-letter; qs_x = ·See·Et·Excite
+sixty		x-letter	word	·See·It·Excite·Tea·It	manual	section-2	qs_x: the Manual writes sixty-five out in full on p.25 as ·See·It·Excite·Tea·It-·Fee·I·Vie. Decisive evidence that ·It is KEPT — the ·Et substitution is scoped to word-initial unstressed ex-. senior = ·See·It·Key·See·Tea·It
+sixty		senior	word	·See·It·Key·See·Tea·It	derived	section-2	senior: IPA-faithful, no X-letter; qs_x = ·See·It·Excite·Tea·It
+sixty-five		x-letter	word	·See·It·Excite·Tea·It-·Fee·I·Vie	manual	section-2	the Manual writes this compound out on page 25; ReadLex has sixty and five separately
+tacks		senior	word	·Tea·At·Key·See	derived	section-2	qs_x = senior: Orthodox has no x, so no X-letter. Manual states ·Key·See in Tacks — homophone of tax, which does take the X-letter
+tags		senior	word	·Tea·At·Gay·Zoo	derived	section-2	qs_x = senior: Orthodox has no x, so no X-letter. Manual states ·Gay·Zoo in Tags
+tax		x-letter	word	·Tea·At·Excite	derived	section-2	qs_x: Manual names Tax; ·Excite with various vowels, so ·At stays. NN1 VVB VVI share one IPA; senior = ·Tea·At·Key·See
+tax		senior	word	·Tea·At·Key·See	derived	section-2	senior: IPA-faithful, no X-letter; qs_x = ·Tea·At·Excite
+vex		x-letter	word	·Vie·Et·Excite	derived	section-2	qs_x: Manual names Vex in the ·Et·Excite list; here ·Et is simply the /e/, not a prefix substitution; senior = ·Vie·Et·Key·See
+vex		senior	word	·Vie·Et·Key·See	derived	section-2	senior: IPA-faithful, no X-letter; qs_x = ·Vie·Et·Excite
+xylophone		senior	word	·Zoo·I·Low·Utter·Fee·Owe·No	derived	section-2	qs_x = senior: Manual states ·Zoo in Xylophone — initial X spelling a /z/ takes the plain Z-letter, never an X-letter
 the		senior	word	·They	manual	junior-contractions	
 of		senior	word	·Vie	manual	junior-contractions	
 and		senior	word	·No	manual	junior-contractions	

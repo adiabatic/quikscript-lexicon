@@ -172,7 +172,7 @@ The pinned corpus counts live in [`src/qslex/validate.py`](../src/qslex/validate
 
 ## Out of scope, deliberately
 
-·Excite (U+E66B) and ·Exam (U+E66C) are in the CSUR table but appear in no mapping row. That is intentional and not an oversight: the Manual scopes them to "a Tall ·Excite for ·Key·See sounds : a Deep ·Exam for ·Gay·Zoo sounds — **but only where Orthodox spells these sounds with X**", giving ·Excite in tax, fix, ox but ·Key·See in tacks, licks, locks. Tax and tacks are homophones, so the choice is unrecoverable from IPA alone and cannot belong to a segment mapping. The lexicon stores the ligature form in a `qs_x` column built on the senior column; the rule spec belongs to the rules layer and the artifact shape to row policy.
+·Excite (U+E66B) and ·Exam (U+E66C) are in the CSUR table but appear in no mapping row. That is intentional and not an oversight: the Manual scopes them to "a Tall ·Excite for ·Key·See sounds : a Deep ·Exam for ·Gay·Zoo sounds — **but only where Orthodox spells these sounds with X**", giving ·Excite in tax, fix, ox but ·Key·See in tacks, licks, locks. Tax and tacks are homophones, so the choice is unrecoverable from IPA alone and cannot belong to a segment mapping. The lexicon stores the X-letter form in a `qs_x` column built on the senior column; the rule spec belongs to the rules layer and the artifact shape to row policy.
 
 [csur]: https://www.quikscript.net/csur/
 [manual]: https://adiabatic.github.io/abbots-morton-spaceport/the-manual.html

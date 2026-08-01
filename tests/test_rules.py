@@ -14,19 +14,19 @@ from qslex.letters import Letter, parse, render_qs
 from qslex.manual import SIGN_ANCHORS
 from qslex.rules import (
     ALLY,
-    LIGATURES_HEADER,
     RULE_IDS,
     SENIOR_ONLY,
     TERMINAL_RULES,
     WARD,
+    X_RULINGS_HEADER,
     Tables,
     apply_ally,
     apply_ward,
-    ligatable,
     load_rule_words,
-    load_x_ligatures,
+    load_x_rulings,
     naive,
     split,
+    substitutable,
     terminal_for,
     undecided_ing,
     undecided_y,
@@ -42,8 +42,8 @@ for _row in KEPT:
     BY_WORD[_row.word.lower()].append(_row)
 
 
-def ligatures_file(tmp_path: Path, rows: list[list[str]]) -> Path:
-    return write_tsv(tmp_path / "x.tsv", LIGATURES_HEADER, rows)
+def x_rulings_file(tmp_path: Path, rows: list[list[str]]) -> Path:
+    return write_tsv(tmp_path / "x.tsv", X_RULINGS_HEADER, rows)
 
 
 def context_for(word: str, pos: str = "") -> Context:
@@ -57,7 +57,7 @@ def spellings(word: str, pos: str) -> list[tuple[str, str, str]]:
         if pos and row.pos != pos:
             continue
         result = spell(context_of(word, row), TABLES)
-        out.append((row.pos, result.senior, result.ligature or result.senior))
+        out.append((row.pos, result.senior, result.x_letter or result.senior))
     return out
 
 
@@ -68,7 +68,7 @@ def senior(word: str, pos: str = "") -> str:
     return produced[0][1]
 
 
-def ligature(word: str, pos: str = "") -> str:
+def x_letter(word: str, pos: str = "") -> str:
     produced = spellings(word, pos)
     assert produced, f"{word!r} is not in ReadLex"
     return produced[0][2]
@@ -341,57 +341,57 @@ def test_the_other_prefixes_are_satisfied_by_readlex_already(
     assert senior(word, pos) == expected
 
 
-def test_ligature_only_where_orthodox_spells_an_x() -> None:
-    assert ligature("tax", "NN1") == "·Tea·At·Excite"
-    assert ligature("tacks", "NN2") == "·Tea·At·Key·See"
-    assert ligature("next", "ORD") == "·No·Et·Excite·Tea"
-    assert ligature("necks", "NN2") == "·No·Et·Key·See"
+def test_x_letter_only_where_orthodox_spells_an_x() -> None:
+    assert x_letter("tax", "NN1") == "·Tea·At·Excite"
+    assert x_letter("tacks", "NN2") == "·Tea·At·Key·See"
+    assert x_letter("next", "ORD") == "·No·Et·Excite·Tea"
+    assert x_letter("necks", "NN2") == "·No·Et·Key·See"
 
 
-def test_ligature_takes_et_only_on_a_word_initial_unstressed_ex() -> None:
-    assert ligature("expect", "VVB") == "·Et·Excite·Pea·Et·Key·Tea"
-    assert ligature("examine", "VVB") == "·Et·Exam·At·May·It·No"
-    assert ligature("sixty", "CRD") == "·See·It·Excite·Tea·It"
-    assert ligature("exquisite", "AJ0") == "·It·Excite·Key·Way·It·Zoo·It·Tea"
+def test_x_letter_takes_et_only_on_a_word_initial_unstressed_ex() -> None:
+    assert x_letter("expect", "VVB") == "·Et·Excite·Pea·Et·Key·Tea"
+    assert x_letter("examine", "VVB") == "·Et·Exam·At·May·It·No"
+    assert x_letter("sixty", "CRD") == "·See·It·Excite·Tea·It"
+    assert x_letter("exquisite", "AJ0") == "·It·Excite·Key·Way·It·Zoo·It·Tea"
 
 
-def test_ligature_is_scoped_to_the_word_and_not_to_the_entry() -> None:
-    assert ligature("cross-examine", "VVB") == "·Key·Roe·Ox·See-·Et·Exam·At·May·It·No"
-    assert ligature("for example", "AV0") == "·Fee ·Et·Exam·Ah·May·Pea·Low"
+def test_x_letter_is_scoped_to_the_word_and_not_to_the_entry() -> None:
+    assert x_letter("cross-examine", "VVB") == "·Key·Roe·Ox·See-·Et·Exam·At·May·It·No"
+    assert x_letter("for example", "AV0") == "·Fee ·Et·Exam·Ah·May·Pea·Low"
     assert (
-        ligature("corn-exchange", "NN1")
+        x_letter("corn-exchange", "NN1")
         == "·Key·Awe·Roe·No-·Et·Excite·Cheer·Eight·No·Jay"
     )
 
 
 def test_the_element_split_retires_a_ruling_the_mechanical_path_reproduces() -> None:
-    assert "exercise-books" not in TABLES.ligatures
+    assert "exercise-books" not in TABLES.x_rulings
     assert (
-        ligature("exercise-books", "NN2")
+        x_letter("exercise-books", "NN2")
         == "·Et·Excite·Utter·Roe·See·I·Zoo-·Bay·Foot·Key·See"
     )
 
 
-def test_a_ligature_ruling_is_keyed_on_the_element(tmp_path: Path) -> None:
+def test_an_x_letter_ruling_is_keyed_on_the_element(tmp_path: Path) -> None:
     rows = [["box", "", "unaligned", "a compound reaches its element's ruling"]]
-    tables = Tables(ligatures=load_x_ligatures(ligatures_file(tmp_path, rows)))
+    tables = Tables(x_rulings=load_x_rulings(x_rulings_file(tmp_path, rows)))
     result = spell(context_for("ballot-box", "NN1"), tables)
-    assert result.ligated == (("box", "·Bay·Ox·Key·See"),)
-    assert result.ligature == ""
-    assert ligature("ballot-box", "NN1") == "·Bay·At·Low·Utter·Tea-·Bay·Ox·Excite"
+    assert result.x_rulings == (("box", "·Bay·Ox·Key·See"),)
+    assert result.x_letter == ""
+    assert x_letter("ballot-box", "NN1") == "·Bay·At·Low·Utter·Tea-·Bay·Ox·Excite"
 
 
-def test_ligature_reproduces_the_manuals_own_prose_spellings() -> None:
-    assert ligature("experiment", "NN1") == "·Et·Excite·Pea·Et·Roe·It·May·No·Tea"
-    assert ligature("next", "ORD") == "·No·Et·Excite·Tea"
+def test_x_letter_reproduces_the_manuals_own_prose_spellings() -> None:
+    assert x_letter("experiment", "NN1") == "·Et·Excite·Pea·Et·Roe·It·May·No·Tea"
+    assert x_letter("next", "ORD") == "·No·Et·Excite·Tea"
 
 
-def test_x_that_is_not_key_see_or_gay_zoo_gets_no_ligature() -> None:
+def test_x_that_is_not_key_see_or_gay_zoo_gets_no_x_letter() -> None:
     for word in ("xylophone", "anxious", "sexual", "faux"):
-        assert ligature(word) == senior(word)
+        assert x_letter(word) == senior(word)
 
 
-def test_senior_and_ligature_differ_only_where_recorded() -> None:
+def test_senior_and_x_letter_differ_only_where_recorded() -> None:
     assert senior("expect", "VVB") == "·It·Key·See·Pea·Et·Key·Tea"
 
 
@@ -521,25 +521,25 @@ def test_every_ruling_carries_a_note() -> None:
         assert entry.note, (rule, word)
 
 
-def test_a_ruling_that_ligates_nothing_is_rejected(tmp_path: Path) -> None:
+def test_a_ruling_that_substitutes_nothing_is_rejected(tmp_path: Path) -> None:
     rows = [["next", "·No·Et·Key·See·Tea", "unaligned", "the ks is spelt out"]]
-    with pytest.raises(ValueError, match="carries no ligature"):
-        load_x_ligatures(ligatures_file(tmp_path, rows))
+    with pytest.raises(ValueError, match="carries no X-letter"):
+        load_x_rulings(x_rulings_file(tmp_path, rows))
 
 
 def test_a_ruling_that_keeps_the_c_of_xc_is_rejected(tmp_path: Path) -> None:
-    rows = [["excite", "·Et·Excite·See·I·Tea", "unaligned", "the ligature covers it"]]
+    rows = [["excite", "·Et·Excite·See·I·Tea", "unaligned", "the X-letter covers it"]]
     with pytest.raises(ValueError, match="already covers"):
-        load_x_ligatures(ligatures_file(tmp_path, rows))
+        load_x_rulings(x_rulings_file(tmp_path, rows))
 
 
-def test_an_empty_column_rules_that_a_word_takes_no_ligature(tmp_path: Path) -> None:
+def test_an_empty_column_rules_that_a_word_takes_no_x_letter(tmp_path: Path) -> None:
     rows = [["x-ray-xylophone", "", "multiple-x", "neither x spells a ·Key·See"]]
-    ruled = load_x_ligatures(ligatures_file(tmp_path, rows))
-    assert ruled["x-ray-xylophone"].ligature == ""
+    ruled = load_x_rulings(x_rulings_file(tmp_path, rows))
+    assert ruled["x-ray-xylophone"].x_letter == ""
 
 
-def test_a_spelling_is_ligatable_while_a_pair_is_left_in_it() -> None:
-    assert ligatable("·No·Et·Key·See·Tea")
-    assert ligatable("·Et·Gay·Zoo·At·May")
-    assert not ligatable("·No·Et·Excite·Tea")
+def test_a_spelling_is_substitutable_while_a_pair_is_left_in_it() -> None:
+    assert substitutable("·No·Et·Key·See·Tea")
+    assert substitutable("·Et·Gay·Zoo·At·May")
+    assert not substitutable("·No·Et·Excite·Tea")

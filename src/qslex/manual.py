@@ -18,12 +18,12 @@ SPELLINGS_HEADER = [
     "rule",
     "note",
 ]
-COLUMNS = {"senior", "ligature"}
+COLUMNS = {"senior", "x-letter"}
 KINDS = {"word", "terminal", "prefix"}
 SOURCES = {"manual", "derived", "modernised"}
-LIGATURE_RULE = "section-2"
+X_LETTER_RULE = "section-2"
 SIGN_ANCHORS = {"junior-contractions", "common-words"}
-ANCHORS = set(RULE_IDS) | SIGN_ANCHORS | {LIGATURE_RULE}
+ANCHORS = set(RULE_IDS) | SIGN_ANCHORS | {X_LETTER_RULE}
 
 
 @dataclass(frozen=True)
@@ -81,10 +81,10 @@ def load_examples(path: Path | None = None) -> tuple[Example, ...]:
                 f"{source}:{lineno}: a {example.source} spelling needs a note "
                 f"saying how it was reached"
             )
-        if example.column == "ligature" and example.rule != LIGATURE_RULE:
+        if example.column == "x-letter" and example.rule != X_LETTER_RULE:
             raise ValueError(
-                f"{source}:{lineno}: a ligature spelling belongs to "
-                f"{LIGATURE_RULE!r}, not {example.rule!r}"
+                f"{source}:{lineno}: an x-letter spelling belongs to "
+                f"{X_LETTER_RULE!r}, not {example.rule!r}"
             )
         key = (example.word, example.pos, example.column, example.rule)
         if key in seen:

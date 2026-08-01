@@ -29,14 +29,14 @@ from qslex.rules import (
     Context,
     Terminal,
     claims,
-    ligatable,
     load_tables,
     spell,
+    substitutable,
     undecided_ess,
     undecided_ful,
     undecided_ing,
-    undecided_ligature,
     undecided_prefix,
+    undecided_x_letter,
     undecided_y,
 )
 from qslex.tokenizer import (
@@ -316,7 +316,7 @@ def main(argv: list[str] | None = None) -> int:
     rule_changes: collections.Counter[str] = collections.Counter()
     rule_claims: collections.Counter[str] = collections.Counter()
     rule_word_hits: set[tuple[str, str]] = set()
-    ligature_hits: set[str] = set()
+    x_ruling_hits: set[str] = set()
     sign_changes: collections.Counter[str] = collections.Counter()
     sign_hits: set[tuple[str, str]] = set()
     junior_rows = 0
@@ -330,12 +330,12 @@ def main(argv: list[str] | None = None) -> int:
     unreadable: list[str] = []
     core_misses: list[str] = []
     undecided: dict[str, set[str]] = collections.defaultdict(set)
-    stray_ligatures: list[str] = []
-    unligated: list[str] = []
+    stray_x_letters: list[str] = []
+    unsubstituted: list[str] = []
     spellings: dict[str, dict[tuple[str, str], set[str]]] = {
         "senior": collections.defaultdict(set),
         "junior": collections.defaultdict(set),
-        "ligature": collections.defaultdict(set),
+        "x-letter": collections.defaultdict(set),
     }
 
     try:
@@ -389,7 +389,7 @@ def main(argv: list[str] | None = None) -> int:
             result = spell(context, tables)
             spellings["senior"][(word, row.pos)].add(result.senior)
             spellings["junior"][(word, row.pos)].add(result.junior or result.senior)
-            spellings["ligature"][(word, row.pos)].add(result.ligature or result.senior)
+            spellings["x-letter"][(word, row.pos)].add(result.x_letter or result.senior)
             for rule_id in result.applied:
                 rule_changes[rule_id] += 1
             rule_word_hits.update(result.ruled)
@@ -411,17 +411,17 @@ def main(argv: list[str] | None = None) -> int:
                     undecided["terminal-ful"].add(part)
                 if undecided_prefix(inner, element.letters, tables):
                     undecided["prefix-be-de-re"].add(part)
-                why = undecided_ligature(inner, element.letters, tables)
+                why = undecided_x_letter(inner, element.letters, tables)
                 if why:
-                    undecided[f"ligature/{why}"].add(part)
-            ligature_hits.update(ruling for ruling, _ in result.ligated)
-            for ruling, shipped in result.ligated:
-                if not tables.ligatures[ruling].ligature and ligatable(shipped):
-                    unligated.append(
-                        f"{ruling!r} is ruled to take no ligature but ships {shipped}"
+                    undecided[f"x-letter/{why}"].add(part)
+            x_ruling_hits.update(ruling for ruling, _ in result.x_rulings)
+            for ruling, shipped in result.x_rulings:
+                if not tables.x_rulings[ruling].x_letter and substitutable(shipped):
+                    unsubstituted.append(
+                        f"{ruling!r} is ruled to take no X-letter but ships {shipped}"
                     )
-            if result.ligature and "x" not in word:
-                stray_ligatures.append(f"{word!r} has no x but got {result.ligature}")
+            if result.x_letter and "x" not in word:
+                stray_x_letters.append(f"{word!r} has no x but got {result.x_letter}")
             for touched in dict.fromkeys(result.signed):
                 sign_changes[touched] += 1
             sign_hits.update(result.signs)
@@ -431,7 +431,7 @@ def main(argv: list[str] | None = None) -> int:
                     f"{core_signs[word]}, got {result.senior}"
                 )
             for check_id, part, complaint in lint(
-                word, result.senior, result.ligature, ipa, tables
+                word, result.senior, result.x_letter, ipa, tables
             ):
                 if (check_id, word) in pragmas:
                     lint_excused.add((check_id, word))
@@ -447,7 +447,7 @@ def main(argv: list[str] | None = None) -> int:
             else:
                 said = source_phonemes(tuple(tokens))
                 for spelling in dict.fromkeys(
-                    s for s in (result.senior, result.junior, result.ligature) if s
+                    s for s in (result.senior, result.junior, result.x_letter) if s
                 ):
                     written = spelt_phonemes(spelling, read_back)
                     if said == written:
@@ -680,7 +680,7 @@ def main(argv: list[str] | None = None) -> int:
             f"pinned rewrite counts for rules that no longer exist: {orphaned}"
         )
 
-    print("\nundecided residue (must be ruled on in rule-words.tsv / x-ligatures.tsv):")
+    print("\nundecided residue (must be ruled on in rule-words.tsv / x-rulings.tsv):")
     for label in sorted(undecided):
         words = sorted(undecided[label])
         print(f"  {label}: {len(words)}")
@@ -696,21 +696,23 @@ def main(argv: list[str] | None = None) -> int:
             failures.append(f"rule-word ruling {key} was never exercised")
     print(f"  {len(tables.words)} rulings, {len(rule_word_hits)} exercised")
 
-    print("\nx-ligature rulings:")
-    unused_ligatures = sorted(set(tables.ligatures) - ligature_hits)
-    print(f"  {len(tables.ligatures)} rulings, {len(ligature_hits)} exercised")
-    if unused_ligatures:
-        failures.append(f"x-ligature rulings never exercised: {unused_ligatures}")
-    print(f"  ligatures on words with no x: {len(stray_ligatures)}")
-    for line in stray_ligatures[:10]:
+    print("\nx-letter rulings:")
+    unused_x_rulings = sorted(set(tables.x_rulings) - x_ruling_hits)
+    print(f"  {len(tables.x_rulings)} rulings, {len(x_ruling_hits)} exercised")
+    if unused_x_rulings:
+        failures.append(f"x-letter rulings never exercised: {unused_x_rulings}")
+    print(f"  x-letters on words with no x: {len(stray_x_letters)}")
+    for line in stray_x_letters[:10]:
         print(f"    {line}")
-    if stray_ligatures:
-        failures.append(f"{len(stray_ligatures)} ligatures on words without an x")
-    print(f"  rulings that leave a pair unligated: {len(unligated)}")
-    for line in unligated[:10]:
+    if stray_x_letters:
+        failures.append(f"{len(stray_x_letters)} x-letters on words without an x")
+    print(f"  rulings that leave a pair unsubstituted: {len(unsubstituted)}")
+    for line in unsubstituted[:10]:
         print(f"    {line}")
-    if unligated:
-        failures.append(f"{len(unligated)} rulings leave a ligatable pair in the word")
+    if unsubstituted:
+        failures.append(
+            f"{len(unsubstituted)} rulings leave a substitutable pair in the word"
+        )
 
     print("\nword signs and standard outlines, rows rewritten:")
     for key in sorted(tables.signs):

@@ -16,7 +16,7 @@ Three spelling columns, and two of them are sparse:
 
 - **`qs`** — Senior, the default: Read's §III conventions plus the Manual's standard word spellings.
 - **`qs_junior`** — present only where the Junior spelling genuinely differs, which is 27 rows: the word-level cases, and the n't words, whose linking vowel the senior column elides and the junior column keeps ([`docs/orthographic-rules.md`](../docs/orthographic-rules.md#decisions)). The Manual's own affix conventions are how Quikscript is spelt in both grades, so no other rule-driven spelling diverges.
-- **`qs_x`** — the ·Excite/·Exam ligature form, built on `qs`, present only where it differs (2,347 rows). Stored rather than derived, because the surrounding letters change too: expect is ·It·Key·See·Pea·Et·Key·Tea in `qs` and ·Et·Excite·Pea·Et·Key·Tea here.
+- **`qs_x`** — the ·Excite/·Exam X-letter form, built on `qs`, present only where it differs (2,347 rows). Stored rather than derived, because the surrounding letters change too: expect is ·It·Key·See·Pea·Et·Key·Tea in `qs` and ·Et·Excite·Pea·Et·Key·Tea here.
 
 An absent JSON key and an empty TSV cell both mean "same as `qs`".
 

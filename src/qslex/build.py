@@ -45,7 +45,7 @@ LETTERS_HEADER = ("codepoint", "qs", "name", "class", "ipa")
 SCHEMA_VERSION = 1
 PUA_BLOCK = "U+E650–U+E67E"
 
-LIGATURES = frozenset({"Excite", "Exam"})
+X_LETTERS = frozenset({"Excite", "Exam"})
 
 
 @dataclass(frozen=True)
@@ -54,7 +54,7 @@ class Entry:
     latin: str
     qs: str
     junior: str
-    ligature: str
+    x_letter: str
     shavian: str
     pos: str
     ipa: str
@@ -65,7 +65,7 @@ class Entry:
             self.latin,
             self.qs,
             self.junior,
-            self.ligature,
+            self.x_letter,
             self.shavian,
             self.pos,
             self.ipa,
@@ -76,8 +76,8 @@ class Entry:
         out: dict[str, str | int] = {"Latn": self.latin, "qs": self.qs}
         if self.junior:
             out["qs_junior"] = self.junior
-        if self.ligature:
-            out["qs_x"] = self.ligature
+        if self.x_letter:
+            out["qs_x"] = self.x_letter
         out["Shaw"] = self.shavian
         out["pos"] = self.pos
         out["ipa"] = self.ipa
@@ -99,11 +99,11 @@ class Coverage:
 
     def report(self) -> str:
         junior = sum(1 for entry in self.spelt if entry.junior)
-        ligature = sum(1 for entry in self.spelt if entry.ligature)
+        x_letter = sum(1 for entry in self.spelt if entry.x_letter)
         return (
             f"converted {len(self.spelt)} corpus rows, "
             f"skipped {self.read - len(self.spelt)}\n"
-            f"sparse columns: {junior} junior, {ligature} ligature"
+            f"sparse columns: {junior} junior, {x_letter} x-letter"
         )
 
 
@@ -133,7 +133,7 @@ def convert(rows: Iterable[Row], mapping: Mapping) -> tuple[Entry, ...]:
                 latin=row.word,
                 qs=render_qs(parse(result.senior)),
                 junior=render_qs(parse(result.junior)) if result.junior else "",
-                ligature=render_qs(parse(result.ligature)) if result.ligature else "",
+                x_letter=render_qs(parse(result.x_letter)) if result.x_letter else "",
                 shavian=row.shavian,
                 pos=row.pos,
                 ipa=ipa,
@@ -262,8 +262,8 @@ def letters_rows(mapping: Mapping) -> tuple[tuple[str, ...], ...]:
                 sources[name].append(entry.ipa)
     rows: list[tuple[str, ...]] = []
     for name, codepoint in CODEPOINT_OF.items():
-        if name in LIGATURES:
-            kind = "ligature"
+        if name in X_LETTERS:
+            kind = "x-letter"
         elif name in VOWELS:
             kind = "vowel"
         else:
@@ -289,10 +289,10 @@ def artifacts(entries: tuple[Entry, ...], mapping: Mapping) -> dict[str, str]:
     """
     penn = load_penn()
     rows = converter(
-        ((e.latin, e.pos, e.qs, e.junior, e.ligature) for e in entries), penn
+        ((e.latin, e.pos, e.qs, e.junior, e.x_letter) for e in entries), penn
     )
     listed = phrases(rows, load_phrase_exceptions())
-    checkable = spellings((e.qs, e.junior, e.ligature) for e in entries)
+    checkable = spellings((e.qs, e.junior, e.x_letter) for e in entries)
     return {
         LEXICON_JSON: lexicon_json(entries, mapping, penn, listed),
         LEXICON_TSV: lexicon_tsv(entries),

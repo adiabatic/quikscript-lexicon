@@ -34,9 +34,9 @@ SEQUENCES = {
     "aʊə": ("aʊ", "ə"),
 }
 
-# The two ligature letters no segment mapping reaches, and so the only letters whose
+# The two X-letters no segment mapping reaches, and so the only letters whose
 # phonemes have to be stated here rather than derived. §II gives both.
-LIGATURES = {"Excite": ("k", "s"), "Exam": ("ɡ", "z")}
+X_LETTERS = {"Excite": ("k", "s"), "Exam": ("ɡ", "z")}
 
 NOTHING = ""
 
@@ -68,7 +68,7 @@ EDITS: dict[tuple[str, str], str] = {
         "ə",
         "e",
     ): "the -est, -ess, -ent and -ance terminals are written invariably with ·Et",
-    ("ɪ", "e"): "the ·Excite ligature takes the ·Et vowel, as -est and -ess do",
+    ("ɪ", "e"): "the ·Excite X-letter takes the ·Et vowel, as -est and -ess do",
     ("ɪ", "ə"): "the -age and -en terminals are written invariably with ·Utter",
     ("ə", "ɪ"): "terminal -y is written ·It whatever ReadLex reduces it to",
     (
@@ -97,7 +97,7 @@ def phonemes_of(mapping: Mapping) -> dict[str, tuple[str, ...]]:
                 f"·{name} is written for both {table[name][0]!r} and {phoneme[0]!r}, "
                 f"which no documented merge joins"
             )
-    for name, phonemes in LIGATURES.items():
+    for name, phonemes in X_LETTERS.items():
         table[name] = phonemes
     return table
 

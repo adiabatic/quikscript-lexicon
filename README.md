@@ -14,7 +14,7 @@ And then there are more things generated from it:
 - [`lexicon/qs_converter_phrases.txt`](lexicon/qs_converter_phrases.txt) — entries a tokenizer must match whole
 - [`lexicon/en-Qaas.dic`](lexicon/en-Qaas.dic) and [`lexicon/en-Qaas.aff`](lexicon/en-Qaas.aff) — a Hunspell spelling dictionary; check Quikscript text with `hunspell -i utf-8 -d lexicon/en-Qaas`
 
-Three spelling columns: **`qs`** is Senior, the default; **`qs_junior`** and **`qs_x`** (the ·Excite/·Exam ligature form) are populated only where they differ from it. [`lexicon/README.md`](lexicon/README.md) explains the columns; [`docs/pipeline.md`](docs/pipeline.md) specifies the build.
+Three spelling columns: **`qs`** is Senior, the default; **`qs_junior`** and **`qs_x`** (the ·Excite/·Exam X-letter form) are populated only where they differ from it. [`lexicon/README.md`](lexicon/README.md) explains the columns; [`docs/pipeline.md`](docs/pipeline.md) specifies the build.
 
 ## Encoding
 
@@ -33,10 +33,10 @@ In the order a word passes through the pipeline:
 - `src/qslex/data/ipa-overrides.tsv` — per-word stress overrides consulted while resolving a token, where the mechanical ɪə rule is wrong
 - `src/qslex/data/shavian-divergences.tsv` — words where the Manual deliberately overrules ReadLex's Shavian column, so the validator expects that disagreement
 - `src/qslex/elements.py` — where an entry's boundaries are: the one split into elements that both the rules and the word signs cut a hyphenated or multi-word entry at
-- `src/qslex/rules.py` — Read's terminal, affix and prefix conventions applied on top of the segment mapping, word by word inside a compound, plus the ·Excite/·Exam ligature column and the senior-only n't elision the junior column declines (spec: [`docs/orthographic-rules.md`](docs/orthographic-rules.md))
+- `src/qslex/rules.py` — Read's terminal, affix and prefix conventions applied on top of the segment mapping, word by word inside a compound, plus the ·Excite/·Exam X-letter column and the senior-only n't elision the junior column declines (spec: [`docs/orthographic-rules.md`](docs/orthographic-rules.md))
 - `src/qslex/data/manual-spellings.tsv` — every spelling the Manual writes out, and every example word it names, as the fixture the rules are held to
 - `src/qslex/data/rule-words.tsv` — per-word rulings for the five rules whose trigger the data cannot settle by itself
-- `src/qslex/data/x-ligatures.tsv` — the words where the Latin `x` cannot be aligned to a letter pair mechanically
+- `src/qslex/data/x-rulings.tsv` — the words where the Latin `x` cannot be aligned to a letter pair mechanically
 - `src/qslex/words.py` — the lexical layer that runs last: the Manual's word signs, standard word-outlines and abbreviations, and the junior forms where they diverge (spec: [`docs/word-signs.md`](docs/word-signs.md))
 - `src/qslex/data/word-signs.tsv` — the core eight, the three abbreviations, and every standard word-outline, with the junior form where it diverges
 - `src/qslex/data/contractions.tsv` — the Manual's §III Senior contractions, plus the one the terminal -ing section prints and that list omits, shipped for the transliterator and applied to no column
@@ -53,7 +53,7 @@ The mapping tables live inside the package so they are importable from an instal
 
 ```sh
 uv run python -m qslex.latin2qs < input.txt                    # Senior
-uv run python -m qslex.latin2qs --mode x --contractions in.txt # ligatures + §III contractions
+uv run python -m qslex.latin2qs --mode x --contractions in.txt # X-letters + §III contractions
 ```
 
 spaCy tokenizes and tags, the master supplies the spellings, the part of speech settles the heteronyms, and the Manual's conventions govern namer dots, apostrophes and punctuation. Words the lexicon lacks are constructed from affixes and flagged ⚠️, or passed through flagged ✢. The spec, the output modes and every deliberate departure from upstream's `latin2shaw.py` are in [`docs/latin2qs.md`](docs/latin2qs.md).

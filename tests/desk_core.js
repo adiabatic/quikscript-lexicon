@@ -202,38 +202,38 @@ check("hyphenated entries the lexicon lists are accepted whole", () => {
   for (const word of HYPHENATED.slice(0, 50)) assert.equal(accepts(ACCEPTED, word), true);
 });
 
-const LIGATURED = QS.rep
+const X_LETTERED = QS.rep
   .filter(([written, meant]) => written.length === 1 && meant.length === 2)
-  .flatMap(([ligature, pair]) =>
-    UNION.filter((word) => word.includes(ligature)).map((word) => ({
+  .flatMap(([xLetter, pair]) =>
+    UNION.filter((word) => word.includes(xLetter)).map((word) => ({
       spelt: word,
-      spelt_out: word.split(ligature).join(pair),
+      spelt_out: word.split(xLetter).join(pair),
     })),
   )
   .filter((entry) => !ACCEPTED.has(entry.spelt_out));
 
-check("a ligature word spelt out is bridged back by the rep table first", () => {
-  assert.ok(LIGATURED.length > 0, "some ligature word has an unlisted spelt-out form");
-  const { spelt, spelt_out } = LIGATURED[0];
+check("an X-letter word spelt out is bridged back by the rep table first", () => {
+  assert.ok(X_LETTERED.length > 0, "some X-letter word has an unlisted spelt-out form");
+  const { spelt, spelt_out } = X_LETTERED[0];
   assert.equal(accepts(ACCEPTED, spelt_out), false);
   const offers = suggest(spelt_out, advice());
   assert.equal(offers[0], spelt, `${show(offers[0])} != ${show(spelt)}`);
 });
 
 check("the rep table bridges the other way too", () => {
-  const { spelt, spelt_out } = LIGATURED[0];
+  const { spelt, spelt_out } = X_LETTERED[0];
   const offers = suggest(spelt, advice());
   assert.ok(!accepts(ACCEPTED, spelt_out));
   assert.ok(!offers.includes(spelt_out), "an unlisted spelling is never offered");
   const listed = QS.rep
     .filter(([written, meant]) => written.length === 2 && meant.length === 1)
-    .flatMap(([pair, ligature]) =>
+    .flatMap(([pair, xLetter]) =>
       UNION.filter((word) => word.includes(pair)).map((word) =>
-        word.split(pair).join(ligature),
+        word.split(pair).join(xLetter),
       ),
     )
     .filter((word) => ACCEPTED.has(word));
-  assert.ok(listed.length > 0, "the spelt-out to ligature direction has listed targets");
+  assert.ok(listed.length > 0, "the spelt-out to X-letter direction has listed targets");
 });
 
 const GROUP = QS.confusions[0];

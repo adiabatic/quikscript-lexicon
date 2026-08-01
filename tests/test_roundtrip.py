@@ -22,7 +22,7 @@ def test_every_letter_reads_back_to_at_least_one_phoneme() -> None:
     assert READ_BACK["Roe"] == ("r",)
 
 
-def test_the_ligature_letters_read_back_to_their_two_sounds() -> None:
+def test_the_x_letters_read_back_to_their_two_sounds() -> None:
     assert READ_BACK["Excite"] == ("k", "s")
     assert READ_BACK["Exam"] == ("ɡ", "z")
 

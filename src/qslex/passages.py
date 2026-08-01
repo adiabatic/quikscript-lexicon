@@ -9,7 +9,7 @@ from qslex.tables import rows_of
 PASSAGES_FILE = "manual-passages.tsv"
 PASSAGES_HEADER = ["passage", "index", "latin", "spelling", "verdict", "ours", "note"]
 
-SENIOR = ("senior", "ligature")
+SENIOR = ("senior", "x-letter")
 JUNIOR = ("junior",)
 UNREPRODUCED = frozenset({"differs", "absent"})
 

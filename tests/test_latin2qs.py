@@ -189,12 +189,12 @@ def test_junior_diverges_at_word_level_only(t: Transliterator) -> None:
     assert junior[5].rstrip(".") == qs("·Way·Ox·Zoo")
 
 
-def test_the_ligature_mode_swaps_in_the_x_column(t: Transliterator) -> None:
+def test_the_x_letter_mode_swaps_in_the_x_column(t: Transliterator) -> None:
     senior = words(t, "We expect taxes.")
-    ligature = words(t, "We expect taxes.", mode="x")
+    x_letter = words(t, "We expect taxes.", mode="x")
     assert senior[1] == qs("·It·Key·See·Pea·Et·Key·Tea")
-    assert ligature[1] == qs("·Et·Excite·Pea·Et·Key·Tea")
-    assert ligature[2].rstrip(".") == qs("·Tea·At·Excite·Zoo")
+    assert x_letter[1] == qs("·Et·Excite·Pea·Et·Key·Tea")
+    assert x_letter[2].rstrip(".") == qs("·Tea·At·Excite·Zoo")
 
 
 # --- the namer dot ------------------------------------------------------------

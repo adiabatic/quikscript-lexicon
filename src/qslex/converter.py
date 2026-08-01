@@ -126,12 +126,12 @@ def _forms(spellings: dict[str, tuple[str, str]]) -> dict[str, str]:
     order = sorted(spellings)
     senior = JOIN.join(order)
     junior = JOIN.join(spellings[s][0] for s in order)
-    ligature = JOIN.join(spellings[s][1] for s in order)
+    x_letter = JOIN.join(spellings[s][1] for s in order)
     row = {"qs": senior}
     if junior != senior:
         row["qs_junior"] = junior
-    if ligature != senior:
-        row["qs_x"] = ligature
+    if x_letter != senior:
+        row["qs_x"] = x_letter
     return row
 
 
@@ -139,12 +139,12 @@ def _collect(
     entries: Iterable[tuple[str, str, str, str]],
 ) -> dict[str, tuple[str, str]]:
     spellings: dict[str, tuple[str, str]] = {}
-    for _, senior, junior, ligature in entries:
-        forms = (junior or senior, ligature or senior)
+    for _, senior, junior, x_letter in entries:
+        forms = (junior or senior, x_letter or senior)
         previous = spellings.setdefault(senior, forms)
         if previous != forms:
             raise ConverterError(
-                f"{senior!r} carries two different junior/ligature forms, "
+                f"{senior!r} carries two different junior/x-letter forms, "
                 f"{previous} and {forms}, so the alternatives cannot be lined up"
             )
     return spellings
@@ -161,8 +161,8 @@ def converter(
     last, because the consumer takes the first row that matches.
     """
     grouped: dict[str, list[tuple[str, str, str, str]]] = {}
-    for latin, pos, senior, junior, ligature in entries:
-        grouped.setdefault(latin.lower(), []).append((pos, senior, junior, ligature))
+    for latin, pos, senior, junior, x_letter in entries:
+        grouped.setdefault(latin.lower(), []).append((pos, senior, junior, x_letter))
 
     out: dict[str, list[dict[str, str]]] = {}
     for latin in sorted(grouped):

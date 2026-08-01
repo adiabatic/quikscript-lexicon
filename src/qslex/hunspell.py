@@ -10,7 +10,7 @@ HYPHEN = "-"
 ALPHABET = tuple(chr(codepoint) for codepoint in CODEPOINT_OF.values())
 WORDCHARS = "".join(ALPHABET) + HYPHEN
 
-LIGATURES = (
+X_LETTERS = (
     (
         chr(CODEPOINT_OF["Excite"]),
         chr(CODEPOINT_OF["Key"]) + chr(CODEPOINT_OF["See"]),
@@ -25,7 +25,7 @@ LIGATURES = (
 def spellings(columns: Iterable[tuple[str, str, str]]) -> tuple[str, ...]:
     """Every distinct spelling a spell checker could be handed, in codepoint order.
 
-    All three columns go in, so the dictionary accepts every grade and the ligature
+    All three columns go in, so the dictionary accepts every grade and the X-letter
     form. A spaced entry is dropped: a tokenizer splits at a space before it consults
     a dictionary, so no such string ever reaches hunspell, and listing one would only
     be a line that can never match.
@@ -63,8 +63,8 @@ def affix(words: Iterable[str]) -> str:
     is in it because hundreds of hyphenated entries have a piece that is not itself an
     entry, and without it hunspell splits those entries up and flags the pieces.
 
-    `REP` bridges each ligature to the letter pair it stands for, both ways: the
-    letters around a ligature change with it, so neither form of a word is a
+    `REP` bridges each X-letter to the letter pair it stands for, both ways: the
+    letters around an X-letter change with it, so neither form of a word is a
     single-letter edit from the other, and without the bridge the other form is at
     best buried in the suggestion list.
     """
@@ -72,9 +72,9 @@ def affix(words: Iterable[str]) -> str:
         "SET UTF-8",
         f"WORDCHARS {WORDCHARS}",
         f"TRY {by_frequency(words)}",
-        f"REP {2 * len(LIGATURES)}",
+        f"REP {2 * len(X_LETTERS)}",
     ]
-    for ligature, pair in LIGATURES:
-        lines.append(f"REP {ligature} {pair}")
-        lines.append(f"REP {pair} {ligature}")
+    for x_letter, pair in X_LETTERS:
+        lines.append(f"REP {x_letter} {pair}")
+        lines.append(f"REP {pair} {x_letter}")
     return "\n".join(lines) + "\n"

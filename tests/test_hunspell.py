@@ -7,7 +7,7 @@ import pytest
 
 from qslex.build import HUNSPELL_AFF, HUNSPELL_DIC
 from qslex.csur import CODEPOINT_OF
-from qslex.hunspell import ALPHABET, HYPHEN, LIGATURES, WORDCHARS
+from qslex.hunspell import ALPHABET, HYPHEN, WORDCHARS, X_LETTERS
 
 from conftest import built, entries
 
@@ -36,7 +36,7 @@ def columns() -> set[str]:
     return {
         value
         for entry in ENTRIES
-        for value in (entry.qs, entry.junior, entry.ligature)
+        for value in (entry.qs, entry.junior, entry.x_letter)
         if value
     }
 
@@ -49,18 +49,18 @@ def mutate(word: str) -> str:
 
 def spell_the_pair_out() -> tuple[str, str]:
     for word in WORDS:
-        for ligature, pair in LIGATURES:
-            if ligature in word and word.replace(ligature, pair) not in LISTED:
-                return word.replace(ligature, pair), word
-    raise AssertionError("no ligature spelling whose pair form is free")
+        for x_letter, pair in X_LETTERS:
+            if x_letter in word and word.replace(x_letter, pair) not in LISTED:
+                return word.replace(x_letter, pair), word
+    raise AssertionError("no X-letter spelling whose pair form is free")
 
 
-def write_the_ligature_in() -> tuple[str, str]:
+def write_the_x_letter_in() -> tuple[str, str]:
     for word in WORDS:
-        for ligature, pair in LIGATURES:
-            if pair in word and word.replace(pair, ligature) not in LISTED:
-                return word.replace(pair, ligature), word
-    raise AssertionError("no pair spelling whose ligature form is free")
+        for x_letter, pair in X_LETTERS:
+            if pair in word and word.replace(pair, x_letter) not in LISTED:
+                return word.replace(pair, x_letter), word
+    raise AssertionError("no pair spelling whose X-letter form is free")
 
 
 def check(base: Path, text: str, *flags: str) -> list[str]:
@@ -139,23 +139,23 @@ def test_try_runs_from_the_commonest_letter_to_the_rarest() -> None:
     assert written == sorted(written)
 
 
-def test_the_replacement_table_bridges_each_ligature_both_ways() -> None:
+def test_the_replacement_table_bridges_each_x_letter_both_ways() -> None:
     bridges = [
         [written, meant]
-        for ligature, pair in LIGATURES
-        for written, meant in ((ligature, pair), (pair, ligature))
+        for x_letter, pair in X_LETTERS
+        for written, meant in ((x_letter, pair), (pair, x_letter))
     ]
     assert directive("REP") == str(len(bridges))
     assert bridges == REPLACEMENTS
 
 
-def test_each_ligature_stands_for_the_pair_it_is_named_for() -> None:
+def test_each_x_letter_stands_for_the_pair_it_is_named_for() -> None:
     letter = {name: chr(codepoint) for name, codepoint in CODEPOINT_OF.items()}
     named = (
         (letter["Excite"], letter["Key"] + letter["See"]),
         (letter["Exam"], letter["Gay"] + letter["Zoo"]),
     )
-    assert named == LIGATURES
+    assert named == X_LETTERS
 
 
 @pytest.mark.skipif(HUNSPELL is None, reason="hunspell is not installed")
@@ -185,20 +185,20 @@ def test_hunspell_flags_a_mutated_entry_and_offers_the_entry_back(
 
 
 @pytest.mark.skipif(HUNSPELL is None, reason="hunspell is not installed")
-def test_hunspell_suggests_the_ligature_where_the_pair_is_spelt_out(
+def test_hunspell_suggests_the_x_letter_where_the_pair_is_spelt_out(
     installed: Path,
 ) -> None:
-    spelt_out, ligated = spell_the_pair_out()
+    spelt_out, substituted = spell_the_pair_out()
     reported = check(installed, spelt_out + "\n", "-a")[1:]
-    assert suggested(reported[0]) == [ligated]
+    assert suggested(reported[0]) == [substituted]
 
 
 @pytest.mark.skipif(HUNSPELL is None, reason="hunspell is not installed")
-def test_hunspell_suggests_the_pair_where_the_ligature_has_no_licence(
+def test_hunspell_suggests_the_pair_where_the_x_letter_has_no_licence(
     installed: Path,
 ) -> None:
-    ligated, spelt_out = write_the_ligature_in()
-    reported = check(installed, ligated + "\n", "-a")[1:]
+    substituted, spelt_out = write_the_x_letter_in()
+    reported = check(installed, substituted + "\n", "-a")[1:]
     assert suggested(reported[0]) == [spelt_out]
 
 
