@@ -16,10 +16,6 @@ And then there are more things generated from it:
 
 Three spelling columns: **`qs`** is Senior, the default; **`qs_junior`** and **`qs_x`** (the ·Excite/·Exam ligature form) are populated only where they differ from it. [`lexicon/README.md`](lexicon/README.md) explains the columns; [`docs/pipeline.md`](docs/pipeline.md) specifies the build.
 
-**The JSON is canonical.** Every other artifact is projected from it in a single reshape, never emitted alongside it — which is what makes upstream's duplicate-row bug ([readlex#124](https://github.com/Shavian-info/readlex/pull/124)) structurally impossible here, and what [`docs/pipeline.md`](docs/pipeline.md#artifacts) means by one master per layer.
-
-It is also the **only** JSON, and it is self-contained: beside its entries it carries the letter table, the C5 → Penn tag map and the phrase list, so that one file regenerates every other. The three that stay are formats rather than restatements — a spreadsheet reads the TSV, hunspell reads the `.dic`. The transliterator's own Latin → spellings dictionary used to be a second 9 MB JSON here; it said nothing the master did not, so it is [rebuilt from the master](docs/pipeline.md#the-converter-shape) instead of shipped.
-
 ## Encoding
 
 Quikscript is written in the Private Use Area, **U+E650–U+E67E**, one codepoint per letter, per the [quikscript.net CSUR proposal](https://www.quikscript.net/csur/). Without a Quikscript font every QS column renders as blank boxes; the `letters` table in [`lexicon/quikscript-lexicon.json`](lexicon/quikscript-lexicon.json) names each codepoint so the text can be read without one.
