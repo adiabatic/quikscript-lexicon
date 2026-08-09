@@ -5,6 +5,7 @@ In the order a word passes through the pipeline:
 - `data/readlex/` — the vendored ReadLex corpus that goes in, SHA-256 pinned ([provenance](data/readlex/README.md))
 - `src/qslex/data/var-tags.tsv` — the row policy: which accent tags the lexicon spells and which it drops (spec: [`docs/pipeline.md`](docs/pipeline.md))
 - `src/qslex/data/ipa-quirks.tsv` — pre-tokenization fixes for upstream ReadLex quirks
+- `src/qslex/csur.py` — the alphabet everything downstream is written in: each letter's name and PUA codepoint, which the mapping loader self-verifies against and the shipped `letters` table is derived from (spec: [`docs/conformance.md`](docs/conformance.md))
 - `src/qslex/data/ipa-to-qs.tsv` — the canonical IPA → Quikscript segment mapping the tokenizer matches against (spec: [`docs/ipa-to-qs.md`](docs/ipa-to-qs.md))
 - `src/qslex/data/ipa-overrides.tsv` — per-word stress overrides consulted while resolving a token, where the mechanical ɪə rule is wrong
 - `src/qslex/data/shavian-divergences.tsv` — words where the Manual deliberately overrules ReadLex's Shavian column, so the validator expects that disagreement

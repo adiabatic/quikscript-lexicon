@@ -1,6 +1,6 @@
 # Vendored marked
 
-`marked.umd.js` is vendored verbatim from the published [marked](https://github.com/markedjs/marked) tarball so that [`site/index.html`](../../docs/desk.md) is reproducible from a clean checkout, with no network access. The page inlines it in a `<script>` of its own, which is also what lets it work from a `file:` URL with nothing else installed.
+`marked.umd.js` is vendored verbatim from the published [marked](https://github.com/markedjs/marked) tarball so that [`site/index.html`](../../site/index.html) is reproducible from a clean checkout, with no network access. The page inlines it in a `<script>` of its own, which is also what lets it work from a `file:` URL with nothing else installed.
 
 |                 |                                                                                             |
 | --------------- | ------------------------------------------------------------------------------------------- |

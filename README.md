@@ -16,12 +16,6 @@ And then there are more things generated from it:
 
 Three spelling columns: **`qs`** is Senior, the default; **`qs_junior`** and **`qs_x`** (the ·Excite/·Exam X-letter form) are populated only where they differ from it. [`lexicon/README.md`](lexicon/README.md) explains the columns; [`docs/pipeline.md`](docs/pipeline.md) specifies the build.
 
-## Encoding
-
-Quikscript is written in the Private Use Area, **U+E650–U+E67E**, one codepoint per letter, per the [quikscript.net CSUR proposal](https://www.quikscript.net/csur/). Without a Quikscript font every QS column renders as blank boxes; the `letters` table in [`lexicon/quikscript-lexicon.json`](lexicon/quikscript-lexicon.json) names each codepoint so the text can be read without one.
-
-Tag Quikscript text `en-Qaas`, per [quikscript.net/on-the-web](https://www.quikscript.net/on-the-web/).
-
 ## Layout
 
 What each file is, in the order a word passes through the pipeline, is in [`ARCHITECTURE.md`](ARCHITECTURE.md).
@@ -43,23 +37,11 @@ spaCy tokenizes and tags, the master supplies the spellings, the part of speech 
 make site          # rewrite site/index.html
 ```
 
-Then open the file — there is nothing to install, no server to run and no request to anywhere, because the whole word list, [marked](https://github.com/markedjs/marked) and five [Abbots Morton Spaceport](https://github.com/adiabatic/abbots-morton-spaceport) faces (SIL OFL 1.1, © Nathan Galt) are inlined in it. Those faces are pixel fonts, so every font size the page sets is a multiple of 11px. The spec is [`docs/desk.md`](docs/desk.md).
+Then open the file — there is nothing to install, no server to run and no request to anywhere, because the whole word list, [marked](https://github.com/markedjs/marked) and five [Abbots Morton Spaceport](https://github.com/adiabatic/abbots-morton-spaceport) faces (SIL OFL 1.1, © Nathan Galt) are inlined in it. Those faces are pixel fonts, so every font size the page sets is a multiple of 11px.
 
-## Regenerating
+## Hacking
 
-```sh
-make artifacts     # rewrite lexicon/
-```
-
-What keeps a stale `lexicon/` from being committed, and what a corpus bump involves, are in [`docs/pipeline.md`](docs/pipeline.md#regenerating).
-
-## Proofs
-
-```sh
-make check         # lint, types, tests, validator, and artifact freshness
-```
-
-The validator verifies the corpus SHA-256 first, so a corpus bump is always a deliberate, reviewable change; it then makes one pass over the corpus and holds two row sets to account — the segment mapping over every row upstream ships, the spellings over the rows the lexicon spells. What it demands of each layer is stated by that layer's own spec — [`docs/ipa-to-qs.md`](docs/ipa-to-qs.md), [Read's orthographic rules](docs/orthographic-rules.md#what-the-validator-checks), [the word signs](docs/word-signs.md#what-the-validator-checks), and [`docs/validation.md`](docs/validation.md) for the specimen passages, the round trip and the Manual's own lint — and why the pass splits at all, with what that costs, is in [`docs/pipeline.md`](docs/pipeline.md#where-the-validator-runs-and-why-it-splits).
+How to rewrite `lexicon/`, and what `make check` holds each layer to, are in [`HACKING.md`](HACKING.md).
 
 ## License
 

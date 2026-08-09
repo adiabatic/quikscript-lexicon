@@ -5,7 +5,7 @@ suggestion tables it offers, the fonts it renders in and the Markdown parser it 
 are all inlined here from the committed master and the pinned vendored assets. That
 makes the page a single file that works from a file: URL with no request to anywhere,
 and it makes a page that disagrees with lexicon/ a freshness failure rather than a
-discovery. The page itself is specified in docs/desk.md.
+discovery.
 """
 
 from __future__ import annotations

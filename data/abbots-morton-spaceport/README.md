@@ -1,6 +1,6 @@
 # Vendored Abbots Morton Spaceport fonts
 
-The five `.woff2` files are vendored verbatim from [adiabatic/abbots-morton-spaceport](https://github.com/adiabatic/abbots-morton-spaceport) so that [`site/index.html`](../../docs/desk.md) is reproducible from a clean checkout, with no network access. The page inlines each one as a `data:` URI, which is also what lets it work from a `file:` URL with nothing else installed.
+The five `.woff2` files are vendored verbatim from [adiabatic/abbots-morton-spaceport](https://github.com/adiabatic/abbots-morton-spaceport) so that [`site/index.html`](../../site/index.html) is reproducible from a clean checkout, with no network access. The page inlines each one as a `data:` URI, which is also what lets it work from a `file:` URL with nothing else installed.
 
 |          |                                                                                                                                                    |
 | -------- | -------------------------------------------------------------------------------------------------------------------------------------------------- |

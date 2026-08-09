@@ -10,7 +10,7 @@ What the files are, and how many rows each carries, is the spec's [Artifacts](..
 
 ## Reading it
 
-Quikscript is written in the Private Use Area, U+E650–U+E67E, one codepoint per letter — so without a Quikscript font every QS column renders as blank boxes. The master's `letters` key names each codepoint; [the README](../README.md#encoding) covers the encoding and how to tag the text.
+Quikscript is written in the Private Use Area, U+E650–U+E67E, one codepoint per letter — so without a Quikscript font every QS column renders as blank boxes. The master's `letters` key names each codepoint; [`docs/conformance.md`](../docs/conformance.md) covers the encoding and how to tag the text.
 
 Three spelling columns, and two of them are sparse:
 

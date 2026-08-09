@@ -21,7 +21,7 @@ Everything is generated into [`lexicon/`](../lexicon) and committed, so the file
 
 ## Encoding
 
-Every QS column is [PUA](https://www.quikscript.net/csur/) U+E650–U+E67E, one codepoint per letter, with the corpus's own separators (space, hyphen, apostrophe) passed through as themselves. See [Encoding](../README.md#encoding) in the README for the caveat about that block's status and for language tagging.
+Every QS column is [PUA](https://www.quikscript.net/csur/) U+E650–U+E67E, one codepoint per letter, with the corpus's own separators (space, hyphen, apostrophe) passed through as themselves. See [what we conform to](conformance.md) for the caveat about that block's status and for language tagging.
 
 ## Source of truth: readlex.json, not the TSV
 
@@ -165,7 +165,7 @@ It is also *shorter* in eight places, and those are real: at-home, lean-to, set-
 
 ### en-Qaas.dic / en-Qaas.aff
 
-A [Hunspell](https://github.com/hunspell/hunspell) dictionary, named for the language tag [the README](../README.md#encoding) says to write Quikscript text under. Point a checker at it with `hunspell -i utf-8 -d lexicon/en-Qaas`. The `-i` is not optional. hunspell decodes its input in the locale's encoding and every Quikscript letter is outside ASCII, so under `LC_ALL=C` a line of Quikscript is skipped in silence — nothing accepted, nothing flagged, the same failure mode `WORDCHARS` fixes from the other side — and with no locale set at all hunspell errors out of iconv and prints mangled tokens instead. Naming the input encoding is correct in every locale.
+A [Hunspell](https://github.com/hunspell/hunspell) dictionary, named for [the language tag](conformance.md#the-language-tag) Quikscript text is written under. Point a checker at it with `hunspell -i utf-8 -d lexicon/en-Qaas`. The `-i` is not optional. hunspell decodes its input in the locale's encoding and every Quikscript letter is outside ASCII, so under `LC_ALL=C` a line of Quikscript is skipped in silence — nothing accepted, nothing flagged, the same failure mode `WORDCHARS` fixes from the other side — and with no locale set at all hunspell errors out of iconv and prints mangled tokens instead. Naming the input encoding is correct in every locale.
 
 The `.dic` is **every distinct spelling any of the three columns ships**, one per line, sorted by codepoint, counted on the first line as the format wants. All three go in, so the dictionary accepts Senior, Junior and the X-letter form alike; a spelling several rows share is listed once.
 
@@ -183,7 +183,7 @@ The `.aff` is four directives, all of them derived:
 
 **The apostrophe stays out of `WORDCHARS`**, and that is a ruling rather than an omission. No spelling column carries an apostrophe anywhere, so no `.dic` entry can: the corpus spells they'll solid, ·They·Eight·Low. The transliterator does write one — [`src/qslex/latin2qs.py`](../src/qslex/latin2qs.py) reinserts U+2019 before a kept clitic's letters in every mode, giving the Manual's ·They·Eight’·Low ([Apostrophes](latin2qs.md#apostrophes)) — and against this `.aff` hunspell splits at it, passes the host word and flags the clitic half ·Low alone. Putting ’ in `WORDCHARS` would be strictly worse: the whole token would then be looked up, no entry carries an apostrophe, and default `BREAK` does not break at one, so the entire word would be flagged instead of just the clitic. Clitic-bearing transliterator output is outside what a dictionary generated from the columns can bless, and the cheaper failure is the one that still blesses the host word.
 
-This word set, this `TRY` order and this `REP` table are also what [the desk](desk.md) checks against in a browser — widened only by [the §III contractions](desk.md#the-iii-senior-contractions) its checker adds, which no column and so no `.dic` entry can carry — re-derived from the master and asserted against these two files on every build of it.
+This word set, this `TRY` order and this `REP` table are also what the desk checks against in a browser — widened only by the §III contractions its checker adds, which no column and so no `.dic` entry can carry — re-derived from the master and asserted against these two files on every build of it.
 
 ## Regenerating
 
