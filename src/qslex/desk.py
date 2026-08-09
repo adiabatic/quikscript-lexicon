@@ -132,7 +132,7 @@ def artifact(name: str, root: Path) -> str:
 
 
 def asset(name: Path, root: Path) -> bytes:
-    """A vendored file's bytes, verified against the digest pinned above before use.
+    """A vendored file’s bytes, verified against the digest pinned above before use.
 
     The page inlines every one of these, so a font or a parser that had drifted would be baked into a generated file and shipped without a diff anyone could read. Provenance for both directories is in their own READMEs.
     """
@@ -147,7 +147,7 @@ def asset(name: Path, root: Path) -> bytes:
     if actual != SHA256[name]:
         raise PageError(
             f"{path} has SHA-256 {actual}, expected {SHA256[name]}. The digest is "
-            f"pinned in src/qslex/desk.py and in that directory's README; "
+            f"pinned in src/qslex/desk.py and in that directory’s README; "
             f"bump both together."
         )
     return data
@@ -178,7 +178,7 @@ def contracted(
 ) -> tuple[tuple[str, Record], ...]:
     """Each §III Senior contraction written out, beside every row it stands for.
 
-    Only the `word` rows are taken. The two `clitic` rows stay out because neither can ever be a token the page checks: `n't` attaches solid, so it is never written on its own, and a bare `'ll` after an apostrophe is flagged here for the same reason the dictionary flags it, the apostrophe being deliberately outside `WORDCHARS` (docs/pipeline.md). A row's part-of-speech tag narrows the match to the rows carrying that tag; where it carries none, every row for the headword counts, and the rows are what the frequency the contraction inherits comes from.
+    Only the `word` rows are taken. The two `clitic` rows stay out because neither can ever be a token the page checks: `n't` attaches solid, so it is never written on its own, and a bare `'ll` after an apostrophe is flagged here for the same reason the dictionary flags it, the apostrophe being deliberately outside `WORDCHARS` (docs/pipeline.md). A row’s part-of-speech tag narrows the match to the rows carrying that tag; where it carries none, every row for the headword counts, and the rows are what the frequency the contraction inherits comes from.
     """
     rows: dict[str, list[Record]] = {}
     for record in records:
@@ -206,7 +206,7 @@ def contracted(
 def derive(records: Iterable[Record], contractions: Iterable[Contraction]) -> Lexicon:
     """The one word set and the frequencies the page needs.
 
-    A spelling's frequency is the highest any row writing it carries, in any column: an X-letter or junior form is the same word as the row's own spelling, so it inherits that row's count rather than falling to zero and sorting last in a suggestion list.
+    A spelling’s frequency is the highest any row writing it carries, in any column: an X-letter or junior form is the same word as the row’s own spelling, so it inherits that row’s count rather than falling to zero and sorting last in a suggestion list.
 
     The §III contractions join the union outright, which is what a Tier 2 facility is (docs/word-signs.md): correct writing the checker accepts whichever face is showing, never the spelling a column carries. Each takes the frequency of the word it contracts, so the suggester ranks it as common as that word.
     """
@@ -231,11 +231,11 @@ def derive(records: Iterable[Record], contractions: Iterable[Contraction]) -> Le
 
 
 def crosscheck(lexicon: Lexicon, root: Path) -> None:
-    """The page's word set and its TRY order, held to the shipped hunspell files.
+    """The page’s word set and its TRY order, held to the shipped hunspell files.
 
     Both are re-derived here from the master rather than read out of the `.dic` and the `.aff`, so that the page and the dictionary cannot disagree quietly. They are the same two derivations `qslex.hunspell` makes for hunspell, so a mismatch means one of the two artifacts is stale, not that the page wants a wider set.
 
-    What is held to the `.dic` is `listed`, the three columns alone. The page accepts the §III contractions on top of that, and its letter order stays the `.aff`'s TRY over the dictionary's own word set rather than one recounted over the wider one: the suggester is walking hunspell's alphabet, and 68 more spellings would not move it far enough to be worth two orders that have to be kept apart.
+    What is held to the `.dic` is `listed`, the three columns alone. The page accepts the §III contractions on top of that, and its letter order stays the `.aff`’s TRY over the dictionary’s own word set rather than one recounted over the wider one: the suggester is walking hunspell’s alphabet, and 68 more spellings would not move it far enough to be worth two orders that have to be kept apart.
     """
     lines = artifact(HUNSPELL_DIC, root).splitlines()
     count, words = lines[0], tuple(lines[1:])
@@ -243,7 +243,7 @@ def crosscheck(lexicon: Lexicon, root: Path) -> None:
         raise PageError(f"{HUNSPELL_DIC} counts {count} entries and lists {len(words)}")
     if words != lexicon.listed:
         raise PageError(
-            f"the page's {len(lexicon.listed)} listed spellings are not the "
+            f"the page’s {len(lexicon.listed)} listed spellings are not the "
             f"{len(words)} {HUNSPELL_DIC} lists; run `make artifacts`"
         )
 
@@ -255,7 +255,7 @@ def crosscheck(lexicon: Lexicon, root: Path) -> None:
     if len(written) != 1:
         raise PageError(f"{HUNSPELL_AFF} declares {len(written)} TRY lines, wanted 1")
     if written[0] != by_frequency(lexicon.listed):
-        raise PageError(f"the page's letter order is not {HUNSPELL_AFF}'s TRY order")
+        raise PageError(f"the page’s letter order is not {HUNSPELL_AFF}’s TRY order")
 
 
 def word_list(lexicon: Lexicon) -> str:
@@ -284,7 +284,7 @@ def replacements() -> tuple[tuple[str, str], ...]:
 def confusions() -> tuple[str, ...]:
     """The letter groups a writer mistakes within, one group to a string.
 
-    A phonemic script invites a particular misspelling: the right consonant skeleton around the wrong vowel, because the writer heard a vowel the accent or the schwa reduced to something else. So the suggester offers a candidate that stays inside a group ahead of every other single edit, however rare the word — a frequency rank alone buries a common word's contraction under consonant swaps that happen to be commoner. The vowels are the one group so far; a set of frequently confused consonants would be one more string here, sorted the same way.
+    A phonemic script invites a particular misspelling: the right consonant skeleton around the wrong vowel, because the writer heard a vowel the accent or the schwa reduced to something else. So the suggester offers a candidate that stays inside a group ahead of every other single edit, however rare the word — a frequency rank alone buries a common word’s contraction under consonant swaps that happen to be commoner. The vowels are the one group so far; a set of frequently confused consonants would be one more string here, sorted the same way.
     """
     return ("".join(sorted(chr(CODEPOINT_OF[name]) for name in VOWELS)),)
 
@@ -315,7 +315,7 @@ def sample(records: Iterable[Record], lexicon: Lexicon) -> str:
 
 
 def payload(lexicon: Lexicon) -> str:
-    """Everything the page's JavaScript reads, as one JSON object.
+    """Everything the page’s JavaScript reads, as one JSON object.
 
     Sorted keys and a list of pairs for the replacement table, so that a rebuilt page differs only where the lexicon did.
     """
@@ -335,7 +335,7 @@ def data_uri(raw: bytes) -> str:
 def substitute(text: str, chunks: Mapping[str, str]) -> str:
     """Every placeholder filled, and nothing that could close the script it sits in.
 
-    A chunk carrying `</script` would end its own element wherever the browser's tokenizer found the string, so the page would truncate quietly rather than fail to build. None of the inputs contains one; this is what keeps it that way.
+    A chunk carrying `</script` would end its own element wherever the browser’s tokenizer found the string, so the page would truncate quietly rather than fail to build. None of the inputs contains one; this is what keeps it that way.
     """
     for token, chunk in chunks.items():
         if CLOSING_SCRIPT in chunk.lower():

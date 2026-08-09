@@ -297,9 +297,9 @@ def test_check_fails_on_a_page_that_has_been_edited(
 
 @pytest.fixture(scope="module")
 def written(tmp_path_factory: pytest.TempPathFactory) -> Path:
-    """This module's own build, on disk where node can read it.
+    """This module’s own build, on disk where node can read it.
 
-    A fresh build rather than the committed `site/index.html`, so that the page's JavaScript is held to what the builder emits now: whether what is committed matches that is `--check`'s question, and the tests above already ask it. It also keeps a test run from depending on `make site` having been run, or from leaving anything behind in the tree.
+    A fresh build rather than the committed `site/index.html`, so that the page’s JavaScript is held to what the builder emits now: whether what is committed matches that is `--check`’s question, and the tests above already ask it. It also keeps a test run from depending on `make site` having been run, or from leaving anything behind in the tree.
     """
     out = tmp_path_factory.mktemp(SITE) / PAGE
     out.write_text(BUILT, encoding="utf-8", newline="\n")

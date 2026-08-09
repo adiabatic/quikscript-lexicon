@@ -110,7 +110,7 @@ def convert(rows: Iterable[Row], mapping: Mapping) -> tuple[Entry, ...]:
 
     Nothing here decides how a word is spelt: the mapping, the rules and the word signs have all already run by the time `spell` returns, and this only renders what they produced into the PUA encoding the artifacts carry.
 
-    The IPA carried out is the quirk-normalised string, not the corpus's own, so that every row explains its own spelling. Upstream's unrepaired IPA stays available in the vendored corpus, which is where anyone diffing against ReadLex should look.
+    The IPA carried out is the quirk-normalised string, not the corpus’s own, so that every row explains its own spelling. Upstream’s unrepaired IPA stays available in the vendored corpus, which is where anyone diffing against ReadLex should look.
     """
     quirks = load_quirks()
     overrides = load_overrides(mapping)
@@ -158,7 +158,7 @@ def lexicon_json(
 ) -> str:
     """The master, and the only JSON this repository ships.
 
-    Everything else in `lexicon/` is a projection of this file, so it carries the three things a projection needs that the entries alone cannot give: the letter table the PUA text is read with, the C5-to-Penn map the converter shape's tagged rows are keyed by, and the phrase list, which no property of the entries can reveal because it is the orthographic rules, not the data, that decide what fails to compose. Holding this one file is holding the lexicon.
+    Everything else in `lexicon/` is a projection of this file, so it carries the three things a projection needs that the entries alone cannot give: the letter table the PUA text is read with, the C5-to-Penn map the converter shape’s tagged rows are keyed by, and the phrase list, which no property of the entries can reveal because it is the orthographic rules, not the data, that decide what fails to compose. Holding this one file is holding the lexicon.
 
     Two of the three duplicate `c5-to-penn.tsv` and the phrases file. They cannot drift from them: all three are written by this one pass, and `make check` rebuilds and byte-compares every one of them. The letter table ships nowhere else.
 
@@ -222,7 +222,7 @@ def lexicon_json(
 def lexicon_tsv(entries: Iterable[Entry]) -> str:
     """The flat projection, deduplicated.
 
-    Two headwords can list the same inflected form — ax and axe both own axed — so the flattening has to collapse them. Upstream's own TSV shipped those rows twice (Shavian-info/readlex#124); this is the single place where that can happen, because every artifact is projected from the grouped form rather than emitted beside it.
+    Two headwords can list the same inflected form — ax and axe both own axed — so the flattening has to collapse them. Upstream’s own TSV shipped those rows twice (Shavian-info/readlex#124); this is the single place where that can happen, because every artifact is projected from the grouped form rather than emitted beside it.
     """
     lines = ["\t".join(TSV_HEADER)]
     seen: set[tuple[str, ...]] = set()
@@ -265,7 +265,7 @@ def letters_rows(mapping: Mapping) -> tuple[tuple[str, ...], ...]:
 def artifacts(entries: tuple[Entry, ...], mapping: Mapping) -> dict[str, str]:
     """The five files, every one of them a projection of the same entries.
 
-    The converter shape is built here and not written: `phrases` is derived from it, and the master carries everything the shape itself is rebuilt from, so shipping it as a second JSON would only be shipping the master's own data twice.
+    The converter shape is built here and not written: `phrases` is derived from it, and the master carries everything the shape itself is rebuilt from, so shipping it as a second JSON would only be shipping the master’s own data twice.
     """
     penn = load_penn()
     rows = converter(

@@ -32,7 +32,7 @@ terminal-ess-est	harvest	skip	not-the-terminal	the -est is the root
 terminal-ess-est	honest	skip	not-the-terminal	the -est is the root
 terminal-ess-est	immodest	skip	not-the-terminal	modest with a prefix
 terminal-ess-est	interest	skip	not-the-terminal	the -est is the root
-terminal-ess-est	mattress	apply	orthographic	no -ess morpheme, but Read keys this terminal to the Orthodox spelling, so it is written ·Et·See like fortress and burgess; ReadLex's ·It in spring-mattress is what asks for the ruling
+terminal-ess-est	mattress	apply	orthographic	no -ess morpheme, but Read keys this terminal to the Orthodox spelling, so it is written ·Et·See like fortress and burgess; ReadLex’s ·It in spring-mattress is what asks for the ruling
 terminal-ess-est	modest	skip	not-the-terminal	an adjective in its own right, not a superlative
 terminal-ess-est	nighest	apply	superlative	a genuine superlative that ReadLex tags AV0/PRP, never AJS — the reason this rule is not gated on the AJS tag
 terminal-ess-est	overmodest	skip	not-the-terminal	modest with a prefix
@@ -40,9 +40,9 @@ terminal-ess-est	rainforest	skip	not-the-terminal	forest in a compound
 terminal-ess-est	reforest	skip	not-the-terminal	forest with a prefix
 terminal-ess-est	soonest	apply	superlative	a genuine superlative that ReadLex tags AV0, never AJS
 terminal-ess-est	tempest	skip	not-the-terminal	the -est is the root
-terminal-ful	cupful	skip	readlex-pos-defect	a noun measure that ReadLex tags AJ0; its ·Foot is the Manual's noun spelling and must stand
-terminal-ful	spadeful	skip	readlex-pos-defect	a noun measure that ReadLex tags AJ0; its ·Foot is the Manual's noun spelling and must stand
-terminal-ing	anything	skip	compound	any plus thing, and thing is a root as the Manual's things shows
+terminal-ful	cupful	skip	readlex-pos-defect	a noun measure that ReadLex tags AJ0; its ·Foot is the Manual’s noun spelling and must stand
+terminal-ful	spadeful	skip	readlex-pos-defect	a noun measure that ReadLex tags AJ0; its ·Foot is the Manual’s noun spelling and must stand
+terminal-ing	anything	skip	compound	any plus thing, and thing is a root as the Manual’s things shows
 terminal-ing	appetizing	apply	stem	appetize plus -ing, lexicalised participial adjective
 terminal-ing	atheling	skip	ling-suffix	the diminutive -ling on athel (noble), so the vowel stays
 terminal-ing	athelings	skip	ling-suffix	plural of atheling, same -ling suffix
@@ -58,7 +58,7 @@ terminal-ing	blithering	apply	stem	blither plus -ing, lexicalised participial ad
 terminal-ing	boeing	skip	placename	proper noun, the company named for William Boeing
 terminal-ing	boing	skip	root	onomatopoeic monosyllable with no stem
 terminal-ing	boings	skip	root	plural of boing, same monosyllabic root
-terminal-ing	bring	skip	root	monosyllabic root verb, and the Manual's bringing keeps this vowel-i
+terminal-ing	bring	skip	root	monosyllabic root verb, and the Manual’s bringing keeps this vowel-i
 terminal-ing	brings	skip	root	inflection of bring, same root
 terminal-ing	bullring	skip	compound	bull plus ring, and ring is a root
 terminal-ing	bullrings	skip	compound	plural of bullring, final element ring is a root
@@ -163,7 +163,7 @@ terminal-ing	lapwings	skip	compound	plural of lapwing, final element wing is a r
 terminal-ing	lemming	skip	root	Norwegian loan with no stem to strip
 terminal-ing	lemmings	skip	root	plural of lemming, same root
 terminal-ing	lettering	apply	stem	letter plus -ing
-terminal-ing	libbing	apply	stem	lib plus -ing, the participle ad-libbing is built on; the doubled b marks the affix, as in the Manual's canning
+terminal-ing	libbing	apply	stem	lib plus -ing, the participle ad-libbing is built on; the doubled b marks the affix, as in the Manual’s canning
 terminal-ing	lightning	skip	root	lexicalised apart from the participle lightening, so treated as a root conservatively
 terminal-ing	lightnings	skip	root	plural of lightning, same conservative root call
 terminal-ing	ling	skip	root	monosyllabic root noun, the fish and the heather
@@ -175,7 +175,7 @@ terminal-ing	martialing	apply	stem	martial plus -ing, the participle court-marti
 terminal-ing	martling	skip	placename	proper noun, tagged NP0 in ReadLex
 terminal-ing	middling	skip	ling-suffix	the -ling suffix on mid, not the participial affix
 terminal-ing	middlings	skip	ling-suffix	plural of middling, same -ling suffix
-terminal-ing	misdoing	apply	stem	misdo plus -ing, parallel to the Manual's undoing
+terminal-ing	misdoing	apply	stem	misdo plus -ing, parallel to the Manual’s undoing
 terminal-ing	misdoings	apply	stem	mis- + doing; the Manual treats undoing the same way
 terminal-ing	morning	skip	root	opaque noun; no live verb *morn behind it
 terminal-ing	mornings	skip	root	plural of the opaque noun morning
@@ -261,7 +261,7 @@ terminal-ing	strings	skip	root	unanalysable noun and verb root
 terminal-ing	swing	skip	root	unanalysable noun and verb root
 terminal-ing	swingeing	apply	stem	stem swinge, to strike hard; lexicalised as an adjective
 terminal-ing	swings	skip	root	unanalysable noun and verb root
-terminal-ing	thing	skip	root	base of the Manual's things, an unanalysable root
+terminal-ing	thing	skip	root	base of the Manual’s things, an unanalysable root
 terminal-ing	things	skip	manual	the Manual gives ·Thaw·It·Oolong·Zoo
 terminal-ing	ting	skip	root	onomatopoeic root, no stem to strip
 terminal-ing	tings	skip	root	onomatopoeic root, no stem to strip
@@ -280,10 +280,10 @@ terminal-ing	weakling	skip	ling-suffix	weak + -ling, not the -ing affix
 terminal-ing	weaklings	skip	ling-suffix	weak + -ling, not the -ing affix
 terminal-ing	wellbeing	apply	stem	final element being = be + -ing; the Manual gives ·Bay·Oolong
 terminal-ing	whiting	skip	root	opaque fish name, no longer read as white + -ing
-terminal-ing	wigging	apply	stem	stem wig, to scold; the doubled g marks the affix, as in the Manual's canning
-terminal-ing	wiggings	apply	stem	stem wig, to scold; the doubled g marks the affix, as in the Manual's canning
+terminal-ing	wigging	apply	stem	stem wig, to scold; the doubled g marks the affix, as in the Manual’s canning
+terminal-ing	wiggings	apply	stem	stem wig, to scold; the doubled g marks the affix, as in the Manual’s canning
 terminal-ing	wing	skip	manual	the Manual gives ·Way·It·Oolong
-terminal-ing	wings	skip	root	plural of the Manual's root wing
+terminal-ing	wings	skip	root	plural of the Manual’s root wing
 terminal-ing	worthing	skip	placename	West Sussex town
 terminal-ing	wring	skip	root	unanalysable verb root
 terminal-ing	wrings	skip	root	unanalysable verb root

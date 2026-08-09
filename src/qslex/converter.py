@@ -18,7 +18,7 @@ REASONS = {"html-entity", "tokenizer-split"}
 FALLBACK = "0"
 JOIN = "⬌"
 
-# The Penn tags a row may name, and the order the tagged rows are written in. Proper nouns come first on purpose: a consumer that falls back from NNP to the NN row — which is what latin2shaw.py does — reaches that fallback before the exact NNP row if NN is written first, so upstream's own file makes the proper-noun spelling of august, derby, reading, slough and 23 others unreachable. Everything after NNP is alphabetical, because nothing else needs an opinion and an arbitrary order would only invite one.
+# The Penn tags a row may name, and the order the tagged rows are written in. Proper nouns come first on purpose: a consumer that falls back from NNP to the NN row — which is what latin2shaw.py does — reaches that fallback before the exact NNP row if NN is written first, so upstream’s own file makes the proper-noun spelling of august, derby, reading, slough and 23 others unreachable. Everything after NNP is alphabetical, because nothing else needs an opinion and an arbitrary order would only invite one.
 PROPER_NOUN = "NNP"
 PENN_TAGS = frozenset(
     {
@@ -67,9 +67,9 @@ class ConverterError(ValueError):
 
 
 def load_penn(path: Path | None = None) -> dict[str, TagMap]:
-    """C5 to Penn Treebank, for the transliterator's part-of-speech lookup.
+    """C5 to Penn Treebank, for the transliterator’s part-of-speech lookup.
 
-    Only heteronyms consult this: a word with one spelling needs no tagged row, so most of the corpus's 104 C5 tags never need a Penn equivalent and none is invented for them. The `upstream` rows are the ones forced by reproducing readlex_converter.json exactly; the `standard` rows are pairs upstream's file cannot separate, or does not reach, where the conventional correspondence is used and said to be used.
+    Only heteronyms consult this: a word with one spelling needs no tagged row, so most of the corpus’s 104 C5 tags never need a Penn equivalent and none is invented for them. The `upstream` rows are the ones forced by reproducing readlex_converter.json exactly; the `standard` rows are pairs upstream’s file cannot separate, or does not reach, where the conventional correspondence is used and said to be used.
     """
     known: dict[str, TagMap] = {}
     for lineno, source, row in rows_of(path, PENN_FILE, PENN_HEADER):
@@ -112,7 +112,7 @@ def load_phrase_exceptions(path: Path | None = None) -> tuple[PhraseException, .
 
 
 def _forms(spellings: dict[str, tuple[str, str]]) -> dict[str, str]:
-    """One row's three columns, alternatives joined in one order across all of them."""
+    """One row’s three columns, alternatives joined in one order across all of them."""
     order = sorted(spellings)
     senior = JOIN.join(order)
     junior = JOIN.join(spellings[s][0] for s in order)

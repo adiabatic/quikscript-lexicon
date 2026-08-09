@@ -32,7 +32,7 @@ def spellings(columns: Iterable[tuple[str, str, str]]) -> tuple[str, ...]:
 
 
 def dictionary(words: Sequence[str]) -> str:
-    """The word list, counted on its first line as hunspell's format wants.
+    """The word list, counted on its first line as hunspell’s format wants.
 
     No word carries an affix flag. ReadLex lists every inflected form as a row of its own, so the affix machinery would encode nothing the list does not already state, and a flag standing for no rule is a flag that can only go wrong.
     """
@@ -51,7 +51,7 @@ def by_frequency(words: Iterable[str]) -> str:
 def affix(words: Iterable[str]) -> str:
     """The affix file: an encoding, a tokenizer alphabet, and one suggestion table.
 
-    `WORDCHARS` is what makes the PUA legible to hunspell's own tokenizer, which otherwise takes Quikscript for punctuation and checks nothing at all. The hyphen is in it because hundreds of hyphenated entries have a piece that is not itself an entry, and without it hunspell splits those entries up and flags the pieces.
+    `WORDCHARS` is what makes the PUA legible to hunspell’s own tokenizer, which otherwise takes Quikscript for punctuation and checks nothing at all. The hyphen is in it because hundreds of hyphenated entries have a piece that is not itself an entry, and without it hunspell splits those entries up and flags the pieces.
 
     `REP` bridges each X-letter to the letter pair it stands for, both ways: the letters around an X-letter change with it, so neither form of a word is a single-letter edit from the other, and without the bridge the other form is at best buried in the suggestion list.
     """

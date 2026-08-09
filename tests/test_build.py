@@ -139,7 +139,7 @@ def test_the_master_declares_what_it_holds() -> None:
 def test_the_master_carries_the_converter_shape_it_no_longer_ships() -> None:
     """The proof that dropping qs_converter.json lost nothing.
 
-    Rebuilt from the master's own entries and its own tag map — no other file read — and held to what the build derives from the entries in memory.
+    Rebuilt from the master’s own entries and its own tag map — no other file read — and held to what the build derives from the entries in memory.
     """
     rebuilt = converter(
         (

@@ -31,7 +31,7 @@ X_LETTERS = frozenset({"Excite", "Exam"})
 
 EPENTHESIS = "Ə"
 
-# The Manual names the seven consonant pairs that force a separating vowel: "Between these — SZ, ShZ, ChZ, JZ, ZZ, DD, TD — some kind of vowel has to be uttered." ReadLex tags most of those sites with a capital Ə; where it wrote a plain ə instead, the pair itself identifies the site.
+# The Manual names the seven consonant pairs that force a separating vowel: “Between these — SZ, ShZ, ChZ, JZ, ZZ, DD, TD — some kind of vowel has to be uttered.” ReadLex tags most of those sites with a capital Ə; where it wrote a plain ə instead, the pair itself identifies the site.
 EPENTHETIC_PAIRS = frozenset(
     {
         ("See", "Zoo"),
@@ -61,7 +61,7 @@ class Context:
     def within(self, latin: str, final: bool) -> Context:
         """The same row seen as one element of its own entry.
 
-        Only the Latin spelling and whether the entry ends here narrow to the element. The IPA and its tokens stay the whole entry's, so `ipa` seen from the exchange of corn-exchange is still `ˈkɔːRn-ɪkstʃeɪndʒ`, carrying corn's mark and not exchange's want of one. A rule that wants this element's sounds cuts them for itself with `elements.chunks`, as `substitute_x` does, rather than reading them here.
+        Only the Latin spelling and whether the entry ends here narrow to the element. The IPA and its tokens stay the whole entry’s, so `ipa` seen from the exchange of corn-exchange is still `ˈkɔːRn-ɪkstʃeɪndʒ`, carrying corn’s mark and not exchange’s want of one. A rule that wants this element’s sounds cuts them for itself with `elements.chunks`, as `substitute_x` does, rather than reading them here.
         """
         return dataclasses.replace(self, latin=latin, final=final)
 
@@ -117,7 +117,7 @@ def _rename(letters: Letters, index: int, name: str) -> Letters:
 
 
 def _offset(match: re.Match[str], letters: Letters) -> int:
-    """Trailing letters spelling the inflection this rule's pattern looked through."""
+    """Trailing letters spelling the inflection this rule’s pattern looked through."""
     if match.groups()[-1] and letters and letters[-1].name in {"Zoo", "See"}:
         return 1
     return 0
@@ -150,7 +150,7 @@ def _force(
 ) -> Letters:
     """Normalise the vowel that precedes `shape` at the end of the word.
 
-    `among` names the vowels this rule may rewrite, and only terminal -y widens it. Read reserves ·Eat "for distinction where the terminal is stressed", so an unstressed ·Eat at that terminal is a vowel he prescribes over; everywhere else a full ·Eat is a vowel ReadLex means, as **·Et is not a reducible vowel** in docs/orthographic-rules.md says of ·Et.
+    `among` names the vowels this rule may rewrite, and only terminal -y widens it. Read reserves ·Eat “for distinction where the terminal is stressed”, so an unstressed ·Eat at that terminal is a vowel he prescribes over; everywhere else a full ·Eat is a vowel ReadLex means, as **·Et is not a reducible vowel** in docs/orthographic-rules.md says of ·Et.
     """
     if not _ends(letters, offset, *shape):
         return letters
@@ -163,7 +163,7 @@ def _force(
 def _restored(context: Context) -> bool:
     """Whether the vowel before a word-final L comes back, another syllable following.
 
-    "Where another syllable is added, the vowel sound before this L must be clearly pronounced and spelt in most cases: as it must be in — finally, orally, animality, initially, officially, levelling, devilry, caviller, rif(u)leman." A following element of a compound adds a syllable exactly as a suffix does, so able-bodied and cable-car keep the vowel that able and cable drop.
+    “Where another syllable is added, the vowel sound before this L must be clearly pronounced and spelt in most cases: as it must be in — finally, orally, animality, initially, officially, levelling, devilry, caviller, rif(u)leman.” A following element of a compound adds a syllable exactly as a suffix does, so able-bodied and cable-car keep the vowel that able and cable drop.
     """
     return not context.final
 
@@ -334,7 +334,7 @@ class PrefixForm:
 
 
 def _prefix(context: Context, letters: Letters, form: PrefixForm) -> Letters:
-    """Normalise the prefix vowel, once the form's frame confirms the consonants."""
+    """Normalise the prefix vowel, once the form’s frame confirms the consonants."""
     if len(letters) <= max(form.index, *(at for at, _ in form.frame)):
         return letters
     if any(letters[at].name != name for at, name in form.frame):
@@ -433,7 +433,7 @@ def apply_land(context: Context, letters: Letters, match: re.Match[str]) -> Lett
 def apply_nt(context: Context, letters: Letters, match: re.Match[str]) -> Letters:
     """Nothing inflects an n't, so `NT` alone carries no trailing group.
 
-    `_offset` reads that group and would raise here; the offset is the zero it would have returned. The elision is also the senior column's alone — the junior column keeps the vowel, as the Manual's Junior bo-peep writes doesn't — which `SENIOR_ONLY` tells `_stack`.
+    `_offset` reads that group and would raise here; the offset is the zero it would have returned. The elision is also the senior column’s alone — the junior column keeps the vowel, as the Manual’s Junior bo-peep writes doesn't — which `SENIOR_ONLY` tells `_stack`.
     """
     return _omit(letters, 0, ("No", "Tea"))
 
@@ -481,7 +481,7 @@ def _tighten(letters: Letters, offset: int, shape: tuple[str, ...]) -> Letters:
 def apply_y(context: Context, letters: Letters, match: re.Match[str]) -> Letters:
     """Write the unstressed terminal ·It, seeing through a plural -s.
 
-    An -es after a silent e spells a plural of its own — houses, similes — and the vowel that plural adds is its own, always a reduced one. Only a full ·Eat there can be the terminal, which leaves apogees carrying apogee's and theses carrying the Greek ending's, a difference no Latin string holds: see `_y_plural`.
+    An -es after a silent e spells a plural of its own — houses, similes — and the vowel that plural adds is its own, always a reduced one. Only a full ·Eat there can be the terminal, which leaves apogees carrying apogee’s and theses carrying the Greek ending’s, a difference no Latin string holds: see `_y_plural`.
     """
     among = UNREDUCED if _y_plural(match) else Y_REDUCIBLE
     return _force(letters, _offset(match, letters), (), "It", among)
@@ -655,7 +655,7 @@ class Element:
 def split(context: Context, letters: Letters) -> tuple[Element, ...]:
     """The entry cut into the words the terminals and prefixes actually attach to.
 
-    A terminal is keyed to the end of a word and a prefix to the start of one, so a hyphenated or multi-word entry has to be cut up before either can see the words inside it: matching the whole entry string leaves a terminal for the last element only and a prefix for the first, and every element between them keeps a vowel the Manual drops. The cut is `qslex.elements`', alignment guard and all, so that the rules and the word signs cannot disagree about where a boundary is; an entry the guard rejects comes back whole, as a single element.
+    A terminal is keyed to the end of a word and a prefix to the start of one, so a hyphenated or multi-word entry has to be cut up before either can see the words inside it: matching the whole entry string leaves a terminal for the last element only and a prefix for the first, and every element between them keeps a vowel the Manual drops. The cut is `qslex.elements`’, alignment guard and all, so that the rules and the word signs cannot disagree about where a boundary is; an entry the guard rejects comes back whole, as a single element.
 
     Only the element the entry ends on is final, which is why a prefix-form entry like after- has none: something follows its last word, even if the corpus does not say what.
     """
@@ -686,9 +686,9 @@ def substitutable(spelling: str) -> bool:
 
 
 def _substituted(latin: str, said: str, letters: Letters) -> Letters:
-    """One word's substitution, taking ·Et where its own chunk carries no stress mark.
+    """One word’s substitution, taking ·Et where its own chunk carries no stress mark.
 
-    ·Et is a convenience the Manual offers for an *unstressed* initial ex- — "with an initial vowel ·Et easier than ·It" — so it waits on ReadLex's own mark at the head of this element's chunk rather than on the stress `naive` wrote into the letter. corn-exchange carries its one mark on corn, which leaves the ex- of exchange unstressed and takes the ·Et; exquisite `ˈɪkskwɪzɪt` carries a mark of its own and keeps its ·It, as sixty does. `is_stressed`'s fallback answers a different question — it reads a mark-less chunk as a word keeping its standalone stress, which is right for the monosyllables it was written for and wrong for a polysyllable whose own mark is not initial.
+    ·Et is a convenience the Manual offers for an *unstressed* initial ex- — “with an initial vowel ·Et easier than ·It” — so it waits on ReadLex’s own mark at the head of this element’s chunk rather than on the stress `naive` wrote into the letter. corn-exchange carries its one mark on corn, which leaves the ex- of exchange unstressed and takes the ·Et; exquisite `ˈɪkskwɪzɪt` carries a mark of its own and keeps its ·It, as sixty does. `is_stressed`’s fallback answers a different question — it reads a mark-less chunk as a word keeping its standalone stress, which is right for the monosyllables it was written for and wrong for a polysyllable whose own mark is not initial.
     """
     if latin.count("x") != 1:
         return letters
@@ -708,7 +708,7 @@ def substitute_x(
 ) -> tuple[Letters, tuple[tuple[str, str], ...]]:
     """The X-letter substitution per word, with the rulings the entry reached.
 
-    An x and the letter pair it stands for belong to a word, not to an entry, so matching the whole string left cross-examine and corn-exchange with an ex- that is word-initial but not entry-initial, and read a second word's pair as a second pair of the first word's. The ruling table is consulted per element for the same reason `_stack` consults `rule-words.tsv` per element: what a hand ruling is about is the word, and exercise-books needed one only while the entry was matched whole.
+    An x and the letter pair it stands for belong to a word, not to an entry, so matching the whole string left cross-examine and corn-exchange with an ex- that is word-initial but not entry-initial, and read a second word’s pair as a second pair of the first word’s. The ruling table is consulted per element for the same reason `_stack` consults `rule-words.tsv` per element: what a hand ruling is about is the word, and exercise-books needed one only while the entry was matched whole.
 
     Everything that is not a separator takes a chunk of the IPA, the empty word an entry like ex- ends on included, so that this cut is the one `qslex.lint` makes and a rule and the check that re-derives it cannot read a different stress mark.
 
@@ -755,7 +755,7 @@ def undecided_ing(latin: str, participles: Container[str]) -> bool:
 def undecided_prefix(context: Context, letters: Letters, tables: Tables) -> bool:
     """A be-/de-/re- rewrite means ReadLex disagreed with the Manual, so rule on it.
 
-    Nothing in the data separates the Manual's begin and decide, where the prefix is real, from Berlin and Denise, where the letters merely start the same way. The rule therefore fires on the Latin string and every word it would touch is ruled on.
+    Nothing in the data separates the Manual’s begin and decide, where the prefix is real, from Berlin and Denise, where the letters merely start the same way. The rule therefore fires on the Latin string and every word it would touch is ruled on.
     """
     if tables.ruled("prefix-be-de-re", context.latin):
         return False
@@ -785,9 +785,9 @@ def undecided_ess(context: Context, letters: Letters, tables: Tables) -> bool:
 def undecided_y(context: Context, letters: Letters, tables: Tables) -> bool:
     """An unstressed full ·Eat at a terminal -y, where nothing in the IPA decides it.
 
-    ReadLex writes the reduced terminal as happY `i` and keeps a full `iː` for one it thinks unreduced — but it marks no stress inside an unhyphenated compound, so carefree's ·Eat and algae's are the same shape segment for segment with opposite readings. Read's own discriminator is the stress, and it is exactly what is missing, so which of the two this is gets ruled on in rule-words.tsv rather than guessed.
+    ReadLex writes the reduced terminal as happY `i` and keeps a full `iː` for one it thinks unreduced — but it marks no stress inside an unhyphenated compound, so carefree’s ·Eat and algae’s are the same shape segment for segment with opposite readings. Read’s own discriminator is the stress, and it is exactly what is missing, so which of the two this is gets ruled on in rule-words.tsv rather than guessed.
 
-    Behind a plural -s the same ·Eat asks `_y_plural`'s question as well, apogees against theses, and that is ruled on in the same table and counted in the same residue: every unstressed ·Eat this terminal owns is decided by hand.
+    Behind a plural -s the same ·Eat asks `_y_plural`’s question as well, apogees against theses, and that is ruled on in the same table and counted in the same residue: every unstressed ·Eat this terminal owns is decided by hand.
     """
     if tables.ruled("terminal-y", context.latin):
         return False
@@ -802,7 +802,7 @@ def undecided_y(context: Context, letters: Letters, tables: Tables) -> bool:
 
 
 def undecided_ful(context: Context, letters: Letters, tables: Tables) -> bool:
-    """A -ful rewrite where ReadLex's vowel contradicts the POS the Manual keys on."""
+    """A -ful rewrite where ReadLex’s vowel contradicts the POS the Manual keys on."""
     if tables.ruled("terminal-ful", context.latin):
         return False
     match = FUL.search(context.latin)
@@ -812,7 +812,7 @@ def undecided_ful(context: Context, letters: Letters, tables: Tables) -> bool:
 
 
 def undecided_x_letter(context: Context, letters: Letters, tables: Tables) -> str:
-    """Why the mechanical alignment declined, for the validator's residue report."""
+    """Why the mechanical alignment declined, for the validator’s residue report."""
     latin = context.latin
     if "x" not in latin or tables.x_ruling_for(latin) is not None:
         return ""

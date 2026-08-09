@@ -20,10 +20,10 @@ DEFECT = "known-defect"
 REDUCIBLE = frozenset({"It", "Utter"})
 VOWEL_CHARS = frozenset("ɪieæaɑɒɔʊuʌəɜːƏIÆⱭ")
 
-# "While L needs no preceding vowel in Spaniel, one is clearly needed wherever -al follows on a vowel-sound" — so ·Ye counts here as the vowel it stands in for.
+# “While L needs no preceding vowel in Spaniel, one is clearly needed wherever -al follows on a vowel-sound” — so ·Ye counts here as the vowel it stands in for.
 VOWELS_BEFORE_L = VOWELS | {"Ye"}
 
-# The Manual's own trigger for each check, as an Orthodox ending. Latin-gating is the whole difference between a check that re-derives a rule and one that re-reports the corpus: ·Et·No·Tea is only wrong where Orthodox spells -ent, and ReadLex's own /e/ elsewhere is not this project's business. A check whose rule keys on the same ending takes that rule's own pattern — `rules.ENT`, `rules.AL`, and `rules.ALLY`, which claims -able and -ally before -al does. The two written out here are the ones that differ, because -men is the exception the -land rule carves out.
+# The Manual’s own trigger for each check, as an Orthodox ending. Latin-gating is the whole difference between a check that re-derives a rule and one that re-reports the corpus: ·Et·No·Tea is only wrong where Orthodox spells -ent, and ReadLex’s own /e/ elsewhere is not this project’s business. A check whose rule keys on the same ending takes that rule’s own pattern — `rules.ENT`, `rules.AL`, and `rules.ALLY`, which claims -able and -ally before -al does. The two written out here are the ones that differ, because -men is the exception the -land rule carves out.
 LAND = re.compile(r"(?<=.)(land|ment|man)(s)?$")
 MEN = re.compile(r"(?<=.)men$")
 
@@ -92,9 +92,9 @@ ING_SHAPES = {
 
 
 def ing_vowel_omitted(site: Site, tables: Tables) -> str:
-    """ "Provided it is an affix and not a root, omit vowel-i." (terminal-ing)
+    """“Provided it is an affix and not a root, omit vowel-i.” (terminal-ing)
 
-    "Spell -ing in full after roots ending in -y: ·Key·At·Roe·It·It·Oolong = carrying." A root ending in -i is the same case — taxi, ski — and is skipped with it.
+    “Spell -ing in full after roots ending in -y: ·Key·At·Roe·It·It·Oolong = carrying.” A root ending in -i is the same case — taxi, ski — and is skipped with it.
     """
     affix = _ing_affix(site.latin)
     stem = site.latin[: site.latin.rindex("ing")] if affix else ""
@@ -109,9 +109,9 @@ def ing_vowel_omitted(site: Site, tables: Tables) -> str:
 
 
 def al_vowel_omitted(site: Site, tables: Tables) -> str:
-    """ "omit any unstressed vowel sound between L and the preceding consonant"
+    """“omit any unstressed vowel sound between L and the preceding consonant”
 
-    Entry-final elements only: "Where another syllable is added, the vowel sound before this L must be clearly pronounced and spelt" — and a following element adds a syllable exactly as a suffix does. (terminal-al-el-le-il)
+    Entry-final elements only: “Where another syllable is added, the vowel sound before this L must be clearly pronounced and spelt” — and a following element adds a syllable exactly as a suffix does. (terminal-al-el-le-il)
     """
     if not site.last or not AL.search(site.latin) or ALLY.search(site.latin):
         return ""
@@ -128,7 +128,7 @@ def al_vowel_omitted(site: Site, tables: Tables) -> str:
 
 
 def ent_ance_utter(site: Site, tables: Tables) -> str:
-    """ "written invariably with standard ·Utter·No" (terminal-ent-ance)"""
+    """“written invariably with standard ·Utter·No” (terminal-ent-ance)"""
     match = ENT.search(site.latin)
     if not match or LAND.search(site.latin) or not site.reducible_ending:
         return ""
@@ -140,7 +140,7 @@ def ent_ance_utter(site: Site, tables: Tables) -> str:
 
 
 def land_ment_vowel_omitted(site: Site, tables: Tables) -> str:
-    """ "The unstressed vowel is omitted for convenient joining except in -men."
+    """“The unstressed vowel is omitted for convenient joining except in -men.”
 
     (terminal-land-ment)
     """
@@ -166,7 +166,7 @@ def land_ment_vowel_omitted(site: Site, tables: Tables) -> str:
 
 
 def men_keeps_a_vowel(site: Site, tables: Tables) -> str:
-    """ "The unstressed vowel is omitted for convenient joining except in -men."
+    """“The unstressed vowel is omitted for convenient joining except in -men.”
 
     The Manual says the vowel is kept, not which vowel it is, and ReadLex writes both: seamen ˈsiːmen gives ·May·Et·No, dutchmen ˈdʌtʃmən gives ·May·Utter·No. Either keeps seamen apart from seaman, which is what the exception is for; demanding ·Et would be inventing a sound the corpus does not record. (terminal-land-ment)
     """
@@ -179,7 +179,7 @@ def men_keeps_a_vowel(site: Site, tables: Tables) -> str:
 
 
 def initial_ex_et(site: Site, tables: Tables) -> str:
-    """ "·Et·Excite for Excite, Extreme, Expect, with an initial vowel ·Et easier than ·It." (section-2)"""
+    """“·Et·Excite for Excite, Extreme, Expect, with an initial vowel ·Et easier than ·It.” (section-2)"""
     spelt = site.x_spelt
     if not site.latin.startswith("ex") or len(spelt) < 2:
         return ""
@@ -189,7 +189,7 @@ def initial_ex_et(site: Site, tables: Tables) -> str:
 
 
 def x_letter_only_with_x(site: Site, tables: Tables) -> str:
-    """ "but only where Orthodox spells these sounds with X … and only one ·Excite in Xerxes." (section-2)"""
+    """“but only where Orthodox spells these sounds with X … and only one ·Excite in Xerxes.” (section-2)"""
     used = sum(1 for name in site.x_spelt if name in X_LETTERS)
     available = site.latin.count("x")
     if used <= available:

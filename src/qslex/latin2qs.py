@@ -1,6 +1,6 @@
-"""Latin text to Quikscript, ported from ReadLex's latin2shaw.py.
+"""Latin text to Quikscript, ported from ReadLex’s latin2shaw.py.
 
-The architecture is upstream's wholesale — spaCy tokenization, C5-derived Penn tags for heteronyms, dictionary lookup against the converter artifact, affix fallbacks for words the lexicon lacks — with the lookup values and the letter classes changed for Quikscript. The deliberate departures from upstream are specified in docs/latin2qs.md.
+The architecture is upstream’s wholesale — spaCy tokenization, C5-derived Penn tags for heteronyms, dictionary lookup against the converter artifact, affix fallbacks for words the lexicon lacks — with the lookup values and the letter classes changed for Quikscript. The deliberate departures from upstream are specified in docs/latin2qs.md.
 """
 
 from __future__ import annotations
@@ -42,7 +42,7 @@ CONSTRUCTED = "⚠️"
 UNMATCHED = "✢"
 APOSTROPHE = "’"
 
-# The Manual's angled parentheses, per the CSUR proposal's punctuation rows.
+# The Manual’s angled parentheses, per the CSUR proposal’s punctuation rows.
 PARENTHESES = {"(": "\ue66e", ")": "\ue66f"}
 
 
@@ -69,7 +69,7 @@ def _s_suffix(last: str) -> str:
     return ZOO
 
 
-# Contraction halves whose separate words are not lexicon entries. The phrase list matches every straight-apostrophe combination whole, so the opening halves are left to the HTML path alone, where _plain's unidecode never runs and a typographic apostrophe splits don’t into do plus n’t. The clitics keep or drop the apostrophe per the Manual's own practice: n't attaches solid, the rest keep it (docs/word-signs.md, "Contractions, possessives, and the apostrophe"). The two clitic rows contractions.tsv carries, n't and 'll, are read from there rather than repeated here.
+# Contraction halves whose separate words are not lexicon entries. The phrase list matches every straight-apostrophe combination whole, so the opening halves are left to the HTML path alone, where _plain’s unidecode never runs and a typographic apostrophe splits don’t into do plus n’t. The clitics keep or drop the apostrophe per the Manual’s own practice: n't attaches solid, the rest keep it (docs/word-signs.md, “Contractions, possessives, and the apostrophe”). The two clitic rows contractions.tsv carries, n't and 'll, are read from there rather than repeated here.
 CONTRACTION_START = {
     "ai": _qs("Eight"),
     "ca": _qs("Key", "Ah"),
@@ -86,7 +86,7 @@ CONTRACTION_END = {
     "'re": APOSTROPHE + _qs("Utter", "Roe"),
 }
 
-# Words that change pronunciation before "to": have/has when "have to" means must, and the -sed verbs in the past tense only.
+# Words that change pronunciation before “to”: have/has when “have to” means must, and the -sed verbs in the past tense only.
 HAVE_TO = {
     "have": _qs("He", "At", "Fee"),
     "has": _qs("He", "At", "See"),
@@ -98,7 +98,7 @@ VBD_TO = {
 }
 BEFORE_TO = HAVE_TO | VBD_TO
 
-# Spoken contractions keep the apostrophe, per the Manual's own practice — they'll = ·They·Eight’·Low in the Junior Bo-peep — so a dictionary spelling that ends in a clitic's letters gets the apostrophe reinserted before them. Verbal 's and n't attach solid and are left as the dictionary writes them.
+# Spoken contractions keep the apostrophe, per the Manual’s own practice — they'll = ·They·Eight’·Low in the Junior Bo-peep — so a dictionary spelling that ends in a clitic’s letters gets the apostrophe reinserted before them. Verbal 's and n't attach solid and are left as the dictionary writes them.
 CLITIC_LETTERS = {
     "'d": _qs("Day"),
     "'ll": _qs("Low"),
@@ -107,7 +107,7 @@ CLITIC_LETTERS = {
     "'re": _qs("Utter", "Roe"),
 }
 
-# The Manual's Quikscript text quotes with single curly quotes only, so the doubles smartypants educates are demoted after it runs.
+# The Manual’s Quikscript text quotes with single curly quotes only, so the doubles smartypants educates are demoted after it runs.
 QUOTES = {"&#8220;": "&#8216;", "&#8221;": "&#8217;"}
 
 ORDINAL = re.compile(r"([0-9]+)(st|nd|rd|th|s)")
@@ -119,7 +119,7 @@ ORDINAL_SUFFIXES = {
     "s": _qs("Zoo"),
 }
 
-# Common prefixes and suffixes used in new coinings, re-expressed in Quikscript per the Manual's affix conventions rather than transliterated from the Shavian strings; tests/test_latin2qs.py holds each to the spelling the lexicon uses inside real words. The productive de-, pre-, pro- and re- take the full stressed vowel a new coining gives them, not the reduced vowel of the lexicalised Latinate stems the prefix rules were written for. The o'er row never spells the bare word, which the lexicon holds; it is kept for the o'er… compounds, which nothing else builds.
+# Common prefixes and suffixes used in new coinings, re-expressed in Quikscript per the Manual’s affix conventions rather than transliterated from the Shavian strings; tests/test_latin2qs.py holds each to the spelling the lexicon uses inside real words. The productive de-, pre-, pro- and re- take the full stressed vowel a new coining gives them, not the reduced vowel of the lexicalised Latinate stems the prefix rules were written for. The o'er row never spells the bare word, which the lexicon holds; it is kept for the o'er… compounds, which nothing else builds.
 PREFIXES: dict[str, str] = {
     "anti": _qs("At", "No", "Tea", "It"),
     "counter": _qs("Key", "Out", "No", "Tea", "Utter", "Roe"),
@@ -149,7 +149,7 @@ PREFIXES: dict[str, str] = {
     "un": _qs("Utter", "No"),
     "under": _qs("Utter", "No", "Day", "Utter", "Roe"),
 }
-# -ness and -less take ·Et, the Manual's own distinction from the -us, -ous terminal — the one affix a naive transliteration of upstream's Shavian strings would get wrong. -esque sat in upstream's prefixes dict, where startswith() can never match it; it is a suffix here.
+# -ness and -less take ·Et, the Manual’s own distinction from the -us, -ous terminal — the one affix a naive transliteration of upstream’s Shavian strings would get wrong. -esque sat in upstream’s prefixes dict, where startswith() can never match it; it is a suffix here.
 SUFFIXES: dict[str, str] = {
     "able": _qs("Utter", "Bay", "Low"),
     "bound": _qs("Bay", "Out", "No", "Day"),
@@ -162,7 +162,7 @@ SUFFIXES: dict[str, str] = {
     "like": _qs("Low", "I", "Key"),
     "ness": _qs("No", "Et", "See"),
 }
-# The Manual's terminal -ful splits on the part of speech: mouthful the noun keeps ·Foot where careful the adjective reduces to ·Utter.
+# The Manual’s terminal -ful splits on the part of speech: mouthful the noun keeps ·Foot where careful the adjective reduces to ·Utter.
 FUL_NOUN = _qs("Fee", "Foot", "Low")
 
 NAMER_DOT_ENTS = frozenset(
@@ -285,7 +285,7 @@ def _apostrophized(lower: str, spelling: str) -> str:
 class Transliterator:
     """The spaCy pipeline and the lookup tables, loaded once and reused.
 
-    The Latin-to-spellings shape is rebuilt here from the master rather than read out of a file of its own. It carries nothing the master does not — its Penn tags are the master's C5 tags through `c5-to-penn.tsv`, which this module already loads for the contractions — so shipping it beside the master would be shipping the same data twice. Deriving it costs about a third of a second at startup, once.
+    The Latin-to-spellings shape is rebuilt here from the master rather than read out of a file of its own. It carries nothing the master does not — its Penn tags are the master’s C5 tags through `c5-to-penn.tsv`, which this module already loads for the contractions — so shipping it beside the master would be shipping the same data twice. Deriving it costs about a third of a second at startup, once.
     """
 
     def __init__(self, lexicon: Path | None = None) -> None:
@@ -383,7 +383,7 @@ class Transliterator:
                 return row
             if tag == "NNPS" and row["tag"] == "NNS":
                 return row
-            # A relative that is C5's CJT, the conjunction, which c5-to-penn sends to IN — but spaCy tags it WDT, a tag no converter row can carry.
+            # A relative that is C5’s CJT, the conjunction, which c5-to-penn sends to IN — but spaCy tags it WDT, a tag no converter row can carry.
             if tag == "WDT" and row["tag"] == "IN":
                 return row
         return rows[-1]
@@ -585,7 +585,7 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument(
         "--contractions",
         action="store_true",
-        help="apply the Manual's §III Senior contractions",
+        help="apply the Manual’s §III Senior contractions",
     )
     parser.add_argument("--lexicon", type=Path, default=None)
     args = parser.parse_args(argv)

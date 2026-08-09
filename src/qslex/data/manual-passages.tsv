@@ -37,7 +37,7 @@ no-how	34	been	·Bay·No	contraction
 no-how	35	done	·Day·Utter·No	senior		
 no-how	36	or	·Awe·Roe	senior		
 no-how	37	not	·No·Ox·Tea	senior		
-no-how	38	done	·Day·No	differs	·Day·Utter·No	the same passage spells done ·Day·Utter·No at word 35; here Read contracts it to §III's do-sign ·Day plus the -en terminal, which is not among the listed contractions
+no-how	38	done	·Day·No	differs	·Day·Utter·No	the same passage spells done ·Day·Utter·No at word 35; here Read contracts it to §III’s do-sign ·Day plus the -en terminal, which is not among the listed contractions
 no-how	39	we	·Way	contraction		
 no-how	40	can	·Key	contraction		
 no-how	41	see	·See·Eat	senior		
@@ -75,7 +75,7 @@ parental-advice	16	other	·Utter·They·Utter·Roe	senior
 parental-advice	17	folks	·Fee·Owe·Key·See	senior		
 parental-advice	18	have	·He·Vie	contraction		
 parental-advice	19	other	·Utter·They·Utter·Roe	senior		
-parental-advice	20	ideas	·I·Day·Eat·Utter·Roe	differs	·I·Day·Eat·Utter·Zoo	Read writes a final ·Roe where the plural wants ·Zoo; the AMS transcription's own data-expect reads it the same way, so this is the specimen's slip and not a transcription error
+parental-advice	20	ideas	·I·Day·Eat·Utter·Roe	differs	·I·Day·Eat·Utter·Zoo	Read writes a final ·Roe where the plural wants ·Zoo; the AMS transcription’s own data-expect reads it the same way, so this is the specimen’s slip and not a transcription error
 parental-advice	21	which	·Cheer	contraction		
 parental-advice	22	are	·Roe	contraction		
 parental-advice	23	not	·No·Ox·Tea	senior		
@@ -114,7 +114,7 @@ gown-shop	4	that	·They·Tea	senior
 gown-shop	5	she	·She	contraction		
 gown-shop	6	wasn't	·Way·Utter·Zoo·No·Tea	senior		
 gown-shop	7	with	·Way·It	contraction		
-gown-shop	8	them	·They·May	differs	·They·Et·May	·They·May is Read's own contraction of them; §III does not list it, so no contractions.tsv row can match it
+gown-shop	8	them	·They·May	differs	·They·Et·May	·They·May is Read’s own contraction of them; §III does not list it, so no contractions.tsv row can match it
 gown-shop	9	that	·They·At·Tea	senior		
 gown-shop	10	time	·Tea·May	contraction		
 gown-shop	11	she	·She	contraction		
@@ -131,7 +131,7 @@ gown-shop	21	as	·At	contraction
 gown-shop	22	well	·Way·Et·Low	senior		
 gown-shop	23	and	·No	senior		
 gown-shop	24	whatever	·Why·Et·Vie·Utter·Roe	differs	·Why·Ox·Tea·Et·Vie·Utter·Roe	§III contracts whatever to ·Why·Et·Vie, which contractions.tsv carries; the passage writes the what-sign followed by ever in full
-gown-shop	25	hours	·Out·Zoo	differs	·Out·Roe·Zoo	the transcription's brackets mark the h Read left off, and he writes no R either; the lexicon spells ReadLex's ˈaʊəRz, whose R the mapping keeps
+gown-shop	25	hours	·Out·Zoo	differs	·Out·Roe·Zoo	the transcription’s brackets mark the h Read left off, and he writes no R either; the lexicon spells ReadLex’s ˈaʊəRz, whose R the mapping keeps
 gown-shop	26	were	·Way·Utter·Roe	senior		
 gown-shop	27	any	·Et·No·It	senior		
 gown-shop	28	good	·Gay·Day	contraction		
@@ -152,7 +152,7 @@ gown-shop	42	new	·No·Ye·Ooze	senior
 gown-shop	43	things	·Thaw·It·Oolong·Zoo	senior		
 gown-shop	44	in	·It·No	senior		
 gown-shop	45	soon	·See·Ooze·No	senior		
-gown-shop	46	she's	·She·Zoo	differs	·She·Eat·Zoo	§III's she-sign ·She with the clitic 's; the lexicon spells ʃiːz out
+gown-shop	46	she's	·She·Zoo	differs	·She·Eat·Zoo	§III’s she-sign ·She with the clitic 's; the lexicon spells ʃiːz out
 gown-shop	47	such	·See·Utter·Cheer	senior		
 gown-shop	48	an	·Utter·No	senior		
 gown-shop	49	old	·Owe·Low·Day	senior		
@@ -170,7 +170,7 @@ gown-shop	60	and	·No	senior
 gown-shop	61	my	·May·I	senior		
 gown-shop	62	little	·Low·It·Low	contraction		
 gown-shop	63	show	·She·Owe	senior		
-rip-van-winkle	0	he'd	·He’·Day	differs	·He·Eat·Day	§III's he-sign ·He with the clitic 'd, apostrophe and all; the lexicon spells hiːd out
+rip-van-winkle	0	he'd	·He’·Day	differs	·He·Eat·Day	§III’s he-sign ·He with the clitic 'd, apostrophe and all; the lexicon spells hiːd out
 rip-van-winkle	1	carry	·Key·At·Roe·It	senior		
 rip-van-winkle	2	a	·Utter	senior		
 rip-van-winkle	3	fowling	·Fee·Out·Low·Oolong	senior		
@@ -239,7 +239,7 @@ rip-van-winkle	65	village	·Vie·It·Low·Utter·Jay	senior
 rip-van-winkle	66	too	·Tea·Ooze	senior		
 rip-van-winkle	67	used	·Ye·Ooze·See·Tea	senior		
 rip-van-winkle	68	to	·Tea	senior		
-rip-van-winkle	69	employ	·Et·May·Pea·Low·Oy	differs	·It·May·Pea·Low·Oy	the Manual's prefix rule covers In-, En- 'alike unless stressed' and says nothing of Em-, Im-; Read writes ·Et here where ReadLex's ɪmˈplɔɪ gives ·It
+rip-van-winkle	69	employ	·Et·May·Pea·Low·Oy	differs	·It·May·Pea·Low·Oy	the Manual’s prefix rule covers In-, En- ‘alike unless stressed’ and says nothing of Em-, Im-; Read writes ·Et here where ReadLex’s ɪmˈplɔɪ gives ·It
 rip-van-winkle	70	him	·He·May	contraction		
 rip-van-winkle	71	to	·Tea	senior		
 rip-van-winkle	72	run	·Roe·Utter·No	senior		
@@ -259,7 +259,7 @@ rip-van-winkle	85	husbands	·He·Utter·Zoo·Bay·Utter·No·Day·Zoo	senior
 rip-van-winkle	86	wouldn't	·Way·Day·No·Tea	contraction		
 rip-van-winkle	87	do	·Day	contraction		
 rip-van-winkle	88	for	·Fee	senior		
-rip-van-winkle	89	them	·They·May	differs	·They·Et·May	·They·May is Read's own contraction of them; §III does not list it, so no contractions.tsv row can match it
+rip-van-winkle	89	them	·They·May	differs	·They·Et·May	·They·May is Read’s own contraction of them; §III does not list it, so no contractions.tsv row can match it
 rip-van-winkle	90	in	·It·No	senior		
 rip-van-winkle	91	a	·Utter	senior		
 rip-van-winkle	92	word	·Way·Utter·Roe·Day	senior		
@@ -435,7 +435,7 @@ senior-examples-2	7	draw	·Day·Roe·Awe	senior
 senior-examples-2	8	the	·They	senior		
 senior-examples-2	9	cart	·Key·Ah·Roe·Tea	senior		
 senior-examples-2	10	a	·Utter	senior		
-senior-examples-2	11	diminutive	·Day·It·May·It·No·Ooze·Tea·It·Vie	differs	·Day·It·May·It·No·Ye·Utter·Tea·It·Vie	Read writes -nu-; ReadLex's dɪˈmɪnjətɪv puts a j and a schwa there, which give ·Ye·Utter
+senior-examples-2	11	diminutive	·Day·It·May·It·No·Ooze·Tea·It·Vie	differs	·Day·It·May·It·No·Ye·Utter·Tea·It·Vie	Read writes -nu-; ReadLex’s dɪˈmɪnjətɪv puts a j and a schwa there, which give ·Ye·Utter
 senior-examples-2	12	she-ass	·She·Eat-·At·See	absent		a nonce compound; ReadLex has she-goat but not she-ass
 senior-examples-2	13	not	·No·Ox·Tea	senior		
 senior-examples-2	14	much	·May·Cheer	contraction		
@@ -517,7 +517,7 @@ senior-examples-3	38	and	·No	senior
 senior-examples-3	39	the	·They	senior		
 senior-examples-3	40	experiment	·Et·Excite·Pea·Et·Roe·It·May·No·Tea	x-letter		
 senior-examples-3	41	was	·Way·Utter·Zoo	senior		
-senior-examples-3	42	discontinued	·Day·It·See·Key·No·Tea·It·No·Ye·Ooze·Day	differs	·Day·It·See·Key·Utter·No·Tea·It·No·Ye·Ooze·Day	Read applies the Con- convention to the con- inside discontinued; the prefix rules fire at the start of an element only, so the lexicon keeps the vowel of ReadLex's ˌdɪskənˈtɪnjuːd
+senior-examples-3	42	discontinued	·Day·It·See·Key·No·Tea·It·No·Ye·Ooze·Day	differs	·Day·It·See·Key·Utter·No·Tea·It·No·Ye·Ooze·Day	Read applies the Con- convention to the con- inside discontinued; the prefix rules fire at the start of an element only, so the lexicon keeps the vowel of ReadLex’s ˌdɪskənˈtɪnjuːd
 senior-examples-3	43	from	·Fee·May	contraction		
 senior-examples-3	44	a	·Utter	senior		
 senior-examples-3	45	dearth	·Day·Utter·Roe·Thaw	senior		
@@ -526,7 +526,7 @@ senior-examples-3	47	subjects	·See·Utter·Bay·Jay·Et·Key·Tea·See	senior
 senior-examples-3	48	at	·At·Tea	senior		
 senior-examples-3	49	length	·Low·Et·Oolong·Thaw	senior		
 senior-examples-3	50	she	·She	contraction		
-senior-examples-3	51	passed	·Pea·At·See·Tea	differs	·Pea·Ah·See·Tea	TRAP-BATH: Read's ·At against the ·Ah of the RRP row the row policy keeps — the same trade as contrast and example
+senior-examples-3	51	passed	·Pea·At·See·Tea	differs	·Pea·Ah·See·Tea	TRAP-BATH: Read’s ·At against the ·Ah of the RRP row the row policy keeps — the same trade as contrast and example
 senior-examples-3	52	into	·It·No·Tea	contraction		
 senior-examples-3	53	my	·May·I	senior		
 senior-examples-3	54	service	·See·Utter·Roe·Vie·It·See	senior		
@@ -538,7 +538,7 @@ senior-examples-3	59	sixty-five	·See·It·Excite·Tea·It-·Fee·I·Vie	absent	
 senior-examples-3	60	francs	·Fee·Roe·At·Oolong·Key·See	senior		
 senior-examples-3	61	and	·No	senior		
 senior-examples-3	62	a	·Utter	senior		
-senior-examples-3	63	glass	·Gay·Low·At·See	differs	·Gay·Low·Ah·See	TRAP-BATH: Read's ·At against the ·Ah of the RRP row the row policy keeps — the same trade as contrast and example
+senior-examples-3	63	glass	·Gay·Low·At·See	differs	·Gay·Low·Ah·See	TRAP-BATH: Read’s ·At against the ·Ah of the RRP row the row policy keeps — the same trade as contrast and example
 senior-examples-3	64	of	·Vie	senior		
 senior-examples-3	65	brandy	·Bay·Roe·At·No·Day·It	senior		
 bo-peep	0	little	·Low·It·Tea·Low	junior		
@@ -558,10 +558,10 @@ bo-peep	13	leave	·Low·Eat·Vie	junior
 bo-peep	14	them	·They·Et·May	junior		
 bo-peep	15	alone	·Utter·Low·Owe·No	junior		
 bo-peep	16	and	·No	junior		
-bo-peep	17	they'll	·They·Eight’·Low	differs	·They·Eight·Low	Read writes the apostrophe inside the word; a spelling comes from the IPA alone and carries no apostrophe, however ReadLex's own Latin is written
+bo-peep	17	they'll	·They·Eight’·Low	differs	·They·Eight·Low	Read writes the apostrophe inside the word; a spelling comes from the IPA alone and carries no apostrophe, however ReadLex’s own Latin is written
 bo-peep	18	come	·Key·Utter·May	junior		
 bo-peep	19	home	·He·Owe·May	junior		
-bo-peep	20	bringing	·Bay·Roe·It·Oolong·It·Oolong	differs	·Bay·Roe·It·Oolong·Oolong	Junior does not use the -ing terminal: 'these Senior facilities are of course impossible as a first stage in children's writing' (§ Note). The junior column applies the affix rules all the same, per #3
+bo-peep	20	bringing	·Bay·Roe·It·Oolong·It·Oolong	differs	·Bay·Roe·It·Oolong·Oolong	Junior does not use the -ing terminal: ‘these Senior facilities are of course impossible as a first stage in children’s writing’ (§ Note). The junior column applies the affix rules all the same, per #3
 bo-peep	21	their	·They·Eight·Roe	junior		
 bo-peep	22	tails	·Tea·Eight·Low·Zoo	junior		
 bo-peep	23	behind	·Bay·It·He·I·No·Day	junior		
@@ -573,7 +573,7 @@ jack-horner	3	sat	·See·At·Tea	junior
 jack-horner	4	in	·It·No	junior		
 jack-horner	5	his	·He·It·Zoo	junior		
 jack-horner	6	corner	·Key·Awe·Roe·No·Utter·Roe	junior		
-jack-horner	7	eating	·Eat·Tea·It·Oolong	differs	·Eat·Tea·Oolong	Junior does not use the -ing terminal: 'these Senior facilities are of course impossible as a first stage in children's writing' (§ Note). The junior column applies the affix rules all the same, per #3
+jack-horner	7	eating	·Eat·Tea·It·Oolong	differs	·Eat·Tea·Oolong	Junior does not use the -ing terminal: ‘these Senior facilities are of course impossible as a first stage in children’s writing’ (§ Note). The junior column applies the affix rules all the same, per #3
 jack-horner	8	his	·He·It·Zoo	junior		
 jack-horner	9	christmas	·Key·Roe·It·See·May·Utter·See	junior		
 jack-horner	10	pie	·Pea·I	junior		
@@ -638,7 +638,7 @@ marys-lamb	8	white	·Why·I·Tea	junior
 marys-lamb	9	as	·At·Zoo	junior		
 marys-lamb	10	snow	·See·No·Owe	junior		
 marys-lamb	11	and	·No	junior		
-marys-lamb	12	everywhere	·Et·Vie·Roe·It·Why·Eight·Roe	differs	·Et·Vie·Roe·It·Way·Eight·Roe	Read writes the -where of everywhere with ·Why; ReadLex's ˈevrɪweə has plain w
+marys-lamb	12	everywhere	·Et·Vie·Roe·It·Why·Eight·Roe	differs	·Et·Vie·Roe·It·Way·Eight·Roe	Read writes the -where of everywhere with ·Why; ReadLex’s ˈevrɪweə has plain w
 marys-lamb	13	that	·They·At·Tea	junior		
 marys-lamb	14	mary	·May·Eight·Roe·It	junior		
 marys-lamb	15	went	·Way·Et·No·Tea	junior		

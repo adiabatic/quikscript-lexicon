@@ -335,7 +335,7 @@ def test_a_constructed_ful_splits_on_the_part_of_speech(t: Transliterator) -> No
     assert adjective == qs("·Roe·Eight·Jay·Fee·Utter·Low") + "⚠️"
 
 
-# --- words that change before "to" --------------------------------------------
+# --- words that change before “to” --------------------------------------------
 
 
 def test_have_to_devoices_before_an_infinitive(t: Transliterator) -> None:
@@ -388,7 +388,7 @@ def test_a_pseudo_tag_gains_no_closing_tag(t: Transliterator) -> None:
     assert convert(t, "a <xyzzy> b") == qs("·Utter") + " <xyzzy✢> ·" + qs("·Bay·Eat")
 
 
-# --- the Manual's specimen passages -------------------------------------------
+# --- the Manual’s specimen passages -------------------------------------------
 
 # Rows the replay cannot reproduce, each for a reason the layers own: the fixture cannot record a leading apostrophe, a phrase match hides a word from the word-level contraction layer, Read contracts beyond his own list, and the row policy keeps both RRPVar pronunciations of against.
 REPLAY_PINS = {

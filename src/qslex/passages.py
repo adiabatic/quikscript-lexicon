@@ -66,9 +66,9 @@ class PassageWord:
 
 
 def load_passages(path: Path | None = None) -> tuple[PassageWord, ...]:
-    """The Manual's specimen passages, word by word, with each word's verdict.
+    """The Manual’s specimen passages, word by word, with each word’s verdict.
 
-    A verdict names the column that reproduces the Manual's spelling, or says why nothing does: `contraction` where Read reached for one of the contractions `contractions.tsv` carries, under either of its Manual anchors, which this lexicon applies to no column; `absent` where ReadLex has no entry for the word at all; `differs` where the two genuinely disagree, in which case the row pins what this lexicon produces so that the disagreement cannot drift unnoticed.
+    A verdict names the column that reproduces the Manual’s spelling, or says why nothing does: `contraction` where Read reached for one of the contractions `contractions.tsv` carries, under either of its Manual anchors, which this lexicon applies to no column; `absent` where ReadLex has no entry for the word at all; `differs` where the two genuinely disagree, in which case the row pins what this lexicon produces so that the disagreement cannot drift unnoticed.
     """
     words: list[PassageWord] = []
     last: dict[str, int] = {}

@@ -77,7 +77,7 @@ EXPECTED_TOKEN_COUNTS = {
     ("aʊə", "no-r"): 51,
 }
 
-# Rows each orthographic rule actually rewrites, counted over the rows the lexicon spells rather than over the whole corpus. Eleven of the Manual's rules are satisfied by ReadLex's IPA already and ship as normalisers, so a zero here is a statement, not a bug: it says the corpus never contradicts that rule.
+# Rows each orthographic rule actually rewrites, counted over the rows the lexicon spells rather than over the whole corpus. Eleven of the Manual’s rules are satisfied by ReadLex’s IPA already and ship as normalisers, so a zero here is a statement, not a bug: it says the corpus never contradicts that rule.
 EXPECTED_RULE_CHANGES: dict[str, int] = {
     "terminal-es-ed": 7681,
     "terminal-ing": 10976,
@@ -108,7 +108,7 @@ EXPECTED_RULE_CHANGES: dict[str, int] = {
     "terminal-en-on": 25,
 }
 
-# Rows each word sign or standard outline rewrites, again over the rows the lexicon spells. Most of the Manual's Common words are already what ReadLex's IPA gives, and five of the core eight arrive as upstream's own Ð/T/N/V/F capitals, so a zero here says the corpus agrees with the Manual rather than that the row is idle. Counts include the word inside a phrase entry.
+# Rows each word sign or standard outline rewrites, again over the rows the lexicon spells. Most of the Manual’s Common words are already what ReadLex’s IPA gives, and five of the core eight arrive as upstream’s own Ð/T/N/V/F capitals, so a zero here says the corpus agrees with the Manual rather than that the row is idle. Counts include the word inside a phrase entry.
 EXPECTED_SIGN_CHANGES: dict[str, int] = {
     "'twas": 1,
     "after": 5,
@@ -201,9 +201,9 @@ def passages(
     spellings: dict[str, dict[tuple[str, str], set[str]]],
     contractions: tuple[Contraction, ...],
 ) -> list[str]:
-    """Hold every word of the Manual's specimen passages to what the lexicon spells.
+    """Hold every word of the Manual’s specimen passages to what the lexicon spells.
 
-    The passages are the one place the Manual writes running text rather than a rule's example, so they are the only fixture that exercises the word signs, the terminals and the segment mapping together, in the proportions English actually uses them.
+    The passages are the one place the Manual writes running text rather than a rule’s example, so they are the only fixture that exercises the word signs, the terminals and the segment mapping together, in the proportions English actually uses them.
     """
     failures: list[str] = []
     by_word = by_latin(spellings)
@@ -241,7 +241,7 @@ def passages(
                 ours = " / ".join(sorted(columns.get(word.columns[0], set())))
                 if ours != word.ours:
                     failures.append(
-                        f"{where} pins {word.ours} against the Manual's "
+                        f"{where} pins {word.ours} against the Manual’s "
                         f"{word.spelling}, but the lexicon now spells {ours}"
                     )
         elif word.spelling not in columns.get(word.verdict, set()):
@@ -791,11 +791,11 @@ def main(argv: list[str] | None = None) -> int:
             f"expected {EXPECTED_MANUAL_ABSENT}"
         )
 
-    print("\nthe Manual's own lint, re-derived and run over every spelt row:")
+    print("\nthe Manual’s own lint, re-derived and run over every spelt row:")
     for check in CHECKS:
         broken = lint_hits.get(check.id, 0)
         excused = sum(1 for key in pragmas if key[0] == check.id)
-        print(f"  {check.id:34} {broken:5} broken, {excused:3} pragma'd")
+        print(f"  {check.id:34} {broken:5} broken, {excused:3} pragma’d")
         for line in lint_examples[check.id]:
             print(f"      {line}")
         if broken:

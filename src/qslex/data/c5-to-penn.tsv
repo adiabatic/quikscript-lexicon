@@ -12,20 +12,20 @@ NN0	NN	upstream	number-neutral noun, folded onto NN with NN1
 NN1	NN	upstream	singular noun
 NN2	NNS	upstream	plural noun
 NP0	NNP	upstream	proper noun
-ORD	JJ	upstream	ordinal; Penn CD is for cardinals, and reproducing upstream's file forces JJ rather than CD
+ORD	JJ	upstream	ordinal; Penn CD is for cardinals, and reproducing upstream’s file forces JJ rather than CD
 PNP	PRP	upstream	personal pronoun
 PNQ	WP	upstream	wh-pronoun
 PRP	IN	upstream	preposition
-UNC	FW	upstream	unclassified, which reproducing upstream's file forces to foreign word
+UNC	FW	upstream	unclassified, which reproducing upstream’s file forces to foreign word
 VBB	VBP	upstream	base present of BE
-VDB	VBP	standard	base present of DO; upstream's file cannot separate it from VDI, whose spellings are identical throughout
-VDI	VB	standard	infinitive of DO; upstream's file cannot separate it from VDB
+VDB	VBP	standard	base present of DO; upstream’s file cannot separate it from VDI, whose spellings are identical throughout
+VDI	VB	standard	infinitive of DO; upstream’s file cannot separate it from VDB
 VDZ	VBZ	upstream	-s form of DO
 VM0	MD	upstream	modal
-VVB	VBP	standard	base present; upstream's file cannot separate it from VVI, whose spellings are identical throughout
-VVD	VBD	standard	past tense; upstream's file cannot separate it from VVN
+VVB	VBP	standard	base present; upstream’s file cannot separate it from VVI, whose spellings are identical throughout
+VVD	VBD	standard	past tense; upstream’s file cannot separate it from VVN
 VVG	VBG	upstream	-ing form
-VVI	VB	standard	infinitive; upstream's file cannot separate it from VVB
-VVN	VBN	standard	past participle; upstream's file cannot separate it from VVD
+VVI	VB	standard	infinitive; upstream’s file cannot separate it from VVB
+VVN	VBN	standard	past participle; upstream’s file cannot separate it from VVD
 VVZ	VBZ	upstream	-s form
 ZZ0	SYM	upstream	alphabetical symbol

@@ -4,7 +4,7 @@ from qslex.letters import parse
 from qslex.mapping import Mapping
 from qslex.tokenizer import Token
 
-# The merges the segment mapping makes on the way in, undone on the way out. Each is documented where it is made: the capitals are ReadLex's own conventions, ʌ/ə/ɜː share ·Utter under Vowels + R, and i/u are the weak-vowel spellings the terminal rules use.
+# The merges the segment mapping makes on the way in, undone on the way out. Each is documented where it is made: the capitals are ReadLex’s own conventions, ʌ/ə/ɜː share ·Utter under Vowels + R, and i/u are the weak-vowel spellings the terminal rules use.
 MERGES = {
     "ʌ": "ə",
     "ɜː": "ə",
@@ -22,7 +22,7 @@ MERGES = {
     "F": "f",
 }
 
-# The mapping's sequence rows cover two phonemes with one row, so the reverse has to know they are two.
+# The mapping’s sequence rows cover two phonemes with one row, so the reverse has to know they are two.
 SEQUENCES = {
     "ɪə": ("ɪ", "ə"),
     "eə": ("e", "ə"),
@@ -93,7 +93,7 @@ def phonemes_of(mapping: Mapping) -> dict[str, tuple[str, ...]]:
 
 
 def source_phonemes(tokens: tuple[Token, ...]) -> tuple[str, ...]:
-    """What ReadLex said, as a phoneme string with the mapping's merges applied."""
+    """What ReadLex said, as a phoneme string with the mapping’s merges applied."""
     out: list[str] = []
     for token in tokens:
         if token.entry.kind in {"marker", "structural", "hiatus"}:

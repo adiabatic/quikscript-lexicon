@@ -6,7 +6,7 @@ cannot	tokenizer-split	a documented spaCy tokenizer exception, split into can + 
 gonna	tokenizer-split	a documented spaCy tokenizer exception, split into gon + na
 gotta	tokenizer-split	a documented spaCy tokenizer exception, split into got + ta
 wanna	tokenizer-split	a documented spaCy tokenizer exception, split into wan + na
-dunno	tokenizer-split	carried by upstream's list, which is the only evidence that spaCy splits it
+dunno	tokenizer-split	carried by upstream’s list, which is the only evidence that spaCy splits it
 ferriers	tokenizer-split	as dunno
 haint	tokenizer-split	as dunno
 oughter	tokenizer-split	as dunno

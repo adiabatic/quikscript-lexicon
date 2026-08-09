@@ -27,11 +27,11 @@ uv run python -m qslex.latin2qs < input.txt                    # Senior
 uv run python -m qslex.latin2qs --mode x --contractions in.txt # X-letters + §III contractions
 ```
 
-spaCy tokenizes and tags, the master supplies the spellings, the part of speech settles the heteronyms, and the Manual's conventions govern namer dots, apostrophes and punctuation. Words the lexicon lacks are constructed from affixes and flagged ⚠️, or passed through flagged ✢. The spec, the output modes and every deliberate departure from upstream's `latin2shaw.py` are in [`docs/latin2qs.md`](docs/latin2qs.md).
+spaCy tokenizes and tags, the master supplies the spellings, the part of speech settles the heteronyms, and the Manual’s conventions govern namer dots, apostrophes and punctuation. Words the lexicon lacks are constructed from affixes and flagged ⚠️, or passed through flagged ✢. The spec, the output modes and every deliberate departure from upstream’s `latin2shaw.py` are in [`docs/latin2qs.md`](docs/latin2qs.md).
 
 ## Desk
 
-[`site/index.html`](site/index.html) is the lexicon with a user interface on it: type Markdown in one pane, read it set in Quikscript in the other, and every Quikscript word the lexicon does not accept gets a dotted red underline you can click for suggestions that edit the source back, or to ignore that occurrence or the word from then on. A toggle button switches Junior/Senior, which swaps the face alone — the accepted set is always the whole lexicon plus the Manual's §III contractions, which no column carries.
+[`site/index.html`](site/index.html) is the lexicon with a user interface on it: type Markdown in one pane, read it set in Quikscript in the other, and every Quikscript word the lexicon does not accept gets a dotted red underline you can click for suggestions that edit the source back, or to ignore that occurrence or the word from then on. A toggle button switches Junior/Senior, which swaps the face alone — the accepted set is always the whole lexicon plus the Manual’s §III contractions, which no column carries.
 
 ```sh
 make site          # rewrite site/index.html

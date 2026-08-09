@@ -138,16 +138,16 @@ def sign_for(signs: Signs, word: str, pos: str) -> Sign | None:
 
 
 def _lookup(signs: Signs, part: str, pos: str, single: bool) -> Sign | None:
-    """A phrase entry's tag belongs to the phrase, so only general rows apply inside."""
+    """A phrase entry’s tag belongs to the phrase, so only general rows apply inside."""
     return sign_for(signs, part, pos) if single else signs.get((part, ""))
 
 
 def apply_signs(
     latin: str, pos: str, letters: Letters, signs: Signs
 ) -> tuple[Letters, Letters, tuple[str, ...], tuple[tuple[str, str], ...]]:
-    """Substitute the Manual's word signs and standard outlines into a spelling.
+    """Substitute the Manual’s word signs and standard outlines into a spelling.
 
-    A single-word entry consults its own part-of-speech tag; a phrase entry is matched word by word, at the boundaries `qslex.elements` finds. Nothing is substituted unless the Latin words and the spelling's runs are the same shape, which is what keeps to-day (one run, three Latin parts) and dhs (one Latin part, seven runs) intact. Both columns come out of one alignment, because a row with no junior form of its own writes its senior spelling into both. Returns the two spellings, the words the senior one changed, and the rows it consulted.
+    A single-word entry consults its own part-of-speech tag; a phrase entry is matched word by word, at the boundaries `qslex.elements` finds. Nothing is substituted unless the Latin words and the spelling’s runs are the same shape, which is what keeps to-day (one run, three Latin parts) and dhs (one Latin part, seven runs) intact. Both columns come out of one alignment, because a row with no junior form of its own writes its senior spelling into both. Returns the two spellings, the words the senior one changed, and the rows it consulted.
     """
     pairs = elements(latin, letters)
     if pairs is None:
