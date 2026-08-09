@@ -1,11 +1,6 @@
 """The Quikscript Desk page, projected from the lexicon like every artifact.
 
-site/index.html is generated, never hand-edited: the word set it checks against, the
-suggestion tables it offers, the fonts it renders in and the Markdown parser it runs
-are all inlined here from the committed master and the pinned vendored assets. That
-makes the page a single file that works from a file: URL with no request to anywhere,
-and it makes a page that disagrees with lexicon/ a freshness failure rather than a
-discovery.
+site/index.html is generated, never hand-edited: the word set it checks against, the suggestion tables it offers, the fonts it renders in and the Markdown parser it runs are all inlined here from the committed master and the pinned vendored assets. That makes the page a single file that works from a file: URL with no request to anywhere, and it makes a page that disagrees with lexicon/ a freshness failure rather than a discovery.
 """
 
 from __future__ import annotations
@@ -101,12 +96,7 @@ class Record:
 class Lexicon:
     """Everything the page checks a word against, derived from the master alone.
 
-    `listed` is what the hunspell dictionary carries — the three columns and nothing
-    else — and `union` is that plus the §III Senior contractions, which reach no
-    column but are correct writing all the same. Everything held against the shipped
-    `.dic` and `.aff` is held against `listed`; the one set the page checks against
-    is `union`. The Junior/Senior toggle swaps the face alone, so neither grade
-    needs a word set of its own.
+    `listed` is what the hunspell dictionary carries — the three columns and nothing else — and `union` is that plus the §III Senior contractions, which reach no column but are correct writing all the same. Everything held against the shipped `.dic` and `.aff` is held against `listed`; the one set the page checks against is `union`. The Junior/Senior toggle swaps the face alone, so neither grade needs a word set of its own.
     """
 
     listed: tuple[str, ...]
@@ -118,8 +108,7 @@ class Lexicon:
 class Coverage:
     """What the page carries, for the log.
 
-    Every number is pinned in tests/test_desk.py, so this is a convenience for
-    whoever is watching a change land rather than a check of its own.
+    Every number is pinned in tests/test_desk.py, so this is a convenience for whoever is watching a change land rather than a check of its own.
     """
 
     lexicon: Lexicon
@@ -145,9 +134,7 @@ def artifact(name: str, root: Path) -> str:
 def asset(name: Path, root: Path) -> bytes:
     """A vendored file's bytes, verified against the digest pinned above before use.
 
-    The page inlines every one of these, so a font or a parser that had drifted would
-    be baked into a generated file and shipped without a diff anyone could read.
-    Provenance for both directories is in their own READMEs.
+    The page inlines every one of these, so a font or a parser that had drifted would be baked into a generated file and shipped without a diff anyone could read. Provenance for both directories is in their own READMEs.
     """
     path = root / name
     if not path.is_file():
@@ -169,10 +156,7 @@ def asset(name: Path, root: Path) -> bytes:
 def load_records(root: Path) -> tuple[Record, ...]:
     """Every entry of the master, flattened in file order.
 
-    The committed JSON is read rather than the corpus respelt: the page is projected
-    from the artifact it ships beside, so a stale lexicon shows up as a stale page
-    rather than as a page that quietly checks against a different word set than the
-    hunspell dictionary next to it.
+    The committed JSON is read rather than the corpus respelt: the page is projected from the artifact it ships beside, so a stale lexicon shows up as a stale page rather than as a page that quietly checks against a different word set than the hunspell dictionary next to it.
     """
     master = json.loads(artifact(LEXICON_JSON, root))
     return tuple(
@@ -194,13 +178,7 @@ def contracted(
 ) -> tuple[tuple[str, Record], ...]:
     """Each §III Senior contraction written out, beside every row it stands for.
 
-    Only the `word` rows are taken. The two `clitic` rows stay out because neither
-    can ever be a token the page checks: `n't` attaches solid, so it is never written
-    on its own, and a bare `'ll` after an apostrophe is flagged here for the same
-    reason the dictionary flags it, the apostrophe being deliberately outside
-    `WORDCHARS` (docs/pipeline.md). A row's part-of-speech tag narrows the match to
-    the rows carrying that tag; where it carries none, every row for the headword
-    counts, and the rows are what the frequency the contraction inherits comes from.
+    Only the `word` rows are taken. The two `clitic` rows stay out because neither can ever be a token the page checks: `n't` attaches solid, so it is never written on its own, and a bare `'ll` after an apostrophe is flagged here for the same reason the dictionary flags it, the apostrophe being deliberately outside `WORDCHARS` (docs/pipeline.md). A row's part-of-speech tag narrows the match to the rows carrying that tag; where it carries none, every row for the headword counts, and the rows are what the frequency the contraction inherits comes from.
     """
     rows: dict[str, list[Record]] = {}
     for record in records:
@@ -228,15 +206,9 @@ def contracted(
 def derive(records: Iterable[Record], contractions: Iterable[Contraction]) -> Lexicon:
     """The one word set and the frequencies the page needs.
 
-    A spelling's frequency is the highest any row writing it carries, in any column:
-    an X-letter or junior form is the same word as the row's own spelling, so it
-    inherits that row's count rather than falling to zero and sorting last in a
-    suggestion list.
+    A spelling's frequency is the highest any row writing it carries, in any column: an X-letter or junior form is the same word as the row's own spelling, so it inherits that row's count rather than falling to zero and sorting last in a suggestion list.
 
-    The §III contractions join the union outright, which is what a Tier 2 facility
-    is (docs/word-signs.md): correct writing the checker accepts whichever face is
-    showing, never the spelling a column carries. Each takes the frequency of the
-    word it contracts, so the suggester ranks it as common as that word.
+    The §III contractions join the union outright, which is what a Tier 2 facility is (docs/word-signs.md): correct writing the checker accepts whichever face is showing, never the spelling a column carries. Each takes the frequency of the word it contracts, so the suggester ranks it as common as that word.
     """
     rows = tuple(records)
     matched = contracted(contractions, rows)
@@ -261,16 +233,9 @@ def derive(records: Iterable[Record], contractions: Iterable[Contraction]) -> Le
 def crosscheck(lexicon: Lexicon, root: Path) -> None:
     """The page's word set and its TRY order, held to the shipped hunspell files.
 
-    Both are re-derived here from the master rather than read out of the `.dic` and
-    the `.aff`, so that the page and the dictionary cannot disagree quietly. They are
-    the same two derivations `qslex.hunspell` makes for hunspell, so a mismatch means
-    one of the two artifacts is stale, not that the page wants a wider set.
+    Both are re-derived here from the master rather than read out of the `.dic` and the `.aff`, so that the page and the dictionary cannot disagree quietly. They are the same two derivations `qslex.hunspell` makes for hunspell, so a mismatch means one of the two artifacts is stale, not that the page wants a wider set.
 
-    What is held to the `.dic` is `listed`, the three columns alone. The page accepts
-    the §III contractions on top of that, and its letter order stays the `.aff`'s TRY
-    over the dictionary's own word set rather than one recounted over the wider one:
-    the suggester is walking hunspell's alphabet, and 68 more spellings would not
-    move it far enough to be worth two orders that have to be kept apart.
+    What is held to the `.dic` is `listed`, the three columns alone. The page accepts the §III contractions on top of that, and its letter order stays the `.aff`'s TRY over the dictionary's own word set rather than one recounted over the wider one: the suggester is walking hunspell's alphabet, and 68 more spellings would not move it far enough to be worth two orders that have to be kept apart.
     """
     lines = artifact(HUNSPELL_DIC, root).splitlines()
     count, words = lines[0], tuple(lines[1:])
@@ -296,10 +261,7 @@ def crosscheck(lexicon: Lexicon, root: Path) -> None:
 def word_list(lexicon: Lexicon) -> str:
     """The word set and its frequencies as one string, one spelling to a line.
 
-    A JSON object of 75,649 short keys is several hundred kilobytes of quoting and
-    punctuation in a file that is fetched whole; a tab-separated block costs one
-    split at startup and nothing else. The frequency is left off where it is zero,
-    which is most of the list.
+    A JSON object of 75,649 short keys is several hundred kilobytes of quoting and punctuation in a file that is fetched whole; a tab-separated block costs one split at startup and nothing else. The frequency is left off where it is zero, which is most of the list.
     """
     return "\n".join(
         f"{word}\t{lexicon.frequency[word]}" if lexicon.frequency[word] else word
@@ -310,9 +272,7 @@ def word_list(lexicon: Lexicon) -> str:
 def replacements() -> tuple[tuple[str, str], ...]:
     """Each X-letter bridged to the letter pair it stands for, both ways.
 
-    The table the `.aff` writes as REP, and for the same reason: the letters around an
-    X-letter change with it, so neither form of a word is a single-letter edit from
-    the other and no edit-distance suggester alone will turn it up.
+    The table the `.aff` writes as REP, and for the same reason: the letters around an X-letter change with it, so neither form of a word is a single-letter edit from the other and no edit-distance suggester alone will turn it up.
     """
     return tuple(
         (written, meant)
@@ -324,13 +284,7 @@ def replacements() -> tuple[tuple[str, str], ...]:
 def confusions() -> tuple[str, ...]:
     """The letter groups a writer mistakes within, one group to a string.
 
-    A phonemic script invites a particular misspelling: the right consonant skeleton
-    around the wrong vowel, because the writer heard a vowel the accent or the schwa
-    reduced to something else. So the suggester offers a candidate that stays inside
-    a group ahead of every other single edit, however rare the word — a frequency
-    rank alone buries a common word's contraction under consonant swaps that happen
-    to be commoner. The vowels are the one group so far; a set of frequently
-    confused consonants would be one more string here, sorted the same way.
+    A phonemic script invites a particular misspelling: the right consonant skeleton around the wrong vowel, because the writer heard a vowel the accent or the schwa reduced to something else. So the suggester offers a candidate that stays inside a group ahead of every other single edit, however rare the word — a frequency rank alone buries a common word's contraction under consonant swaps that happen to be commoner. The vowels are the one group so far; a set of frequently confused consonants would be one more string here, sorted the same way.
     """
     return ("".join(sorted(chr(CODEPOINT_OF[name]) for name in VOWELS)),)
 
@@ -345,10 +299,7 @@ def variants(word: str) -> tuple[str, ...]:
 def sample(records: Iterable[Record], lexicon: Lexicon) -> str:
     """The document the page opens with, built from the lexicon rather than typed.
 
-    Every Quikscript spelling in it is looked up by (Latn, pos), so the sample cannot
-    quietly stop being spelt the way the lexicon spells it. The one misspelling is
-    the first candidate variant of the first sample word that the word set rejects,
-    so the page opens with exactly one underline and something to click.
+    Every Quikscript spelling in it is looked up by (Latn, pos), so the sample cannot quietly stop being spelt the way the lexicon spells it. The one misspelling is the first candidate variant of the first sample word that the word set rejects, so the page opens with exactly one underline and something to click.
     """
     spelt = {(row.latin.lower(), row.pos): row.qs for row in records}
     missing = [key for key in SAMPLE_WORDS if not spelt.get(key)]
@@ -366,8 +317,7 @@ def sample(records: Iterable[Record], lexicon: Lexicon) -> str:
 def payload(lexicon: Lexicon) -> str:
     """Everything the page's JavaScript reads, as one JSON object.
 
-    Sorted keys and a list of pairs for the replacement table, so that a rebuilt
-    page differs only where the lexicon did.
+    Sorted keys and a list of pairs for the replacement table, so that a rebuilt page differs only where the lexicon did.
     """
     data = {
         "confusions": list(confusions()),
@@ -385,9 +335,7 @@ def data_uri(raw: bytes) -> str:
 def substitute(text: str, chunks: Mapping[str, str]) -> str:
     """Every placeholder filled, and nothing that could close the script it sits in.
 
-    A chunk carrying `</script` would end its own element wherever the browser's
-    tokenizer found the string, so the page would truncate quietly rather than fail
-    to build. None of the inputs contains one; this is what keeps it that way.
+    A chunk carrying `</script` would end its own element wherever the browser's tokenizer found the string, so the page would truncate quietly rather than fail to build. None of the inputs contains one; this is what keeps it that way.
     """
     for token, chunk in chunks.items():
         if CLOSING_SCRIPT in chunk.lower():

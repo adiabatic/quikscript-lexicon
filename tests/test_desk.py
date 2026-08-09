@@ -133,10 +133,7 @@ def test_the_page_carries_the_dictionary_and_the_senior_contractions() -> None:
 def test_the_contractions_the_dictionary_already_lists_widen_nothing() -> None:
     """Six of the 74 are spellings the columns carry anyway, for six reasons.
 
-    be and that are Manual word signs the senior column already writes, cannot is
-    spelt as the list spells it, and do, think and she collide with an unrelated
-    entry each — the ordinals nd/rd and th, and the interjection sh. Set arithmetic
-    gets all six right; a count of rows would not.
+    be and that are Manual word signs the senior column already writes, cannot is spelt as the list spells it, and do, think and she collide with an unrelated entry each — the ordinals nd/rd and th, and the interjection sh. Set arithmetic gets all six right; a count of rows would not.
     """
     assert len(CONTRACTED & frozenset(LEXICON.listed)) == 6
     assert len(LEXICON.union) - len(LEXICON.listed) == 68
@@ -302,11 +299,7 @@ def test_check_fails_on_a_page_that_has_been_edited(
 def written(tmp_path_factory: pytest.TempPathFactory) -> Path:
     """This module's own build, on disk where node can read it.
 
-    A fresh build rather than the committed `site/index.html`, so that the page's
-    JavaScript is held to what the builder emits now: whether what is committed
-    matches that is `--check`'s question, and the tests above already ask it. It also
-    keeps a test run from depending on `make site` having been run, or from leaving
-    anything behind in the tree.
+    A fresh build rather than the committed `site/index.html`, so that the page's JavaScript is held to what the builder emits now: whether what is committed matches that is `--check`'s question, and the tests above already ask it. It also keeps a test run from depending on `make site` having been run, or from leaving anything behind in the tree.
     """
     out = tmp_path_factory.mktemp(SITE) / PAGE
     out.write_text(BUILT, encoding="utf-8", newline="\n")
@@ -316,9 +309,7 @@ def written(tmp_path_factory: pytest.TempPathFactory) -> Path:
 def under_node(script: str, *arguments: Path) -> str:
     """A JavaScript test file run to the end, with everything it said on failure.
 
-    node exits non-zero on the first failed assertion and each file logs the checks
-    that had passed before it, so the report pytest prints is the same one the file
-    prints when it is run by hand.
+    node exits non-zero on the first failed assertion and each file logs the checks that had passed before it, so the report pytest prints is the same one the file prints when it is run by hand.
     """
     assert NODE is not None
     finished = subprocess.run(

@@ -11,10 +11,7 @@ TAGS_FILE = "var-tags.tsv"
 TAGS_HEADER = ["tag", "canonical", "policy", "rows", "words", "note"]
 POLICIES = {"keep", "drop"}
 
-# The four tags upstream's README and data model actually sanction. Anything else is a
-# defect, so it has to enumerate the words it touches: that bounds the damage, gives
-# the upstream report its row list, and makes an upstream fix show up here as a rule
-# that stopped matching rather than as a silent change of contents.
+# The four tags upstream's README and data model actually sanction. Anything else is a defect, so it has to enumerate the words it touches: that bounds the damage, gives the upstream report its row list, and makes an upstream fix show up here as a rule that stopped matching rather than as a silent change of contents.
 DOCUMENTED = frozenset({"RRP", "TrapBath", "GenAm", "GenAus"})
 
 
@@ -80,8 +77,7 @@ def load_var_tags(path: Path | None = None) -> Tags:
 def kept(tags: Tags, tag: str) -> bool:
     """Whether a row wearing this tag belongs to the RRP family the lexicon spells.
 
-    A tag and the tag it normalises to are forbidden to disagree on policy, so the row's
-    own policy is the canonical one.
+    A tag and the tag it normalises to are forbidden to disagree on policy, so the row's own policy is the canonical one.
     """
     entry = tags.get(tag)
     if entry is None:

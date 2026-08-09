@@ -1,13 +1,8 @@
 """The shipped tables, the corpus and the artifacts, built once for the whole session.
 
-Every module that spells a word wants the same tables and the same rows, and holding
-them per module read readlex.json once per module. The artifacts are here for the same
-reason: more than one module reads them, and spelling the corpus twice is the most
-expensive thing the suite could do.
+Every module that spells a word wants the same tables and the same rows, and holding them per module read readlex.json once per module. The artifacts are here for the same reason: more than one module reads them, and spelling the corpus twice is the most expensive thing the suite could do.
 
-Spelling it even once is expensive enough to be worth deferring, so the artifacts are
-cached factories rather than constants. Every module pays for the tables on import;
-only the two that read the build pay to run it.
+Spelling it even once is expensive enough to be worth deferring, so the artifacts are cached factories rather than constants. Every module pays for the tables on import; only the two that read the build pay to run it.
 """
 
 import functools

@@ -77,10 +77,7 @@ EXPECTED_TOKEN_COUNTS = {
     ("aʊə", "no-r"): 51,
 }
 
-# Rows each orthographic rule actually rewrites, counted over the rows the lexicon
-# spells rather than over the whole corpus. Eleven of the Manual's rules are satisfied
-# by ReadLex's IPA already and ship as normalisers, so a zero here is a statement, not a
-# bug: it says the corpus never contradicts that rule.
+# Rows each orthographic rule actually rewrites, counted over the rows the lexicon spells rather than over the whole corpus. Eleven of the Manual's rules are satisfied by ReadLex's IPA already and ship as normalisers, so a zero here is a statement, not a bug: it says the corpus never contradicts that rule.
 EXPECTED_RULE_CHANGES: dict[str, int] = {
     "terminal-es-ed": 7681,
     "terminal-ing": 10976,
@@ -111,11 +108,7 @@ EXPECTED_RULE_CHANGES: dict[str, int] = {
     "terminal-en-on": 25,
 }
 
-# Rows each word sign or standard outline rewrites, again over the rows the lexicon
-# spells. Most of the Manual's Common words are already what ReadLex's IPA gives, and
-# five of the core eight arrive as upstream's own Ð/T/N/V/F capitals, so a zero here
-# says the corpus agrees with the Manual rather than that the row is idle. Counts
-# include the word inside a phrase entry.
+# Rows each word sign or standard outline rewrites, again over the rows the lexicon spells. Most of the Manual's Common words are already what ReadLex's IPA gives, and five of the core eight arrive as upstream's own Ð/T/N/V/F capitals, so a zero here says the corpus agrees with the Manual rather than that the row is idle. Counts include the word inside a phrase entry.
 EXPECTED_SIGN_CHANGES: dict[str, int] = {
     "'twas": 1,
     "after": 5,
@@ -134,20 +127,13 @@ EXPECTED_SIGN_CHANGES: dict[str, int] = {
     "wasn't": 2,
 }
 
-# Rows whose Junior spelling diverges from the Senior one: non-demonstrative that,
-# the standard outlines that reduce a vowel ReadLex writes in full — was among them
-# both on its own and inside the two contractions that leave it no boundary — and
-# the rows terminal-nt rewrites, whose linking vowel the junior column keeps.
+# Rows whose Junior spelling diverges from the Senior one: non-demonstrative that, the standard outlines that reduce a vowel ReadLex writes in full — was among them both on its own and inside the two contractions that leave it no boundary — and the rows terminal-nt rewrites, whose linking vowel the junior column keeps.
 EXPECTED_JUNIOR_DIVERGENCES = 27
 
-# Words the Manual spells out that ReadLex has no entry for, so the fixture records
-# them without being able to reproduce them.
+# Words the Manual spells out that ReadLex has no entry for, so the fixture records them without being able to reproduce them.
 EXPECTED_MANUAL_ABSENT = 2
 
-# What the round trip finds when it reads every shipped spelling back to a phoneme
-# string and lays it beside the IPA it came from. Every difference is one of the
-# `EDITS` the mapping and the conventions license, and each is pinned here, so a rule
-# that starts eliding a vowel it has no business eliding shows up as a count that moved.
+# What the round trip finds when it reads every shipped spelling back to a phoneme string and lays it beside the IPA it came from. Every difference is one of the `EDITS` the mapping and the conventions license, and each is pinned here, so a rule that starts eliding a vowel it has no business eliding shows up as a count that moved.
 EXPECTED_ROUNDTRIP_EDITS: dict[tuple[str, str], int] = {
     ("ə", ""): 19527,
     ("ɪ", ""): 11243,
@@ -166,8 +152,7 @@ EXPECTED_ROUNDTRIP_EDITS: dict[tuple[str, str], int] = {
 # Spellings that read straight back to their own IPA, with nothing elided or levelled.
 EXPECTED_ROUNDTRIP_IDENTICAL = 76618
 
-# A word sign or standard outline stands for the written word rather than for its
-# sounds, so a row one rewrites has nothing to read back.
+# A word sign or standard outline stands for the written word rather than for its sounds, so a row one rewrites has nothing to read back.
 EXPECTED_ROUNDTRIP_SKIPPED = 37
 
 FORBIDDEN_RAW_PATTERNS = {
@@ -218,9 +203,7 @@ def passages(
 ) -> list[str]:
     """Hold every word of the Manual's specimen passages to what the lexicon spells.
 
-    The passages are the one place the Manual writes running text rather than a rule's
-    example, so they are the only fixture that exercises the word signs, the terminals
-    and the segment mapping together, in the proportions English actually uses them.
+    The passages are the one place the Manual writes running text rather than a rule's example, so they are the only fixture that exercises the word signs, the terminals and the segment mapping together, in the proportions English actually uses them.
     """
     failures: list[str] = []
     by_word = by_latin(spellings)

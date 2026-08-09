@@ -27,8 +27,7 @@ def rows_of(
 ) -> Iterator[tuple[int, str, list[str]]]:
     """Every data row of one of this project's TSV tables, in file order.
 
-    A row comes with the line number and the source name its loader needs to say where
-    a bad row is, so that every table reports a defect the same way.
+    A row comes with the line number and the source name its loader needs to say where a bad row is, so that every table reports a defect the same way.
     """
     with open_data(path, name) as (f, source):
         reader = csv.reader(f, delimiter="\t")

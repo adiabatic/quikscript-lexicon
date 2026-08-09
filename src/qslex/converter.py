@@ -18,13 +18,7 @@ REASONS = {"html-entity", "tokenizer-split"}
 FALLBACK = "0"
 JOIN = "⬌"
 
-# The Penn tags a row may name, and the order the tagged rows are written in. Proper
-# nouns come first on purpose: a consumer that falls back from NNP to the NN row —
-# which is what latin2shaw.py does — reaches that fallback before the exact NNP row if
-# NN is written first, so upstream's own file makes the proper-noun spelling of august,
-# derby, reading, slough and 23 others unreachable. Everything after NNP is
-# alphabetical, because nothing else needs an opinion and an arbitrary order would only
-# invite one.
+# The Penn tags a row may name, and the order the tagged rows are written in. Proper nouns come first on purpose: a consumer that falls back from NNP to the NN row — which is what latin2shaw.py does — reaches that fallback before the exact NNP row if NN is written first, so upstream's own file makes the proper-noun spelling of august, derby, reading, slough and 23 others unreachable. Everything after NNP is alphabetical, because nothing else needs an opinion and an arbitrary order would only invite one.
 PROPER_NOUN = "NNP"
 PENN_TAGS = frozenset(
     {
@@ -75,11 +69,7 @@ class ConverterError(ValueError):
 def load_penn(path: Path | None = None) -> dict[str, TagMap]:
     """C5 to Penn Treebank, for the transliterator's part-of-speech lookup.
 
-    Only heteronyms consult this: a word with one spelling needs no tagged row, so most
-    of the corpus's 104 C5 tags never need a Penn equivalent and none is invented for
-    them. The `upstream` rows are the ones forced by reproducing readlex_converter.json
-    exactly; the `standard` rows are pairs upstream's file cannot separate, or does not
-    reach, where the conventional correspondence is used and said to be used.
+    Only heteronyms consult this: a word with one spelling needs no tagged row, so most of the corpus's 104 C5 tags never need a Penn equivalent and none is invented for them. The `upstream` rows are the ones forced by reproducing readlex_converter.json exactly; the `standard` rows are pairs upstream's file cannot separate, or does not reach, where the conventional correspondence is used and said to be used.
     """
     known: dict[str, TagMap] = {}
     for lineno, source, row in rows_of(path, PENN_FILE, PENN_HEADER):
@@ -155,10 +145,7 @@ def converter(
 ) -> dict[str, list[dict[str, str]]]:
     """Latin to spellings, keyed for the transliterator rather than for a reader.
 
-    Tagged rows are written only where they can settle something: a word needs both
-    more than one spelling and more than one Penn tag before a part of speech can
-    choose between them. The `0` row is the universal fallback and is always written
-    last, because the consumer takes the first row that matches.
+    Tagged rows are written only where they can settle something: a word needs both more than one spelling and more than one Penn tag before a part of speech can choose between them. The `0` row is the universal fallback and is always written last, because the consumer takes the first row that matches.
     """
     grouped: dict[str, list[tuple[str, str, str, str]]] = {}
     for latin, pos, senior, junior, x_letter in entries:
@@ -193,10 +180,7 @@ def converter(
 def _composes(entry: str, fallback: dict[str, str]) -> bool:
     """Whether spelling the pieces separately spells the whole entry.
 
-    An entry that does not compose has to be matched as one unit before the text is
-    tokenized, because tokenizing it first would spell its pieces and get a different
-    answer. A single word with an apostrophe never composes: the tokenizer splits the
-    clitic off, and no lexicon entry covers the halves.
+    An entry that does not compose has to be matched as one unit before the text is tokenized, because tokenizing it first would spell its pieces and get a different answer. A single word with an apostrophe never composes: the tokenizer splits the clitic off, and no lexicon entry covers the halves.
     """
     pieces = components(entry)
     if len(pieces) == 1:

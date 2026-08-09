@@ -147,13 +147,7 @@ def apply_signs(
 ) -> tuple[Letters, Letters, tuple[str, ...], tuple[tuple[str, str], ...]]:
     """Substitute the Manual's word signs and standard outlines into a spelling.
 
-    A single-word entry consults its own part-of-speech tag; a phrase entry is matched
-    word by word, at the boundaries `qslex.elements` finds. Nothing is substituted
-    unless the Latin words and the spelling's runs are the same shape, which is what
-    keeps to-day (one run, three Latin parts) and dhs (one Latin part, seven runs)
-    intact. Both columns come out of one alignment, because a row with no junior form
-    of its own writes its senior spelling into both. Returns the two spellings, the
-    words the senior one changed, and the rows it consulted.
+    A single-word entry consults its own part-of-speech tag; a phrase entry is matched word by word, at the boundaries `qslex.elements` finds. Nothing is substituted unless the Latin words and the spelling's runs are the same shape, which is what keeps to-day (one run, three Latin parts) and dhs (one Latin part, seven runs) intact. Both columns come out of one alignment, because a row with no junior form of its own writes its senior spelling into both. Returns the two spellings, the words the senior one changed, and the rows it consulted.
     """
     pairs = elements(latin, letters)
     if pairs is None:

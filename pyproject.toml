@@ -17,8 +17,7 @@ build-backend = "uv_build"
 [project.optional-dependencies]
 translit = [
     "spacy>=3.8.7",
-    # spaCy imports click directly but only declares typer, which stopped
-    # depending on click in 0.27
+    # spaCy imports click directly but only declares typer, which stopped depending on click in 0.27
     "click>=8.1",
     "en-core-web-sm",
     "smartypants>=2.0.1",
@@ -42,6 +41,8 @@ line-length = 88
 
 [tool.ruff.lint]
 select = ["E", "F", "I", "UP", "B", "SIM"]
+# Prose is not hard-wrapped; the formatter still holds code to line-length.
+ignore = ["E501"]
 
 [tool.ruff.lint.isort]
 known-local-folder = ["conftest", "tsv"]

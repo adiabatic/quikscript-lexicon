@@ -390,10 +390,7 @@ def test_a_pseudo_tag_gains_no_closing_tag(t: Transliterator) -> None:
 
 # --- the Manual's specimen passages -------------------------------------------
 
-# Rows the replay cannot reproduce, each for a reason the layers own: the
-# fixture cannot record a leading apostrophe, a phrase match hides a word from
-# the word-level contraction layer, Read contracts beyond his own list, and
-# the row policy keeps both RRPVar pronunciations of against.
+# Rows the replay cannot reproduce, each for a reason the layers own: the fixture cannot record a leading apostrophe, a phrase match hides a word from the word-level contraction layer, Read contracts beyond his own list, and the row policy keeps both RRPVar pronunciations of against.
 REPLAY_PINS = {
     ("parental-advice", 11): "·Low·It·Tea·Low",
     ("gown-shop", 24): "·Why·Et·Vie",

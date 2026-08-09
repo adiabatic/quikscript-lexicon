@@ -4,9 +4,7 @@ from qslex.letters import parse
 from qslex.mapping import Mapping
 from qslex.tokenizer import Token
 
-# The merges the segment mapping makes on the way in, undone on the way out. Each is
-# documented where it is made: the capitals are ReadLex's own conventions, ʌ/ə/ɜː share
-# ·Utter under Vowels + R, and i/u are the weak-vowel spellings the terminal rules use.
+# The merges the segment mapping makes on the way in, undone on the way out. Each is documented where it is made: the capitals are ReadLex's own conventions, ʌ/ə/ɜː share ·Utter under Vowels + R, and i/u are the weak-vowel spellings the terminal rules use.
 MERGES = {
     "ʌ": "ə",
     "ɜː": "ə",
@@ -24,8 +22,7 @@ MERGES = {
     "F": "f",
 }
 
-# The mapping's sequence rows cover two phonemes with one row, so the reverse has to
-# know they are two.
+# The mapping's sequence rows cover two phonemes with one row, so the reverse has to know they are two.
 SEQUENCES = {
     "ɪə": ("ɪ", "ə"),
     "eə": ("e", "ə"),
@@ -34,17 +31,12 @@ SEQUENCES = {
     "aʊə": ("aʊ", "ə"),
 }
 
-# The two X-letters no segment mapping reaches, and so the only letters whose
-# phonemes have to be stated here rather than derived. §II gives both.
+# The two X-letters no segment mapping reaches, and so the only letters whose phonemes have to be stated here rather than derived. §II gives both.
 X_LETTERS = {"Excite": ("k", "s"), "Exam": ("ɡ", "z")}
 
 NOTHING = ""
 
-# Every difference the round trip is allowed to find between what ReadLex said and what
-# the spelling says, with the reason it is allowed. An edit outside this table is a
-# spelling that has stopped meaning what its source meant. A word sign stands for the
-# written word rather than for its sounds, so the rows one rewrites are not read back at
-# all; every edit here belongs to the mapping or to a terminal convention.
+# Every difference the round trip is allowed to find between what ReadLex said and what the spelling says, with the reason it is allowed. An edit outside this table is a spelling that has stopped meaning what its source meant. A word sign stands for the written word rather than for its sounds, so the rows one rewrites are not read back at all; every edit here belongs to the mapping or to a terminal convention.
 EDITS: dict[tuple[str, str], str] = {
     (
         "ə",
@@ -82,9 +74,7 @@ EDITS: dict[tuple[str, str], str] = {
 def phonemes_of(mapping: Mapping) -> dict[str, tuple[str, ...]]:
     """What each letter reads back as, derived from the mapping it is written by.
 
-    Deriving this rather than writing it out is the point: it fails if two IPA tokens
-    that are not a documented merge ever land on the same letter, which is the property
-    that makes the mapping invertible at all.
+    Deriving this rather than writing it out is the point: it fails if two IPA tokens that are not a documented merge ever land on the same letter, which is the property that makes the mapping invertible at all.
     """
     table: dict[str, tuple[str, ...]] = {}
     for entry in mapping.entries:
@@ -127,8 +117,7 @@ def align(
 ) -> tuple[tuple[str, str], ...] | None:
     """The cheapest run of allowed edits carrying `source` to `spelt`, or None.
 
-    None is the failure the check exists for: the spelling can no longer be read back
-    to what ReadLex said by any sequence of differences this project has accounted for.
+    None is the failure the check exists for: the spelling can no longer be read back to what ReadLex said by any sequence of differences this project has accounted for.
     """
     infinity = float("inf")
     width = len(spelt) + 1

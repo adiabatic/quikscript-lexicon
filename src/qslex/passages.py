@@ -34,12 +34,7 @@ class Specimen:
         return frozenset(allowed)
 
 
-# Every specimen passage the Manual prints, keyed by its anchor in the AMS
-# transcription. The Senior ones carry a Latin transcription of their own, in the
-# `data-orthodox` attribute; the four Junior nursery rhymes do not, and their Latin was
-# transcribed by hand. The word counts are pinned so that a passage cannot quietly lose
-# rows: they count the words a passage spells, not its tokens, so a punctuation mark
-# standing alone is dropped and leaves a gap in the index.
+# Every specimen passage the Manual prints, keyed by its anchor in the AMS transcription. The Senior ones carry a Latin transcription of their own, in the `data-orthodox` attribute; the four Junior nursery rhymes do not, and their Latin was transcribed by hand. The word counts are pinned so that a passage cannot quietly lose rows: they count the words a passage spells, not its tokens, so a punctuation mark standing alone is dropped and leaves a gap in the index.
 SPECIMENS: dict[str, Specimen] = {
     "no-how": Specimen("senior", 56),
     "parental-advice": Specimen("senior", 51),
@@ -73,12 +68,7 @@ class PassageWord:
 def load_passages(path: Path | None = None) -> tuple[PassageWord, ...]:
     """The Manual's specimen passages, word by word, with each word's verdict.
 
-    A verdict names the column that reproduces the Manual's spelling, or says why
-    nothing does: `contraction` where Read reached for one of the contractions
-    `contractions.tsv` carries, under either of its Manual anchors, which this lexicon
-    applies to no column; `absent` where ReadLex has no entry for the word at all;
-    `differs` where the two genuinely disagree, in which case the row pins what this
-    lexicon produces so that the disagreement cannot drift unnoticed.
+    A verdict names the column that reproduces the Manual's spelling, or says why nothing does: `contraction` where Read reached for one of the contractions `contractions.tsv` carries, under either of its Manual anchors, which this lexicon applies to no column; `absent` where ReadLex has no entry for the word at all; `differs` where the two genuinely disagree, in which case the row pins what this lexicon produces so that the disagreement cannot drift unnoticed.
     """
     words: list[PassageWord] = []
     last: dict[str, int] = {}
