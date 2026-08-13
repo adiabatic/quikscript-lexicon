@@ -1,3 +1,4 @@
+from qslex.added import AddedWord, added_rows, load_added_words
 from qslex.csur import CODEPOINT_OF, NAME_OF
 from qslex.divergences import Divergence, load_divergences
 from qslex.elements import components, elements
@@ -52,6 +53,7 @@ __all__ = [
     "CHECKS",
     "CODEPOINT_OF",
     "CORE_EIGHT",
+    "AddedWord",
     "Check",
     "Context",
     "Contraction",
@@ -82,6 +84,7 @@ __all__ = [
     "Token",
     "TokenizeError",
     "VarTag",
+    "added_rows",
     "align",
     "apply_signs",
     "components",
@@ -90,6 +93,7 @@ __all__ = [
     "kept",
     "letters",
     "lint",
+    "load_added_words",
     "load_contractions",
     "load_divergences",
     "load_examples",

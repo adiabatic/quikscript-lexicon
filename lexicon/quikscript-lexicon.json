@@ -1,6 +1,6 @@
 {
     "meta": {
-        "version": 1,
+        "version": 2,
         "source": {
             "repo": "https://github.com/Shavian-info/readlex",
             "commit": "8343343090385938bf8a901748117dce94d9e570",
@@ -10,9 +10,10 @@
             "block": "U+E650–U+E67E"
         },
         "counts": {
-            "headwords": 56649,
-            "entries": 108425,
-            "phrases": 1600
+            "headwords": 56655,
+            "entries": 108431,
+            "phrases": 1602,
+            "added": 6
         }
     },
     "letters": [
@@ -1152,7 +1153,9 @@
         "quasi-",
         "queenborough-in-sheppey",
         "qui vive",
+        "quickscript's",
         "quid pro quo",
+        "quikscript's",
         "r's",
         "rabble-rousing",
         "radcliffe on trent",
@@ -58344,6 +58347,12 @@
         "zuckerberg_NP0_𐑟𐑳𐑒𐑼𐑚𐑻𐑜": [{"Latn": "zuckerberg", "qs": "", "Shaw": "𐑟𐑳𐑒𐑼𐑚𐑻𐑜", "pos": "NP0", "ipa": "ˈzʌkəRbɜːRɡ", "freq": 0}],
         "zurich_NP0_𐑟𐑘𐑫𐑼𐑦𐑒": [{"Latn": "zurich", "qs": "", "Shaw": "𐑟𐑘𐑫𐑼𐑦𐑒", "pos": "NP0", "ipa": "ˈzjʊərɪk", "freq": 351}],
         "zx spectrum_NP0_𐑟𐑧𐑛𐑧𐑒𐑕 𐑕𐑐𐑧𐑒𐑑𐑮𐑩𐑥": [{"Latn": "zx spectrum", "qs": " ", "qs_x": " ", "Shaw": "𐑟𐑧𐑛𐑧𐑒𐑕 𐑕𐑐𐑧𐑒𐑑𐑮𐑩𐑥", "pos": "NP0", "ipa": "ˈzedeks ˌspektrəm", "freq": 0}],
-        "zygote_NN1_𐑟𐑲𐑜𐑴𐑑": [{"Latn": "zygote", "qs": "", "Shaw": "𐑟𐑲𐑜𐑴𐑑", "pos": "NN1", "ipa": "ˈzaɪɡəʊt", "freq": 17}, {"Latn": "zygotes", "qs": "", "Shaw": "𐑟𐑲𐑜𐑴𐑑𐑕", "pos": "NN2", "ipa": "ˈzaɪɡəʊts", "freq": 4}]
+        "zygote_NN1_𐑟𐑲𐑜𐑴𐑑": [{"Latn": "zygote", "qs": "", "Shaw": "𐑟𐑲𐑜𐑴𐑑", "pos": "NN1", "ipa": "ˈzaɪɡəʊt", "freq": 17}, {"Latn": "zygotes", "qs": "", "Shaw": "𐑟𐑲𐑜𐑴𐑑𐑕", "pos": "NN2", "ipa": "ˈzaɪɡəʊts", "freq": 4}],
+        "quikscript_NP0_𐑒𐑢𐑦𐑒𐑕𐑒𐑮𐑦𐑐𐑑": [{"Latn": "quikscript", "qs": "", "Shaw": "𐑒𐑢𐑦𐑒𐑕𐑒𐑮𐑦𐑐𐑑", "pos": "NP0", "ipa": "ˈkwɪkskrɪpt", "freq": 0}],
+        "quikscript_AJ0_𐑒𐑢𐑦𐑒𐑕𐑒𐑮𐑦𐑐𐑑": [{"Latn": "quikscript", "qs": "", "Shaw": "𐑒𐑢𐑦𐑒𐑕𐑒𐑮𐑦𐑐𐑑", "pos": "AJ0", "ipa": "ˈkwɪkskrɪpt", "freq": 0}],
+        "quikscript's_NP0+POS_𐑒𐑢𐑦𐑒𐑕𐑒𐑮𐑦𐑐𐑑𐑕": [{"Latn": "quikscript's", "qs": "", "Shaw": "𐑒𐑢𐑦𐑒𐑕𐑒𐑮𐑦𐑐𐑑𐑕", "pos": "NP0+POS", "ipa": "ˈkwɪkskrɪpts", "freq": 0}],
+        "quickscript_NP0_𐑒𐑢𐑦𐑒𐑕𐑒𐑮𐑦𐑐𐑑": [{"Latn": "quickscript", "qs": "", "Shaw": "𐑒𐑢𐑦𐑒𐑕𐑒𐑮𐑦𐑐𐑑", "pos": "NP0", "ipa": "ˈkwɪkskrɪpt", "freq": 0}],
+        "quickscript_AJ0_𐑒𐑢𐑦𐑒𐑕𐑒𐑮𐑦𐑐𐑑": [{"Latn": "quickscript", "qs": "", "Shaw": "𐑒𐑢𐑦𐑒𐑕𐑒𐑮𐑦𐑐𐑑", "pos": "AJ0", "ipa": "ˈkwɪkskrɪpt", "freq": 0}],
+        "quickscript's_NP0+POS_𐑒𐑢𐑦𐑒𐑕𐑒𐑮𐑦𐑐𐑑𐑕": [{"Latn": "quickscript's", "qs": "", "Shaw": "𐑒𐑢𐑦𐑒𐑕𐑒𐑮𐑦𐑐𐑑𐑕", "pos": "NP0+POS", "ipa": "ˈkwɪkskrɪpts", "freq": 0}]
     }
 }

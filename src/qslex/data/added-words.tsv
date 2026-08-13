@@ -1,0 +1,7 @@
+word	pos	ipa	shavian	freq	qs	source	note
+quikscript	NP0	ˈkwɪkskrɪpt	𐑒𐑢𐑦𐑒𐑕𐑒𐑮𐑦𐑐𐑑	0	·Key·Way·It·Key·See·Key·Roe·It·Pea·Tea	quikscript.net	the alphabet this lexicon is written in, under the spelling quikscript.net and this repository use; the IPA and the Shavian are ReadLex’s own quick and script joined, as upstream joins them for quicksand ˈkwɪksænd and quickstep ˈkwɪkstep
+quikscript	AJ0	ˈkwɪkskrɪpt	𐑒𐑢𐑦𐑒𐑕𐑒𐑮𐑦𐑐𐑑	0	·Key·Way·It·Key·See·Key·Roe·It·Pea·Tea	quikscript.net	the attributive use, Quikscript letters; ReadLex tags a named writing system this way too, as it does shavian and esperanto
+quikscript's	NP0+POS	ˈkwɪkskrɪpts	𐑒𐑢𐑦𐑒𐑕𐑒𐑮𐑦𐑐𐑑𐑕	0	·Key·Way·It·Key·See·Key·Roe·It·Pea·Tea·See	quikscript.net	the possessive, on ReadLex’s own NP0+POS shape for guy's, lloyd's and parkinson's; the clitic devoices to ·See after voiceless ·Tea, and with no plural row nothing else in the lexicon would carry that spelling
+quickscript	NP0	ˈkwɪkskrɪpt	𐑒𐑢𐑦𐑒𐑕𐑒𐑮𐑦𐑐𐑑	0	·Key·Way·It·Key·See·Key·Roe·It·Pea·Tea	Manual p.12	Read’s own spelling of the name, which the Manual writes throughout — “even writers of Junior Quickscript should soon contract to single letters”
+quickscript	AJ0	ˈkwɪkskrɪpt	𐑒𐑢𐑦𐑒𐑕𐑒𐑮𐑦𐑐𐑑	0	·Key·Way·It·Key·See·Key·Roe·It·Pea·Tea	Manual p.12	the attributive use under the Manual’s spelling, as the quikscript row is under quikscript.net’s
+quickscript's	NP0+POS	ˈkwɪkskrɪpts	𐑒𐑢𐑦𐑒𐑕𐑒𐑮𐑦𐑐𐑑𐑕	0	·Key·Way·It·Key·See·Key·Roe·It·Pea·Tea·See	Manual p.12	the possessive under the Manual’s spelling, reached the same way as quikscript's

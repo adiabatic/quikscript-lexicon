@@ -23,3 +23,5 @@ An absent JSON key and an empty TSV cell both mean “same as `qs`”.
 ## Provenance and license
 
 Derived from [Shavian-info/readlex](https://github.com/Shavian-info/readlex) at commit `8343343`, MIT, © 2024 Shavian-info ([full provenance](../data/readlex/README.md)). This repository is MIT too — see [`LICENSE.md`](../LICENSE.md).
+
+Six entries are not from that corpus: quikscript and quickscript, each as a proper noun, an adjective and a possessive, because a Quikscript lexicon with no entry for its own alphabet is a gap a reader finds at once. They are declared in [`src/qslex/data/added-words.tsv`](../src/qslex/data/added-words.tsv) and spelled by the same rules as everything else; `meta.counts.added` in the master is how many there are, and [`docs/pipeline.md`](../docs/pipeline.md#words-the-corpus-lacks) says where each field came from.

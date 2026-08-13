@@ -7,6 +7,7 @@ from collections.abc import Iterable
 from dataclasses import dataclass
 from pathlib import Path
 
+from qslex.added import added_rows, load_added_words
 from qslex.converter import (
     TagMap,
     converter,
@@ -42,7 +43,7 @@ HUNSPELL_AFF = "en-Qaas.aff"
 TSV_HEADER = ("Latn", "qs", "qs_junior", "qs_x", "Shaw", "pos", "ipa", "freq")
 LETTERS_HEADER = ("codepoint", "qs", "name", "class", "ipa")
 
-SCHEMA_VERSION = 1
+SCHEMA_VERSION = 2
 PUA_BLOCK = "U+E650–U+E67E"
 
 X_LETTERS = frozenset({"Excite", "Exam"})
@@ -93,20 +94,22 @@ class Coverage:
     """
 
     read: int
+    added: int
     spelled: tuple[Entry, ...]
 
     def report(self) -> str:
+        corpus = len(self.spelled) - self.added
         junior = sum(1 for entry in self.spelled if entry.junior)
         x_letter = sum(1 for entry in self.spelled if entry.x_letter)
         return (
-            f"converted {len(self.spelled)} corpus rows, "
-            f"skipped {self.read - len(self.spelled)}\n"
+            f"converted {corpus} corpus rows, skipped {self.read - corpus}\n"
+            f"added beyond the corpus: {self.added}\n"
             f"sparse columns: {junior} junior, {x_letter} x-letter"
         )
 
 
 def convert(rows: Iterable[Row], mapping: Mapping) -> tuple[Entry, ...]:
-    """Every kept row spelled, in corpus order.
+    """Every kept row spelled, in the order it is given.
 
     Nothing here decides how a word is spelled: the mapping, the rules and the word signs have all already run by the time `spell` returns, and this only renders what they produced into the PUA encoding the artifacts carry.
 
@@ -155,12 +158,15 @@ def lexicon_json(
     mapping: Mapping,
     penn: dict[str, TagMap],
     listed: Iterable[str],
+    added: int,
 ) -> str:
     """The master, and the only JSON this repository ships.
 
     Everything else in `lexicon/` is a projection of this file, so it carries the three things a projection needs that the entries alone cannot give: the letter table the PUA text is read with, the C5-to-Penn map the converter shape’s tagged rows are keyed by, and the phrase list, which no property of the entries can reveal because it is the orthographic rules, not the data, that decide what fails to compose. Holding this one file is holding the lexicon.
 
     Two of the three duplicate `c5-to-penn.tsv` and the phrases file. They cannot drift from them: all three are written by this one pass, and `make check` rebuilds and byte-compares every one of them. The letter table ships nowhere else.
+
+    `meta.counts` carries the added-word count beside the totals, because `meta.source` names the corpus and the corpus no longer accounts for every entry. A consumer that wants to know which entries those are reads `added-words.tsv`; one that only wants to know whether there are any reads this number.
 
     One headword to a line, rather than a field to a line. The file is generated, so the useful diff is which entries moved, and that reads as one changed line each.
     """
@@ -180,6 +186,7 @@ def lexicon_json(
             "headwords": len(grouped),
             "entries": sum(len(group) for group in grouped.values()),
             "phrases": len(phrase_list),
+            "added": added,
         },
     }
     sections = (
@@ -262,7 +269,9 @@ def letters_rows(mapping: Mapping) -> tuple[tuple[str, ...], ...]:
     return tuple(rows)
 
 
-def artifacts(entries: tuple[Entry, ...], mapping: Mapping) -> dict[str, str]:
+def artifacts(
+    entries: tuple[Entry, ...], mapping: Mapping, added: int
+) -> dict[str, str]:
     """The five files, every one of them a projection of the same entries.
 
     The converter shape is built here and not written: `phrases` is derived from it, and the master carries everything the shape itself is rebuilt from, so shipping it as a second JSON would only be shipping the master’s own data twice.
@@ -274,7 +283,7 @@ def artifacts(entries: tuple[Entry, ...], mapping: Mapping) -> dict[str, str]:
     listed = phrases(rows, load_phrase_exceptions())
     checkable = spellings((e.qs, e.junior, e.x_letter) for e in entries)
     return {
-        LEXICON_JSON: lexicon_json(entries, mapping, penn, listed),
+        LEXICON_JSON: lexicon_json(entries, mapping, penn, listed, added),
         LEXICON_TSV: lexicon_tsv(entries),
         PHRASES_TXT: "\n".join(listed) + "\n",
         HUNSPELL_DIC: dictionary(checkable),
@@ -285,10 +294,17 @@ def artifacts(entries: tuple[Entry, ...], mapping: Mapping) -> dict[str, str]:
 def build(
     path: Path | None = None, verify: bool = True
 ) -> tuple[dict[str, str], Coverage]:
+    """The corpus the row policy keeps, then the words the corpus lacks.
+
+    Appended rather than interleaved, so the master’s headwords stay in corpus order and an upstream bump diffs cleanly; the added ones land together at the end, where they are easy to find.
+    """
     mapping = load_mapping()
     rows = load_rows(path, verify=verify)
-    entries = convert(select(load_var_tags(), rows), mapping)
-    return artifacts(entries, mapping), Coverage(len(rows), entries)
+    added = added_rows(load_added_words())
+    entries = convert(select(load_var_tags(), rows) + added, mapping)
+    return artifacts(entries, mapping, len(added)), Coverage(
+        len(rows), len(added), entries
+    )
 
 
 def main(argv: list[str] | None = None) -> int:

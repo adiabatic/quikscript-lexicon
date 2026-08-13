@@ -10,6 +10,8 @@ import functools
 from qslex import (
     Context,
     Row,
+    added_rows,
+    load_added_words,
     load_mapping,
     load_overrides,
     load_quirks,
@@ -28,18 +30,19 @@ OVERRIDES = load_overrides(MAPPING)
 TABLES = load_tables()
 CORPUS = load_rows()
 KEPT = select(load_var_tags(), CORPUS)
+ADDED = load_added_words()
 
 
 @functools.cache
 def entries() -> tuple[Entry, ...]:
     """Every kept row spelled, built on first ask and held for the rest of the run."""
-    return convert(KEPT, MAPPING)
+    return convert(KEPT + added_rows(ADDED), MAPPING)
 
 
 @functools.cache
 def built() -> dict[str, str]:
     """Every artifact, from the same spelled rows, likewise built once."""
-    return artifacts(entries(), MAPPING)
+    return artifacts(entries(), MAPPING, len(ADDED))
 
 
 def context_of(word: str, row: Row) -> Context:

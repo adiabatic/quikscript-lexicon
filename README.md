@@ -16,6 +16,8 @@ And then there are more things generated from it:
 
 Three spelling columns: **`qs`** is Senior, the default; **`qs_junior`** and **`qs_x`** (the ·Excite/·Exam X-letter form) are populated only where they differ from it. [`lexicon/README.md`](lexicon/README.md) explains the columns; [`docs/pipeline.md`](docs/pipeline.md) specifies the build.
 
+Almost every entry is ReadLex’s, spelled. The exceptions are [six words the corpus has not got](docs/pipeline.md#words-the-corpus-lacks) — Quikscript and Quickscript, as proper noun, adjective and possessive — which are declared by hand and then spelled by the same rules as everything else.
+
 ## Layout
 
 What each file is, in the order a word passes through the pipeline, is in [`ARCHITECTURE.md`](ARCHITECTURE.md).

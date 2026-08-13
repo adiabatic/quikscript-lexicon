@@ -7,13 +7,14 @@ import re
 import sys
 from pathlib import Path
 
+from qslex.added import AddedWord, load_added_words
 from qslex.divergences import load_divergences
 from qslex.lint import CHECKS, lint, load_pragmas
 from qslex.manual import SIGN_ANCHORS, load_examples
 from qslex.mapping import Mapping, load_mapping
-from qslex.overrides import load_overrides
+from qslex.overrides import Overrides, load_overrides
 from qslex.passages import SPECIMENS, load_passages
-from qslex.quirks import load_quirks, normalize
+from qslex.quirks import QuirkRule, load_quirks, normalize
 from qslex.readlex import CORPUS_HEADWORDS, CORPUS_ROWS, CorpusError, Row, load_rows
 from qslex.roundtrip import (
     EDITS,
@@ -27,6 +28,7 @@ from qslex.rules import (
     RULES,
     TERMINAL_RULES,
     Context,
+    Tables,
     Terminal,
     claims,
     load_tables,
@@ -260,6 +262,62 @@ def passages(
     return failures
 
 
+def added(
+    words: tuple[AddedWord, ...],
+    rows: tuple[Row, ...],
+    mapping: Mapping,
+    quirk_rules: tuple[QuirkRule, ...],
+    overrides: Overrides,
+    tables: Tables,
+) -> list[str]:
+    """Hold the words the corpus lacks to a stricter standard than the corpus rows.
+
+    They are held separately, and not folded into the pass above, for two reasons. The corpus invariants stay invariants, so an upstream bump still diffs against ReadLex alone; and a row we wrote ourselves has no excuse for needing one. Where a corpus row may break lint under a declared pragma or read back with a licensed difference, an added row must produce the spelling it declares, lint clean, read back exactly, and reach no word sign.
+
+    The collision check is the one that matters over time: if ReadLex ever carries the word, this fails and says so, rather than letting a second spelling of it ship in silence.
+    """
+    failures: list[str] = []
+    read_back = phonemes_of(mapping)
+    corpus = {row.word.lower() for row in rows}
+
+    print(f"\nwords added beyond the corpus: {len(words)}")
+    for entry in words:
+        ipa, _ = normalize(entry.ipa, quirk_rules)
+        tokens = tuple(tokenize(ipa, mapping, overrides))
+        result = spell(Context(entry.word, entry.pos, ipa, tokens), tables)
+        print(
+            f"  {entry.word:15} {entry.pos:8} {ipa:15} {result.senior}  [{entry.source}]"
+        )
+        where = f"{entry.word!r} [{entry.pos}]"
+        if entry.word in corpus:
+            failures.append(
+                f"{where} is now in ReadLex, which spells it for itself; the added "
+                f"row should go, or say why it stays"
+            )
+        if result.senior != entry.qs:
+            failures.append(
+                f"{where} declares {entry.qs}, but the rules now spell it "
+                f"{result.senior}"
+            )
+        if result.signed:
+            failures.append(
+                f"{where} is rewritten by the word sign {result.signed}, which the "
+                f"added row and the sign table disagree about"
+            )
+        for check_id, part, complaint in lint(
+            entry.word, result.senior, result.x_letter, ipa, tables
+        ):
+            failures.append(f"{where} breaks lint {check_id} on {part!r}: {complaint}")
+        for spelling in dict.fromkeys(
+            s for s in (result.senior, result.junior, result.x_letter) if s
+        ):
+            if source_phonemes(tokens) != spelled_phonemes(spelling, read_back):
+                failures.append(
+                    f"{where} spelled {spelling} does not read back to {ipa}"
+                )
+    return failures
+
+
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(
         description="Tokenize every ReadLex IPA string against the mapping, and hold "
@@ -278,6 +336,7 @@ def main(argv: list[str] | None = None) -> int:
     contractions = load_contractions()
     pragmas = load_pragmas()
     examples = load_examples()
+    added_words = load_added_words()
     try:
         rows: tuple[Row, ...] = load_rows(
             args.readlex, verify=not args.no_verify_digest
@@ -842,6 +901,7 @@ def main(argv: list[str] | None = None) -> int:
                 f"round-trip difference {edit} occurs {found} times, expected {pinned}"
             )
 
+    failures.extend(added(added_words, rows, mapping, quirk_rules, overrides, tables))
     failures.extend(passages(spellings, contractions))
 
     if failures:

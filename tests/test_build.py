@@ -15,7 +15,7 @@ from qslex.converter import TagMap, converter, load_penn
 from qslex.csur import CODEPOINT_OF
 from qslex.letters import VOWELS
 
-from conftest import MAPPING, built, entries
+from conftest import ADDED, MAPPING, built, entries
 
 ENTRIES = entries()
 BUILT = built()
@@ -120,7 +120,7 @@ def test_every_qs_string_is_letters_and_separators() -> None:
 
 
 def test_rendering_the_same_entries_twice_is_byte_identical() -> None:
-    again = artifacts(ENTRIES, MAPPING)
+    again = artifacts(ENTRIES, MAPPING, len(ADDED))
     assert {name: text.encode("utf-8") for name, text in again.items()} == {
         name: text.encode("utf-8") for name, text in BUILT.items()
     }
@@ -132,6 +132,7 @@ def test_the_master_declares_what_it_holds() -> None:
         "headwords": len({entry.headword for entry in ENTRIES}),
         "entries": len(ENTRIES),
         "phrases": len(BUILT[PHRASES_TXT].splitlines()),
+        "added": len(ADDED),
     }
     assert set(MASTER) == {"meta", "letters", "c5_to_penn", "phrases", "entries"}
 

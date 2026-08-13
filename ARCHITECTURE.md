@@ -17,7 +17,8 @@ In the order a word passes through the pipeline:
 - `src/qslex/words.py` — the lexical layer that runs last: the Manual’s word signs, standard word-outlines and abbreviations, and the junior forms where they diverge (spec: [`docs/word-signs.md`](docs/word-signs.md))
 - `src/qslex/data/word-signs.tsv` — the core eight, the three abbreviations, and every standard word-outline, with the junior form where it diverges
 - `src/qslex/data/contractions.tsv` — the Manual’s §III Senior contractions, plus the one the terminal -ing section prints and that list omits, shipped for the transliterator and applied to no column
-- `src/qslex/build.py` — the build that writes `lexicon/`, and prints what it touched: rows converted and skipped, and how many rows carry each sparse column
+- `src/qslex/added.py` and `src/qslex/data/added-words.tsv` — the words the corpus has not got, the alphabet’s own name among them: entries in a corpus row’s shape, appended after the row policy and spelled by the same rules, each declaring the spelling those rules must give it (spec: [`docs/pipeline.md`](docs/pipeline.md#words-the-corpus-lacks))
+- `src/qslex/build.py` — the build that writes `lexicon/`, and prints what it touched: rows converted, skipped and added, and how many rows carry each sparse column
 - `src/qslex/data/manual-passages.tsv` — the Manual’s eleven specimen passages, word by word, as the fixture the finished spellings are held to (spec: [`docs/validation.md`](docs/validation.md))
 - `src/qslex/roundtrip.py` — the reverse of the segment mapping, which reads every shipped spelling back to a phoneme string and lays it beside the IPA it came from
 - `src/qslex/lint.py` — the Manual’s own lint, every check gated on the Orthodox trigger its rule keys on, with `src/qslex/data/lint-pragmas.tsv` declaring every word allowed to break one and why
