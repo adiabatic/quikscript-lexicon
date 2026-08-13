@@ -10,7 +10,17 @@ const CAP = 500;
 
 /** @typedef {{line: number, character: number}} Position */
 /** @typedef {{start: Position, end: Position}} Span */
-/** @typedef {{range: Span, severity: 1 | 2 | 3 | 4, source: string, code: string, message: string}} Diagnostic */
+/** @typedef {{word: string, occurrence: number, start: number, end: number}} Hit */
+/** @typedef {{range: Span, severity: 1 | 2 | 3 | 4, source: string, code: string, message: string, codeActions?: import("./actions.js").Action[]}} Diagnostic */
+
+/**
+ * @param {string} word
+ * @param {number} occurrence
+ * @returns {string}
+ */
+function spot(word, occurrence) {
+  return `${word}\t${occurrence}`;
+}
 
 /**
  * @param {string} text
@@ -45,28 +55,45 @@ function position(starts, offset) {
  * @param {string} text
  * @param {string} languageId
  * @param {Set<string>} active
- * @returns {Diagnostic[]}
+ * @param {Set<string>} [excused]
+ * @param {Set<string>} [overlooked]
+ * @returns {Hit[]}
  */
-function diagnostics(text, languageId, active) {
+function flagged(text, languageId, active, excused = new Set(), overlooked = new Set()) {
   const skipped = languageId.toLowerCase() === MARKDOWN ? skipRanges(text) : [];
-  const starts = lineStarts(text);
-  /** @type {Diagnostic[]} */
+  /** @type {Hit[]} */
   const out = [];
+  /** @type {Map<string, number>} */
+  const seen = new Map();
   let at = 0;
   for (const hit of tokens(text)) {
     if (out.length >= CAP) break;
+    const occurrence = seen.get(hit.word) || 0;
+    seen.set(hit.word, occurrence + 1);
     while (at < skipped.length && skipped[at].end <= hit.start) at += 1;
     if (at < skipped.length && skipped[at].start <= hit.start) continue;
     if (accepts(active, hit.word)) continue;
-    out.push({
-      range: { start: position(starts, hit.start), end: position(starts, hit.end) },
-      severity: INFORMATION,
-      source: SOURCE,
-      code: UNKNOWN,
-      message: `Unknown Quikscript spelling: ${hit.word}`,
-    });
+    if (excused.has(hit.word)) continue;
+    if (overlooked.has(spot(hit.word, occurrence))) continue;
+    out.push({ word: hit.word, occurrence, start: hit.start, end: hit.end });
   }
   return out;
 }
 
-module.exports = { CAP, diagnostics };
+/**
+ * @param {string} text
+ * @param {Hit[]} hits
+ * @returns {Diagnostic[]}
+ */
+function diagnostics(text, hits) {
+  const starts = lineStarts(text);
+  return hits.map((hit) => ({
+    range: { start: position(starts, hit.start), end: position(starts, hit.end) },
+    severity: INFORMATION,
+    source: SOURCE,
+    code: UNKNOWN,
+    message: `Unknown Quikscript spelling: ${hit.word}`,
+  }));
+}
+
+module.exports = { CAP, diagnostics, flagged, spot };
