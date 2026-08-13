@@ -1,17 +1,28 @@
 const path = require("node:path");
 const { fileURLToPath } = require("node:url");
-const { createConnection, TextDocumentSyncKind } = require("vscode-languageserver/node");
+const {
+  CompletionItemKind,
+  CompletionTriggerKind,
+  createConnection,
+  TextDocumentSyncKind,
+} = require("vscode-languageserver/node");
 const data = require("./payload.json");
 const { tokens } = require("../../src/qslex/web/core.js");
 const { lexicon } = require("./lib/lexicon.js");
-const { CAP, diagnostics, flagged, spot } = require("./lib/check.js");
+const { CAP, diagnostics, flagged, lineStarts, offsetAt, position, spot } = require("./lib/check.js");
 const { debouncer } = require("./lib/debounce.js");
 const { COMMANDS, OCCURRENCE, PROJECT, USER, actions, adviser } = require("./lib/actions.js");
 const { above, ledger, projectIgnorePath, userIgnorePath } = require("./lib/ignores.js");
+const { skipRanges } = require("./lib/markdown.js");
+const { readings, writings } = require("./lib/lookup.js");
+const { hovered } = require("./lib/hover.js");
+const { completions } = require("./lib/complete.js");
 
 const DELAY = 200;
 const BUDGET = 10000;
 const PATIENCE = 500;
+const MODES = ["off", "onDemand", "auto"];
+const MARKDOWN = "markdown";
 
 const connection = createConnection();
 const words = lexicon(data);
@@ -25,7 +36,41 @@ const overlooked = new Map();
 /** @type {string[]} */
 let roots = [];
 let inlined = false;
+let completing = MODES[0];
+let pulls = false;
+/** @type {Map<string, import("./lib/lookup.js").Reading[]> | null} */
+let read = null;
+/** @type {Map<string, import("./lib/lookup.js").Writing[]> | null} */
+let write = null;
 const pending = debouncer(DELAY, publish);
+
+function reader() {
+  if (!read) read = readings(data);
+  return read;
+}
+
+function writer() {
+  if (!write) write = writings(data);
+  return write;
+}
+
+/**
+ * @param {unknown} value
+ * @param {string} fallback
+ * @returns {string}
+ */
+function moded(value, fallback) {
+  return typeof value === "string" && MODES.includes(value) ? value : fallback;
+}
+
+function fetched() {
+  connection.workspace
+    .getConfiguration({ section: "quikscript" })
+    .then((held) => {
+      completing = moded(held?.completions, completing);
+    })
+    .catch(() => {});
+}
 
 /** @param {string} uri */
 function localPath(uri) {
@@ -176,11 +221,18 @@ connection.onInitialize((params) => {
   roots.sort((one, other) => other.length - one.length);
   const published = /** @type {any} */ (params.capabilities.textDocument?.publishDiagnostics);
   inlined = Boolean(published && published.codeActionsInline);
+  const options = /** @type {{completions?: unknown} | undefined} */ (
+    params.initializationOptions
+  );
+  completing = moded(options?.completions, completing);
+  pulls = Boolean(params.capabilities.workspace?.configuration);
   return {
     capabilities: {
       textDocumentSync: { openClose: true, change: TextDocumentSyncKind.Full },
       codeActionProvider: { codeActionKinds: ["quickfix"] },
       executeCommandProvider: { commands: COMMANDS },
+      hoverProvider: true,
+      completionProvider: {},
     },
     serverInfo: { name: "quikscript-lsp" },
   };
@@ -188,6 +240,18 @@ connection.onInitialize((params) => {
 
 connection.onInitialized(() => {
   connection.console.log(`quikscript-lsp: ${words.active.size} spellings loaded`);
+  if (pulls) fetched();
+});
+
+connection.onDidChangeConfiguration((change) => {
+  if (pulls) {
+    fetched();
+    return;
+  }
+  const pushed = /** @type {{quikscript?: {completions?: unknown}} | undefined} */ (
+    change.settings
+  );
+  completing = moded(pushed?.quikscript?.completions, completing);
 });
 
 connection.onDidOpenTextDocument(({ textDocument }) => {
@@ -230,6 +294,50 @@ connection.onDidCloseTextDocument(({ textDocument }) => {
   connection
     .sendDiagnostics({ uri: textDocument.uri, diagnostics: [] })
     .catch(() => {});
+});
+
+connection.onHover(({ textDocument, position: place }) => {
+  const held = documents.get(textDocument.uri);
+  if (!held) return null;
+  const starts = lineStarts(held.text);
+  const found = hovered(held.text, offsetAt(starts, held.text, place), reader(), writer());
+  if (!found) return null;
+  return {
+    contents: { kind: "markdown", value: found.value },
+    range: { start: position(starts, found.start), end: position(starts, found.end) },
+  };
+});
+
+connection.onCompletion(({ textDocument, position: place, context }) => {
+  if (completing === "off") return null;
+  if (
+    completing === "onDemand" &&
+    context &&
+    context.triggerKind !== CompletionTriggerKind.Invoked
+  ) {
+    return null;
+  }
+  const held = documents.get(textDocument.uri);
+  if (!held) return null;
+  const starts = lineStarts(held.text);
+  const found = completions(held.text, offsetAt(starts, held.text, place), writer());
+  if (!found) return null;
+  if (held.languageId.toLowerCase() === MARKDOWN) {
+    for (const span of skipRanges(held.text)) {
+      if (span.start >= found.end) break;
+      if (found.start < span.end) return null;
+    }
+  }
+  const range = {
+    start: position(starts, found.start),
+    end: position(starts, found.end),
+  };
+  return found.items.map((item) => ({
+    ...item,
+    kind: CompletionItemKind.Text,
+    filterText: found.word,
+    textEdit: { range, newText: item.label },
+  }));
 });
 
 connection.onCodeAction(({ textDocument, range, context }) => {

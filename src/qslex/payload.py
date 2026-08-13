@@ -1,15 +1,24 @@
 """The editor server’s data file, projected from the lexicon like every artifact.
 
-editor/server/payload.json is generated, never hand-edited: it is the very JSON object the Desk page inlines — the word set with its frequencies, the TRY letter order, the REP table and the confusion groups — committed beside the language server that will read it. One derivation feeding both consumers is what makes a server that disagrees with lexicon/ a freshness failure rather than a discovery.
+editor/server/payload.json is generated, never hand-edited: it is the JSON object the Desk page inlines — the word set with its frequencies, the TRY letter order, the REP table and the confusion groups — grown by the two lookup maps only the language server reads: the readings that key each spelling to the entries writing it, and the writings that key each Latin word to its spellings. One derivation feeding every consumer is what makes a server that disagrees with lexicon/ a freshness failure rather than a discovery.
 """
 
 from __future__ import annotations
 
 import argparse
+import json
 import sys
 from pathlib import Path
 
-from qslex.projection import Lexicon, crosscheck, derive, load_records, payload
+from qslex.projection import (
+    Lexicon,
+    checker,
+    crosscheck,
+    derive,
+    load_records,
+    readings,
+    writings,
+)
 from qslex.readlex import repo_root
 from qslex.words import load_contractions
 
@@ -19,11 +28,16 @@ PAYLOAD = "payload.json"
 
 
 def build(root: Path | None = None) -> tuple[str, Lexicon]:
-    """The payload as the file carries it: the inlined object and one final newline."""
+    """The payload as the file carries it: one JSON object and one final newline."""
     root = root if root is not None else repo_root()
-    lexicon = derive(load_records(root), load_contractions())
+    records = load_records(root)
+    contractions = load_contractions()
+    lexicon = derive(records, contractions)
     crosscheck(lexicon, root)
-    return payload(lexicon) + "\n", lexicon
+    data = checker(lexicon)
+    data["readings"] = readings(records, contractions)
+    data["writings"] = writings(records)
+    return json.dumps(data, ensure_ascii=False, sort_keys=True) + "\n", lexicon
 
 
 def main(argv: list[str] | None = None) -> int:

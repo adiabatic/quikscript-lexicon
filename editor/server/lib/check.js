@@ -52,6 +52,23 @@ function position(starts, offset) {
 }
 
 /**
+ * @param {number[]} starts
+ * @param {string} text
+ * @param {Position} place
+ * @returns {number}
+ */
+function offsetAt(starts, text, place) {
+  if (place.line < 0 || place.line >= starts.length) return text.length;
+  const from = starts[place.line];
+  const upto = place.line + 1 < starts.length ? starts[place.line + 1] : text.length;
+  let offset = Math.min(from + Math.max(place.character, 0), upto);
+  while (offset > from && (text[offset - 1] === "\r" || text[offset - 1] === "\n")) {
+    offset -= 1;
+  }
+  return offset;
+}
+
+/**
  * @param {string} text
  * @param {string} languageId
  * @param {Set<string>} active
@@ -96,4 +113,4 @@ function diagnostics(text, hits) {
   }));
 }
 
-module.exports = { CAP, diagnostics, flagged, spot };
+module.exports = { CAP, diagnostics, flagged, lineStarts, offsetAt, position, spot };

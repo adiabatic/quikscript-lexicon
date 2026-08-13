@@ -2,7 +2,7 @@ const assert = require("node:assert/strict");
 const { test } = require("node:test");
 const data = require("../payload.json");
 const { lexicon } = require("../lib/lexicon.js");
-const { diagnostics, flagged, spot } = require("../lib/check.js");
+const { diagnostics, flagged, lineStarts, offsetAt, spot } = require("../lib/check.js");
 
 const WORDS = lexicon(data);
 const GOOD = data.words.split("\n", 1)[0].split("\t", 1)[0];
@@ -118,6 +118,15 @@ test("a session ignore is keyed to one occurrence and survives unrelated edits",
       [WORSE, 0],
     ],
   );
+});
+
+test("a position past the line end stays on its line", () => {
+  const text = "ab\r\ncd\r\n";
+  const starts = lineStarts(text);
+  assert.equal(offsetAt(starts, text, { line: 0, character: 1 }), 1);
+  assert.equal(offsetAt(starts, text, { line: 0, character: 99 }), 2);
+  assert.equal(offsetAt(starts, text, { line: 1, character: 99 }), 6);
+  assert.equal(offsetAt(starts, text, { line: 9, character: 0 }), text.length);
 });
 
 test("a pathological document is capped at five hundred diagnostics", () => {

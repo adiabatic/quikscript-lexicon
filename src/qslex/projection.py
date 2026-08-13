@@ -17,6 +17,8 @@ from qslex.letters import VOWELS, parse, render_qs
 from qslex.words import Contraction
 
 WORD_ROW = "word"
+COLUMNS = ("senior", "junior", "x")
+CONTRACTION = "contraction"
 
 
 class ProjectionError(RuntimeError):
@@ -197,15 +199,58 @@ def confusions() -> tuple[str, ...]:
     return ("".join(sorted(chr(CODEPOINT_OF[name]) for name in VOWELS)),)
 
 
-def payload(lexicon: Lexicon) -> str:
-    """Everything a checker reads, as one JSON object.
+def checker(lexicon: Lexicon) -> dict[str, object]:
+    """Everything a checker reads, as one JSON-ready object.
 
-    The Desk page inlines this string and `editor/server/payload.json` commits it, one build product with two consumers. Sorted keys and a list of pairs for the replacement table, so that a rebuilt projection differs only where the lexicon did.
+    The Desk page inlines this object and `editor/server/payload.json` carries it beside the two lookup maps, one derivation with two consumers. Sorted keys and a list of pairs for the replacement table, so that a rebuilt projection differs only where the lexicon did.
     """
-    data = {
+    return {
         "confusions": list(confusions()),
         "rep": [list(pair) for pair in replacements()],
         "try_order": by_frequency(lexicon.listed),
         "words": word_list(lexicon),
     }
-    return json.dumps(data, ensure_ascii=False, sort_keys=True)
+
+
+def readings(records: Iterable[Record], contractions: Iterable[Contraction]) -> str:
+    """Every spelling keyed to the entries that write it, one entry to a line.
+
+    The reverse map a hover reads: the spelling, the row’s Latin and its part-of-speech tag, and which column the spelling sits in — `senior`, `junior`, `x`, or `contraction` for the §III forms no column carries. Sibling forms are not repeated here: a consumer joins the writings map on the Latin to reach the row’s other columns. Spaced spellings stay out for the reason `spellings` drops them — no tokenizer ever hands one to a checker — which is what keys this map to exactly the union.
+    """
+    rows = tuple(records)
+    found: set[tuple[str, str, str, str]] = set()
+    for row in rows:
+        for column, value in zip(COLUMNS, row.columns(), strict=True):
+            if value and " " not in value:
+                found.add((value, row.latin, row.pos, column))
+    for written, row in contracted(contractions, rows):
+        if " " not in written:
+            found.add((written, row.latin, row.pos, CONTRACTION))
+    rank = {column: at for at, column in enumerate((*COLUMNS, CONTRACTION))}
+    ordered = sorted(
+        found, key=lambda entry: (entry[0], entry[1], entry[2], rank[entry[3]])
+    )
+    return "\n".join("\t".join(entry) for entry in ordered)
+
+
+def writings(records: Iterable[Record]) -> str:
+    """Every row a Latin word can be written from, one row to a line.
+
+    The forward map completions read: the lowercased Latin, the part-of-speech tag, the frequency, and the three columns as the master carries them — junior and X-letter only where they diverge. Heteronyms stay distinct rows, so `read` keeps its two spellings apart by tag and `lead` keeps its two nouns side by side. Spaced spellings are blanked for the reason `spellings` drops them: a completion inserts one token, never a phrase the tokenizer will split back apart.
+    """
+    found: set[tuple[str, str, int, str, str, str]] = set()
+    for row in records:
+        qs, junior, x_letter = (
+            value if " " not in value else "" for value in row.columns()
+        )
+        if qs or junior or x_letter:
+            found.add((row.latin.lower(), row.pos, row.frequency, qs, junior, x_letter))
+    return "\n".join(
+        f"{latin}\t{pos}\t{frequency}\t{qs}\t{junior}\t{x_letter}"
+        for latin, pos, frequency, qs, junior, x_letter in sorted(found)
+    )
+
+
+def payload(lexicon: Lexicon) -> str:
+    """The checker object serialized the one way both consumers write it."""
+    return json.dumps(checker(lexicon), ensure_ascii=False, sort_keys=True)

@@ -14,6 +14,13 @@ const GOOD = data.words.split("\n", 1)[0].split("\t", 1)[0];
 const BAD = "\uE650".repeat(9);
 const PUBLISHED = "textDocument/publishDiagnostics";
 const INLINE = { textDocument: { publishDiagnostics: { codeActionsInline: 1 } } };
+const READ_EAT = "\uE668\uE671\uE653";
+const READ_ET = "\uE668\uE672\uE653";
+const READ_TOLD =
+  `${READ_EAT}\n\n` +
+  "**read** \u2014 singular noun, verb, infinitive\n\n" +
+  "**reade** \u2014 proper noun\n\n" +
+  "**reed** \u2014 singular noun";
 
 const ROOT = path.join(__dirname, "..", "..", "..");
 let scratch = "";
@@ -211,6 +218,8 @@ test("the bundled server checks a markdown document end to end", async () => {
         "quikscript.ignore.user",
       ],
     },
+    hoverProvider: true,
+    completionProvider: {},
   });
   assert.equal(answer.result.serverInfo.name, "quikscript-lsp");
   client.notify("initialized", {});
@@ -506,6 +515,174 @@ test("with no workspace root the project tier lands beside the file", async () =
   assert.equal(second.params.uri, uri);
   assert.deepEqual(second.params.diagnostics, []);
   assert.equal(readFileSync(path.join(home, ".quikscript-ignore"), "utf8"), `${D}\n`);
+
+  const bye = await client.request("shutdown", null);
+  assert.equal(bye.result, null);
+  client.notify("exit", null);
+  assert.equal(await exitedWithin(client, 2000), 0);
+});
+
+test("hover names the word and completions replace the latin", async () => {
+  const uri = "file:///draft/lookup.txt";
+  const client = new Client(target);
+  await client.request("initialize", {
+    processId: process.pid,
+    rootUri: null,
+    capabilities: {},
+    initializationOptions: { completions: "auto" },
+  });
+  client.notify("initialized", {});
+  client.notify("textDocument/didOpen", {
+    textDocument: { uri, languageId: "plaintext", version: 1, text: `read ${READ_EAT}\n` },
+  });
+  await client.published();
+
+  const over = await client.request("textDocument/hover", {
+    textDocument: { uri },
+    position: { line: 0, character: 6 },
+  });
+  assert.deepEqual(over.result, {
+    contents: { kind: "markdown", value: READ_TOLD },
+    range: { start: { line: 0, character: 5 }, end: { line: 0, character: 8 } },
+  });
+
+  const missed = await client.request("textDocument/hover", {
+    textDocument: { uri },
+    position: { line: 0, character: 2 },
+  });
+  assert.equal(missed.result, null);
+
+  const asked = await client.request("textDocument/completion", {
+    textDocument: { uri },
+    position: { line: 0, character: 4 },
+    context: { triggerKind: 1 },
+  });
+  const range = { start: { line: 0, character: 0 }, end: { line: 0, character: 4 } };
+  assert.deepEqual(asked.result, [
+    {
+      label: READ_EAT,
+      detail: "singular noun, verb, infinitive",
+      sortText: "0000",
+      kind: 1,
+      filterText: "read",
+      textEdit: { range, newText: READ_EAT },
+    },
+    {
+      label: READ_ET,
+      detail: "past-tense verb, past participle",
+      sortText: "0001",
+      kind: 1,
+      filterText: "read",
+      textEdit: { range, newText: READ_ET },
+    },
+  ]);
+
+  const fenced = "file:///draft/fenced.md";
+  client.notify("textDocument/didOpen", {
+    textDocument: {
+      uri: fenced,
+      languageId: "markdown",
+      version: 1,
+      text: "```\nread\n```\n",
+    },
+  });
+  await client.published();
+  const walled = await client.request("textDocument/completion", {
+    textDocument: { uri: fenced },
+    position: { line: 1, character: 4 },
+    context: { triggerKind: 1 },
+  });
+  assert.equal(walled.result, null);
+
+  const bye = await client.request("shutdown", null);
+  assert.equal(bye.result, null);
+  client.notify("exit", null);
+  assert.equal(await exitedWithin(client, 2000), 0);
+});
+
+test("completions stay off until asked for and each mode holds", async () => {
+  const uri = "file:///draft/modes.txt";
+  const client = new Client(target);
+  await client.request("initialize", {
+    processId: process.pid,
+    rootUri: null,
+    capabilities: {},
+  });
+  client.notify("initialized", {});
+  client.notify("textDocument/didOpen", {
+    textDocument: { uri, languageId: "plaintext", version: 1, text: "read\n" },
+  });
+  await client.published();
+  const spot = { textDocument: { uri }, position: { line: 0, character: 4 } };
+
+  const refused = await client.request("textDocument/completion", {
+    ...spot,
+    context: { triggerKind: 1 },
+  });
+  assert.equal(refused.result, null);
+
+  client.notify("workspace/didChangeConfiguration", {
+    settings: { quikscript: { completions: "onDemand" } },
+  });
+  const invoked = await client.request("textDocument/completion", {
+    ...spot,
+    context: { triggerKind: 1 },
+  });
+  assert.equal(invoked.result.length, 2);
+  const typed = await client.request("textDocument/completion", {
+    ...spot,
+    context: { triggerKind: 2 },
+  });
+  assert.equal(typed.result, null);
+  const contextless = await client.request("textDocument/completion", spot);
+  assert.equal(contextless.result.length, 2);
+
+  client.notify("workspace/didChangeConfiguration", {
+    settings: { quikscript: { completions: "off" } },
+  });
+  const shut = await client.request("textDocument/completion", {
+    ...spot,
+    context: { triggerKind: 1 },
+  });
+  assert.equal(shut.result, null);
+
+  const bye = await client.request("shutdown", null);
+  assert.equal(bye.result, null);
+  client.notify("exit", null);
+  assert.equal(await exitedWithin(client, 2000), 0);
+});
+
+test("a pulling client is asked for its configuration", async () => {
+  const uri = "file:///draft/pulled.txt";
+  const client = new Client(target);
+  await client.request("initialize", {
+    processId: process.pid,
+    rootUri: null,
+    capabilities: { workspace: { configuration: true } },
+    initializationOptions: { completions: "off" },
+  });
+  client.notify("initialized", {});
+  const pulled = await client.next(
+    (message) => message.method === "workspace/configuration",
+  );
+  assert.deepEqual(pulled.params.items, [{ section: "quikscript" }]);
+  client.send({ id: pulled.id, result: [{ completions: "auto" }] });
+
+  client.notify("textDocument/didOpen", {
+    textDocument: { uri, languageId: "plaintext", version: 1, text: "read\n" },
+  });
+  await client.published();
+  const spot = { textDocument: { uri }, position: { line: 0, character: 4 } };
+  const answered = await client.request("textDocument/completion", spot);
+  assert.equal(answered.result.length, 2);
+
+  client.notify("workspace/didChangeConfiguration", { settings: {} });
+  const repulled = await client.next(
+    (message) => message.method === "workspace/configuration",
+  );
+  client.send({ id: repulled.id, result: [{ completions: "off" }] });
+  const shut = await client.request("textDocument/completion", spot);
+  assert.equal(shut.result, null);
 
   const bye = await client.request("shutdown", null);
   assert.equal(bye.result, null);
