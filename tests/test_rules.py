@@ -131,7 +131,7 @@ def test_ally_is_written_even_where_the_sound_is_absent() -> None:
 
 
 @pytest.mark.parametrize(
-    "word,written,spelt",
+    "word,written,spelled",
     [
         (
             "capably",
@@ -146,13 +146,13 @@ def test_ally_is_written_even_where_the_sound_is_absent() -> None:
     ],
 )
 def test_ably_and_ibly_omit_a_vowel_readlex_never_writes(
-    word: str, written: str, spelt: str
+    word: str, written: str, spelled: str
 ) -> None:
     context = context_for(word, "AV0")
     match = ALLY.search(context.latin)
     assert match is not None
     assert render(naive(context)) == written
-    assert render(apply_ally(context, parse(spelt), match)) == written
+    assert render(apply_ally(context, parse(spelled), match)) == written
 
 
 def test_tion_and_en_on_split_on_the_latin_spelling() -> None:
@@ -195,7 +195,7 @@ def test_ess_est_reaches_across_a_hiatus_seam() -> None:
     assert senior("beefiest", "AJS") == "·Bay·Eat·Fee·It·Et·See·Tea"
 
 
-def test_ain_and_age_normalise_the_unstressed_vowel() -> None:
+def test_ain_and_age_normalize_the_unstressed_vowel() -> None:
     assert senior("captain", "NN1") == "·Key·At·Pea·Tea·Utter·No"
     assert senior("maintain", "VVB") == "·May·Eight·No·Tea·Eight·No"
     assert senior("manage", "VVB") == "·May·At·No·Utter·Jay"
@@ -219,7 +219,7 @@ def test_y_sees_through_an_inflection() -> None:
     assert senior("latchkeys", "NN2") == "·Low·At·Cheer·Key·Eat·Zoo"
 
 
-def test_a_plural_terminal_is_spelt_as_its_own_singular() -> None:
+def test_a_plural_terminal_is_spelled_as_its_own_singular() -> None:
     assert senior("apogees", "NN2") == "·At·Pea·Utter·Jay·It·Zoo"
     assert senior("jubilees", "NN2") == "·Jay·Ooze·Bay·It·Low·It·Zoo"
     assert senior("pharisees", "NN2") == "·Fee·At·Roe·It·See·It·Zoo"
@@ -298,9 +298,9 @@ def test_ward_declines_a_stressed_utter_readlex_never_writes() -> None:
     context = context_for("edward", "NP0")
     match = WARD.search(context.latin)
     assert match is not None
-    spelt = parse("·Et·Day·Way·Utter·Roe·Day")
-    assert render(apply_ward(context, spelt, match)) == "·Et·Day·Way·Day"
-    stressed = spelt[:3] + (Letter("Utter", True, ""),) + spelt[4:]
+    spelled = parse("·Et·Day·Way·Utter·Roe·Day")
+    assert render(apply_ward(context, spelled, match)) == "·Et·Day·Way·Day"
+    stressed = spelled[:3] + (Letter("Utter", True, ""),) + spelled[4:]
     assert render(apply_ward(context, stressed, match)) == "·Et·Day·Way·Utter·Roe·Day"
 
 
@@ -468,7 +468,7 @@ def test_rule_ids_are_unique() -> None:
 
 
 def test_senior_only_names_only_terminals() -> None:
-    """The junior column declines a SENIOR_ONLY rewrite in `_stack`’s terminal branch alone, so a word rule or a misspelt id in the set would be a silent no-op rather than an error."""
+    """The junior column declines a SENIOR_ONLY rewrite in `_stack`’s terminal branch alone, so a word rule or a misspelled id in the set would be a silent no-op rather than an error."""
     assert {terminal.id for terminal in TERMINAL_RULES} >= SENIOR_ONLY
 
 
@@ -520,7 +520,7 @@ def test_every_ruling_carries_a_note() -> None:
 
 
 def test_a_ruling_that_substitutes_nothing_is_rejected(tmp_path: Path) -> None:
-    rows = [["next", "·No·Et·Key·See·Tea", "unaligned", "the ks is spelt out"]]
+    rows = [["next", "·No·Et·Key·See·Tea", "unaligned", "the ks is spelled out"]]
     with pytest.raises(ValueError, match="carries no X-letter"):
         load_x_rulings(x_rulings_file(tmp_path, rows))
 

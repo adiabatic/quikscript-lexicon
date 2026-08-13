@@ -14,7 +14,7 @@ from qslex.tokenizer import marked
 PRAGMAS_FILE = "lint-pragmas.tsv"
 PRAGMAS_HEADER = ["check", "word", "reason", "note"]
 
-# The one reason a word is allowed to break a check: a defect recorded against another issue, not a licence. Any other reason is a bare exception, which is what this table exists to prevent.
+# The one reason a word is allowed to break a check: a defect recorded against another issue, not a license. Any other reason is a bare exception, which is what this table exists to prevent.
 DEFECT = "known-defect"
 
 REDUCIBLE = frozenset({"It", "Utter"})
@@ -40,11 +40,11 @@ class Site:
     last: bool
 
     @property
-    def spelt(self) -> tuple[str, ...]:
+    def spelled(self) -> tuple[str, ...]:
         return names(self.letters)
 
     @property
-    def x_spelt(self) -> tuple[str, ...]:
+    def x_spelled(self) -> tuple[str, ...]:
         return names(self.x_letter or self.letters)
 
     @property
@@ -69,11 +69,11 @@ class Check:
 
 
 def _tail(site: Site, *shape: str) -> bool:
-    return site.spelt[-len(shape) :] == shape
+    return site.spelled[-len(shape) :] == shape
 
 
-def _before(spelt: tuple[str, ...], shape: tuple[str, ...]) -> str:
-    return spelt[-len(shape) - 1] if len(spelt) > len(shape) else ""
+def _before(spelled: tuple[str, ...], shape: tuple[str, ...]) -> str:
+    return spelled[-len(shape) - 1] if len(spelled) > len(shape) else ""
 
 
 def _ing_affix(latin: str) -> str:
@@ -105,7 +105,7 @@ def ing_vowel_omitted(site: Site, tables: Tables) -> str:
     shape = ING_SHAPES[affix]
     if not _tail(site, *shape):
         return ""
-    return "·It before the -ing" if _before(site.spelt, shape) == "It" else ""
+    return "·It before the -ing" if _before(site.spelled, shape) == "It" else ""
 
 
 def al_vowel_omitted(site: Site, tables: Tables) -> str:
@@ -117,14 +117,14 @@ def al_vowel_omitted(site: Site, tables: Tables) -> str:
         return ""
     if not site.reducible_ending:
         return ""
-    spelt = site.spelt
-    if spelt and spelt[-1] in {"Zoo", "See"} and site.latin.endswith("s"):
-        spelt = spelt[:-1]
-    if len(spelt) < 3 or spelt[-1] != "Low" or spelt[-2] not in REDUCIBLE:
+    spelled = site.spelled
+    if spelled and spelled[-1] in {"Zoo", "See"} and site.latin.endswith("s"):
+        spelled = spelled[:-1]
+    if len(spelled) < 3 or spelled[-1] != "Low" or spelled[-2] not in REDUCIBLE:
         return ""
-    if spelt[-3] in VOWELS_BEFORE_L:
+    if spelled[-3] in VOWELS_BEFORE_L:
         return ""
-    return f"·{spelt[-2]} between a consonant and the final ·Low"
+    return f"·{spelled[-2]} between a consonant and the final ·Low"
 
 
 def ent_ance_utter(site: Site, tables: Tables) -> str:
@@ -135,7 +135,7 @@ def ent_ance_utter(site: Site, tables: Tables) -> str:
     shape = ("No", "Tea") if match.group(1) in {"ent", "ant"} else ("No", "See")
     if not _tail(site, *shape):
         return ""
-    before = _before(site.spelt, shape)
+    before = _before(site.spelled, shape)
     return f"·{before} before ·No, not ·Utter" if before not in {"Utter", ""} else ""
 
 
@@ -150,16 +150,16 @@ def land_ment_vowel_omitted(site: Site, tables: Tables) -> str:
     ending = match.group(1)
     shape = {"land": ("No", "Day"), "ment": ("No", "Tea"), "man": ("No",)}[ending]
     consonant = {"land": "Low", "ment": "May", "man": "May"}[ending]
-    if site.latin.endswith("s") and site.spelt[-1:] == ("Zoo",):
-        spelt = site.spelt[:-1]
+    if site.latin.endswith("s") and site.spelled[-1:] == ("Zoo",):
+        spelled = site.spelled[:-1]
     else:
-        spelt = site.spelt
-    if spelt[-len(shape) :] != shape:
+        spelled = site.spelled
+    if spelled[-len(shape) :] != shape:
         return ""
-    vowel = spelt[-len(shape) - 1] if len(spelt) > len(shape) else ""
+    vowel = spelled[-len(shape) - 1] if len(spelled) > len(shape) else ""
     if vowel not in REDUCIBLE:
         return ""
-    keeps = spelt[-len(shape) - 2] if len(spelt) > len(shape) + 1 else ""
+    keeps = spelled[-len(shape) - 2] if len(spelled) > len(shape) + 1 else ""
     if keeps != consonant:
         return ""
     return f"·{vowel} kept between ·{consonant} and the -{ending}"
@@ -172,7 +172,7 @@ def men_keeps_a_vowel(site: Site, tables: Tables) -> str:
     """
     if not MEN.search(site.latin) or not _tail(site, "No"):
         return ""
-    vowel = _before(site.spelt, ("No",))
+    vowel = _before(site.spelled, ("No",))
     if not vowel or vowel in VOWELS:
         return ""
     return f"-men joined straight onto ·{vowel}, with no vowel kept"
@@ -180,17 +180,17 @@ def men_keeps_a_vowel(site: Site, tables: Tables) -> str:
 
 def initial_ex_et(site: Site, tables: Tables) -> str:
     """“·Et·Excite for Excite, Extreme, Expect, with an initial vowel ·Et easier than ·It.” (section-2)"""
-    spelt = site.x_spelt
-    if not site.latin.startswith("ex") or len(spelt) < 2:
+    spelled = site.x_spelled
+    if not site.latin.startswith("ex") or len(spelled) < 2:
         return ""
-    if spelt[1] not in X_LETTERS or site.stressed:
+    if spelled[1] not in X_LETTERS or site.stressed:
         return ""
-    return f"·{spelt[0]} before the X-letter, not ·Et" if spelt[0] != "Et" else ""
+    return f"·{spelled[0]} before the X-letter, not ·Et" if spelled[0] != "Et" else ""
 
 
 def x_letter_only_with_x(site: Site, tables: Tables) -> str:
     """“but only where Orthodox spells these sounds with X … and only one ·Excite in Xerxes.” (section-2)"""
-    used = sum(1 for name in site.x_spelt if name in X_LETTERS)
+    used = sum(1 for name in site.x_spelled if name in X_LETTERS)
     available = site.latin.count("x")
     if used <= available:
         return ""

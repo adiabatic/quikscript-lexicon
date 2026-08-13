@@ -20,7 +20,7 @@ from qslex.roundtrip import (
     align,
     phonemes_of,
     source_phonemes,
-    spelt_phonemes,
+    spelled_phonemes,
 )
 from qslex.rules import (
     RULE_IDS,
@@ -77,7 +77,7 @@ EXPECTED_TOKEN_COUNTS = {
     ("aʊə", "no-r"): 51,
 }
 
-# Rows each orthographic rule actually rewrites, counted over the rows the lexicon spells rather than over the whole corpus. Eleven of the Manual’s rules are satisfied by ReadLex’s IPA already and ship as normalisers, so a zero here is a statement, not a bug: it says the corpus never contradicts that rule.
+# Rows each orthographic rule actually rewrites, counted over the rows the lexicon spells rather than over the whole corpus. Eleven of the Manual’s rules are satisfied by ReadLex’s IPA already and ship as normalizers, so a zero here is a statement, not a bug: it says the corpus never contradicts that rule.
 EXPECTED_RULE_CHANGES: dict[str, int] = {
     "terminal-es-ed": 7681,
     "terminal-ing": 10976,
@@ -149,7 +149,7 @@ EXPECTED_ROUNDTRIP_EDITS: dict[tuple[str, str], int] = {
     ("ə", "ɪ"): 14,
 }
 
-# Spellings that read straight back to their own IPA, with nothing elided or levelled.
+# Spellings that read straight back to their own IPA, with nothing elided or leveled.
 EXPECTED_ROUNDTRIP_IDENTICAL = 76618
 
 # A word sign or standard outline stands for the written word rather than for its sounds, so a row one rewrites has nothing to read back.
@@ -432,14 +432,14 @@ def main(argv: list[str] | None = None) -> int:
                 for spelling in dict.fromkeys(
                     s for s in (result.senior, result.junior, result.x_letter) if s
                 ):
-                    written = spelt_phonemes(spelling, read_back)
+                    written = spelled_phonemes(spelling, read_back)
                     if said == written:
                         roundtrip_identical += 1
                         continue
                     edits = align(said, written)
                     if edits is None:
                         unreadable.append(
-                            f"{word!r} [{row.pos}] {ipa} spelt {spelling} reads back "
+                            f"{word!r} [{row.pos}] {ipa} spelled {spelling} reads back "
                             f"as {' '.join(written)}"
                         )
                         continue
@@ -509,15 +509,15 @@ def main(argv: list[str] | None = None) -> int:
     unruled = sorted(set(var_rows) - set(var_tags))
     if unruled:
         failures.append(f"variant tags with no row policy: {unruled}")
-    spelt_rows = sum(entry.rows for entry in var_tags.values() if entry.kept)
-    print(f"  rows the lexicon spells: {rrp_rows} (expected {spelt_rows})")
+    spelled_rows = sum(entry.rows for entry in var_tags.values() if entry.kept)
+    print(f"  rows the lexicon spells: {rrp_rows} (expected {spelled_rows})")
     print(
         f"  headwords they fall under: {len(rrp_headwords)} of {CORPUS_HEADWORDS} "
         "(expected all of them)"
     )
-    if rrp_rows != spelt_rows:
+    if rrp_rows != spelled_rows:
         failures.append(
-            f"{rrp_rows} rows survive the row policy, expected {spelt_rows}"
+            f"{rrp_rows} rows survive the row policy, expected {spelled_rows}"
         )
     if len(rrp_headwords) != CORPUS_HEADWORDS:
         failures.append(
@@ -791,7 +791,7 @@ def main(argv: list[str] | None = None) -> int:
             f"expected {EXPECTED_MANUAL_ABSENT}"
         )
 
-    print("\nthe Manual’s own lint, re-derived and run over every spelt row:")
+    print("\nthe Manual’s own lint, re-derived and run over every spelled row:")
     for check in CHECKS:
         broken = lint_hits.get(check.id, 0)
         excused = sum(1 for key in pragmas if key[0] == check.id)

@@ -1,6 +1,6 @@
 # The build, the row policy, and the artifacts
 
-This is the spec for [`src/qslex/build.py`](../src/qslex/build.py), [`src/qslex/variants.py`](../src/qslex/variants.py), [`src/qslex/converter.py`](../src/qslex/converter.py) and [`src/qslex/hunspell.py`](../src/qslex/hunspell.py) — the layer that runs after the segment mapping ([`docs/ipa-to-qs.md`](ipa-to-qs.md)), the orthographic rules ([`docs/orthographic-rules.md`](orthographic-rules.md)) and the word signs ([`docs/word-signs.md`](word-signs.md)) have decided how a word is spelt, and turns 108,425 spelt rows into files.
+This is the spec for [`src/qslex/build.py`](../src/qslex/build.py), [`src/qslex/variants.py`](../src/qslex/variants.py), [`src/qslex/converter.py`](../src/qslex/converter.py) and [`src/qslex/hunspell.py`](../src/qslex/hunspell.py) — the layer that runs after the segment mapping ([`docs/ipa-to-qs.md`](ipa-to-qs.md)), the orthographic rules ([`docs/orthographic-rules.md`](orthographic-rules.md)) and the word signs ([`docs/word-signs.md`](word-signs.md)) have decided how a word is spelled, and turns 108,425 spelled rows into files.
 
 It decides nothing about spelling. Everything below is about which rows are carried, what shape they are written in, and how the result is kept honest.
 
@@ -39,14 +39,14 @@ ReadLex carries four accents. This lexicon spells one: **rhotic RP**, which is t
 
 | Policy                    | Tags                                           |
 | ------------------------- | ---------------------------------------------- |
-| keep, normalised to `RRP` | `RRP`, `RRPVar`, `RRPvar`                      |
+| keep, normalized to `RRP` | `RRP`, `RRPVar`, `RRPvar`                      |
 | drop                      | `TrapBath`, `GenAm`, `Gen Am`, `GenAus`, `SSB` |
 
-Four of them are malformed — `RRPVar`/`RRPvar` are the same tag under two capitalisations, `Gen Am` is `GenAm` with a space, and `SSB` is an accent label nothing else in the corpus uses. They are enumerated in [#7](https://github.com/adiabatic/quikscript-lexicon/issues/7); normalising them is done here rather than there because the filter cannot run without it. Every tag outside upstream’s documented four must declare the words it covers, and the validator holds it to that list, so an upstream fix shows up as a rule that stopped matching rather than as a silent change of contents.
+Four of them are malformed — `RRPVar`/`RRPvar` are the same tag under two capitalizations, `Gen Am` is `GenAm` with a space, and `SSB` is an accent label nothing else in the corpus uses. They are enumerated in [#7](https://github.com/adiabatic/quikscript-lexicon/issues/7); normalizing them is done here rather than there because the filter cannot run without it. Every tag outside upstream’s documented four must declare the words it covers, and the validator holds it to that list, so an upstream fix shows up as a rule that stopped matching rather than as a silent change of contents.
 
 Two of those rulings deserve their reasoning on the record:
 
-- **`RRPVar`/`RRPvar` are kept**, normalised to `RRP`. They are second RRP pronunciations, not second accents: again `əˈɡeɪn` beside `əˈɡen`, stance `stɑːns` beside `stæns`, mushy `ˈmʊʃi` beside `ˈmʌʃi`. Upstream’s own TSV drops them; we do not, because a variant pronunciation within the accent we spell is a spelling we should carry. Note what is lost by normalising: the artifacts no longer say which of a word’s spellings was upstream’s primary. With `var` collapsing anyway that information had nowhere to go, and the converter’s `⬌` join preserves corpus order, which puts the primary first.
+- **`RRPVar`/`RRPvar` are kept**, normalized to `RRP`. They are second RRP pronunciations, not second accents: again `əˈɡeɪn` beside `əˈɡen`, stance `stɑːns` beside `stæns`, mushy `ˈmʊʃi` beside `ˈmʌʃi`. Upstream’s own TSV drops them; we do not, because a variant pronunciation within the accent we spell is a spelling we should carry. Note what is lost by normalizing: the artifacts no longer say which of a word’s spellings was upstream’s primary. With `var` collapsing anyway that information had nowhere to go, and the converter’s `⬌` join preserves corpus order, which puts the primary first.
 - **`SSB` is dropped.** Its one row is pasta `ˈpæstə`, against the RRP row’s `ˈpɑːstə` — a TRAP-BATH variant wearing an accent label instead of the `Æ` capital, so the TrapBath ruling covers it.
 
 With only RRP surviving, the `var` field carries no information and is dropped from the artifacts. The dual `Ɑː`/`Æ` rows in the segment mapping stay, which keeps TrapBath cheap to revisit.
@@ -60,7 +60,7 @@ Every one of the 56,649 headwords keeps at least one row, so the filter loses no
 - **The segment layer sees all 111,214 rows.** Mapping-row coverage, quirk rules, stress overrides, token counts, raw-pattern counts and the Shavian EAR oracle all run over everything upstream ships. They have to: the `Æ` mapping row and the `hɪəˈrÆftəR` stress override are exercised *only* by TrapBath rows, so scoping this layer to what we ship would put two correct, still-present rows out of reach of their own never-exercised checks. It also means the tokenizer is proved against the General American rows — which it passes, with zero unmapped residue and no quirk rule of its own.
 - **The spelling layer sees only the 108,425 rows the lexicon spells.** Rules, word signs, the junior and X-letter columns, and the Manual fixtures are all counted over those. Scoping this layer to everything was tried and rejected: the GenAm rows make `new` and `news` rewrite 14 rows apiece (GenAm `nuː` where RRP `njuː` already gives ·No·Ye·Ooze), and the validator would then demand Manual fixtures justifying spellings that never ship.
 
-One consequence is worth stating plainly, because it looks like a regression and is not. Two of the Manual’s own example words, **contrast** and **example**, are spelt in this lexicon with ·Ah where the Manual writes ·At. Both fixtures were derived from ReadLex’s TrapBath row, which the row policy drops; re-derived from the surviving BATH row they give ·Key·Ox·No·Tea·Roe·**Ah**·See·Tea and ·It·Gay·Zoo·**Ah**·May·Pea·Low. The Manual’s vowel is recorded in the note on each fixture row. This is the TRAP-BATH split itself, and it is the price of the RRP-only ruling.
+One consequence is worth stating plainly, because it looks like a regression and is not. Two of the Manual’s own example words, **contrast** and **example**, are spelled in this lexicon with ·Ah where the Manual writes ·At. Both fixtures were derived from ReadLex’s TrapBath row, which the row policy drops; re-derived from the surviving BATH row they give ·Key·Ox·No·Tea·Roe·**Ah**·See·Tea and ·It·Gay·Zoo·**Ah**·May·Pea·Low. The Manual’s vowel is recorded in the note on each fixture row. This is the TRAP-BATH split itself, and it is the price of the RRP-only ruling.
 
 ## Artifact shapes
 
@@ -90,7 +90,7 @@ The `entries` key is upstream’s headword key, verbatim, mapping to the entries
 
 `Shaw` is kept. It costs little, it is what the validator’s EAR oracle reads, and it makes a row diffable against upstream. `var` is dropped, per the row policy. `qs_junior` and `qs_x` are **absent unless they differ** from `qs` — the sparse encoding, so that the delta stays obvious and a diff stays small.
 
-`ipa` is the **quirk-normalised** string, not the corpus’s own, so that every row explains its own spelling rather than the one upstream’s unrepaired IPA would have produced. It differs on 124 rows; upstream’s original is in the vendored corpus, which is where a diff against ReadLex should read from.
+`ipa` is the **quirk-normalized** string, not the corpus’s own, so that every row explains its own spelling rather than the one upstream’s unrepaired IPA would have produced. It differs on 124 rows; upstream’s original is in the vendored corpus, which is where a diff against ReadLex should read from.
 
 **One headword to a line**, and one letter and one phrase to a line likewise; `meta` and `c5_to_penn` are small enough to indent four spaces in the ordinary way. The file is generated, so the diff worth reading is which entries moved, and that reads as one changed line each rather than as a field adrift in a nine-line block. It costs ten megabytes less than a field to a line did. `ensure_ascii=False`, LF, trailing newline, headwords in corpus order.
 
@@ -159,7 +159,7 @@ The entries a tokenizer must match as one unit before it splits the text, becaus
 
 The predicate is compositionality, not a character test: an entry is listed when spelling its pieces separately and rejoining them does not reproduce the entry’s own spelling, when a piece is not in the lexicon at all, or — for a single word — when it contains an apostrophe, which a tokenizer splits at. On top of that sit 14 declared exceptions in `src/qslex/data/phrase-exceptions.tsv`: three HTML entities that are not lexicon entries at all, and eleven words spaCy’s tokenizer splits, which no property of the lexicon can reveal.
 
-The list is longer than upstream’s — 1,600 against 1,406 — and the reason is real: Quikscript’s terminal and prefix conventions are genuinely more context-sensitive than Shavian’s, so hundreds of compounds legitimately fail to compose where their Shavian spellings do. It was longer still, 2,171, until the rules learnt to see inside a compound ([#9](https://github.com/adiabatic/quikscript-lexicon/issues/9)); 571 entries were on it only because their elements were spelt one way alone and another way in the compound. The list is regenerated from the spellings either way, so it cannot disagree with them.
+The list is longer than upstream’s — 1,600 against 1,406 — and the reason is real: Quikscript’s terminal and prefix conventions are genuinely more context-sensitive than Shavian’s, so hundreds of compounds legitimately fail to compose where their Shavian spellings do. It was longer still, 2,171, until the rules learned to see inside a compound ([#9](https://github.com/adiabatic/quikscript-lexicon/issues/9)); 571 entries were on it only because their elements were spelled one way alone and another way in the compound. The list is regenerated from the spellings either way, so it cannot disagree with them.
 
 It is also *shorter* in eight places, and those are real: at-home, lean-to, set-to, aged care, school-aged and three more compose in Quikscript because a standard word-outline collapses a stressed/unstressed pair that Shavian spells two ways.
 

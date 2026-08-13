@@ -93,24 +93,24 @@ class Coverage:
     """
 
     read: int
-    spelt: tuple[Entry, ...]
+    spelled: tuple[Entry, ...]
 
     def report(self) -> str:
-        junior = sum(1 for entry in self.spelt if entry.junior)
-        x_letter = sum(1 for entry in self.spelt if entry.x_letter)
+        junior = sum(1 for entry in self.spelled if entry.junior)
+        x_letter = sum(1 for entry in self.spelled if entry.x_letter)
         return (
-            f"converted {len(self.spelt)} corpus rows, "
-            f"skipped {self.read - len(self.spelt)}\n"
+            f"converted {len(self.spelled)} corpus rows, "
+            f"skipped {self.read - len(self.spelled)}\n"
             f"sparse columns: {junior} junior, {x_letter} x-letter"
         )
 
 
 def convert(rows: Iterable[Row], mapping: Mapping) -> tuple[Entry, ...]:
-    """Every kept row spelt, in corpus order.
+    """Every kept row spelled, in corpus order.
 
-    Nothing here decides how a word is spelt: the mapping, the rules and the word signs have all already run by the time `spell` returns, and this only renders what they produced into the PUA encoding the artifacts carry.
+    Nothing here decides how a word is spelled: the mapping, the rules and the word signs have all already run by the time `spell` returns, and this only renders what they produced into the PUA encoding the artifacts carry.
 
-    The IPA carried out is the quirk-normalised string, not the corpus’s own, so that every row explains its own spelling. Upstream’s unrepaired IPA stays available in the vendored corpus, which is where anyone diffing against ReadLex should look.
+    The IPA carried out is the quirk-normalized string, not the corpus’s own, so that every row explains its own spelling. Upstream’s unrepaired IPA stays available in the vendored corpus, which is where anyone diffing against ReadLex should look.
     """
     quirks = load_quirks()
     overrides = load_overrides(mapping)

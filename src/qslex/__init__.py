@@ -17,7 +17,7 @@ from qslex.overrides import Override, Overrides, load_overrides
 from qslex.passages import PassageWord, Specimen, load_passages
 from qslex.quirks import QuirkRule, load_quirks, normalize
 from qslex.readlex import Row, load_rows
-from qslex.roundtrip import align, phonemes_of, source_phonemes, spelt_phonemes
+from qslex.roundtrip import align, phonemes_of, source_phonemes, spelled_phonemes
 from qslex.rules import (
     RULES,
     Context,
@@ -115,7 +115,7 @@ __all__ = [
     "sign_for",
     "source_phonemes",
     "spell",
-    "spelt_phonemes",
+    "spelled_phonemes",
     "split",
     "tokenize",
     "unknown_names",

@@ -44,26 +44,26 @@ def divider(run: Letters) -> str:
     return run[0].name if len(run) == 1 and run[0].name in DIVIDERS else ""
 
 
-def aligned(parts: tuple[str, ...], spelt: tuple[Letters, ...]) -> bool:
+def aligned(parts: tuple[str, ...], spelled: tuple[Letters, ...]) -> bool:
     """Whether the Latin words and the spelling’s runs are the same shape.
 
-    Equal counts are not enough: a Latin hyphen facing a spelt space would let a rewrite cross a boundary that is not the one it matched.
+    Equal counts are not enough: a Latin hyphen facing a spelled space would let a rewrite cross a boundary that is not the one it matched.
     """
-    if len(parts) != len(spelt):
+    if len(parts) != len(spelled):
         return False
     return all(
         (part if part in DIVIDERS else "") == divider(run)
-        for part, run in zip(parts, spelt, strict=True)
+        for part, run in zip(parts, spelled, strict=True)
     )
 
 
 def elements(latin: str, letters: Letters) -> tuple[tuple[str, Letters], ...] | None:
     """An entry’s Latin parts paired with the runs of its spelling, or None.
 
-    None where the two are not the same shape, which is what keeps to-day (one spelt run against three Latin parts) and dhs (one Latin part against seven runs) from being mangled. Both the orthographic rules and the word signs cut an entry up here, so that neither can disagree with the other about where its boundaries are.
+    None where the two are not the same shape, which is what keeps to-day (one spelled run against three Latin parts) and dhs (one Latin part against seven runs) from being mangled. Both the orthographic rules and the word signs cut an entry up here, so that neither can disagree with the other about where its boundaries are.
     """
     parts = components(latin)
-    spelt = runs(letters)
-    if not aligned(parts, spelt):
+    spelled = runs(letters)
+    if not aligned(parts, spelled):
         return None
-    return tuple(zip(parts, spelt, strict=True))
+    return tuple(zip(parts, spelled, strict=True))

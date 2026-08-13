@@ -148,7 +148,7 @@ def _force(
     want: str,
     among: frozenset[str] = REDUCIBLE,
 ) -> Letters:
-    """Normalise the vowel that precedes `shape` at the end of the word.
+    """Normalize the vowel that precedes `shape` at the end of the word.
 
     `among` names the vowels this rule may rewrite, and only terminal -y widens it. Read reserves ·Eat “for distinction where the terminal is stressed”, so an unstressed ·Eat at that terminal is a vowel he prescribes over; everywhere else a full ·Eat is a vowel ReadLex means, as **·Et is not a reducible vowel** in docs/orthographic-rules.md says of ·Et.
     """
@@ -268,15 +268,15 @@ def load_x_rulings(path: Path | None = None) -> dict[str, XLetterRule]:
         unknown = unknown_names(rule.x_letter)
         if unknown:
             raise ValueError(f"{source}:{lineno}: unknown letter names {unknown}")
-        spelt = names(parse(rule.x_letter))
-        if rule.x_letter and not X_LETTERS.intersection(spelt):
+        spelled = names(parse(rule.x_letter))
+        if rule.x_letter and not X_LETTERS.intersection(spelled):
             raise ValueError(
                 f"{source}:{lineno}: {rule.x_letter} carries no X-letter; leave "
                 f"the column empty to rule that this word takes none"
             )
         if "xc" in rule.word and any(
             first in X_LETTERS and second == "See"
-            for first, second in zip(spelt, spelt[1:], strict=False)
+            for first, second in zip(spelled, spelled[1:], strict=False)
         ):
             raise ValueError(
                 f"{source}:{lineno}: {rule.x_letter} adds a ·See after the "
@@ -322,7 +322,7 @@ def apply_con_com(context: Context, letters: Letters) -> Letters:
 
 @dataclass(frozen=True)
 class PrefixForm:
-    """One prefix whose vowel the Manual normalises.
+    """One prefix whose vowel the Manual normalizes.
 
     `spellings` are the Latin openings that select the form, `index` the letter it rewrites and `want` what that letter becomes; `frame` names the consonants that have to sit where they do for the prefix to be the real one.
     """
@@ -334,7 +334,7 @@ class PrefixForm:
 
 
 def _prefix(context: Context, letters: Letters, form: PrefixForm) -> Letters:
-    """Normalise the prefix vowel, once the form’s frame confirms the consonants."""
+    """Normalize the prefix vowel, once the form’s frame confirms the consonants."""
     if len(letters) <= max(form.index, *(at for at, _ in form.frame)):
         return letters
     if any(letters[at].name != name for at, name in form.frame):
@@ -738,7 +738,7 @@ def substitute_x(
 def undecided_ing(latin: str, participles: Container[str]) -> bool:
     """An -ing word no participle decides, so root-or-affix is a ruling, not a guess.
 
-    A word that is, or ends in, something ReadLex tags VVG is an affix by construction — no root -ing word is ever a present participle. Everything else (roots, the -ling noun suffix, placenames, lexicalised participles) is ruled on by hand in rule-words.tsv.
+    A word that is, or ends in, something ReadLex tags VVG is an affix by construction — no root -ing word is ever a present participle. Everything else (roots, the -ling noun suffix, placenames, lexicalized participles) is ruled on by hand in rule-words.tsv.
     """
     if not latin.endswith(ING_TAILS):
         return False
@@ -765,7 +765,7 @@ def undecided_prefix(context: Context, letters: Letters, tables: Tables) -> bool
 def undecided_ess(context: Context, letters: Letters, tables: Tables) -> bool:
     """A -est/-ess rewrite starting from ·It rather than schwa wants a ruling.
 
-    The Manual standardises the *variable* unstressed vowel of this terminal, which ReadLex writes as schwa. An ·It there is evidence that the Latin -est/-ess is the root rather than the suffix (forest, harvest, tempest, Furness), so every one is ruled on in rule-words.tsv rather than rewritten on the strength of the spelling.
+    The Manual standardizes the *variable* unstressed vowel of this terminal, which ReadLex writes as schwa. An ·It there is evidence that the Latin -est/-ess is the root rather than the suffix (forest, harvest, tempest, Furness), so every one is ruled on in rule-words.tsv rather than rewritten on the strength of the spelling.
     """
     if tables.ruled("terminal-ess-est", context.latin):
         return False

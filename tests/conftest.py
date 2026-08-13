@@ -32,13 +32,13 @@ KEPT = select(load_var_tags(), CORPUS)
 
 @functools.cache
 def entries() -> tuple[Entry, ...]:
-    """Every kept row spelt, built on first ask and held for the rest of the run."""
+    """Every kept row spelled, built on first ask and held for the rest of the run."""
     return convert(KEPT, MAPPING)
 
 
 @functools.cache
 def built() -> dict[str, str]:
-    """Every artifact, from the same spelt rows, likewise built once."""
+    """Every artifact, from the same spelled rows, likewise built once."""
     return artifacts(entries(), MAPPING)
 
 

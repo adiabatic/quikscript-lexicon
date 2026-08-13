@@ -33,16 +33,16 @@ tipped		senior	word	·Tea·It·Pea·Tea	derived	terminal-es-ed	one of the seven 
 treated		senior	word	·Tea·Roe·Eat·Tea·Day	derived	terminal-es-ed	naive ·Tea·Roe·Eat·Tea·Utter·Day; epenthetic Ə in the TD pair omitted
 wages		senior	word	·Way·Eight·Jay·Zoo	derived	terminal-es-ed	naive ·Way·Eight·Jay·Utter·Zoo; epenthetic Ə between J and Z omitted
 adding-machine	NN1	senior	word	·At·Day·Oolong-·May·Utter·She·Eat·No	derived	terminal-ing	the affix is bared inside the compound: the first element is the ·At·Day·Oolong the corpus gives adding on its own
-beings		senior	word	·Bay·Eat·Oolong·Zoo	derived	terminal-ing	naive ·Bay·Eat·It·Oolong·Zoo; affix -ing drops vowel-i, and the root contraction ·Bay·Oolong (= being) is forbidden by the changed meaning, so the root ·Bay·Eat is spelt in full. What the rider restores is the root and not the affix: the section’s own writings is ·Roe·I·Tea·Oolong·Zoo, a de-verbal noun plural with the affix vowel struck out
+beings		senior	word	·Bay·Eat·Oolong·Zoo	derived	terminal-ing	naive ·Bay·Eat·It·Oolong·Zoo; affix -ing drops vowel-i, and the root contraction ·Bay·Oolong (= being) is forbidden by the changed meaning, so the root ·Bay·Eat is spelled in full. What the rider restores is the root and not the affix: the section’s own writings is ·Roe·I·Tea·Oolong·Zoo, a de-verbal noun plural with the affix vowel struck out
 bringing		senior	word	·Bay·Roe·It·Oolong·Oolong	manual	terminal-ing	root bring keeps its ·It; only the affix -ing loses the vowel
 calling		senior	word	·Key·Awe·Low·Oolong	manual	terminal-ing	
-canning		senior	word	·Key·At·No·Oolong	derived	terminal-ing	naive ·Key·At·No·It·Oolong; affix -ing drops vowel-i, and the can contraction ·Key is not used here because the meaning has changed, so the root ·Key·At·No is spelt in full
-carrying		senior	word	·Key·At·Roe·It·It·Oolong	manual	terminal-ing	-ing spelt in full after a root ending in -y, so both ·It letters stand; identical to naive
+canning		senior	word	·Key·At·No·Oolong	derived	terminal-ing	naive ·Key·At·No·It·Oolong; affix -ing drops vowel-i, and the can contraction ·Key is not used here because the meaning has changed, so the root ·Key·At·No is spelled in full
+carrying		senior	word	·Key·At·Roe·It·It·Oolong	manual	terminal-ing	-ing spelled in full after a root ending in -y, so both ·It letters stand; identical to naive
 epping	NP0	senior	word	·Et·Pea·It·Oolong	manual	terminal-ing	root, not affix; identical to naive. Manual writes it with a leading name-dot (··Et·Pea·It·Oolong), stripped here per the output format
 lovingly		senior	word	·Low·Utter·Vie·Oolong·Low·It	manual	terminal-ing	the -ly keeps ·Low·It; only the affix -ing vowel goes
 things		senior	word	·Thaw·It·Oolong·Zoo	manual	terminal-ing	root, not affix; identical to naive
-undoing		senior	word	·Utter·No·Day·Ooze·Oolong	derived	terminal-ing	naive ·Utter·No·Day·Ooze·It·Oolong; affix -ing drops vowel-i; the root contraction ·Day·Oolong (= doing) is forbidden after the prefix, so do = ·Day·Ooze is spelt in full
-unthinkingly		senior	word	·Utter·No·Thaw·It·Oolong·Key·Oolong·Low·It	derived	terminal-ing	naive ·Utter·No·Thaw·It·Oolong·Key·It·Oolong·Low·It; affix -ing drops vowel-i; the root contraction ·Thaw·Oolong (= thinking) is forbidden after the prefix, so think = ·Thaw·It·Oolong·Key is spelt in full
+undoing		senior	word	·Utter·No·Day·Ooze·Oolong	derived	terminal-ing	naive ·Utter·No·Day·Ooze·It·Oolong; affix -ing drops vowel-i; the root contraction ·Day·Oolong (= doing) is forbidden after the prefix, so do = ·Day·Ooze is spelled in full
+unthinkingly		senior	word	·Utter·No·Thaw·It·Oolong·Key·Oolong·Low·It	derived	terminal-ing	naive ·Utter·No·Thaw·It·Oolong·Key·It·Oolong·Low·It; affix -ing drops vowel-i; the root contraction ·Thaw·Oolong (= thinking) is forbidden after the prefix, so think = ·Thaw·It·Oolong·Key is spelled in full
 willingness		senior	word	·Way·It·Low·Oolong·No·Et·See	derived	terminal-ing	naive ·Way·It·Low·It·Oolong·No·Utter·See; affix -ing drops vowel-i. Out of this slice: terminal-ess-est would further rewrite -·No·Utter·See to -·No·Et·See, giving ·Way·It·Low·Oolong·No·Et·See under the whole Manual; terminal-ess-est also fires: -ness writes ·Et
 wing		senior	word	·Way·It·Oolong	manual	terminal-ing	root, not affix, so vowel-i is kept; identical to naive
 writings		senior	word	·Roe·I·Tea·Oolong·Zoo	manual	terminal-ing	
@@ -144,8 +144,8 @@ cable-car	NN1	senior	word	·Key·Eight·Bay·Utter·Low-·Key·Ah·Roe	derived	t
 comfortable	AJ0	senior	terminal	·Utter·Bay·Low	derived	terminal-ally-able	naive ·Utter·Bay·Utter·Low; the Manual writes -able and -ible alike as -·Utter·Bay·Low
 comfortably	AV0	senior	terminal	·Utter·Bay·Low·It	derived	terminal-ally-able	ReadLex ˈkʌmfəRtəbli already has no vowel before ·Low
 finally	AV0	senior	terminal	·Utter·Low·It	derived	terminal-ally-able	corroborates terminal-al-el-le-il: adding a syllable restores the vowel the -al rule would have dropped
-possible	AJ0	senior	terminal	·Utter·Bay·Low	derived	terminal-ally-able	naive ·Utter·Bay·Utter·Low; -ible is spelt as -able
-possibly	AV0	senior	terminal	·Utter·Bay·Low·It	derived	terminal-ally-able	-ibly is spelt as -ably
+possible	AJ0	senior	terminal	·Utter·Bay·Low	derived	terminal-ally-able	naive ·Utter·Bay·Utter·Low; -ible is spelled as -able
+possibly	AV0	senior	terminal	·Utter·Bay·Low·It	derived	terminal-ally-able	-ibly is spelled as -ably
 action		senior	terminal	·She·No	manual	terminal-tion	whole word ·At·Key·She·No; naive ·At·Key·She·Utter·No; the alternative N-letter joins the preceding consonant, omitting the vowel.
 combination-lock	NN1	senior	word	·Key·Ox·May·Bay·It·No·Eight·She·No-·Low·Ox·Key	derived	terminal-tion	the terminal reaches the first element: it is the ·Key·Ox·May·Bay·It·No·Eight·She·No combination has on its own
 fashion		senior	terminal	·She·No	manual	terminal-tion	whole word ·Fee·At·She·No; naive ·Fee·At·She·Utter·No; the alternative N-letter joins the preceding consonant, omitting the vowel. Contrast ashen = ·At·She·Utter·No under terminal-en-on: identical /ʃən/, opposite treatment, decided by the Latin spelling of the ending
@@ -170,7 +170,7 @@ seaman		senior	terminal	·May·No	manual	terminal-land-ment	naive ·See·Eat·Ma
 seamen		senior	terminal	·May·Et·No	manual	terminal-land-ment	no-op and the stated exemption: ReadLex ˈsiːmen already gives ·May·Et·No, so -men keeps its vowel by phonology as well as by rule
 settlement		senior	terminal	·May·No·Tea	manual	terminal-land-ment	naive ·See·Et·Tea·Utter·Low·May·Utter·No·Tea; only the -ment ·Utter is this rule’s, the -tle ·Utter belongs to terminal-al-el-le-il
 unman		senior	word	·Utter·No·May·At·No	derived	terminal-land-ment	stressed-vowel exception: ˌʌnˈmæn has stressed æ in -man so ·At stays and the naive spelling is unchanged
-doesn't		senior	word	·Day·Utter·Zoo·No·Tea	derived	terminal-nt	the linking vowel before n't goes, generalised from the bare ·No·Tea of every §III n't contraction and of the gown-shop wasn't; the elision is the senior column’s alone, and the junior column keeps the vowel the Manual’s own Junior bo-peep writes in ·Day·Utter·Zoo·Utter·No·Tea
+doesn't		senior	word	·Day·Utter·Zoo·No·Tea	derived	terminal-nt	the linking vowel before n't goes, generalized from the bare ·No·Tea of every §III n't contraction and of the gown-shop wasn't; the elision is the senior column’s alone, and the junior column keeps the vowel the Manual’s own Junior bo-peep writes in ·Day·Utter·Zoo·Utter·No·Tea
 distance		senior	terminal	·Utter·No·See	manual	terminal-ent-ance	no-op: naive ˈdɪstəns already ends ·Utter·No·See. The ‘penlift’ the Manual prescribes is a joining instruction, not a letter
 distant		senior	terminal	·Utter·No·Tea	manual	terminal-ent-ance	no-op: naive ˈdɪstənt already ends ·Utter·No·Tea. The Manual’s point is that -ant and -ent come out alike
 presence		senior	terminal	·Utter·No·See	manual	terminal-ent-ance	no-op: naive ˈprezəns already ends ·Utter·No·See
@@ -240,11 +240,11 @@ officially		senior	word	·Utter·Fee·It·She·Utter·Low·It	derived	terminal-a
 oral		senior	word	·Awe·Roe·Low	derived	terminal-al-el-le-il	naive ·Awe·Roe·Utter·Low; unstressed vowel between L and the preceding consonant omitted
 orally		senior	word	·Awe·Roe·Utter·Low·It	derived	terminal-al-el-le-il	identical to naive: another syllable is added, so the vowel before L is kept. Consistent with terminal-ally = -·Utter·Low·It
 rifle		senior	word	·Roe·I·Fee·Low	derived	terminal-al-el-le-il	naive ·Roe·I·Fee·Utter·Low; unstressed vowel between L and the preceding consonant omitted
-rifleman		senior	word	·Roe·I·Fee·Utter·Low·May·No	derived	terminal-al-el-le-il	identical to naive: the Manual writes rif(u)leman, parenthesising the vowel that must now be spelt because a syllable is added; contrast rifle = ·Roe·I·Fee·Low. Out of this slice: terminal-land-ment makes -man -·May·No, giving ·Roe·I·Fee·Utter·Low·May·No under the whole Manual; terminal-land-ment also fires: -man loses its vowel, the -le keeps its own
+rifleman		senior	word	·Roe·I·Fee·Utter·Low·May·No	derived	terminal-al-el-le-il	identical to naive: the Manual writes rif(u)leman, parenthesizing the vowel that must now be spelled because a syllable is added; contrast rifle = ·Roe·I·Fee·Low. Out of this slice: terminal-land-ment makes -man -·May·No, giving ·Roe·I·Fee·Utter·Low·May·No under the whole Manual; terminal-land-ment also fires: -man loses its vowel, the -le keeps its own
 rival		senior	word	·Roe·I·Vie·Low	derived	terminal-al-el-le-il	naive ·Roe·I·Vie·Utter·Low; unstressed vowel between L and the preceding consonant omitted
 spaniel		senior	word	·See·Pea·At·No·Ye·Low	manual	terminal-al-el-le-il	naive ·See·Pea·At·No·Ye·Utter·Low; L needs no preceding vowel here because the Y-sound is a consonant, not a vowel-sound
 tribal		senior	word	·Tea·Roe·I·Bay·Low	derived	terminal-al-el-le-il	naive ·Tea·Roe·I·Bay·Utter·Low; unstressed vowel between L and the preceding consonant omitted
-visual	AJ0	senior	word	·Vie·It·Zhivago·Ooze·Utter·Low	modernised	terminal-al-el-le-il	the Manual writes ·Vie·It·Zoo·Ye·Ooze·Utter·Low, its 1966 /zj/; this project modernises /zj/ to /ʒ/ per docs/ipa-to-qs.md, so ·Zoo·Ye becomes ·Zhivago. Otherwise identical: -al follows a vowel-sound (weak u = ·Ooze), so the vowel before L is kept
+visual	AJ0	senior	word	·Vie·It·Zhivago·Ooze·Utter·Low	modernised	terminal-al-el-le-il	the Manual writes ·Vie·It·Zoo·Ye·Ooze·Utter·Low, its 1966 /zj/; this project modernizes /zj/ to /ʒ/ per docs/ipa-to-qs.md, so ·Zoo·Ye becomes ·Zhivago. Otherwise identical: -al follows a vowel-sound (weak u = ·Ooze), so the vowel before L is kept
 area		senior	terminal	·It·Utter	manual	terminal-ia-ea	no-op: unstressed ɪə gives ·Eight·Roe·It·Utter
 austria		senior	terminal	·It·Utter	manual	terminal-ia-ea	no-op: ReadLex writes happY i + ə (ˈɒstriə), which still lands on ·It·Utter, giving ·Ox·See·Tea·Roe·It·Utter
 ian		senior	terminal	·Eat·Utter·No	manual	terminal-ia-ea	no-op: ˈɪən is stressed, and the whole word is the terminal: ·Eat·Utter·No
@@ -379,4 +379,4 @@ was		senior	word	·Way·Utter·Zoo	manual	common-words
 wasn't		senior	word	·Way·Utter·Zoo·No·Tea	manual	common-words	the gown-shop specimen on p.23, written out in full: the was outline reaching inside a contraction the element split cannot cut, n't being written solid, and the linking vowel elided by terminal-nt
 'twas		senior	word	·Tea·Way·Utter·Zoo	derived	common-words	the aphetic 't plus the was outline, which the element split cannot reach either, 't being written straight onto the word; the Manual writes 'twas only in its Junior Mary’s Lamb, ’·Tea·Way·Ox·Zoo, and that is the junior column here
 that	DT0	senior	word	·They·At·Tea	manual	common-words	
-that	CJT	senior	word	·They·Tea	manual	common-words	the Common words footnote: spelt in full only when demonstrative, otherwise ·They·Tea
+that	CJT	senior	word	·They·Tea	manual	common-words	the Common words footnote: spelled in full only when demonstrative, otherwise ·They·Tea

@@ -121,7 +121,7 @@ def test_no_unlisted_stem_is_substituted_inside_one() -> None:
     assert senior("it'll", "PNP+VM0") == "·It·Tea·Utter·Low"
 
 
-def test_that_is_spelt_in_full_only_when_demonstrative() -> None:
+def test_that_is_spelled_in_full_only_when_demonstrative() -> None:
     assert spelling("that", "DT0") == ("·They·At·Tea", "·They·At·Tea")
     assert spelling("that", "CJT") == ("·They·Tea", "·They·At·Tea")
     assert spelling("that", "AV0") == ("·They·Tea", "·They·At·Tea")
@@ -279,7 +279,7 @@ def test_apply_signs_leaves_an_unaligned_spelling_alone() -> None:
     assert consulted == ()
 
 
-def test_a_latin_hyphen_facing_a_spelt_space_is_not_aligned() -> None:
+def test_a_latin_hyphen_facing_a_spelled_space_is_not_aligned() -> None:
     letters = parse("·At·Zoo ·It ·Way·Utter·Roe")
     out, _, applied, consulted = apply_signs("as-it-were", "AV0", letters, SIGNS)
     assert out == letters

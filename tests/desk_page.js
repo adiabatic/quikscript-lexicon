@@ -315,12 +315,20 @@ check("the first render underlines the one word the lexicon does not carry", () 
   assert.equal(rebuilt, preview.texts[0].data, "wrapping keeps the text it wrapped");
 });
 
-const misspelt = spans()[0].dataset.w;
+const misspelled = spans()[0].dataset.w;
 
 const buttonsOf = (element) =>
-  element.childNodes.filter((node) => node.tagName === "BUTTON");
+  element.childNodes.flatMap((node) =>
+    node.tagName === "BUTTON"
+      ? [node]
+      : (node.childNodes || []).filter((held) => held.tagName === "BUTTON"),
+  );
 const offersOf = (element) =>
-  buttonsOf(element).filter((node) => !node.classList.contains("ignore"));
+  buttonsOf(element).filter(
+    (node) => !node.classList.contains("ignore") && !node.classList.contains("all"),
+  );
+const sweepersOf = (element) =>
+  buttonsOf(element).filter((node) => node.classList.contains("all"));
 const ignoreOf = (element) =>
   buttonsOf(element).filter((node) => node.classList.contains("ignore"));
 
@@ -329,7 +337,7 @@ check("clicking the underline opens the popover with suggestions", () => {
   assert.equal(fixer.showing, true);
   assert.equal(fixer.childNodes[0].tagName, "DIV");
   assert.equal(fixer.childNodes[0].classList.contains("word"), true);
-  assert.equal(fixer.childNodes[0].textContent, misspelt);
+  assert.equal(fixer.childNodes[0].textContent, misspelled);
   const offers = offersOf(fixer);
   assert.ok(offers.length > 0 && offers.length <= 10, `${offers.length} offers`);
   for (const button of buttonsOf(fixer)) assert.equal(button.type, "button");
@@ -357,9 +365,9 @@ check("choosing a suggestion edits the source, shuts the popover and re-renders"
   assert.equal(fixer.showing, false);
   const written = box.tokens(source.value).map((hit) => hit.word);
   assert.ok(written.includes(fix));
-  assert.ok(!written.includes(misspelt), "the token is gone, not merely the substring");
+  assert.ok(!written.includes(misspelled), "the token is gone, not merely the substring");
   assert.equal(written.length, box.tokens(SAMPLE).length);
-  assert.equal(spans().length, 0, "nothing is underlined once the word is spelt right");
+  assert.equal(spans().length, 0, "nothing is underlined once the word is spelled right");
 });
 
 check("the copy button writes the source and flips its label", () => {
@@ -370,7 +378,7 @@ check("the copy button writes the source and flips its label", () => {
 check("the grade toggle swaps the font class and nothing else", () => {
   const QS = vm.runInContext("QS", box);
   const listed = QS.words.slice(0, QS.words.indexOf("\n")).split("\t")[0];
-  source.value = `# heading\n\n${listed} ${misspelt}\n`;
+  source.value = `# heading\n\n${listed} ${misspelled}\n`;
   assert.equal(grade.getAttribute("aria-pressed"), "true", "opens in Senior");
 
   grade.fire("click");
@@ -380,7 +388,7 @@ check("the grade toggle swaps the font class and nothing else", () => {
   assert.equal(fixer.classList.contains("senior"), false);
   assert.deepEqual(
     spans().map((span) => span.dataset.w),
-    [misspelt],
+    [misspelled],
     "junior face, same vocabulary",
   );
 
@@ -391,13 +399,13 @@ check("the grade toggle swaps the font class and nothing else", () => {
   assert.equal(fixer.classList.contains("senior"), true);
   assert.deepEqual(
     spans().map((span) => span.dataset.w),
-    [misspelt],
+    [misspelled],
     "the accepted words do not move with the face",
   );
 });
 
 check("occurrence indices count every token, code spans included", () => {
-  source.value = `${misspelt} \`${misspelt}\` ${misspelt}\n`;
+  source.value = `${misspelled} \`${misspelled}\` ${misspelled}\n`;
   box.render();
   assert.deepEqual(
     spans().map((span) => span.dataset.occ),
@@ -407,7 +415,7 @@ check("occurrence indices count every token, code spans included", () => {
 });
 
 check("YAML front matter never reaches the preview", () => {
-  source.value = `---\ntitle: ${misspelt}\n---\n\n# heading\n\n${misspelt}\n`;
+  source.value = `---\ntitle: ${misspelled}\n---\n\n# heading\n\n${misspelled}\n`;
   box.render();
   assert.ok(!preview.html.includes("title:"), "the front matter block was never handed to marked");
   assert.deepEqual(
@@ -418,7 +426,7 @@ check("YAML front matter never reaches the preview", () => {
 });
 
 check("an empty front matter block is stripped too", () => {
-  source.value = `---\n---\n\n${misspelt}\n`;
+  source.value = `---\n---\n\n${misspelled}\n`;
   box.render();
   assert.equal(spans().length, 1);
   assert.ok(!preview.html.includes("<hr"), "no leftover thematic breaks from the delimiters");
@@ -438,7 +446,7 @@ check("anchor positioning is used where the browser has it", () => {
 
 check("only one span carries the anchor name at a time", () => {
   const anchored = stage(true);
-  anchored.parts.source.value = `${misspelt} ${misspelt}\n`;
+  anchored.parts.source.value = `${misspelled} ${misspelled}\n`;
   anchored.box.render();
   const shown = marked(anchored.parts.preview);
   assert.equal(shown.length, 2);
@@ -463,7 +471,7 @@ function ignoreTheMisspelling(held) {
 
 check("the button stays out of sight until something has been ignored", () => {
   assert.equal(excusing.parts.ignored.hidden, true);
-  assert.deepEqual(flagged(excusing), [misspelt]);
+  assert.deepEqual(flagged(excusing), [misspelled]);
   assert.equal(shelf.held.has(KEPT), false, "nothing is written before there is any");
 });
 
@@ -473,7 +481,7 @@ check("ignoring a word drops its underline and writes the word down", () => {
   assert.deepEqual(flagged(excusing), []);
   assert.equal(excusing.parts.ignored.hidden, false);
   assert.equal(excusing.parts.ignored.textContent, "Unignore 1");
-  assert.deepEqual(JSON.parse(shelf.held.get(KEPT)), [misspelt]);
+  assert.deepEqual(JSON.parse(shelf.held.get(KEPT)), [misspelled]);
 });
 
 check("a page opened again over the same storage starts out knowing", () => {
@@ -487,13 +495,13 @@ check("the button clears the list, the storage and the underline it was hiding",
   excusing.parts.ignored.fire("click");
   assert.equal(excusing.parts.ignored.hidden, true);
   assert.deepEqual(JSON.parse(shelf.held.get(KEPT)), []);
-  assert.deepEqual(flagged(excusing), [misspelt]);
-  assert.deepEqual(flagged(stage(false, shelf)), [misspelt]);
+  assert.deepEqual(flagged(excusing), [misspelled]);
+  assert.deepEqual(flagged(stage(false, shelf)), [misspelled]);
 });
 
 check("an origin whose storage throws still ignores for the session", () => {
   const sessional = stage(false, sealed);
-  assert.deepEqual(flagged(sessional), [misspelt]);
+  assert.deepEqual(flagged(sessional), [misspelled]);
   ignoreTheMisspelling(sessional);
   assert.deepEqual(flagged(sessional), []);
   assert.equal(sessional.parts.ignored.textContent, "Unignore 1");
@@ -509,7 +517,7 @@ function ignoreOneOccurrence(held, at) {
 }
 
 check("ignoring one occurrence leaves the other underlined and writes nothing", () => {
-  passing.parts.source.value = `${misspelt} ${misspelt}\n`;
+  passing.parts.source.value = `${misspelled} ${misspelled}\n`;
   passing.box.render();
   assert.equal(marked(passing.parts.preview).length, 2);
   ignoreOneOccurrence(passing, 0);
@@ -532,7 +540,72 @@ check("ignoring the word everywhere absorbs its occurrence ignores", () => {
   ignoreTheMisspelling(passing);
   assert.deepEqual(flagged(passing), []);
   assert.equal(passing.parts.ignored.textContent, "Unignore 1");
-  assert.deepEqual(JSON.parse(briefly.held.get(KEPT)), [misspelt]);
+  assert.deepEqual(JSON.parse(briefly.held.get(KEPT)), [misspelled]);
+});
+
+const sweeping = stage(false);
+
+check("every suggestion row carries a correct-all option counting the others", () => {
+  sweeping.parts.source.value = `${misspelled} ${misspelled} ${misspelled}\n`;
+  sweeping.box.render();
+  const shown = marked(sweeping.parts.preview);
+  assert.equal(shown.length, 3);
+  sweeping.parts.preview.fire("click", { target: shown[0] });
+  const offers = offersOf(sweeping.parts.fixer);
+  const sweepers = sweepersOf(sweeping.parts.fixer);
+  assert.ok(offers.length > 0);
+  assert.equal(sweepers.length, offers.length);
+  for (const [at, held] of sweepers.entries()) {
+    assert.equal(held.type, "button");
+    assert.equal(held.textContent, "(2)");
+    assert.ok(held.parentNode.classList.contains("offer"));
+    assert.equal(held.parentNode, offers[at].parentNode, "each pair shares a row");
+    assert.ok(held.title.includes("2 others"), held.title);
+  }
+  const [once, leave] = ignoreOf(sweeping.parts.fixer);
+  assert.equal(leave.textContent, "Ignore all (2)");
+  assert.ok(leave.title.length > 0);
+  assert.ok(once.title.length > 0);
+});
+
+check("the correct-all option rewrites every occurrence at once", () => {
+  const fix = offersOf(sweeping.parts.fixer)[0].textContent;
+  sweepersOf(sweeping.parts.fixer)[0].fire("click");
+  assert.equal(sweeping.parts.fixer.showing, false);
+  const written = sweeping.box.tokens(sweeping.parts.source.value).map((hit) => hit.word);
+  assert.deepEqual(written, sweeping.box.tokens(`${fix} ${fix} ${fix}`).map((hit) => hit.word));
+  assert.equal(marked(sweeping.parts.preview).length, 0);
+});
+
+check("a lone misspelling gets no correct-all option and a plain Ignore all", () => {
+  const alone = stage(false);
+  const shown = marked(alone.parts.preview);
+  assert.equal(shown.length, 1);
+  alone.parts.preview.fire("click", { target: shown[0] });
+  assert.ok(offersOf(alone.parts.fixer).length > 0);
+  assert.equal(sweepersOf(alone.parts.fixer).length, 0);
+  assert.equal(ignoreOf(alone.parts.fixer)[1].textContent, "Ignore all");
+});
+
+check("an occurrence ignored by hand is left out of the sweep", () => {
+  const sparing = stage(false);
+  sparing.parts.source.value = `${misspelled} ${misspelled} ${misspelled}\n`;
+  sparing.box.render();
+  ignoreOneOccurrence(sparing, 1);
+  const shown = marked(sparing.parts.preview);
+  assert.equal(shown.length, 2);
+  sparing.parts.preview.fire("click", { target: shown[0] });
+  assert.equal(sweepersOf(sparing.parts.fixer)[0].textContent, "(1)");
+  assert.ok(sweepersOf(sparing.parts.fixer)[0].title.includes("1 other"), "singular title");
+  const fix = offersOf(sparing.parts.fixer)[0].textContent;
+  sweepersOf(sparing.parts.fixer)[0].fire("click");
+  const written = sparing.box.tokens(sparing.parts.source.value).map((hit) => hit.word);
+  assert.deepEqual(
+    written,
+    sparing.box.tokens(`${fix} ${misspelled} ${fix}`).map((hit) => hit.word),
+    "the excused occurrence keeps its spelling",
+  );
+  assert.equal(marked(sparing.parts.preview).length, 0, "and stays excused renumbered");
 });
 
 const dressed = storage();
@@ -561,7 +634,7 @@ check("an origin whose storage throws still switches grade for the session", () 
 
 const typed = stage(false);
 const RESTING = typed.parts.preview.html;
-typed.parts.source.value = `# typed\n\n${misspelt}\n`;
+typed.parts.source.value = `# typed\n\n${misspelled}\n`;
 typed.parts.source.fire("input", { target: typed.parts.source });
 
 check("typing does not re-render before the debounce has elapsed", () => {
@@ -574,7 +647,7 @@ setTimeout(() => {
     assert.ok(typed.parts.preview.html.includes("typed"));
     assert.deepEqual(
       marked(typed.parts.preview).map((span) => span.dataset.w),
-      [misspelt],
+      [misspelled],
     );
   });
   for (const each of done) console.log(`ok    ${each}`);

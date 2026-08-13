@@ -5,8 +5,16 @@ const path = require("node:path");
 const [CORE, PAGE] = process.argv.slice(2);
 assert.ok(CORE && PAGE, "usage: node desk_core.js <core.js> <index.html>");
 
-const { TOKEN, tokens, accepts, distance, suggest, replaceOccurrence, stripFrontMatter } =
-  require(path.resolve(CORE));
+const {
+  TOKEN,
+  tokens,
+  accepts,
+  distance,
+  suggest,
+  replaceOccurrence,
+  replaceOccurrences,
+  stripFrontMatter,
+} = require(path.resolve(CORE));
 const page = fs.readFileSync(PAGE, "utf8");
 
 const OPEN = "<script>const QS = ";
@@ -146,7 +154,7 @@ check("a leading YAML front matter block is stripped", () => {
   assert.equal(stripFrontMatter(`---\n---\n${body}`), body, "an empty block still strips");
 });
 
-check("front matter is only recognised at the very start of the document", () => {
+check("front matter is only recognized at the very start of the document", () => {
   const prose = "not front matter\n\n---\ntitle: x\n---\n";
   assert.equal(stripFrontMatter(prose), prose);
   assert.equal(stripFrontMatter(`\n---\ntitle: x\n---\nbody\n`), `\n---\ntitle: x\n---\nbody\n`);
@@ -206,25 +214,25 @@ const X_LETTERED = QS.rep
   .filter(([written, meant]) => written.length === 1 && meant.length === 2)
   .flatMap(([xLetter, pair]) =>
     UNION.filter((word) => word.includes(xLetter)).map((word) => ({
-      spelt: word,
-      spelt_out: word.split(xLetter).join(pair),
+      spelled: word,
+      spelled_out: word.split(xLetter).join(pair),
     })),
   )
-  .filter((entry) => !ACCEPTED.has(entry.spelt_out));
+  .filter((entry) => !ACCEPTED.has(entry.spelled_out));
 
-check("an X-letter word spelt out is bridged back by the rep table first", () => {
-  assert.ok(X_LETTERED.length > 0, "some X-letter word has an unlisted spelt-out form");
-  const { spelt, spelt_out } = X_LETTERED[0];
-  assert.equal(accepts(ACCEPTED, spelt_out), false);
-  const offers = suggest(spelt_out, advice());
-  assert.equal(offers[0], spelt, `${show(offers[0])} != ${show(spelt)}`);
+check("an X-letter word spelled out is bridged back by the rep table first", () => {
+  assert.ok(X_LETTERED.length > 0, "some X-letter word has an unlisted spelled-out form");
+  const { spelled, spelled_out } = X_LETTERED[0];
+  assert.equal(accepts(ACCEPTED, spelled_out), false);
+  const offers = suggest(spelled_out, advice());
+  assert.equal(offers[0], spelled, `${show(offers[0])} != ${show(spelled)}`);
 });
 
 check("the rep table bridges the other way too", () => {
-  const { spelt, spelt_out } = X_LETTERED[0];
-  const offers = suggest(spelt, advice());
-  assert.ok(!accepts(ACCEPTED, spelt_out));
-  assert.ok(!offers.includes(spelt_out), "an unlisted spelling is never offered");
+  const { spelled, spelled_out } = X_LETTERED[0];
+  const offers = suggest(spelled, advice());
+  assert.ok(!accepts(ACCEPTED, spelled_out));
+  assert.ok(!offers.includes(spelled_out), "an unlisted spelling is never offered");
   const listed = QS.rep
     .filter(([written, meant]) => written.length === 2 && meant.length === 1)
     .flatMap(([pair, xLetter]) =>
@@ -233,11 +241,11 @@ check("the rep table bridges the other way too", () => {
       ),
     )
     .filter((word) => ACCEPTED.has(word));
-  assert.ok(listed.length > 0, "the spelt-out to X-letter direction has listed targets");
+  assert.ok(listed.length > 0, "the spelled-out to X-letter direction has listed targets");
 });
 
 const GROUP = QS.confusions[0];
-const MISVOWELLED = "\uE663\uE67A\uE652\uE65A";
+const MISVOWELED = "\uE663\uE67A\uE652\uE65A";
 const WHATS = "\uE663\uE678\uE652\uE65A";
 
 const misgrouped = (word) => (offer) => {
@@ -261,14 +269,14 @@ check("the confusion group is the fifteen vowels", () => {
 });
 
 check("a wrong vowel is fixed ahead of every other kind of edit", () => {
-  assert.equal(accepts(ACCEPTED, MISVOWELLED), false, show(MISVOWELLED));
+  assert.equal(accepts(ACCEPTED, MISVOWELED), false, show(MISVOWELED));
   assert.equal(accepts(ACCEPTED, WHATS), true, show(WHATS));
   assert.equal(freq(WHATS), 0, "a corpus bump that counts it needs a new specimen");
-  const offers = suggest(MISVOWELLED, advice());
+  const offers = suggest(MISVOWELED, advice());
   const at = offers.indexOf(WHATS);
   assert.ok(at >= 0, `${show(WHATS)} not in ${offers.map(show).join(" | ")}`);
   for (const offer of offers.slice(0, at)) {
-    assert.ok(misgrouped(MISVOWELLED)(offer), show(offer));
+    assert.ok(misgrouped(MISVOWELED)(offer), show(offer));
   }
 });
 
@@ -461,6 +469,43 @@ check("a word that is not there is left alone", () => {
   const absent = UNION[400];
   assert.equal(replaceOccurrence(PROSE, absent, 0, TWO), PROSE);
   assert.equal(replaceOccurrence("", ONE, 0, TWO), "");
+});
+
+check("several numbered occurrences are replaced in one pass", () => {
+  const swept = replaceOccurrences(PROSE, ONE, [0, 2], TWO);
+  assert.equal(swept, `${TWO} ${TWO} ${ONE} and ${TWO}${DOT}${THREE}`);
+  assert.equal(replaceOccurrences(PROSE, ONE, [2, 0], TWO), swept, "order does not matter");
+  assert.equal(replaceOccurrences(PROSE, ONE, [1, 1], TWO), replaceOccurrence(PROSE, ONE, 1, TWO));
+  assert.equal(
+    replaceOccurrences(PROSE, ONE, [0, 1, 2], TWO),
+    `${TWO} ${TWO} ${TWO} and ${TWO}${DOT}${THREE}`,
+  );
+});
+
+check("a list naming no occurrence that is there falls back like the single form", () => {
+  const first = replaceOccurrence(PROSE, ONE, 0, TWO);
+  assert.equal(replaceOccurrences(PROSE, ONE, [], TWO), first);
+  assert.equal(replaceOccurrences(PROSE, ONE, [7, 9], TWO), first);
+  assert.equal(
+    replaceOccurrences(PROSE, ONE, [9, 1], TWO),
+    replaceOccurrence(PROSE, ONE, 1, TWO),
+    "a stray index is dropped, not rounded to the first",
+  );
+  assert.equal(replaceOccurrences(PROSE, UNION[400], [0, 1], TWO), PROSE);
+  assert.equal(replaceOccurrences("", ONE, [0], TWO), "");
+});
+
+check("occurrences are numbered past the front matter, as the page numbers them", () => {
+  const doc = `---\ntitle: ${ONE}\n---\n\n${ONE} ${TWO} ${ONE}\n`;
+  assert.equal(
+    replaceOccurrence(doc, ONE, 0, THREE),
+    `---\ntitle: ${ONE}\n---\n\n${THREE} ${TWO} ${ONE}\n`,
+    "the copy in the front matter does not count and is never touched",
+  );
+  assert.equal(
+    replaceOccurrences(doc, ONE, [0, 1], THREE),
+    `---\ntitle: ${ONE}\n---\n\n${THREE} ${TWO} ${THREE}\n`,
+  );
 });
 
 check("a hyphenated token is replaced whole, not piecewise", () => {

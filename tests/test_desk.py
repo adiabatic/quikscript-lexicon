@@ -52,8 +52,8 @@ QUIKSCRIPT = SAMPLE.splitlines()[-1].split(" ")
 
 NODE = shutil.which("node")
 HERE = Path(__file__).resolve().parent
-CORE_TESTS, CORE_CHECKS = "desk_core.js", 37
-PAGE_TESTS, PAGE_CHECKS = "desk_page.js", 28
+CORE_TESTS, CORE_CHECKS = "desk_core.js", 40
+PAGE_TESTS, PAGE_CHECKS = "desk_page.js", 32
 
 
 def directive(name: str, keyword: str) -> str:
@@ -133,7 +133,7 @@ def test_the_page_carries_the_dictionary_and_the_senior_contractions() -> None:
 def test_the_contractions_the_dictionary_already_lists_widen_nothing() -> None:
     """Six of the 74 are spellings the columns carry anyway, for six reasons.
 
-    be and that are Manual word signs the senior column already writes, cannot is spelt as the list spells it, and do, think and she collide with an unrelated entry each — the ordinals nd/rd and th, and the interjection sh. Set arithmetic gets all six right; a count of rows would not.
+    be and that are Manual word signs the senior column already writes, cannot is spelled as the list spells it, and do, think and she collide with an unrelated entry each — the ordinals nd/rd and th, and the interjection sh. Set arithmetic gets all six right; a count of rows would not.
     """
     assert len(CONTRACTED & frozenset(LEXICON.listed)) == 6
     assert len(LEXICON.union) - len(LEXICON.listed) == 68
@@ -235,8 +235,8 @@ def test_a_placeholder_nothing_fills_is_refused() -> None:
 
 
 def test_the_sample_spells_every_word_the_way_the_lexicon_does() -> None:
-    spelt = {(row.latin.lower(), row.pos): row.qs for row in RECORDS}
-    assert QUIKSCRIPT[: len(SAMPLE_WORDS)] == [spelt[key] for key in SAMPLE_WORDS]
+    spelled = {(row.latin.lower(), row.pos): row.qs for row in RECORDS}
+    assert QUIKSCRIPT[: len(SAMPLE_WORDS)] == [spelled[key] for key in SAMPLE_WORDS]
 
 
 def test_the_sample_carries_exactly_one_word_the_lexicon_does_not() -> None:

@@ -121,7 +121,7 @@ def load_contractions(path: Path | None = None) -> tuple[Contraction, ...]:
             raise ValueError(f"{source}:{lineno}: unknown letter names {unknown}")
         if entry.kind == "clitic" and not entry.note:
             raise ValueError(
-                f"{source}:{lineno}: a clitic is generalised rather than listed, "
+                f"{source}:{lineno}: a clitic is generalized rather than listed, "
                 f"so it needs a note saying from what"
             )
         key = (entry.word, entry.pos)

@@ -43,18 +43,18 @@ terminal-ess-est	tempest	skip	not-the-terminal	the -est is the root
 terminal-ful	cupful	skip	readlex-pos-defect	a noun measure that ReadLex tags AJ0; its ·Foot is the Manual’s noun spelling and must stand
 terminal-ful	spadeful	skip	readlex-pos-defect	a noun measure that ReadLex tags AJ0; its ·Foot is the Manual’s noun spelling and must stand
 terminal-ing	anything	skip	compound	any plus thing, and thing is a root as the Manual’s things shows
-terminal-ing	appetizing	apply	stem	appetize plus -ing, lexicalised participial adjective
+terminal-ing	appetizing	apply	stem	appetize plus -ing, lexicalized participial adjective
 terminal-ing	atheling	skip	ling-suffix	the diminutive -ling on athel (noble), so the vowel stays
 terminal-ing	athelings	skip	ling-suffix	plural of atheling, same -ling suffix
-terminal-ing	awning	skip	root	no stem awn in this sense, so the -ing is unanalysable
-terminal-ing	awnings	skip	root	plural of awning, same unanalysable root
+terminal-ing	awning	skip	root	no stem awn in this sense, so the -ing is unanalyzable
+terminal-ing	awnings	skip	root	plural of awning, same unanalyzable root
 terminal-ing	balding	apply	stem	bald plus -ing, participial adjective on the verb bald
 terminal-ing	beading	apply	stem	bead plus -ing, deverbal noun
 terminal-ing	beagling	apply	stem	beagle plus -ing, the sport of hunting with beagles
 terminal-ing	being	apply	stem	be plus -ing
 terminal-ing	beings	apply	stem	be plus -ing plus -s, the affix reading the project already derives for beings
 terminal-ing	bing	skip	root	monosyllabic proper noun with no stem to strip
-terminal-ing	blithering	apply	stem	blither plus -ing, lexicalised participial adjective
+terminal-ing	blithering	apply	stem	blither plus -ing, lexicalized participial adjective
 terminal-ing	boeing	skip	placename	proper noun, the company named for William Boeing
 terminal-ing	boing	skip	root	onomatopoeic monosyllable with no stem
 terminal-ing	boings	skip	root	plural of boing, same monosyllabic root
@@ -81,7 +81,7 @@ terminal-ing	colorings	apply	stem	color plus -ing plus -s
 terminal-ing	conveyancing	apply	stem	conveyance plus -ing, an activity noun like caravanning
 terminal-ing	cowling	apply	stem	cowl plus -ing, the covering named from the noun cowl
 terminal-ing	cowlings	apply	stem	cowl plus -ing plus -s
-terminal-ing	cunning	apply	stem	lexicalised participle of the obsolete verb cun, to know
+terminal-ing	cunning	apply	stem	lexicalized participle of the obsolete verb cun, to know
 terminal-ing	cunningly	apply	stem	cunning plus -ly, same base as cunning
 terminal-ing	darkling	skip	ling-suffix	the adverbial -ling on dark, not the participial affix
 terminal-ing	darling	skip	ling-suffix	the diminutive -ling on dear, Old English deorling
@@ -107,7 +107,7 @@ terminal-ing	electioneering	apply	stem	electioneer plus -ing
 terminal-ing	empting	apply	stem	empt plus -ing, the participle pre-empting is built on
 terminal-ing	epping	skip	manual	the Manual writes it as root and not affix, keeping the vowel-i
 terminal-ing	everything	skip	compound	every plus thing, and thing is a root
-terminal-ing	excruciating	apply	stem	excruciate plus -ing, lexicalised participial adjective
+terminal-ing	excruciating	apply	stem	excruciate plus -ing, lexicalized participial adjective
 terminal-ing	excruciatingly	apply	stem	excruciating plus -ly, same base as excruciating
 terminal-ing	farthing	skip	root	opaque Old English fourth plus -ing, not the participial affix
 terminal-ing	farthings	skip	root	plural of farthing, same root
@@ -115,7 +115,7 @@ terminal-ing	fledgeling	skip	ling-suffix	the diminutive -ling on fledge
 terminal-ing	fledgelings	skip	ling-suffix	plural of fledgeling, same -ling suffix
 terminal-ing	fledgling	skip	ling-suffix	the diminutive -ling on fledge
 terminal-ing	fledglings	skip	ling-suffix	plural of fledgling, same -ling suffix
-terminal-ing	fleeting	apply	stem	fleet plus -ing, lexicalised participial adjective
+terminal-ing	fleeting	apply	stem	fleet plus -ing, lexicalized participial adjective
 terminal-ing	fleetingly	apply	stem	fleeting plus -ly, same base as fleeting
 terminal-ing	fleshings	apply	stem	flesh plus -ing plus -s, a garment noun formed on flesh
 terminal-ing	fling	skip	root	monosyllabic root verb
@@ -128,7 +128,7 @@ terminal-ing	gosling	skip	ling-suffix	the diminutive -ling on goose
 terminal-ing	goslings	skip	ling-suffix	plural of gosling, same -ling suffix
 terminal-ing	goulding	skip	placename	surname, a proper noun
 terminal-ing	gouldings	skip	placename	plural of the surname Goulding
-terminal-ing	grueling	apply	stem	gruel plus -ing, lexicalised participial adjective
+terminal-ing	grueling	apply	stem	gruel plus -ing, lexicalized participial adjective
 terminal-ing	gruelling	apply	stem	British spelling of grueling, same stem gruel
 terminal-ing	hairspring	skip	compound	hair plus spring, and spring is a root
 terminal-ing	hairsprings	skip	compound	plural of hairspring, final element spring is a root
@@ -143,7 +143,7 @@ terminal-ing	heartstrings	skip	compound	heart plus strings, and string is a root
 terminal-ing	heeing	apply	stem	hee plus -ing, the participle tee-heeing is built on
 terminal-ing	hireling	skip	ling-suffix	the agentive -ling on hire
 terminal-ing	hirelings	skip	ling-suffix	plural of hireling, same -ling suffix
-terminal-ing	hulking	apply	stem	hulk plus -ing, lexicalised participial adjective
+terminal-ing	hulking	apply	stem	hulk plus -ing, lexicalized participial adjective
 terminal-ing	hustings	skip	root	Old Norse hus-thing, so the final syllable is the root thing and not an affix
 terminal-ing	inkling	skip	root	only the obsolete inkle lies behind it, so left unanalysed as the conservative call
 terminal-ing	inklings	skip	root	plural of inkling, same conservative root call
@@ -164,7 +164,7 @@ terminal-ing	lemming	skip	root	Norwegian loan with no stem to strip
 terminal-ing	lemmings	skip	root	plural of lemming, same root
 terminal-ing	lettering	apply	stem	letter plus -ing
 terminal-ing	libbing	apply	stem	lib plus -ing, the participle ad-libbing is built on; the doubled b marks the affix, as in the Manual’s canning
-terminal-ing	lightning	skip	root	lexicalised apart from the participle lightening, so treated as a root conservatively
+terminal-ing	lightning	skip	root	lexicalized apart from the participle lightening, so treated as a root conservatively
 terminal-ing	lightnings	skip	root	plural of lightning, same conservative root call
 terminal-ing	ling	skip	root	monosyllabic root noun, the fish and the heather
 terminal-ing	lings	skip	root	plural of ling, same root
@@ -194,7 +194,7 @@ terminal-ing	nursling	skip	ling-suffix	nurse + -ling diminutive, not the -ing af
 terminal-ing	nurslings	skip	ling-suffix	nurse + -ling diminutive, not the -ing affix
 terminal-ing	offing	skip	root	opaque nautical noun, as in the offing
 terminal-ing	offspring	skip	compound	final element spring is a root
-terminal-ing	overweening	apply	stem	stem overween; lexicalised as an adjective but still participial
+terminal-ing	overweening	apply	stem	stem overween; lexicalized as an adjective but still participial
 terminal-ing	ping	skip	root	onomatopoeic root, no stem to strip
 terminal-ing	pings	skip	root	onomatopoeic root, no stem to strip
 terminal-ing	plaything	skip	compound	final element thing is a root
@@ -205,22 +205,22 @@ terminal-ing	puddings	skip	root	opaque noun; no stem *pudd exists
 terminal-ing	quisling	skip	ling-suffix	eponym from Vidkun Quisling, read as -ling not -ing
 terminal-ing	quislings	skip	ling-suffix	eponym from Vidkun Quisling, read as -ling not -ing
 terminal-ing	racketeering	apply	stem	stem racketeer
-terminal-ing	raring	apply	stem	stem rare, the dialectal variant of rear; lexicalised in raring to go
-terminal-ing	ravening	apply	stem	stem raven, to devour; lexicalised as an adjective
+terminal-ing	raring	apply	stem	stem rare, the dialectal variant of rear; lexicalized in raring to go
+terminal-ing	ravening	apply	stem	stem raven, to devour; lexicalized as an adjective
 terminal-ing	redistricting	apply	stem	stem redistrict
 terminal-ing	redwing	skip	compound	final element wing, which the Manual spells as a root
 terminal-ing	redwings	skip	compound	final element wing, which the Manual spells as a root
 terminal-ing	riesling	skip	root	German wine name, wholly opaque in English
 terminal-ing	rieslings	skip	root	German wine name, wholly opaque in English
-terminal-ing	ring	skip	root	unanalysable noun and verb root
-terminal-ing	rings	skip	root	unanalysable noun and verb root
+terminal-ing	ring	skip	root	unanalyzable noun and verb root
+terminal-ing	rings	skip	root	unanalyzable noun and verb root
 terminal-ing	rosings	skip	placename	Rosings, the estate in Pride and Prejudice; ReadLex NP0
 terminal-ing	sapling	skip	ling-suffix	sap + -ling diminutive, not the -ing affix
 terminal-ing	saplings	skip	ling-suffix	sap + -ling diminutive, not the -ing affix
 terminal-ing	scandalmongering	apply	stem	stem scandalmonger
 terminal-ing	scantling	skip	ling-suffix	timber noun in -ling; there is no verb *scant + -ing
 terminal-ing	scantlings	skip	ling-suffix	timber noun in -ling; there is no verb *scant + -ing
-terminal-ing	scathing	apply	stem	stem scathe; lexicalised as an adjective but still participial
+terminal-ing	scathing	apply	stem	stem scathe; lexicalized as an adjective but still participial
 terminal-ing	scathingly	apply	stem	stem scathe; -ly built on the participial adjective
 terminal-ing	sclerosing	apply	stem	stem sclerose
 terminal-ing	scripting	apply	stem	stem script
@@ -239,29 +239,29 @@ terminal-ing	sing	skip	root	verb root; the /ŋ/ is the stem itself
 terminal-ing	singly	skip	root	single + -ly; the /ŋɡ/ belongs to the root, and it is not from sing
 terminal-ing	sings	skip	root	verb root; the /ŋ/ is the stem itself
 terminal-ing	sining	skip	placename	Sining, the older romanisation of Xining; final stress rules out an affix
-terminal-ing	sling	skip	root	unanalysable noun and verb root
-terminal-ing	slings	skip	root	unanalysable noun and verb root
+terminal-ing	sling	skip	root	unanalyzable noun and verb root
+terminal-ing	slings	skip	root	unanalyzable noun and verb root
 terminal-ing	something	skip	compound	final element thing is a root
 terminal-ing	sourcing	apply	stem	stem source
 terminal-ing	spalding	skip	placename	Lincolnshire town and surname
 terminal-ing	spaulding	skip	placename	surname, a spelling variant of Spalding
-terminal-ing	spring	skip	root	unanalysable noun and verb root
-terminal-ing	springs	skip	root	unanalysable noun and verb root
+terminal-ing	spring	skip	root	unanalyzable noun and verb root
+terminal-ing	springs	skip	root	unanalyzable noun and verb root
 terminal-ing	starling	skip	ling-suffix	Old English stær + -ling, not the -ing affix
 terminal-ing	starlings	skip	ling-suffix	Old English stær + -ling, not the -ing affix
 terminal-ing	starveling	skip	ling-suffix	starve + -ling agentive, not the -ing affix
 terminal-ing	starvelings	skip	ling-suffix	starve + -ling agentive, not the -ing affix
-terminal-ing	sterling	skip	root	opaque currency noun, unanalysable in modern English
+terminal-ing	sterling	skip	root	opaque currency noun, unanalyzable in modern English
 terminal-ing	steyning	skip	placename	West Sussex town, said Stenning
-terminal-ing	sting	skip	root	unanalysable noun and verb root
-terminal-ing	stings	skip	root	unanalysable noun and verb root
+terminal-ing	sting	skip	root	unanalyzable noun and verb root
+terminal-ing	stings	skip	root	unanalyzable noun and verb root
 terminal-ing	stirling	skip	placename	Scottish city and surname
-terminal-ing	string	skip	root	unanalysable noun and verb root
-terminal-ing	strings	skip	root	unanalysable noun and verb root
-terminal-ing	swing	skip	root	unanalysable noun and verb root
-terminal-ing	swingeing	apply	stem	stem swinge, to strike hard; lexicalised as an adjective
-terminal-ing	swings	skip	root	unanalysable noun and verb root
-terminal-ing	thing	skip	root	base of the Manual’s things, an unanalysable root
+terminal-ing	string	skip	root	unanalyzable noun and verb root
+terminal-ing	strings	skip	root	unanalyzable noun and verb root
+terminal-ing	swing	skip	root	unanalyzable noun and verb root
+terminal-ing	swingeing	apply	stem	stem swinge, to strike hard; lexicalized as an adjective
+terminal-ing	swings	skip	root	unanalyzable noun and verb root
+terminal-ing	thing	skip	root	base of the Manual’s things, an unanalyzable root
 terminal-ing	things	skip	manual	the Manual gives ·Thaw·It·Oolong·Zoo
 terminal-ing	ting	skip	root	onomatopoeic root, no stem to strip
 terminal-ing	tings	skip	root	onomatopoeic root, no stem to strip
@@ -285,8 +285,8 @@ terminal-ing	wiggings	apply	stem	stem wig, to scold; the doubled g marks the aff
 terminal-ing	wing	skip	manual	the Manual gives ·Way·It·Oolong
 terminal-ing	wings	skip	root	plural of the Manual’s root wing
 terminal-ing	worthing	skip	placename	West Sussex town
-terminal-ing	wring	skip	root	unanalysable verb root
-terminal-ing	wrings	skip	root	unanalysable verb root
+terminal-ing	wring	skip	root	unanalyzable verb root
+terminal-ing	wrings	skip	root	unanalyzable verb root
 terminal-ing	wrongdoing	apply	stem	final element doing = do + -ing; the Manual gives ·Day·Oolong
 terminal-ing	wrongdoings	apply	stem	final element doing = do + -ing; the Manual gives ·Day·Oolong
 terminal-ing	wyoming	skip	placename	US state
@@ -345,7 +345,7 @@ terminal-y	elstree	skip	compound	ends in the word tree, stressed in its own righ
 terminal-y	emphases	skip	not-the-terminal	the Greek plural of emphasis
 terminal-y	facie	apply	orthographic	the facie of prima facie: no -y or -ee morpheme, but Read keys this terminal to the Orthodox spelling, as -ess is keyed at burgess and mattress
 terminal-y	faeces	skip	not-the-terminal	the Latin plural faeces
-terminal-y	feces	skip	not-the-terminal	the Latin plural faeces, spelt the American way
+terminal-y	feces	skip	not-the-terminal	the Latin plural faeces, spelled the American way
 terminal-y	filigree	apply	loan	a loanword whose terminal is no compound element and carries no stress, so ·It
 terminal-y	formulae	apply	latin-plural	the Latin -ae plural of formula; the terminal is unstressed, so ·It
 terminal-y	fricassee	apply	loan	a loanword whose terminal is no compound element and carries no stress, so ·It
@@ -376,7 +376,7 @@ terminal-y	lychees	apply	loan	as lychee
 terminal-y	maharanee	apply	loan	a loanword whose terminal is no compound element and carries no stress, so ·It
 terminal-y	maharanees	apply	loan	as maharanee
 terminal-y	matrices	skip	not-the-terminal	the Latin plural of matrix
-terminal-y	maybe	apply	lexicalised	compound-final -be, reduced in speech rather than stressed like the verb
+terminal-y	maybe	apply	lexicalized	compound-final -be, reduced in speech rather than stressed like the verb
 terminal-y	menses	skip	not-the-terminal	the Latin plural of mensis
 terminal-y	metamorphoses	skip	not-the-terminal	the Greek plural of metamorphosis
 terminal-y	minutiae	apply	latin-plural	the Latin -ae plural of minutia; the terminal is unstressed, so ·It
@@ -449,6 +449,6 @@ terminal-y	ulnae	apply	latin-plural	the Latin -ae plural of ulna; the terminal i
 terminal-y	vertebrae	apply	latin-plural	the Latin -ae plural of vertebra; the terminal is unstressed, so ·It
 terminal-y	vertices	skip	not-the-terminal	the Latin plural of vertex
 terminal-y	vortices	skip	not-the-terminal	the Latin plural of vortex
-terminal-y	wannabe	apply	lexicalised	as maybe: compound-final -be, reduced in speech
-terminal-y	wannabes	apply	lexicalised	as wannabe
+terminal-y	wannabe	apply	lexicalized	as maybe: compound-final -be, reduced in speech
+terminal-y	wannabes	apply	lexicalized	as wannabe
 terminal-y	yippee	apply	loan	a loanword whose terminal is no compound element and carries no stress, so ·It

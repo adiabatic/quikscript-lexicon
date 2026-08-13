@@ -310,6 +310,27 @@ main {
   background: var(--chrome);
 }
 
+#fixer .offer {
+  display: flex;
+}
+
+#fixer .offer button {
+  width: auto;
+}
+
+#fixer .offer button:first-child {
+  flex: 1;
+}
+
+#fixer .all {
+  color: var(--quiet);
+}
+
+#fixer .all:hover,
+#fixer .all:focus-visible {
+  color: var(--ink);
+}
+
 #fixer .none {
   margin: 0;
   font-size: 11px;

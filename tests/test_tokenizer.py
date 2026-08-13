@@ -29,7 +29,7 @@ MANUAL_ANCHORED = [
     ("area", "ˈeərɪə", "·Eight·Roe·It·Utter"),
 ]
 
-MANUAL_MODERNISED = [
+MANUAL_MODERNIZED = [
     ("visual", "ˈvɪʒuəl", "·Vie·It·Zhivago·Ooze·Utter·Low"),
 ]
 
@@ -61,7 +61,7 @@ RULE_EDGES = [
     ("awhile", "əˈʍaɪl", "·Utter·Why·I·Low"),
 ]
 
-HIATUS_IS_NOT_SPELT = [
+HIATUS_IS_NOT_SPELLED = [
     ("angrier", "ˈæŋɡrɪ+əR", "·At·Oolong·Gay·Roe·It·Utter·Roe"),
     ("courtship", "ˈkɔːRt+ʃɪp", "·Key·Awe·Roe·Tea·She·It·Pea"),
 ]
@@ -119,9 +119,9 @@ QUIRK_ROWS = [
 
 ALL_CASES = (
     MANUAL_ANCHORED
-    + MANUAL_MODERNISED
+    + MANUAL_MODERNIZED
     + RULE_EDGES
-    + HIATUS_IS_NOT_SPELT
+    + HIATUS_IS_NOT_SPELLED
     + STRESS_OVERRIDDEN
     + QUIRK_ROWS
 )

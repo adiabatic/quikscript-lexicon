@@ -3,7 +3,7 @@ from qslex.roundtrip import (
     align,
     phonemes_of,
     source_phonemes,
-    spelt_phonemes,
+    spelled_phonemes,
 )
 from qslex.tokenizer import tokenize
 
@@ -33,12 +33,12 @@ def test_stress_marks_and_separators_say_nothing() -> None:
 
 
 def test_a_spelling_reads_back_letter_by_letter() -> None:
-    assert spelt_phonemes("·Key·At·Tea", READ_BACK) == ("k", "æ", "t")
-    assert spelt_phonemes("·No·Et·Excite·Tea", READ_BACK) == ("n", "e", "k", "s", "t")
+    assert spelled_phonemes("·Key·At·Tea", READ_BACK) == ("k", "æ", "t")
+    assert spelled_phonemes("·No·Et·Excite·Tea", READ_BACK) == ("n", "e", "k", "s", "t")
 
 
 def test_an_untouched_spelling_reads_straight_back() -> None:
-    assert said("kæt") == spelt_phonemes("·Key·At·Tea", READ_BACK)
+    assert said("kæt") == spelled_phonemes("·Key·At·Tea", READ_BACK)
 
 
 def test_an_elided_vowel_is_a_licensed_difference() -> None:

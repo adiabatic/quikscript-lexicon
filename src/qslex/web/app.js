@@ -17,6 +17,8 @@ const DONE = "Copied";
 const BY_HAND = "Press ⌘C";
 const IGNORE_ONE = "Ignore one";
 const IGNORE_ALL = "Ignore all";
+const IGNORE_ONE_TITLE = "Ignore this occurrence alone";
+const IGNORE_ALL_TITLE = "Ignore this spelling everywhere, now and in future sessions";
 const KEPT = "qs-desk.ignored";
 const CHOSEN = "qs-desk.senior";
 const SENIOR_GRADE = "senior";
@@ -42,6 +44,7 @@ function remembered() {
 
 const ignored = new Set(remembered());
 const overlooked = new Set();
+const misses = new Map();
 
 function spot(word, occurrence) {
   return `${word}\t${occurrence}`;
@@ -114,6 +117,7 @@ function wrap(text, flagged) {
 }
 
 function mark() {
+  misses.clear();
   const walker = document.createTreeWalker(preview, NodeFilter.SHOW_TEXT);
   const texts = [];
   for (let node = walker.nextNode(); node; node = walker.nextNode()) texts.push(node);
@@ -129,7 +133,12 @@ function mark() {
       seen.set(hit.word, occurrence + 1);
       if (quoted || ignored.has(hit.word)) continue;
       if (overlooked.has(spot(hit.word, occurrence))) continue;
-      if (!accepts(ACCEPTED, hit.word)) flagged.push([hit, occurrence]);
+      if (!accepts(ACCEPTED, hit.word)) {
+        flagged.push([hit, occurrence]);
+        const held = misses.get(hit.word);
+        if (held) held.push(occurrence);
+        else misses.set(hit.word, [occurrence]);
+      }
     }
     if (flagged.length > 0) wrap(text, flagged);
   }
@@ -194,14 +203,39 @@ function pin(span) {
   fixer.style.top = `${under <= lowest ? under : Math.max(EDGE, Math.min(over, lowest))}px`;
 }
 
+function renumber(word, swept) {
+  const lead = `${word}\t`;
+  const kept = [];
+  for (const key of overlooked) {
+    if (key.startsWith(lead)) kept.push(Number(key.slice(lead.length)));
+  }
+  if (kept.length === 0) return;
+  const dropped = [...new Set(swept)].sort((one, other) => one - other);
+  for (const index of kept) overlooked.delete(spot(word, index));
+  for (const index of kept) {
+    const below = dropped.filter((occurrence) => occurrence < index).length;
+    overlooked.add(spot(word, index - below));
+  }
+}
+
 function choose(word, occurrence, fix) {
   source.value = replaceOccurrence(source.value, word, occurrence, fix);
+  renumber(word, [occurrence]);
+  render();
+}
+
+function chooseAll(word, occurrences, fix) {
+  source.value = replaceOccurrences(source.value, word, occurrences, fix);
+  renumber(word, occurrences);
   render();
 }
 
 function propose(span) {
   const word = span.dataset.w;
   const occurrence = Number(span.dataset.occ);
+  const everywhere = misses.get(word) || [occurrence];
+  const others = everywhere.length - 1;
+  const rest = others === 1 ? "the 1 other" : `the ${others} others`;
   const offers = suggest(word, advice());
 
   fixer.replaceChildren();
@@ -216,22 +250,36 @@ function propose(span) {
     fixer.append(none);
   }
   for (const fix of offers) {
+    const row = document.createElement("div");
+    row.className = "offer";
     const button = document.createElement("button");
     button.type = "button";
     button.textContent = fix;
     button.addEventListener("click", () => choose(word, occurrence, fix));
-    fixer.append(button);
+    row.append(button);
+    if (others > 0) {
+      const all = document.createElement("button");
+      all.type = "button";
+      all.className = "all";
+      all.textContent = `(${others})`;
+      all.title = `Correct this misspelling and ${rest} written the same way`;
+      all.addEventListener("click", () => chooseAll(word, everywhere, fix));
+      row.append(all);
+    }
+    fixer.append(row);
   }
   const once = document.createElement("button");
   once.type = "button";
   once.className = "ignore";
   once.textContent = IGNORE_ONE;
+  once.title = IGNORE_ONE_TITLE;
   once.addEventListener("click", () => overlook(word, occurrence));
   fixer.append(once);
   const leave = document.createElement("button");
   leave.type = "button";
   leave.className = "ignore";
-  leave.textContent = IGNORE_ALL;
+  leave.textContent = others > 0 ? `${IGNORE_ALL} (${others})` : IGNORE_ALL;
+  leave.title = IGNORE_ALL_TITLE;
   leave.addEventListener("click", () => excuse(word));
   fixer.append(leave);
 

@@ -119,7 +119,7 @@ ORDINAL_SUFFIXES = {
     "s": _qs("Zoo"),
 }
 
-# Common prefixes and suffixes used in new coinings, re-expressed in Quikscript per the Manual’s affix conventions rather than transliterated from the Shavian strings; tests/test_latin2qs.py holds each to the spelling the lexicon uses inside real words. The productive de-, pre-, pro- and re- take the full stressed vowel a new coining gives them, not the reduced vowel of the lexicalised Latinate stems the prefix rules were written for. The o'er row never spells the bare word, which the lexicon holds; it is kept for the o'er… compounds, which nothing else builds.
+# Common prefixes and suffixes used in new coinings, re-expressed in Quikscript per the Manual’s affix conventions rather than transliterated from the Shavian strings; tests/test_latin2qs.py holds each to the spelling the lexicon uses inside real words. The productive de-, pre-, pro- and re- take the full stressed vowel a new coining gives them, not the reduced vowel of the lexicalized Latinate stems the prefix rules were written for. The o'er row never spells the bare word, which the lexicon holds; it is kept for the o'er… compounds, which nothing else builds.
 PREFIXES: dict[str, str] = {
     "anti": _qs("At", "No", "Tea", "It"),
     "counter": _qs("Key", "Out", "No", "Tea", "Utter", "Roe"),
@@ -348,7 +348,7 @@ class Transliterator:
                 return row["qs"]
         return rows[-1]["qs"]
 
-    def tokenise(self, text: str) -> Doc:
+    def tokenize(self, text: str) -> Doc:
         doc = self.nlp(text)
         spans = [
             Span(doc, start, end, label=match_id)
@@ -563,7 +563,7 @@ class Transliterator:
             ):
                 out += part
             else:
-                out += self.convert(self.tokenise(part), options)
+                out += self.convert(self.tokenize(part), options)
         return _educated(out)
 
     def _plain(self, text: str, options: Options) -> str:
@@ -572,7 +572,7 @@ class Transliterator:
         text = re.sub(r"](\S)", r"] \1", text)
         out = ""
         for line in text.splitlines():
-            out += self.convert(self.tokenise(line), options) + "\n"
+            out += self.convert(self.tokenize(line), options) + "\n"
         return html.unescape(_educated(out))
 
 

@@ -171,11 +171,25 @@ function suggest(word, ctx) {
   return out;
 }
 
-function replaceOccurrence(source, word, occurrence, replacement) {
-  const written = tokens(source).filter((hit) => hit.word === word);
+function replaceOccurrences(source, word, occurrences, replacement) {
+  const lead = source.length - stripFrontMatter(source).length;
+  const written = tokens(source.slice(lead)).filter((hit) => hit.word === word);
   if (written.length === 0) return source;
-  const hit = written[occurrence] || written[0];
-  return source.slice(0, hit.start) + replacement + source.slice(hit.end);
+  const chosen = [...new Set(occurrences)]
+    .filter((occurrence) => written[occurrence])
+    .sort((one, other) => one - other);
+  const hits = chosen.length ? chosen.map((occurrence) => written[occurrence]) : [written[0]];
+  let out = "";
+  let at = 0;
+  for (const hit of hits) {
+    out += source.slice(at, lead + hit.start) + replacement;
+    at = lead + hit.end;
+  }
+  return out + source.slice(at);
+}
+
+function replaceOccurrence(source, word, occurrence, replacement) {
+  return replaceOccurrences(source, word, [occurrence], replacement);
 }
 
 if (typeof module !== "undefined") {
@@ -186,6 +200,7 @@ if (typeof module !== "undefined") {
     distance,
     suggest,
     replaceOccurrence,
+    replaceOccurrences,
     stripFrontMatter,
   };
 }

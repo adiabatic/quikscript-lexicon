@@ -159,7 +159,7 @@ def test_a_contracted_stem_takes_its_clitics(t: Transliterator) -> None:
     assert out[4] == qs("·Way") + "’" + qs("·Low")
 
 
-def test_nt_generalises_to_unlisted_stems(t: Transliterator) -> None:
+def test_nt_generalizes_to_unlisted_stems(t: Transliterator) -> None:
     assert words(t, "You shouldn't go.", contractions=True)[1] == qs("·She·Day·No·Tea")
 
 

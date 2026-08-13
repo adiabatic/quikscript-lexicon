@@ -63,12 +63,12 @@ def load_var_tags(path: Path | None = None) -> Tags:
     for entry in known.values():
         if entry.canonical not in known:
             raise ValueError(
-                f"{TAGS_FILE}: {entry.tag!r} normalises to {entry.canonical!r}, "
+                f"{TAGS_FILE}: {entry.tag!r} normalizes to {entry.canonical!r}, "
                 f"which has no row of its own"
             )
         if known[entry.canonical].policy != entry.policy:
             raise ValueError(
-                f"{TAGS_FILE}: {entry.tag!r} normalises to {entry.canonical!r} but "
+                f"{TAGS_FILE}: {entry.tag!r} normalizes to {entry.canonical!r} but "
                 f"they disagree on policy"
             )
     return known
@@ -77,7 +77,7 @@ def load_var_tags(path: Path | None = None) -> Tags:
 def kept(tags: Tags, tag: str) -> bool:
     """Whether a row wearing this tag belongs to the RRP family the lexicon spells.
 
-    A tag and the tag it normalises to are forbidden to disagree on policy, so the row’s own policy is the canonical one.
+    A tag and the tag it normalizes to are forbidden to disagree on policy, so the row’s own policy is the canonical one.
     """
     entry = tags.get(tag)
     if entry is None:

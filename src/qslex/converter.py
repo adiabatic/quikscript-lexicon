@@ -161,7 +161,7 @@ def converter(
             if mapped is None:
                 if len({e[1] for e in group}) > 1:
                     raise ConverterError(
-                        f"{latin!r} is spelt more than one way and carries the C5 tag "
+                        f"{latin!r} is spelled more than one way and carries the C5 tag "
                         f"{pos!r}, which {PENN_FILE} has no Penn equivalent for"
                     )
                 continue

@@ -103,7 +103,9 @@ def source_phonemes(tokens: tuple[Token, ...]) -> tuple[str, ...]:
     return tuple(out)
 
 
-def spelt_phonemes(spelling: str, table: dict[str, tuple[str, ...]]) -> tuple[str, ...]:
+def spelled_phonemes(
+    spelling: str, table: dict[str, tuple[str, ...]]
+) -> tuple[str, ...]:
     """What the spelling says, read back one letter at a time."""
     out: list[str] = []
     for letter in parse(spelling):
@@ -113,14 +115,14 @@ def spelt_phonemes(spelling: str, table: dict[str, tuple[str, ...]]) -> tuple[st
 
 
 def align(
-    source: tuple[str, ...], spelt: tuple[str, ...]
+    source: tuple[str, ...], spelled: tuple[str, ...]
 ) -> tuple[tuple[str, str], ...] | None:
-    """The cheapest run of allowed edits carrying `source` to `spelt`, or None.
+    """The cheapest run of allowed edits carrying `source` to `spelled`, or None.
 
     None is the failure the check exists for: the spelling can no longer be read back to what ReadLex said by any sequence of differences this project has accounted for.
     """
     infinity = float("inf")
-    width = len(spelt) + 1
+    width = len(spelled) + 1
     cost = [[infinity] * width for _ in range(len(source) + 1)]
     cost[0][0] = 0.0
     for i in range(len(source) + 1):
@@ -128,38 +130,38 @@ def align(
             here = cost[i][j]
             if here == infinity:
                 continue
-            if i < len(source) and j < len(spelt):
-                if source[i] == spelt[j]:
+            if i < len(source) and j < len(spelled):
+                if source[i] == spelled[j]:
                     cost[i + 1][j + 1] = min(cost[i + 1][j + 1], here)
-                elif (source[i], spelt[j]) in EDITS:
+                elif (source[i], spelled[j]) in EDITS:
                     cost[i + 1][j + 1] = min(cost[i + 1][j + 1], here + 1)
             if i < len(source) and (source[i], NOTHING) in EDITS:
                 cost[i + 1][j] = min(cost[i + 1][j], here + 1)
-            if j < len(spelt) and (NOTHING, spelt[j]) in EDITS:
+            if j < len(spelled) and (NOTHING, spelled[j]) in EDITS:
                 cost[i][j + 1] = min(cost[i][j + 1], here + 1)
-    if cost[len(source)][len(spelt)] == infinity:
+    if cost[len(source)][len(spelled)] == infinity:
         return None
 
     edits: list[tuple[str, str]] = []
-    i, j = len(source), len(spelt)
+    i, j = len(source), len(spelled)
     while i or j:
         here = cost[i][j]
-        if i and j and source[i - 1] == spelt[j - 1] and cost[i - 1][j - 1] == here:
+        if i and j and source[i - 1] == spelled[j - 1] and cost[i - 1][j - 1] == here:
             i, j = i - 1, j - 1
             continue
         if (
             i
             and j
             and cost[i - 1][j - 1] == here - 1
-            and (source[i - 1], spelt[j - 1]) in EDITS
+            and (source[i - 1], spelled[j - 1]) in EDITS
         ):
-            edits.append((source[i - 1], spelt[j - 1]))
+            edits.append((source[i - 1], spelled[j - 1]))
             i, j = i - 1, j - 1
             continue
         if i and cost[i - 1][j] == here - 1 and (source[i - 1], NOTHING) in EDITS:
             edits.append((source[i - 1], NOTHING))
             i -= 1
             continue
-        edits.append((NOTHING, spelt[j - 1]))
+        edits.append((NOTHING, spelled[j - 1]))
         j -= 1
     return tuple(reversed(edits))

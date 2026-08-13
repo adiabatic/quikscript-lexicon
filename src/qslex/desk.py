@@ -156,7 +156,7 @@ def asset(name: Path, root: Path) -> bytes:
 def load_records(root: Path) -> tuple[Record, ...]:
     """Every entry of the master, flattened in file order.
 
-    The committed JSON is read rather than the corpus respelt: the page is projected from the artifact it ships beside, so a stale lexicon shows up as a stale page rather than as a page that quietly checks against a different word set than the hunspell dictionary next to it.
+    The committed JSON is read rather than the corpus respelled: the page is projected from the artifact it ships beside, so a stale lexicon shows up as a stale page rather than as a page that quietly checks against a different word set than the hunspell dictionary next to it.
     """
     master = json.loads(artifact(LEXICON_JSON, root))
     return tuple(
@@ -299,13 +299,13 @@ def variants(word: str) -> tuple[str, ...]:
 def sample(records: Iterable[Record], lexicon: Lexicon) -> str:
     """The document the page opens with, built from the lexicon rather than typed.
 
-    Every Quikscript spelling in it is looked up by (Latn, pos), so the sample cannot quietly stop being spelt the way the lexicon spells it. The one misspelling is the first candidate variant of the first sample word that the word set rejects, so the page opens with exactly one underline and something to click.
+    Every Quikscript spelling in it is looked up by (Latn, pos), so the sample cannot quietly stop being spelled the way the lexicon spells it. The one misspelling is the first candidate variant of the first sample word that the word set rejects, so the page opens with exactly one underline and something to click.
     """
-    spelt = {(row.latin.lower(), row.pos): row.qs for row in records}
-    missing = [key for key in SAMPLE_WORDS if not spelt.get(key)]
+    spelled = {(row.latin.lower(), row.pos): row.qs for row in records}
+    missing = [key for key in SAMPLE_WORDS if not spelled.get(key)]
     if missing:
         raise PageError(f"the sample words are not all in the lexicon: {missing}")
-    written = [spelt[key] for key in SAMPLE_WORDS]
+    written = [spelled[key] for key in SAMPLE_WORDS]
     accepted = frozenset(lexicon.union)
     wrong = next((word for word in variants(written[0]) if word not in accepted), None)
     if wrong is None:

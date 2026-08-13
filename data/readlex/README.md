@@ -9,7 +9,7 @@
 | SHA-256   | `0e026ee523fe7beea0a34186e17043d6443e8bbe06a699ed175ad2cf31c332e9`   |
 | Headwords | 56,649                                                               |
 | Entries   | 111,214                                                              |
-| Licence   | MIT, © 2024 Shavian-info — see [`LICENSE`](LICENSE)                  |
+| License   | MIT, © 2024 Shavian-info — see [`LICENSE`](LICENSE)                  |
 
 Words are grouped by headword. Each entry carries the Latin spelling, the Shavian spelling, the [C5](http://www.natcorp.ox.ac.uk/docs/c5spec.html) part of speech, the IPA, the BNC frequency, and a `var` tag naming the accent it transcribes.
 
