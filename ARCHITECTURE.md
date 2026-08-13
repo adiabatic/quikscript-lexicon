@@ -26,7 +26,7 @@ In the order a word passes through the pipeline:
 - `src/qslex/projection.py` — the derivation every spelling checker shares: the union word set with its frequencies, the suggestion tables, and the crosschecks that hold them to the shipped hunspell artifacts
 - `src/qslex/desk.py` — the Quikscript Desk page: the projection inlined into one self-contained `site/index.html` beside the vendored fonts and Markdown parser it renders with
 - `src/qslex/payload.py` — the same projection written to `editor/server/payload.json` for the `quikscript-lsp` language server: generated, committed, and byte-compared by `make check` like every artifact
-- `editor/` — the editor integrations in progress: `server/` holds the language server’s committed payload, the editor work’s one committed build product; server bundles and the VS Code `.vsix` are built on demand instead
+- `editor/server/` — the `quikscript-lsp` language server: plain JavaScript with JSDoc types held to the LSP library’s own declarations by `tsc --noEmit`, importing `core.js` unmodified as its checking engine (typed for `tsc` by the `core.d.ts` declaration next to it) and reading the committed payload beside the server — the editor work’s one committed build product; the single-file server bundle is built on demand by `make bundle`, and the VS Code `.vsix` will be too
 - `src/qslex/` — the loaders, tokenizer, and exhaustive validator that run all of the above
 
 The mapping tables live inside the package so they are importable from an installed wheel; the corpus lives outside it, because a consumer transcribing IPA does not need 27 MB of ReadLex.
