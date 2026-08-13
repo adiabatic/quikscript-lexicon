@@ -83,6 +83,7 @@ h1 {
   font-size: 11px;
 }
 
+#undo,
 #ignored,
 #grade {
   min-width: 4.5em;
@@ -95,11 +96,19 @@ h1 {
   cursor: pointer;
 }
 
+#undo:hover,
+#undo:focus-visible,
 #ignored:hover,
 #ignored:focus-visible,
 #grade:hover,
 #grade:focus-visible {
   background: var(--chrome);
+}
+
+#undo:disabled {
+  opacity: 0.5;
+  background: var(--paper);
+  cursor: default;
 }
 
 #grade[aria-pressed="true"] {

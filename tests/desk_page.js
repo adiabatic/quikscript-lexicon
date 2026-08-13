@@ -85,6 +85,9 @@ class Element extends Fragment {
     this.showing = false;
     this.focused = false;
     this.selected = false;
+    this.selectionStart = 0;
+    this.selectionEnd = 0;
+    this.selectionDirection = "none";
   }
 
   get className() {
@@ -158,6 +161,12 @@ class Element extends Fragment {
   select() {
     this.selected = true;
   }
+
+  setSelectionRange(start, end, direction) {
+    this.selectionStart = start;
+    this.selectionEnd = end;
+    this.selectionDirection = direction;
+  }
 }
 
 function textNode(data, parent) {
@@ -219,18 +228,46 @@ const sealed = {
   },
 };
 
-function stage(supports, kept) {
+function stage(supports, kept, platform = "MacIntel") {
   const parts = {
     source: new Element("textarea"),
     preview: flatten(new Element("div")),
     grade: new Element("button"),
     fixer: new Element("div"),
     copy: new Element("button"),
+    undo: new Element("button"),
     ignored: new Element("button"),
   };
   parts.source.value = SAMPLE;
   parts.copy.textContent = "Copy source";
   parts.fixer.attributes.set("popover", "auto");
+
+  const documentHandlers = new Map();
+  const document = {
+    getElementById: (id) => parts[id] || null,
+    createElement: (tag) => new Element(tag),
+    createDocumentFragment: () => new Fragment(),
+    createTextNode: (data) => textNode(data, null),
+    createTreeWalker(root) {
+      const nodes = root.texts || [];
+      let at = -1;
+      return {
+        nextNode() {
+          at += 1;
+          return nodes[at] || null;
+        },
+      };
+    },
+    addEventListener(kind, listener) {
+      if (!documentHandlers.has(kind)) documentHandlers.set(kind, []);
+      documentHandlers.get(kind).push(listener);
+    },
+    fire(kind, event) {
+      const listeners = documentHandlers.get(kind) || [];
+      assert.ok(listeners.length > 0, `nothing listens for document ${kind}`);
+      for (const listener of listeners) listener(event);
+    },
+  };
 
   const box = {
     console,
@@ -238,27 +275,12 @@ function stage(supports, kept) {
     clearTimeout,
     Node: { ELEMENT_NODE: 1, TEXT_NODE: 3 },
     NodeFilter: { SHOW_TEXT: 4 },
-    navigator: { clipboard },
+    navigator: { clipboard, platform },
     localStorage: kept || storage(),
     CSS: { supports: () => supports },
     innerWidth: 1200,
     innerHeight: 800,
-    document: {
-      getElementById: (id) => parts[id] || null,
-      createElement: (tag) => new Element(tag),
-      createDocumentFragment: () => new Fragment(),
-      createTextNode: (data) => textNode(data, null),
-      createTreeWalker(root) {
-        const nodes = root.texts || [];
-        let at = -1;
-        return {
-          nextNode() {
-            at += 1;
-            return nodes[at] || null;
-          },
-        };
-      },
-    },
+    document,
   };
   box.window = box;
   box.globalThis = box;
@@ -368,6 +390,91 @@ check("choosing a suggestion edits the source, shuts the popover and re-renders"
   assert.ok(!written.includes(misspelled), "the token is gone, not merely the substring");
   assert.equal(written.length, box.tokens(SAMPLE).length);
   assert.equal(spans().length, 0, "nothing is underlined once the word is spelled right");
+});
+
+check("Command-Z undoes a correction on Apple devices", () => {
+  const held = stage(false);
+  const shown = marked(held.parts.preview);
+  held.parts.preview.fire("click", { target: shown[0] });
+  offersOf(held.parts.fixer)[0].fire("click");
+  assert.equal(held.parts.undo.disabled, false);
+  assert.equal(held.parts.undo.title, "Undo last correction (⌘Z)");
+  let prevented = false;
+  held.box.document.fire("keydown", {
+    key: "z",
+    metaKey: true,
+    ctrlKey: false,
+    altKey: false,
+    shiftKey: false,
+    preventDefault: () => {
+      prevented = true;
+    },
+  });
+  assert.equal(prevented, true);
+  assert.equal(held.parts.source.value, SAMPLE);
+  assert.equal(held.parts.undo.disabled, true);
+  assert.equal(marked(held.parts.preview).length, 1);
+  assert.equal(held.parts.source.focused, true);
+});
+
+check("Ctrl-Z and the Undo button undo corrections on other devices", () => {
+  const held = stage(false, undefined, "Win32");
+  const correctOnce = () => {
+    const shown = marked(held.parts.preview);
+    held.parts.preview.fire("click", { target: shown[0] });
+    offersOf(held.parts.fixer)[0].fire("click");
+  };
+  correctOnce();
+  assert.equal(held.parts.undo.title, "Undo last correction (Ctrl+Z)");
+  held.box.document.fire("keydown", {
+    key: "z",
+    metaKey: false,
+    ctrlKey: true,
+    altKey: false,
+    shiftKey: false,
+    preventDefault() {},
+  });
+  assert.equal(held.parts.source.value, SAMPLE);
+  correctOnce();
+  held.parts.undo.fire("click");
+  assert.equal(held.parts.source.value, SAMPLE);
+});
+
+check("the correction history holds more than fifty changes", () => {
+  const held = stage(false, undefined, "Win32");
+  const count = 60;
+  const shown = marked(held.parts.preview);
+  held.parts.preview.fire("click", { target: shown[0] });
+  const fix = offersOf(held.parts.fixer)[0].textContent;
+  held.parts.source.value = Array(count).fill(misspelled).join(" ");
+  held.box.render();
+  for (let at = 0; at < count; at += 1) held.box.choose(misspelled, 0, fix);
+  for (let at = 0; at < count; at += 1) held.parts.undo.fire("click");
+  assert.equal(held.parts.source.value, Array(count).fill(misspelled).join(" "));
+  assert.equal(held.parts.undo.disabled, true);
+});
+
+check("typing starts a fresh correction history", () => {
+  const held = stage(false);
+  const shown = marked(held.parts.preview);
+  held.parts.preview.fire("click", { target: shown[0] });
+  offersOf(held.parts.fixer)[0].fire("click");
+  assert.equal(held.parts.undo.disabled, false);
+  held.parts.source.value += " typed";
+  held.parts.source.fire("input", { target: held.parts.source });
+  assert.equal(held.parts.undo.disabled, true);
+  let prevented = false;
+  held.box.document.fire("keydown", {
+    key: "z",
+    metaKey: true,
+    ctrlKey: false,
+    altKey: false,
+    shiftKey: false,
+    preventDefault: () => {
+      prevented = true;
+    },
+  });
+  assert.equal(prevented, false, "native text undo remains available");
 });
 
 check("the copy button writes the source and flips its label", () => {

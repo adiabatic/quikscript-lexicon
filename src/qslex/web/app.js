@@ -3,6 +3,7 @@ const preview = document.getElementById("preview");
 const grade = document.getElementById("grade");
 const fixer = document.getElementById("fixer");
 const copier = document.getElementById("copy");
+const undoer = document.getElementById("undo");
 const excused = document.getElementById("ignored");
 
 const DELAY = 150;
@@ -23,6 +24,9 @@ const KEPT = "qs-desk.ignored";
 const CHOSEN = "qs-desk.senior";
 const SENIOR_GRADE = "senior";
 const JUNIOR_GRADE = "junior";
+const APPLE = /Mac|iPhone|iPad|iPod/.test(
+  navigator.userAgentData?.platform || navigator.platform || "",
+);
 
 const counts = new Map();
 for (const line of QS.words.split("\n")) {
@@ -45,6 +49,7 @@ function remembered() {
 const ignored = new Set(remembered());
 const overlooked = new Set();
 const misses = new Map();
+const corrections = [];
 
 function spot(word, occurrence) {
   return `${word}\t${occurrence}`;
@@ -218,16 +223,52 @@ function renumber(word, swept) {
   }
 }
 
-function choose(word, occurrence, fix) {
-  source.value = replaceOccurrence(source.value, word, occurrence, fix);
-  renumber(word, [occurrence]);
+function snapshot() {
+  return {
+    value: source.value,
+    start: source.selectionStart,
+    end: source.selectionEnd,
+    direction: source.selectionDirection,
+    overlooked: [...overlooked],
+  };
+}
+
+function updateUndo() {
+  undoer.disabled = corrections.length === 0;
+}
+
+function correct(value, word, occurrences) {
+  if (value === source.value) return;
+  corrections.push(snapshot());
+  source.value = value;
+  renumber(word, occurrences);
+  updateUndo();
   render();
 }
 
+function choose(word, occurrence, fix) {
+  correct(replaceOccurrence(source.value, word, occurrence, fix), word, [
+    occurrence,
+  ]);
+}
+
 function chooseAll(word, occurrences, fix) {
-  source.value = replaceOccurrences(source.value, word, occurrences, fix);
-  renumber(word, occurrences);
+  correct(replaceOccurrences(source.value, word, occurrences, fix), word, occurrences);
+}
+
+function undo() {
+  const previous = corrections.pop();
+  if (!previous) return;
+  source.value = previous.value;
+  overlooked.clear();
+  for (const key of previous.overlooked) overlooked.add(key);
+  updateUndo();
+  tally();
   render();
+  source.focus();
+  if (Number.isInteger(previous.start) && Number.isInteger(previous.end)) {
+    source.setSelectionRange(previous.start, previous.end, previous.direction || "none");
+  }
 }
 
 function propose(span) {
@@ -311,7 +352,28 @@ function regrade() {
   fixer.classList.toggle("senior", isSenior());
 }
 
-source.addEventListener("input", schedule);
+source.addEventListener("input", () => {
+  corrections.length = 0;
+  updateUndo();
+  schedule();
+});
+
+undoer.addEventListener("click", undo);
+
+document.addEventListener("keydown", (event) => {
+  const modified = APPLE ? event.metaKey : event.ctrlKey;
+  if (
+    event.key.toLowerCase() !== "z" ||
+    !modified ||
+    event.altKey ||
+    event.shiftKey ||
+    corrections.length === 0
+  ) {
+    return;
+  }
+  event.preventDefault();
+  undo();
+});
 
 grade.addEventListener("click", () => {
   paint(!isSenior());
@@ -343,7 +405,9 @@ copier.addEventListener("click", () => {
 
 marked.use({ gfm: true });
 if (ANCHORING) fixer.classList.add("anchored");
+undoer.title = `Undo last correction (${APPLE ? "⌘Z" : "Ctrl+Z"})`;
 paint(recalled());
 regrade();
 tally();
+updateUndo();
 render();
