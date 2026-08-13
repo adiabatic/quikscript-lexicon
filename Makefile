@@ -1,4 +1,4 @@
-.PHONY: all artifacts site check lint test validate freshness
+.PHONY: all artifacts site payload check lint test validate freshness
 
 all: artifacts
 
@@ -7,6 +7,9 @@ artifacts:
 
 site:
 	uv run python -m qslex.desk
+
+payload:
+	uv run python -m qslex.payload
 
 check: lint test validate freshness
 
@@ -24,3 +27,4 @@ validate:
 freshness:
 	uv run python -m qslex.build --check
 	uv run python -m qslex.desk --check
+	uv run python -m qslex.payload --check

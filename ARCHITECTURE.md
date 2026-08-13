@@ -23,6 +23,10 @@ In the order a word passes through the pipeline:
 - `src/qslex/roundtrip.py` — the reverse of the segment mapping, which reads every shipped spelling back to a phoneme string and lays it beside the IPA it came from
 - `src/qslex/lint.py` — the Manual’s own lint, every check gated on the Orthodox trigger its rule keys on, with `src/qslex/data/lint-pragmas.tsv` declaring every word allowed to break one and why
 - `src/qslex/latin2qs.py` — the consumer at the end: ReadLex’s `latin2shaw.py` ported to emit Quikscript from running Latin text (spec: [`docs/latin2qs.md`](docs/latin2qs.md))
+- `src/qslex/projection.py` — the derivation every spelling checker shares: the union word set with its frequencies, the suggestion tables, and the crosschecks that hold them to the shipped hunspell artifacts
+- `src/qslex/desk.py` — the Quikscript Desk page: the projection inlined into one self-contained `site/index.html` beside the vendored fonts and Markdown parser it renders with
+- `src/qslex/payload.py` — the same projection written to `editor/server/payload.json` for the `quikscript-lsp` language server: generated, committed, and byte-compared by `make check` like every artifact
+- `editor/` — the editor integrations in progress: `server/` holds the language server’s committed payload, the editor work’s one committed build product; server bundles and the VS Code `.vsix` are built on demand instead
 - `src/qslex/` — the loaders, tokenizer, and exhaustive validator that run all of the above
 
 The mapping tables live inside the package so they are importable from an installed wheel; the corpus lives outside it, because a consumer transcribing IPA does not need 27 MB of ReadLex.

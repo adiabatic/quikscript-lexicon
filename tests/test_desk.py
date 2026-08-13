@@ -1,4 +1,3 @@
-import dataclasses
 import html
 import json
 import shutil
@@ -18,24 +17,25 @@ from qslex.desk import (
     SITE,
     WEB,
     PageError,
-    artifact,
     asset,
     build,
-    confusions,
-    contracted,
-    crosscheck,
-    load_records,
     main,
-    payload,
-    replacements,
     sample,
     substitute,
-    word_list,
 )
 from qslex.hunspell import X_LETTERS, by_frequency
 from qslex.letters import parse, render_qs
+from qslex.projection import (
+    artifact,
+    confusions,
+    contracted,
+    load_records,
+    payload,
+    replacements,
+    word_list,
+)
 from qslex.readlex import repo_root
-from qslex.words import Contraction, load_contractions
+from qslex.words import load_contractions
 
 ROOT = repo_root()
 RECORDS = load_records(ROOT)
@@ -156,12 +156,6 @@ def test_a_contraction_takes_the_frequency_of_the_word_it_writes() -> None:
         assert LEXICON.frequency[written] >= row.frequency
 
 
-def test_a_contraction_matching_no_lexicon_row_is_refused() -> None:
-    stray = Contraction("qwertyuiop", "", "word", "·Key", "senior-contractions", "")
-    with pytest.raises(PageError, match="matches no row"):
-        contracted((stray,), RECORDS)
-
-
 def test_a_contraction_tagged_for_a_part_of_speech_matches_only_that_tag() -> None:
     tagged = [entry for entry in CONTRACTIONS if entry.pos]
     assert {entry.word for entry in tagged} == {"that"}
@@ -189,12 +183,6 @@ def test_the_word_list_writes_a_frequency_only_where_there_is_one() -> None:
         assert spelling == word
         counted = LEXICON.frequency[word]
         assert frequency == (str(counted) if counted else "")
-
-
-def test_a_word_set_the_dictionary_does_not_list_is_refused() -> None:
-    doctored = dataclasses.replace(LEXICON, listed=LEXICON.listed[:-1])
-    with pytest.raises(PageError, match="make artifacts"):
-        crosscheck(doctored, ROOT)
 
 
 def test_every_pinned_asset_verifies() -> None:
