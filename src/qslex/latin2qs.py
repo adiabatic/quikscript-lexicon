@@ -34,8 +34,9 @@ from qslex.words import load_contractions
 
 LEXICON_JSON = "quikscript-lexicon.json"
 
-MODES = ("senior", "junior", "x")
-COLUMN_OF = {"senior": "qs", "junior": "qs_junior", "x": "qs_x"}
+SENIOR_COLUMN = "qs"
+JUNIOR_COLUMN = "qs_junior"
+X_COLUMN = "qs_x"
 
 NAMER_DOT = "·"
 CONSTRUCTED = "⚠️"
@@ -243,23 +244,25 @@ TAG = r"(?!(?:<style[^>]*?>.*?</style>|<script[^>]*?>.*?</script>))(<.*?>)"
 HTML_PATTERNS = f"{STYLE}|{SCRIPT}|{TAG}"
 
 
-class TransliteratorError(ValueError):
-    pass
-
-
 @dataclass(frozen=True)
 class Options:
-    mode: str = "senior"
-    contractions: bool = False
+    """The grade, and the two Senior facilities the grade only sets a default for.
+
+    Senior takes the X-letters and the §III contractions; Junior takes neither. The grade defaults them and does not bar them: the Manual’s Note on p.25 calls the Sections II and III facilities impossible as a first stage in children’s writing, which is a fact about teaching a child to write rather than a bar on what a converter may emit, so every combination of the four is reachable and Junior with either facility asked for is spelled, not refused.
+
+    `x_letters` and `contractions` are tri-state on the way in — `None` asks for whatever the grade gives — and plain booleans once constructed, so nothing downstream has to know which way they were set.
+    """
+
+    junior: bool = False
+    x_letters: bool | None = None
+    contractions: bool | None = None
 
     def __post_init__(self) -> None:
-        if self.mode not in MODES:
-            raise TransliteratorError(f"mode must be one of {MODES}: {self.mode!r}")
-        if self.contractions and self.mode == "junior":
-            raise TransliteratorError(
-                "the §III contractions are a Senior facility; "
-                "junior text does not use them"
-            )
+        senior = not self.junior
+        if self.x_letters is None:
+            object.__setattr__(self, "x_letters", senior)
+        if self.contractions is None:
+            object.__setattr__(self, "contractions", senior)
 
 
 def _contraction_qs(spelling: str) -> str:
@@ -389,7 +392,12 @@ class Transliterator:
         return rows[-1]
 
     def _spelling(self, row: dict[str, str], options: Options) -> str:
-        return row.get(COLUMN_OF[options.mode]) or row["qs"]
+        # No row carries both sparse columns — an X-letter needs an x in the word and the junior divergences have none — so the two knobs never contend for the same row and the order they are tried in decides nothing.
+        if options.x_letters and (x_letter := row.get(X_COLUMN)):
+            return x_letter
+        if options.junior and (junior := row.get(JUNIOR_COLUMN)):
+            return junior
+        return row[SENIOR_COLUMN]
 
     def _fallback_spelling(self, word: str, options: Options) -> str | None:
         rows = self.rows_of.get(word)
@@ -581,16 +589,41 @@ def main(argv: list[str] | None = None) -> int:
         description="Transliterate Latin-alphabet English text to Quikscript"
     )
     parser.add_argument("files", nargs="*", type=Path)
-    parser.add_argument("--mode", choices=MODES, default="senior")
+    grade = parser.add_mutually_exclusive_group()
+    grade.add_argument(
+        "--senior",
+        dest="junior",
+        action="store_false",
+        default=None,
+        help="Senior Quikscript: X-letters and the §III contractions, the default",
+    )
+    grade.add_argument(
+        "--junior",
+        dest="junior",
+        action="store_true",
+        default=None,
+        help="Junior Quikscript: neither facility unless it is asked for",
+    )
+    parser.add_argument(
+        "--x-letters",
+        action=argparse.BooleanOptionalAction,
+        default=None,
+        help="the ·Excite/·Exam X-letter spellings (senior takes them, junior does not)",
+    )
     parser.add_argument(
         "--contractions",
-        action="store_true",
-        help="apply the Manual’s §III Senior contractions",
+        action=argparse.BooleanOptionalAction,
+        default=None,
+        help="the Manual’s §III Senior contractions (senior takes them, junior does not)",
     )
     parser.add_argument("--lexicon", type=Path, default=None)
     args = parser.parse_args(argv)
 
-    options = Options(mode=args.mode, contractions=args.contractions)
+    options = Options(
+        junior=bool(args.junior),
+        x_letters=args.x_letters,
+        contractions=args.contractions,
+    )
     transliterator = Transliterator(args.lexicon)
     if args.files:
         text = "\n".join(f.read_text(encoding="utf-8") for f in args.files)

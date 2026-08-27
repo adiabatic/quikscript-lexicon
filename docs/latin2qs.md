@@ -12,26 +12,31 @@ The spaCy stack is heavy and optional, so it lives in an extra rather than in th
 
 ```sh
 uv sync                                       # the dev group brings in qslex[translit]
-uv run python -m qslex.latin2qs < input.txt   # senior, the default
-uv run python -m qslex.latin2qs --mode junior input.txt
-uv run python -m qslex.latin2qs --mode x --contractions input.txt
+uv run python -m qslex.latin2qs < input.txt   # senior: X-letters and the §III contractions
+uv run python -m qslex.latin2qs --junior input.txt
+uv run python -m qslex.latin2qs --no-contractions input.txt
+uv run python -m qslex.latin2qs --junior --x-letters input.txt
 ```
 
 `--lexicon DIR` points at a directory holding `quikscript-lexicon.json` when the repo layout is not available. Input that begins with `<!doctype html` is converted around its markup, style and script blocks; anything else is treated as plain text, line by line.
 
-## Output modes
+## The grade, and the two facilities it defaults
 
-The three modes select among the artifact’s three spelling columns, falling back to `qs` where a sparse column is absent, exactly as the [column model](pipeline.md#the-converter-shape) intends:
+The output is a grade and two independent switches. The grade is `--senior`, the default, or `--junior`; the switches are `--x-letters` / `--no-x-letters` and `--contractions` / `--no-contractions`. A switch left unsaid takes whatever its grade gives it:
 
-| Mode               | Column      | What it is                                         |
-| ------------------ | ----------- | -------------------------------------------------- |
-| `senior` (default) | `qs`        | Read’s conventions plus the standard word-outlines |
-| `junior`           | `qs_junior` | word-level divergences and the kept n't vowel      |
-| `x`                | `qs_x`      | the ·Excite/·Exam X-letter form, built on senior   |
+| Given      | `qs_junior` | `qs_x` | §III contractions |
+| ---------- | ----------- | ------ | ----------------- |
+| nothing    | —           | ✓      | ✓                 |
+| `--senior` | —           | ✓      | ✓                 |
+| `--junior` | ✓           | —      | —                 |
 
-`--contractions` layers the [§III Senior contractions](word-signs.md#the-three-tiers) on top — the ≈50-word list `contractions.tsv` ships precisely for this consumer, applied to no column. It composes with `senior` and `x`; combined with `junior` it is an error, because the Manual’s Note on p.25 says the Senior facilities are impossible as a first stage. The layer is word-level: it substitutes a listed word, attaches clitics to a contracted stem (she's = ·She·Zoo, we'll = ·Way’·Low), and generalizes `n't` to unlisted stems (shouldn't = ·She·Day·No·Tea). It never touches a proper noun or a token inside a named entity, so Will Smith keeps his name. The three `that` rows carry their C5 tags through `c5-to-penn.tsv`, so only the non-demonstrative `that` contracts — which the senior column already spells ·They·Tea anyway.
+Senior is what a fluent writer writes, so it writes the X-letters and contracts; Junior is the first stage, so it does neither until it is told to. **The grade defaults the two facilities and does not bar them.** The Manual’s Note on p.25 — that the Sections II and III facilities “are of course impossible as a first stage in children’s writing” — is a fact about teaching a child to write, not a bar on what a converter may emit, so `--junior --x-letters` and `--junior --contractions` are spelled rather than refused. `--senior --junior` is the only combination the CLI rejects, and argparse rejects it.
 
-Words the affix fallback constructs take the same mode fork, because the root’s row is looked up with the same column preference. Letter names do not take it: the standalone-letter reading and the initialism test both read the `qs` column, so a standalone *x* is ·Et·Key·See in every mode and the ·Excite X-letter stays inside words.
+The two sparse columns are read independently, each falling back to `qs` where it is absent, exactly as the [column model](pipeline.md#the-converter-shape) intends: `qs_x` when the X-letters are on, `qs_junior` when the grade is junior. `--junior --x-letters` therefore takes both, and no row has to arbitrate — an X-letter needs an `x` in the word and none of the junior divergences has one, so not one converter row of the 78,139 carries both columns and the order they are tried in decides nothing.
+
+The §III contraction layer is the ≈50-word list `contractions.tsv` ships precisely for this consumer, applied to no column at all. The layer is word-level: it substitutes a listed word, attaches clitics to a contracted stem (she's = ·She·Zoo, we'll = ·Way’·Low), and generalizes `n't` to unlisted stems (shouldn't = ·She·Day·No·Tea). It never touches a proper noun or a token inside a named entity, so Will Smith keeps his name. The three `that` rows carry their C5 tags through `c5-to-penn.tsv`, so only the non-demonstrative `that` contracts — which the senior column already spells ·They·Tea anyway.
+
+Words the affix fallback constructs take the same fork, because the root’s row is looked up with the same column preference. Letter names do not take it: the standalone-letter reading and the initialism test both read the `qs` column, so a standalone *x* is ·Et·Key·See whatever is asked for and the ·Excite X-letter stays inside words.
 
 ## Letter classes, and no epenthetic vowel
 
@@ -53,9 +58,9 @@ The conditioning is the one [`docs/word-signs.md`](word-signs.md#contractions-po
 | verbal `'s`                 | solid                                        | it's = ·It·Tea·See                                           |
 | `n't`                       | solid                                        | wasn't, can't                                                |
 | `'d` `'ll` `'m` `'re` `'ve` | apostrophe kept                              | they'll = ·They·Eight’·Low                                   |
-| aphetic `'t...`             | leading apostrophe kept                      | 'twas = ’·Tea·Way·Utter·Zoo, ’·Tea·Way·Ox·Zoo in junior mode |
+| aphetic `'t...`             | leading apostrophe kept                      | 'twas = ’·Tea·Way·Utter·Zoo, ’·Tea·Way·Ox·Zoo in junior      |
 
-The corpus’s spellings carry no apostrophes at all, so for the keeping classes the transliterator reinserts one: a dictionary spelling that ends in the clitic’s own letters gets ’ placed before them. That reproduces the Manual’s ·They·Eight’·Low from the artifact’s ·They·Eight·Low, in every mode — the Bo-peep specimen keeping the apostrophe is Junior text.
+The corpus’s spellings carry no apostrophes at all, so for the keeping classes the transliterator reinserts one: a dictionary spelling that ends in the clitic’s own letters gets ’ placed before them. That reproduces the Manual’s ·They·Eight’·Low from the artifact’s ·They·Eight·Low, at either grade — the Bo-peep specimen keeping the apostrophe is Junior text.
 
 ## The namer dot
 
@@ -106,5 +111,5 @@ Everything else is a straight port. These are the places the port does not repro
 
 - **Heteronyms**: read/read on tense, lead and live on part of speech, use noun against verb, that demonstrative against conjunction against relative — and the `⬌` punt is pinned where no tag can settle against.
 - **Clitic conditioning**: devoiced, sibilant-bare and voiced possessives, dropped and kept apostrophes, solid n't, the constructed plural’s voicing, and the contraction layer’s stems, clitics and refusals.
-- **The Manual’s specimen passages replay**, all 674 words: Senior passages in `x` mode with the contraction layer, Junior ones in `junior` mode, each word against its fixture verdict — `differs` rows accept either the Manual’s spelling or the pinned `ours`, and four rows are pinned in `REPLAY_PINS` for reasons the layers own (a leading apostrophe the fixture format cannot record, a phrase match hiding little from the word-level contraction layer, Read contracting whatever beyond his own list, and the RRPVar join on against).
+- **The Manual’s specimen passages replay**, all 674 words: Senior passages under the defaults, which are the X-letters and the contraction layer, Junior ones under `--junior`, each word against its fixture verdict — `differs` rows accept either the Manual’s spelling or the pinned `ours`, and four rows are pinned in `REPLAY_PINS` for reasons the layers own (a leading apostrophe the fixture format cannot record, a phrase match hiding little from the word-level contraction layer, Read contracting whatever beyond his own list, and the RRPVar join on against).
 - **Match-rate parity with `latin2shaw.py`**: run over *Alice’s Adventures in Wonderland* (27,336 word tokens), both converters miss exactly the same 49 tokens — Roman numerals and Carroll’s nonce words — and construct the same 2. The parity run is an exercise, not a committed test, because it needs upstream’s converter artifacts. The recipe: take readlex’s `latin2shaw.py` with its `static/` converter JSONs beside a boilerplate-stripped Gutenberg *Alice*, run it and `qslex.latin2qs` over the same text, and compare the tokens each marks ✢ and ⚠️.

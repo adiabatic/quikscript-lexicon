@@ -8,7 +8,6 @@ from qslex.latin2qs import (  # noqa: E402
     SUFFIXES,
     Options,
     Transliterator,
-    TransliteratorError,
 )
 from qslex.letters import parse, render_qs  # noqa: E402
 from qslex.passages import SPECIMENS, load_passages  # noqa: E402
@@ -27,11 +26,11 @@ def decoded(text: str) -> str:
     return "".join("·" + NAME_OF[ord(c)] if ord(c) in NAME_OF else c for c in text)
 
 
-def convert(t: Transliterator, text: str, **kwargs: object) -> str:
-    return t.transliterate(text, Options(**kwargs)).strip()  # type: ignore[arg-type]
+def convert(t: Transliterator, text: str, **kwargs: bool) -> str:
+    return t.transliterate(text, Options(**kwargs)).strip()
 
 
-def words(t: Transliterator, text: str, **kwargs: object) -> list[str]:
+def words(t: Transliterator, text: str, **kwargs: bool) -> list[str]:
     return convert(t, text, **kwargs).split(" ")
 
 
@@ -106,7 +105,9 @@ def test_a_constructed_possessive_is_conditioned_too(t: Transliterator) -> None:
 
 
 def test_spoken_contractions_keep_the_apostrophe(t: Transliterator) -> None:
-    out = words(t, "They'll say he'd gone; we're sure you've won, I'm told.")
+    out = words(
+        t, "They'll say he'd gone; we're sure you've won, I'm told.", contractions=False
+    )
     assert out[0] == qs("·They·Eight") + "’" + qs("·Low")
     assert out[2] == qs("·He·Eat") + "’" + qs("·Day")
     assert out[4] == qs("·Way·Eat") + "’" + qs("·Utter·Roe")
@@ -116,23 +117,25 @@ def test_spoken_contractions_keep_the_apostrophe(t: Transliterator) -> None:
 
 def test_an_aphetic_word_keeps_its_leading_apostrophe(t: Transliterator) -> None:
     assert words(t, "'Twas the night.")[0] == "’" + qs("·Tea·Way·Utter·Zoo")
-    junior = words(t, "'Twas the night.", mode="junior")[0]
+    junior = words(t, "'Twas the night.", junior=True)[0]
     assert junior == "’" + qs("·Tea·Way·Ox·Zoo")
 
 
 def test_nt_attaches_solid(t: Transliterator) -> None:
-    assert words(t, "It wasn't here.")[1] == qs("·Way·Utter·Zoo·No·Tea")
-    junior = words(t, "It wasn't here.", mode="junior")[1]
+    assert words(t, "It wasn't here.", contractions=False)[1] == qs(
+        "·Way·Utter·Zoo·No·Tea"
+    )
+    junior = words(t, "It wasn't here.", junior=True)[1]
     assert junior == qs("·Way·Ox·Zoo·Utter·No·Tea")
-    assert words(t, "You can't win.")[1] == qs("·Key·Ah·No·Tea")
+    assert words(t, "You can't win.", contractions=False)[1] == qs("·Key·Ah·No·Tea")
 
 
 def test_verbal_s_attaches_solid(t: Transliterator) -> None:
-    assert words(t, "It's here.")[0] == qs("·It·Tea·See")
+    assert words(t, "It's here.", contractions=False)[0] == qs("·It·Tea·See")
 
 
 def test_all_is_a_word_not_a_contraction_half(t: Transliterator) -> None:
-    out = words(t, "I do all the work.")
+    out = words(t, "I do all the work.", contractions=False)
     assert out[1] == qs("·Day·Ooze")
     assert out[2] == qs("·Awe·Low")
 
@@ -140,9 +143,13 @@ def test_all_is_a_word_not_a_contraction_half(t: Transliterator) -> None:
 # --- the contraction layer ----------------------------------------------------
 
 
-def test_the_contraction_layer_is_a_senior_facility(t: Transliterator) -> None:
-    with pytest.raises(TransliteratorError, match="Senior facility"):
-        Options(mode="junior", contractions=True)
+def test_the_grade_defaults_the_facilities_and_does_not_bar_them() -> None:
+    assert (Options().x_letters, Options().contractions) == (True, True)
+    junior = Options(junior=True)
+    assert (junior.x_letters, junior.contractions) == (False, False)
+    asked = Options(junior=True, x_letters=True, contractions=True)
+    assert (asked.x_letters, asked.contractions) == (True, True)
+    assert Options(contractions=False).x_letters is True
 
 
 def test_listed_words_contract(t: Transliterator) -> None:
@@ -175,12 +182,12 @@ def test_a_name_never_contracts(t: Transliterator) -> None:
     )
 
 
-# --- modes --------------------------------------------------------------------
+# --- the grades and their facilities ------------------------------------------
 
 
 def test_junior_diverges_at_word_level_only(t: Transliterator) -> None:
-    senior = words(t, "I know that it always was.")
-    junior = words(t, "I know that it always was.", mode="junior")
+    senior = words(t, "I know that it always was.", contractions=False)
+    junior = words(t, "I know that it always was.", junior=True)
     assert senior[2] == qs("·They·Tea")
     assert junior[2] == qs("·They·At·Tea")
     assert senior[4] == qs("·Awe·Low·Way·Utter·Zoo")
@@ -189,12 +196,31 @@ def test_junior_diverges_at_word_level_only(t: Transliterator) -> None:
     assert junior[5].rstrip(".") == qs("·Way·Ox·Zoo")
 
 
-def test_the_x_letter_mode_swaps_in_the_x_column(t: Transliterator) -> None:
+def test_senior_takes_the_x_letters_and_no_x_letters_backs_them_out(
+    t: Transliterator,
+) -> None:
     senior = words(t, "We expect taxes.")
-    x_letter = words(t, "We expect taxes.", mode="x")
-    assert senior[1] == qs("·It·Key·See·Pea·Et·Key·Tea")
-    assert x_letter[1] == qs("·Et·Excite·Pea·Et·Key·Tea")
-    assert x_letter[2].rstrip(".") == qs("·Tea·At·Excite·Zoo")
+    plain = words(t, "We expect taxes.", x_letters=False)
+    assert senior[1] == qs("·Et·Excite·Pea·Et·Key·Tea")
+    assert senior[2].rstrip(".") == qs("·Tea·At·Excite·Zoo")
+    assert plain[1] == qs("·It·Key·See·Pea·Et·Key·Tea")
+    assert plain[2].rstrip(".") == qs("·Tea·At·Key·See·Zoo")
+
+
+def test_junior_takes_no_x_letters_until_it_asks(t: Transliterator) -> None:
+    junior = words(t, "We expect taxes.", junior=True)
+    asked = words(t, "We expect taxes.", junior=True, x_letters=True)
+    assert junior[1] == qs("·It·Key·See·Pea·Et·Key·Tea")
+    assert asked[1] == qs("·Et·Excite·Pea·Et·Key·Tea")
+
+
+def test_the_junior_and_x_letter_columns_compose(t: Transliterator) -> None:
+    out = words(t, "I know that it always was.", junior=True, x_letters=True)
+    assert out[2] == qs("·They·At·Tea")
+    assert out[4] == qs("·Awe·Low·Way·Eight·Zoo")
+    assert words(t, "We expect taxes.", junior=True, x_letters=True)[1] == qs(
+        "·Et·Excite·Pea·Et·Key·Tea"
+    )
 
 
 # --- the namer dot ------------------------------------------------------------
@@ -339,8 +365,8 @@ def test_a_constructed_ful_splits_on_the_part_of_speech(t: Transliterator) -> No
 
 
 def test_have_to_devoices_before_an_infinitive(t: Transliterator) -> None:
-    assert words(t, "I have to go now.")[1] == qs("·He·At·Fee")
-    assert words(t, "I have two cats.")[1] == qs("·He·At·Vie")
+    assert words(t, "I have to go now.", contractions=False)[1] == qs("·He·At·Fee")
+    assert words(t, "I have two cats.", contractions=False)[1] == qs("·He·At·Vie")
 
 
 def test_used_to_devoices_in_the_past_tense(t: Transliterator) -> None:
@@ -367,9 +393,8 @@ def test_a_tag_named_like_a_style_block_passes_through(t: Transliterator) -> Non
 
 def test_a_curly_apostrophe_splits_a_contraction_in_html(t: Transliterator) -> None:
     body = qs("·I") + " " + qs("·Day·Owe·No·Tea")
-    assert t.transliterate("<!doctype html><p>I don’t</p>") == (
-        "<!doctype html><p>" + body + "</p>"
-    )
+    out = t.transliterate("<!doctype html><p>I don’t</p>", Options(contractions=False))
+    assert out == "<!doctype html><p>" + body + "</p>"
 
 
 # --- plain text is not HTML ---------------------------------------------------
@@ -403,10 +428,7 @@ REPLAY_PINS = {
 def test_the_specimen_passages_replay(passage: str, t: Transliterator) -> None:
     rows = [w for w in load_passages() if w.passage == passage]
     text = " ".join(w.latin for w in rows)
-    if SPECIMENS[passage].level == "senior":
-        options = Options(mode="x", contractions=True)
-    else:
-        options = Options(mode="junior")
+    options = Options(junior=SPECIMENS[passage].level == "junior")
     chunks = t.transliterate(text, options).strip().split(" ")
     assert len(chunks) == len(rows)
     for row, chunk in zip(rows, chunks, strict=True):

@@ -20,7 +20,7 @@ Authority links go to the [AMS Manual transcription][manual]; every letter-name 
 | 2   | [§ Contractions, p.17][senior] | ≈50 Senior contractions                | no column — the converter’s table                       |
 | 3   | [§ Common words, p.16][common] | 69 headwords of standard word-outlines | the senior column, with a junior form where it diverges |
 
-Tier 2 is the odd one out and stays that way, for the same reason [`docs/orthographic-rules.md`](orthographic-rules.md) keeps often at ·Ox·Fee·Utter·No rather than the listed ·Ox·Fee·No: it is an optional Senior facility, not how the word is spelled. So the senior column has people = ·Pea·Eat·Pea·Low against the list’s ·Pea·Pea·Low, and think = ·Thaw·It·Oolong·Key against ·Thaw. The list is shipped for [#6][converter] to apply as a mode, and the desk adds it to the set its checker accepts on exactly that footing: correct Senior writing, never a column.
+Tier 2 is the odd one out and stays that way, for the same reason [`docs/orthographic-rules.md`](orthographic-rules.md) keeps often at ·Ox·Fee·Utter·No rather than the listed ·Ox·Fee·No: it is an optional Senior facility, not how the word is spelled. So the senior column has people = ·Pea·Eat·Pea·Low against the list’s ·Pea·Pea·Low, and think = ·Thaw·It·Oolong·Key against ·Thaw. The list is shipped for [#6][converter] to apply as a layer, and the desk adds it to the set its checker accepts on exactly that footing: correct Senior writing, never a column.
 
 ## Tier 1: the core eight
 

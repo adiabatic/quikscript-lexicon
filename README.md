@@ -32,11 +32,14 @@ What each file is, in the order a word passes through the pipeline, is in [`ARCH
 ## Transliterating
 
 ```sh
-uv run python -m qslex.latin2qs < input.txt                    # Senior
-uv run python -m qslex.latin2qs --mode x --contractions in.txt # X-letters + §III contractions
+uv run python -m qslex.latin2qs < input.txt              # Senior: ·Excite, ·Exam; “been” as ·Bay·No, etc.
+uv run python -m qslex.latin2qs --junior in.txt          # Junior: neither
+uv run python -m qslex.latin2qs --no-x-letters in.txt # Senior, but without either ·Excite or ·Exam
 ```
 
-spaCy tokenizes and tags, the master supplies the spellings, the part of speech settles the heteronyms, and the Manual’s conventions govern namer dots, apostrophes and punctuation. Words the lexicon lacks are constructed from affixes and flagged ⚠️, or passed through flagged ✢. The spec, the output modes and every deliberate departure from upstream’s `latin2shaw.py` are in [`docs/latin2qs.md`](docs/latin2qs.md).
+Senior is the default and writes both of the Manual’s Senior facilities; `--junior` writes neither. Each is a switch of its own — `--x-letters`/`--no-x-letters` and `--contractions`/`--no-contractions` — so a grade sets the defaults and every combination stays reachable.
+
+spaCy tokenizes and tags, the master supplies the spellings, the part of speech settles the heteronyms, and the Manual’s conventions govern namer dots, apostrophes and punctuation. Words the lexicon lacks are constructed from affixes and flagged ⚠️, or passed through flagged ✢. The spec, the grades and every deliberate departure from upstream’s `latin2shaw.py` are in [`docs/latin2qs.md`](docs/latin2qs.md).
 
 ## Desk
 
