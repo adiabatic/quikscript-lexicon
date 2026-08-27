@@ -1,6 +1,15 @@
 # Quikscript lexicon
 
-[Shavian-info/readlex](https://github.com/Shavian-info/readlex), but for Quikscript.
+This started out as [Shavian-info/readlex](https://github.com/Shavian-info/readlex), but for Quikscript.
+
+Now it’s a repository for all kinds of things that depend on knowing how to spell Quikscript properly, or at least reasonably well.
+
+The most user-facing things here are:
+
+- the [Quikscript Desk](#desk), a Markdown-aware Quikscript spell checker that runs in your browser (entirely locally if you want, without even a webserver)
+- (coming soon) an LSP for Quikscript that will let you spell-check Quikscript in an LSP-aware editor
+
+The rest of the README mostly describes things in the order of the underlying data pipeline, which mostly ends up being sorted from “most nerdy” to “least nerdy”.
 
 ## The lexicon
 
@@ -15,8 +24,6 @@ And then there are more things generated from it:
 - [`lexicon/en-Qaas.dic`](lexicon/en-Qaas.dic) and [`lexicon/en-Qaas.aff`](lexicon/en-Qaas.aff) — a Hunspell spelling dictionary; check Quikscript text with `hunspell -i utf-8 -d lexicon/en-Qaas`
 
 Three spelling columns: **`qs`** is Senior, the default; **`qs_junior`** and **`qs_x`** (the ·Excite/·Exam X-letter form) are populated only where they differ from it. [`lexicon/README.md`](lexicon/README.md) explains the columns; [`docs/pipeline.md`](docs/pipeline.md) specifies the build.
-
-Almost every entry is ReadLex’s, spelled. The exceptions are [the words the corpus has not got](docs/pipeline.md#words-the-corpus-lacks) — today Quikscript and Quickscript, as proper noun, adjective and possessive — which are declared by hand and then spelled by the same rules as everything else.
 
 ## Layout
 
@@ -39,7 +46,7 @@ spaCy tokenizes and tags, the master supplies the spellings, the part of speech 
 make site          # rewrite site/index.html
 ```
 
-Then open the file — there is nothing to install, no server to run and no request to anywhere, because the whole word list, [marked](https://github.com/markedjs/marked) and five [Abbots Morton Spaceport](https://github.com/adiabatic/abbots-morton-spaceport) faces (SIL OFL 1.1, © Nathan Galt) are inlined in it. Those faces are pixel fonts, so every font size the page sets is a multiple of 11px.
+Then open the file — there is nothing to install, no server to run and no request to anywhere, because the whole word list, [marked](https://github.com/markedjs/marked) and five [Abbots Morton Spaceport](https://github.com/adiabatic/abbots-morton-spaceport) faces are inlined in it. Those faces are pixel fonts, so every font size the page sets is a multiple of 11px.
 
 ## Hacking
 
