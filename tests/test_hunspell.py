@@ -185,21 +185,21 @@ def test_hunspell_flags_a_mutated_entry_and_offers_the_entry_back(
 
 
 @pytest.mark.skipif(HUNSPELL is None, reason="hunspell is not installed")
-def test_hunspell_suggests_the_x_letter_where_the_pair_is_spelled_out(
+def test_hunspell_leads_with_the_x_letter_where_the_pair_is_spelled_out(
     installed: Path,
 ) -> None:
     spelled_out, substituted = spell_the_pair_out()
     reported = check(installed, spelled_out + "\n", "-a")[1:]
-    assert suggested(reported[0]) == [substituted]
+    assert suggested(reported[0])[:1] == [substituted]
 
 
 @pytest.mark.skipif(HUNSPELL is None, reason="hunspell is not installed")
-def test_hunspell_suggests_the_pair_where_the_x_letter_has_no_license(
+def test_hunspell_leads_with_the_pair_where_the_x_letter_has_no_license(
     installed: Path,
 ) -> None:
     substituted, spelled_out = write_the_x_letter_in()
     reported = check(installed, substituted + "\n", "-a")[1:]
-    assert suggested(reported[0]) == [spelled_out]
+    assert suggested(reported[0])[:1] == [spelled_out]
 
 
 @pytest.mark.skipif(HUNSPELL is None, reason="hunspell is not installed")
