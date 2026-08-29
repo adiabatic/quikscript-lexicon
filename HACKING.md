@@ -4,6 +4,7 @@
 
 ```sh
 make artifacts     # rewrite lexicon/
+make preview       # rewrite the client's Markdown preview stylesheet
 ```
 
 What keeps a stale `lexicon/` from being committed, and what a corpus bump involves, are in [`docs/pipeline.md`](docs/pipeline.md#regenerating).

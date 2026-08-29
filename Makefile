@@ -1,4 +1,4 @@
-.PHONY: all artifacts site payload bundle vsix check lint test validate freshness
+.PHONY: all artifacts site payload preview bundle vsix check lint test validate freshness
 
 all: artifacts
 
@@ -10,6 +10,9 @@ site:
 
 payload:
 	uv run python -m qslex.payload
+
+preview:
+	uv run python -m qslex.preview
 
 bundle:
 	cd editor/server && npm ci --no-audit --no-fund && npm run bundle
@@ -35,3 +38,4 @@ freshness:
 	uv run python -m qslex.build --check
 	uv run python -m qslex.desk --check
 	uv run python -m qslex.payload --check
+	uv run python -m qslex.preview --check
