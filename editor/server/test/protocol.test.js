@@ -17,7 +17,9 @@ const INLINE = { textDocument: { publishDiagnostics: { codeActionsInline: 1 } } 
 const READ_EAT = "\uE668\uE671\uE653";
 const READ_ET = "\uE668\uE672\uE653";
 const READ_TOLD =
-  `${READ_EAT}\n\n` +
+  "```\n" +
+  `${READ_EAT}\n` +
+  "```\n\n" +
   "**read** \u2014 singular noun, verb, infinitive\n\n" +
   "**reade** \u2014 proper noun\n\n" +
   "**reed** \u2014 singular noun";
@@ -520,6 +522,51 @@ test("with no workspace root the project tier lands beside the file", async () =
   assert.equal(bye.result, null);
   client.notify("exit", null);
   assert.equal(await exitedWithin(client, 2000), 0);
+});
+
+test("a misspelling hovers the fixes it is offered until it is excused", async () => {
+  const uri = "file:///draft/fixes.txt";
+  const word = misspelled(READ_EAT);
+  const client = new Client(target);
+  await client.request("initialize", {
+    processId: process.pid,
+    rootUri: null,
+    capabilities: {},
+  });
+  client.notify("initialized", {});
+  client.notify("textDocument/didOpen", {
+    textDocument: { uri, languageId: "plaintext", version: 1, text: `${word}\n` },
+  });
+  await client.published();
+
+  const offers = core.suggest(word, advice());
+  assert.ok(offers.length > 0);
+  const over = await client.request("textDocument/hover", {
+    textDocument: { uri },
+    position: { line: 0, character: 1 },
+  });
+  assert.deepEqual(over.result.range, {
+    start: { line: 0, character: 0 },
+    end: { line: 0, character: word.length },
+  });
+  assert.equal(over.result.contents.kind, "markdown");
+  const lines = over.result.contents.value.split("\n");
+  assert.deepEqual(lines.slice(0, 3), ["Unknown Quikscript spelling.", "", "```"]);
+  assert.equal(lines[3 + offers.length], "```");
+  for (const [at, fix] of offers.entries()) {
+    assert.ok(lines[3 + at].startsWith(fix), `fix ${at} out of Desk's order`);
+  }
+
+  await client.request("workspace/executeCommand", {
+    command: "quikscript.ignore.occurrence",
+    arguments: [{ uri, word, occurrence: 0 }],
+  });
+  await client.published();
+  const quiet = await client.request("textDocument/hover", {
+    textDocument: { uri },
+    position: { line: 0, character: 1 },
+  });
+  assert.equal(quiet.result, null);
 });
 
 test("hover names the word and completions replace the latin", async () => {

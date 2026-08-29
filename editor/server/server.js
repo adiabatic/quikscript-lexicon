@@ -15,7 +15,7 @@ const { COMMANDS, OCCURRENCE, PROJECT, USER, actions, adviser } = require("./lib
 const { above, ledger, projectIgnorePath, userIgnorePath } = require("./lib/ignores.js");
 const { skipRanges } = require("./lib/markdown.js");
 const { readings, writings } = require("./lib/lookup.js");
-const { hovered } = require("./lib/hover.js");
+const { advised, described, hovered } = require("./lib/hover.js");
 const { completions } = require("./lib/complete.js");
 
 const DELAY = 200;
@@ -299,6 +299,17 @@ connection.onDidCloseTextDocument(({ textDocument }) => {
 connection.onHover(({ textDocument, position: place }) => {
   const held = documents.get(textDocument.uri);
   if (!held) return null;
+  const result = checked(textDocument.uri);
+  const point = { start: place, end: place };
+  const flag = result ? result.flags.find((one) => touches(one.range, point)) : null;
+  if (flag) {
+    const shown = advised(offered(flag.word), reader());
+    const told = described(flag.word, reader(), writer());
+    return {
+      contents: { kind: "markdown", value: told ? [shown, told].join("\n\n") : shown },
+      range: flag.range,
+    };
+  }
   const starts = lineStarts(held.text);
   const found = hovered(held.text, offsetAt(starts, held.text, place), reader(), writer());
   if (!found) return null;

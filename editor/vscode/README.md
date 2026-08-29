@@ -1,8 +1,8 @@
 # Quikscript for VS Code
 
-Spell-checks [Quikscript](https://quikscript.net/) in Markdown and plain text: diagnostics as you type, quick fixes in the Quikscript Desk's order, hover to read a spelling back to its Latin, and optional Latin-to-Quikscript completions.
+Spell-checks [Quikscript](https://quikscript.net/) in Markdown and plain text: diagnostics as you type, quick fixes in the Quikscript Desk's order, hover to read a spelling back to its Latin — or, on a misspelling, to read the fixes on offer — and optional Latin-to-Quikscript completions.
 
-Quikscript is Private Use Area text, so install a Quikscript font and point `editor.fontFamily` at it or every spelling renders as a box.
+Quikscript is Private Use Area text, so install a Quikscript font and point `editor.fontFamily` at it or every spelling renders as a box. That setting reaches the editor, the completion list, and fenced blocks in a hover — which is why the hover writes every spelling in one. It does not reach the Quick Fix menu: VS Code paints that in the workbench UI font and offers no setting for it, so the fixes stay boxes there. Hover the misspelling to read them before picking one.
 
 ## Settings
 
