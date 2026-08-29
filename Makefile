@@ -1,4 +1,4 @@
-.PHONY: all artifacts site payload bundle check lint test validate freshness
+.PHONY: all artifacts site payload bundle vsix check lint test validate freshness
 
 all: artifacts
 
@@ -13,6 +13,10 @@ payload:
 
 bundle:
 	cd editor/server && npm ci --no-audit --no-fund && npm run bundle
+
+vsix:
+	cd editor/server && npm ci --no-audit --no-fund && node bundle.js ../vscode/dist/quikscript-lsp
+	cd editor/vscode && npm ci --no-audit --no-fund && npx --yes @vscode/vsce@3.9.2 package --out ../../dist/
 
 check: lint test validate freshness
 

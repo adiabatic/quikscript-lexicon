@@ -27,4 +27,11 @@ code --extensionDevelopmentPath="$PWD" ../..
 
 That opens an Extension Development Host with the repo as its workspace folder, and the client launches `editor/server/server.js` over stdio; edits to the server take effect on the next reload. `make bundle` writes the single-file `editor/server/dist/quikscript-lsp` the protocol suite proves and BBEdit will launch, which the client prefers when one is bundled beside it.
 
+To install into a normal VS Code rather than a development host, `make vsix` bundles the server into the extension and packages `dist/quikscript-vscode-<version>.vsix`, which carries its own server and so needs no checkout on the other end:
+
+```sh
+make vsix
+code --install-extension dist/quikscript-vscode-0.1.0.vsix
+```
+
 Two things otherwise read as breakage. Quikscript is Private Use Area text, so every spelling renders as a box until a Quikscript font is installed and `editor.fontFamily` points at it — the vendored `data/abbots-morton-spaceport/*.woff2` decompress to installable fonts with `woff2_decompress`, which names its CFF output `.ttf` where macOS wants `.otf`. And Latin-to-Quikscript completions stay off until `quikscript.completions` is set to `onDemand` or `auto`.

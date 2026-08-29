@@ -5,6 +5,11 @@
   "private": true,
   "description": "Quikscript spelling for VS Code",
   "license": "MIT",
+  "publisher": "adiabatic",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/adiabatic/quikscript-lexicon.git"
+  },
   "categories": ["Linters"],
   "engines": {
     "node": ">=20",
