@@ -1,0 +1,49 @@
+{
+  "name": "quikscript-vscode",
+  "displayName": "Quikscript",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Quikscript spelling for VS Code",
+  "license": "MIT",
+  "categories": ["Linters"],
+  "engines": {
+    "node": ">=20",
+    "vscode": "^1.91.0"
+  },
+  "main": "./extension.js",
+  "activationEvents": ["onLanguage:markdown", "onLanguage:plaintext"],
+  "contributes": {
+    "configuration": {
+      "title": "Quikscript",
+      "properties": {
+        "quikscript.completions": {
+          "type": "string",
+          "enum": ["off", "onDemand", "auto"],
+          "enumDescriptions": [
+            "No Latin-to-Quikscript completions.",
+            "Completions only when explicitly invoked.",
+            "Completions as you type."
+          ],
+          "default": "off",
+          "description": "When to offer Latin-to-Quikscript completions."
+        },
+        "quikscript.serverPath": {
+          "type": "string",
+          "default": "",
+          "description": "Path to the language server. Empty means the bundle shipped with this extension, then the checkout beside it."
+        }
+      }
+    }
+  },
+  "scripts": {
+    "check": "tsc --noEmit"
+  },
+  "dependencies": {
+    "vscode-languageclient": "^10.1.0"
+  },
+  "devDependencies": {
+    "@types/node": "^26.2.0",
+    "@types/vscode": "^1.91.0",
+    "typescript": "^7.0.2"
+  }
+}

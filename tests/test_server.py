@@ -1,6 +1,6 @@
 """The editor server's checks, driven from pytest so `make check` runs them.
 
-The node-side suite is the load-bearing proof of the editor work: `tsc --noEmit` holds the server's JSDoc types to the LSP library's own declarations, and the protocol tests bundle the server and speak real LSP over stdio to the exact artifact BBEdit will launch. Both need node; like the Desk page's tests, everything here is skipped when it is not on PATH.
+The node-side suite is the load-bearing proof of the editor work: `tsc --noEmit` holds the server's JSDoc types to the LSP library's own declarations, and the protocol tests bundle the server and speak real LSP over stdio to the exact artifact BBEdit will launch. The VS Code client is plain JavaScript on the same terms, held to the editor API's own declarations by the same typecheck. All of it needs node; like the Desk page's tests, everything here is skipped when it is not on PATH.
 """
 
 import shutil
@@ -12,7 +12,9 @@ import pytest
 from qslex.readlex import repo_root
 
 ROOT = repo_root()
-SERVER = ROOT / "editor" / "server"
+EDITOR = ROOT / "editor"
+SERVER = EDITOR / "server"
+CLIENT = EDITOR / "vscode"
 NODE = shutil.which("node")
 NPM = shutil.which("npm")
 
@@ -21,9 +23,9 @@ pytestmark = pytest.mark.skipif(
 )
 
 
-def run(*command: str) -> subprocess.CompletedProcess[str]:
+def run(where: Path, *command: str) -> subprocess.CompletedProcess[str]:
     return subprocess.run(
-        list(command), cwd=SERVER, capture_output=True, text=True, check=False
+        list(command), cwd=where, capture_output=True, text=True, check=False
     )
 
 
@@ -34,24 +36,42 @@ def report(name: str, finished: subprocess.CompletedProcess[str]) -> None:
         )
 
 
-@pytest.fixture(scope="module")
-def installed() -> Path:
+def install(where: Path) -> Path:
     """node_modules matching the lockfile, installed only when absent or stale."""
     assert NPM is not None
-    marker = SERVER / "node_modules" / ".package-lock.json"
-    lock = SERVER / "package-lock.json"
+    marker = where / "node_modules" / ".package-lock.json"
+    lock = where / "package-lock.json"
     if not marker.is_file() or marker.stat().st_mtime < lock.stat().st_mtime:
-        report("npm ci", run(NPM, "ci", "--no-audit", "--no-fund"))
-    return SERVER
+        report(
+            f"npm ci in {where.name}", run(where, NPM, "ci", "--no-audit", "--no-fund")
+        )
+    return where
+
+
+@pytest.fixture(scope="module")
+def installed() -> Path:
+    return install(SERVER)
+
+
+@pytest.fixture(scope="module")
+def client() -> Path:
+    return install(CLIENT)
 
 
 def test_the_server_typechecks_against_the_lsp_librarys_declarations(
     installed: Path,
 ) -> None:
     assert NPM is not None
-    report("tsc --noEmit", run(NPM, "run", "check"))
+    report("tsc --noEmit", run(installed, NPM, "run", "check"))
 
 
 def test_the_node_suite_proves_the_bundled_server_over_stdio(installed: Path) -> None:
     assert NPM is not None
-    report("node --test", run(NPM, "test"))
+    report("node --test", run(installed, NPM, "test"))
+
+
+def test_the_vscode_client_typechecks_against_the_editor_apis_declarations(
+    client: Path,
+) -> None:
+    assert NPM is not None
+    report("tsc --noEmit", run(client, NPM, "run", "check"))
