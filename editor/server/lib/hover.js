@@ -6,8 +6,6 @@ const SPACE = " ";
 const GAP = "  ";
 const FENCE = "```";
 const TAG = "plaintext";
-const UNKNOWN = "Unknown Quikscript spelling.";
-const NONE = "No suggestions.";
 /** @type {Record<string, string>} */
 const NAMED_FACE = { ...FACE_OF, [CONTRACTION]: "Senior contraction" };
 
@@ -204,15 +202,13 @@ function glossed(word, read) {
 /**
  * @param {string[]} offers
  * @param {Map<string, Reading[]>} read
- * @returns {string}
+ * @returns {string[]}
  */
-function advised(offers, read) {
-  if (offers.length === 0) return `${UNKNOWN} ${NONE}`;
-  const lines = offers.map((fix) => {
+function listed(offers, read) {
+  return offers.map((fix) => {
     const gloss = glossed(fix, read);
     return gloss ? `${fix}${GAP}${gloss}` : fix;
   });
-  return [UNKNOWN, fenced(lines)].join("\n\n");
 }
 
 /**
@@ -237,4 +233,4 @@ function hovered(text, offset, read, write) {
   return value ? { value, start: behind.start, end: behind.end } : null;
 }
 
-module.exports = { advised, described, glossed, hovered };
+module.exports = { described, glossed, hovered, listed };

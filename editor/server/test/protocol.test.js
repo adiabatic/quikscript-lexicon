@@ -56,7 +56,7 @@ function complaint(word) {
 
 /** @param {any[]} flags */
 function said(flags) {
-  return flags.map((flag) => flag.message);
+  return flags.map((flag) => flag.message.split("\n", 1)[0]);
 }
 
 /** @param {any[]} actions */
@@ -524,7 +524,7 @@ test("with no workspace root the project tier lands beside the file", async () =
   assert.equal(await exitedWithin(client, 2000), 0);
 });
 
-test("a misspelling hovers the fixes it is offered until it is excused", async () => {
+test("a misspelling's diagnostic names the fixes it is offered", async () => {
   const uri = "file:///draft/fixes.txt";
   const word = misspelled(READ_EAT);
   const client = new Client(target);
@@ -537,76 +537,25 @@ test("a misspelling hovers the fixes it is offered until it is excused", async (
   client.notify("textDocument/didOpen", {
     textDocument: { uri, languageId: "plaintext", version: 1, text: `${word}\n` },
   });
-  await client.published();
+  const first = await client.published();
 
   const offers = core.suggest(word, advice());
   assert.ok(offers.length > 0);
-  const over = await client.request("textDocument/hover", {
-    textDocument: { uri },
-    position: { line: 0, character: 1 },
-  });
-  assert.deepEqual(over.result.range, {
-    start: { line: 0, character: 0 },
-    end: { line: 0, character: word.length },
-  });
-  assert.equal(over.result.contents.kind, "markdown");
-  const lines = over.result.contents.value.split("\n");
-  assert.deepEqual(lines.slice(0, 3), ["Unknown Quikscript spelling.", "", "```plaintext"]);
-  assert.equal(lines[3 + offers.length], "```");
+  /** @type {string[]} */
+  const lines = first.params.diagnostics[0].message.split("\n");
+  assert.equal(lines[0], complaint(word));
+  assert.equal(lines.length, offers.length + 1);
   for (const [at, fix] of offers.entries()) {
-    assert.ok(lines[3 + at].startsWith(fix), `fix ${at} out of Desk's order`);
+    assert.ok(lines[at + 1].startsWith(fix), `fix ${at} out of Desk's order`);
   }
-
-  const past = await client.request("textDocument/hover", {
-    textDocument: { uri },
-    position: { line: 0, character: 999 },
-  });
-  assert.deepEqual(past.result, over.result);
+  assert.ok(lines.some((line) => line.includes(" \u2014 ")));
 
   await client.request("workspace/executeCommand", {
     command: "quikscript.ignore.occurrence",
     arguments: [{ uri, word, occurrence: 0 }],
   });
-  await client.published();
-  const quiet = await client.request("textDocument/hover", {
-    textDocument: { uri },
-    position: { line: 0, character: 1 },
-  });
-  assert.equal(quiet.result, null);
-});
-
-test("a misspelling inside a markdown code span is hovered no fixes", async () => {
-  const uri = "file:///draft/spans.md";
-  const word = misspelled(READ_ET);
-  const client = new Client(target);
-  await client.request("initialize", {
-    processId: process.pid,
-    rootUri: null,
-    capabilities: {},
-  });
-  client.notify("initialized", {});
-  client.notify("textDocument/didOpen", {
-    textDocument: {
-      uri,
-      languageId: "markdown",
-      version: 1,
-      text: `\`${word}\` ${word}\n`,
-    },
-  });
-  const first = await client.published();
-  assert.deepEqual(said(first.params.diagnostics), [complaint(word)]);
-
-  const spanned = await client.request("textDocument/hover", {
-    textDocument: { uri },
-    position: { line: 0, character: 1 },
-  });
-  assert.equal(spanned.result, null);
-
-  const loose = await client.request("textDocument/hover", {
-    textDocument: { uri },
-    position: { line: 0, character: word.length + 3 },
-  });
-  assert.ok(loose.result.contents.value.startsWith("Unknown Quikscript spelling."));
+  const second = await client.published();
+  assert.deepEqual(second.params.diagnostics, []);
 });
 
 test("hover names the word and completions replace the latin", async () => {

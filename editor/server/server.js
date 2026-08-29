@@ -15,7 +15,7 @@ const { COMMANDS, OCCURRENCE, PROJECT, USER, actions, adviser } = require("./lib
 const { above, ledger, projectIgnorePath, userIgnorePath } = require("./lib/ignores.js");
 const { skipRanges } = require("./lib/markdown.js");
 const { readings, writings } = require("./lib/lookup.js");
-const { advised, described, hovered } = require("./lib/hover.js");
+const { hovered, listed } = require("./lib/hover.js");
 const { completions } = require("./lib/complete.js");
 
 const DELAY = 200;
@@ -171,6 +171,23 @@ function crafted(uri, flags, everywhere) {
   return out;
 }
 
+/**
+ * @param {import("./lib/check.js").Diagnostic[]} found
+ * @param {import("./lib/actions.js").Flag[]} flags
+ * @returns {number}
+ */
+function detailed(found, flags) {
+  const started = Date.now();
+  let told = 0;
+  for (const [at, flag] of flags.entries()) {
+    if (Date.now() - started >= PATIENCE) break;
+    const lines = listed(offered(flag.word), reader());
+    if (lines.length > 0) found[at].message = [found[at].message, ...lines].join("\n");
+    told += 1;
+  }
+  return told;
+}
+
 /** @param {string} uri */
 function publish(uri) {
   const result = checked(uri);
@@ -178,6 +195,10 @@ function publish(uri) {
   const { held, found, flags } = result;
   if (flags.length >= CAP) {
     connection.console.log(`quikscript-lsp: diagnostics capped at ${CAP} for ${uri}`);
+  }
+  const told = detailed(found, flags);
+  if (told < flags.length) {
+    connection.console.log(`quikscript-lsp: fixes named in ${told} of ${flags.length} messages for ${uri}`);
   }
   if (inlined) {
     const lists = crafted(uri, flags, spanned(flags));
@@ -300,20 +321,7 @@ connection.onHover(({ textDocument, position: place }) => {
   const held = documents.get(textDocument.uri);
   if (!held) return null;
   const starts = lineStarts(held.text);
-  const at = offsetAt(starts, held.text, place);
-  const here = position(starts, at);
-  const result = checked(textDocument.uri);
-  const point = { start: here, end: here };
-  const flag = result ? result.flags.find((one) => touches(one.range, point)) : null;
-  if (flag) {
-    const shown = advised(offered(flag.word), reader());
-    const told = described(flag.word, reader(), writer());
-    return {
-      contents: { kind: "markdown", value: told ? [shown, told].join("\n\n") : shown },
-      range: flag.range,
-    };
-  }
-  const found = hovered(held.text, at, reader(), writer());
+  const found = hovered(held.text, offsetAt(starts, held.text, place), reader(), writer());
   if (!found) return null;
   return {
     contents: { kind: "markdown", value: found.value },

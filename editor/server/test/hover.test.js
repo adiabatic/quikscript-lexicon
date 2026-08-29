@@ -3,7 +3,7 @@ const { test } = require("node:test");
 const data = require("../payload.json");
 const { lexicon } = require("../lib/lexicon.js");
 const { readings, writings } = require("../lib/lookup.js");
-const { advised, described, glossed, hovered } = require("../lib/hover.js");
+const { described, glossed, hovered, listed } = require("../lib/hover.js");
 const { accepts, suggest } = require("../../../src/qslex/web/core.js");
 
 const READ = readings(data);
@@ -168,23 +168,19 @@ test("no spelling in a hover renders outside a fence", () => {
     assert.ok(!spelled(sifted(told, false).join("\n")), `unfenced spelling in ${spellings[at]}`);
   }
   assert.ok(seen > 500);
-  const fixes = advised(suggest(misspelled(READ_EAT), advice()), READ);
-  assert.ok(!spelled(sifted(fixes, false).join("\n")));
 });
 
-test("a misspelling is told its fixes, in order and glossed", () => {
+test("the fixes are listed in Desk's order, each glossed", () => {
   const offers = suggest(misspelled(READ_EAT), advice());
   assert.ok(offers.length > 0);
-  const told = advised(offers, READ);
-  assert.ok(told.startsWith("Unknown Quikscript spelling.\n\n"));
-  const lines = sifted(told, true);
+  const lines = listed(offers, READ);
   assert.equal(lines.length, offers.length);
   for (const [at, fix] of offers.entries()) assert.ok(lines[at].startsWith(fix));
   assert.ok(lines.some((line) => line.includes(" — ")));
 });
 
-test("a misspelling with nothing to offer says so", () => {
-  assert.equal(advised([], READ), "Unknown Quikscript spelling. No suggestions.");
+test("a misspelling with nothing to offer lists nothing", () => {
+  assert.deepEqual(listed([], READ), []);
 });
 
 test("a fix outside the senior column names its face", () => {
