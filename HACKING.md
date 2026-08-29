@@ -4,7 +4,7 @@
 
 ```sh
 make artifacts     # rewrite lexicon/
-make preview       # rewrite the client's Markdown preview stylesheet
+make preview       # rewrite the client's generated stylesheets
 ```
 
 What keeps a stale `lexicon/` from being committed, and what a corpus bump involves, are in [`docs/pipeline.md`](docs/pipeline.md#regenerating).
@@ -35,4 +35,4 @@ make vsix
 code --install-extension dist/quikscript-vscode-0.1.0.vsix
 ```
 
-Two things otherwise read as breakage. Quikscript is Private Use Area text, so every spelling renders as a box until a Quikscript font is installed and `editor.fontFamily` points at it — the vendored `data/abbots-morton-spaceport/*.woff2` decompress to installable fonts with `woff2_decompress`, which names its CFF output `.ttf` where macOS wants `.otf`. That setting does not reach the Quick Fix menu or the Problems panel, which VS Code paints in the workbench UI font, so the fixes read as boxes there however the font is installed — the diagnostic message names them instead, which the squiggle hover and the `F8` peek both paint in `editor.fontFamily`. And Latin-to-Quikscript completions stay off until `quikscript.completions` is set to `onDemand` or `auto`.
+Two things otherwise read as breakage. Quikscript is Private Use Area text, so every spelling renders as a box until a Quikscript font is installed and `editor.fontFamily` points at it — the vendored `data/abbots-morton-spaceport/*.woff2` decompress to installable fonts with `woff2_decompress`, which names its CFF output `.ttf` where macOS wants `.otf`. That setting does not reach the Quick Fix menu or the Problems panel, which VS Code paints in the workbench UI font, so the fixes read as boxes there however the font is installed — the diagnostic message names them instead, which the squiggle hover and the `F8` peek both paint in `editor.fontFamily`, and the Quikscript panel beside Problems shows and applies them in a bundled face that needs no setting at all. And Latin-to-Quikscript completions stay off until `quikscript.completions` is set to `onDemand` or `auto`.

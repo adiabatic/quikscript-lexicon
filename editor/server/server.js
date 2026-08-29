@@ -15,7 +15,7 @@ const { COMMANDS, OCCURRENCE, PROJECT, USER, actions, adviser } = require("./lib
 const { above, ledger, projectIgnorePath, userIgnorePath } = require("./lib/ignores.js");
 const { skipRanges } = require("./lib/markdown.js");
 const { readings, writings } = require("./lib/lookup.js");
-const { hovered, listed } = require("./lib/hover.js");
+const { glossed, hovered, listed } = require("./lib/hover.js");
 const { completions } = require("./lib/complete.js");
 
 const DELAY = 200;
@@ -23,6 +23,12 @@ const BUDGET = 10000;
 const PATIENCE = 500;
 const MODES = ["off", "onDemand", "auto"];
 const MARKDOWN = "markdown";
+
+/** @typedef {import("./lib/check.js").Span} Span */
+/** @typedef {import("./lib/actions.js").Edit} Edit */
+/** @typedef {{command: string, arguments: unknown[]}} Order */
+/** @typedef {{fix: string, gloss: string, edit: {changes: Record<string, Edit[]>}}} Offer */
+/** @typedef {{word: string, occurrence: number, range: Span, spans: Span[], fixes: Offer[], ignore: {occurrence: Order, project: Order | null, user: Order}}} Fixed */
 
 const connection = createConnection();
 const words = lexicon(data);
@@ -167,6 +173,45 @@ function crafted(uri, flags, everywhere) {
     for (const action of built) {
       spent += 1 + (action.edit ? action.edit.changes[uri].length : 0);
     }
+  }
+  return out;
+}
+
+/**
+ * @param {string} uri
+ * @param {import("./lib/actions.js").Flag[]} flags
+ * @param {Map<string, Span[]>} everywhere
+ * @returns {Fixed[]}
+ */
+function gathered(uri, flags, everywhere) {
+  const project = projectRoot(uri) !== null;
+  const started = Date.now();
+  /** @type {Fixed[]} */
+  const out = [];
+  let spent = 0;
+  for (const flag of flags) {
+    if (spent >= BUDGET || Date.now() - started >= PATIENCE) break;
+    const fixes = offered(flag.word).map((fix) => ({
+      fix,
+      gloss: glossed(fix, reader()),
+      edit: { changes: { [uri]: [{ range: flag.range, newText: fix }] } },
+    }));
+    out.push({
+      word: flag.word,
+      occurrence: flag.occurrence,
+      range: flag.range,
+      spans: everywhere.get(flag.word) || [],
+      fixes,
+      ignore: {
+        occurrence: {
+          command: OCCURRENCE,
+          arguments: [{ uri, word: flag.word, occurrence: flag.occurrence }],
+        },
+        project: project ? { command: PROJECT, arguments: [{ uri, word: flag.word }] } : null,
+        user: { command: USER, arguments: [{ word: flag.word }] },
+      },
+    });
+    spent += 1 + fixes.length;
   }
   return out;
 }
@@ -372,6 +417,20 @@ connection.onCodeAction(({ textDocument, range, context }) => {
   const chosen = flags.filter((flag) => touches(flag.range, range));
   return crafted(textDocument.uri, chosen, spanned(flags)).flat();
 });
+
+connection.onRequest(
+  "quikscript/fixes",
+  (/** @type {{textDocument: {uri: string}}} */ { textDocument }) => {
+    const result = checked(textDocument.uri);
+    if (!result) return { flags: [] };
+    const { flags } = result;
+    const built = gathered(textDocument.uri, flags, spanned(flags));
+    if (built.length < flags.length) {
+      connection.console.log(`quikscript-lsp: fix list truncated for ${textDocument.uri}`);
+    }
+    return { flags: built };
+  },
+);
 
 connection.onExecuteCommand(({ command, arguments: args }) => {
   const asked = /** @type {{uri?: unknown, word?: unknown, occurrence?: unknown}} */ (

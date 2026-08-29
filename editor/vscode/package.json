@@ -19,6 +19,24 @@
   "activationEvents": ["onLanguage:markdown", "onLanguage:plaintext"],
   "contributes": {
     "markdown.previewStyles": ["./media/quikscript-preview.css"],
+    "viewsContainers": {
+      "panel": [
+        {
+          "id": "quikscript",
+          "title": "Quikscript",
+          "icon": "media/quikscript.svg"
+        }
+      ]
+    },
+    "views": {
+      "quikscript": [
+        {
+          "type": "webview",
+          "id": "quikscript.fixes",
+          "name": "Fixes"
+        }
+      ]
+    },
     "configuration": {
       "title": "Quikscript",
       "properties": {
@@ -42,7 +60,8 @@
     }
   },
   "scripts": {
-    "check": "tsc --noEmit"
+    "check": "tsc --noEmit",
+    "test": "node --test"
   },
   "dependencies": {
     "vscode-languageclient": "^10.1.0"

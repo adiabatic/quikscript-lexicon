@@ -1,0 +1,139 @@
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  padding: 11px;
+  color: var(--vscode-foreground);
+  font-size: var(--vscode-font-size);
+}
+
+main {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  gap: 11px;
+}
+
+section {
+  flex: 1 1 18rem;
+  max-inline-size: 24rem;
+  padding: 11px;
+  border: 1px solid var(--vscode-widget-border, var(--vscode-panel-border));
+  border-radius: 0.25rem;
+  overflow: hidden;
+}
+
+button {
+  display: block;
+  inline-size: 100%;
+  padding: 0 11px;
+  border: 0;
+  border-radius: 0.25rem;
+  background: none;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+button:hover,
+button:focus-visible {
+  background: var(--vscode-list-hoverBackground);
+}
+
+.word {
+  display: flex;
+  align-items: baseline;
+  gap: 11px;
+  margin-block-end: 11px;
+  padding-block-end: 11px;
+  border-block-end: 1px solid var(--vscode-widget-border, var(--vscode-panel-border));
+  border-radius: 0;
+  font-size: 22px;
+  line-height: 33px;
+}
+
+.word .text {
+  overflow: hidden;
+  text-decoration: underline dotted var(--vscode-editorInfo-foreground);
+  text-decoration-thickness: 2px;
+  text-decoration-skip-ink: none;
+  text-underline-offset: 4px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.word .at {
+  margin-inline-start: auto;
+  color: var(--vscode-descriptionForeground);
+  font-size: var(--vscode-font-size);
+  line-height: 1.4;
+  white-space: nowrap;
+}
+
+.offer {
+  display: flex;
+}
+
+.offer button {
+  inline-size: auto;
+}
+
+.fix {
+  flex: 1;
+  min-inline-size: 0;
+  font-size: 22px;
+  line-height: 33px;
+}
+
+.fix .text {
+  white-space: nowrap;
+}
+
+.fix .gloss {
+  margin-inline-start: 11px;
+  color: var(--vscode-descriptionForeground);
+  font-size: var(--vscode-font-size);
+  line-height: 1.4;
+}
+
+.all {
+  color: var(--vscode-descriptionForeground);
+  font-size: var(--vscode-font-size);
+  line-height: 33px;
+}
+
+.all:hover,
+.all:focus-visible {
+  color: var(--vscode-foreground);
+}
+
+.ignore {
+  margin-block-start: 11px;
+  padding: 11px 11px 0;
+  border-block-start: 1px solid var(--vscode-widget-border, var(--vscode-panel-border));
+  border-radius: 0;
+  color: var(--vscode-descriptionForeground);
+  font-size: var(--vscode-font-size);
+  line-height: 1.4;
+}
+
+.ignore + .ignore {
+  margin-block-start: 0;
+  padding-block-start: 0;
+  border-block-start: 0;
+}
+
+.ignore:hover,
+.ignore:focus-visible {
+  color: var(--vscode-foreground);
+}
+
+.quiet {
+  margin: 0;
+  color: var(--vscode-descriptionForeground);
+  font-size: var(--vscode-font-size);
+  line-height: 1.4;
+}

@@ -7,6 +7,8 @@ const { pathToFileURL } = require("node:url");
 const { bundle } = require("../bundle.js");
 const data = require("../payload.json");
 const { lexicon } = require("../lib/lexicon.js");
+const { readings } = require("../lib/lookup.js");
+const { glossed } = require("../lib/hover.js");
 const core = require("../../../src/qslex/web/core.js");
 
 const WORDS = lexicon(data);
@@ -753,6 +755,133 @@ test("an untitled document reads the project ignores it writes", async () => {
   assert.equal(second.params.uri, uri);
   assert.deepEqual(second.params.diagnostics, []);
   assert.equal(readFileSync(path.join(den, ".quikscript-ignore"), "utf8"), `${E}\n`);
+
+  const bye = await client.request("shutdown", null);
+  assert.equal(bye.result, null);
+  client.notify("exit", null);
+  assert.equal(await exitedWithin(client, 2000), 0);
+});
+
+test("quikscript/fixes hands each flag its fixes, glosses, edits and ignores", async () => {
+  const A = misspelled(GOOD);
+  const B = misspelled(A);
+  const panel = path.join(scratch, "panel");
+  mkdirSync(panel, { recursive: true });
+  const uri = pathToFileURL(path.join(panel, "notes.txt")).href;
+
+  const client = new Client(target);
+  await client.request("initialize", {
+    processId: process.pid,
+    rootUri: pathToFileURL(panel).href,
+    capabilities: {},
+  });
+  client.notify("initialized", {});
+  client.notify("textDocument/didOpen", {
+    textDocument: { uri, languageId: "plaintext", version: 1, text: `${A} ${A} ${B}\n` },
+  });
+  const first = await client.published();
+  const held = first.params.diagnostics;
+  assert.deepEqual(said(held), [A, A, B].map(complaint));
+
+  const answered = await client.request("quikscript/fixes", { textDocument: { uri } });
+  /** @type {any[]} */
+  const flags = answered.result.flags;
+  assert.deepEqual(
+    flags.map((flag) => [flag.word, flag.occurrence, flag.range]),
+    [
+      [A, 0, held[0].range],
+      [A, 1, held[1].range],
+      [B, 0, held[2].range],
+    ],
+  );
+  assert.deepEqual(flags[0].spans, [held[0].range, held[1].range]);
+  assert.deepEqual(flags[1].spans, [held[0].range, held[1].range]);
+  assert.deepEqual(flags[2].spans, [held[2].range]);
+
+  const read = readings(data);
+  let glosses = 0;
+  for (const flag of flags) {
+    /** @type {any[]} */
+    const fixes = flag.fixes;
+    const offers = core.suggest(flag.word, advice());
+    assert.ok(offers.length > 0);
+    assert.deepEqual(fixes.map((one) => one.fix), offers);
+    for (const one of fixes) {
+      assert.equal(one.gloss, glossed(one.fix, read));
+      if (one.gloss) glosses += 1;
+      assert.deepEqual(one.edit, {
+        changes: { [uri]: [{ range: flag.range, newText: one.fix }] },
+      });
+    }
+    assert.deepEqual(flag.ignore, {
+      occurrence: {
+        command: "quikscript.ignore.occurrence",
+        arguments: [{ uri, word: flag.word, occurrence: flag.occurrence }],
+      },
+      project: { command: "quikscript.ignore.project", arguments: [{ uri, word: flag.word }] },
+      user: { command: "quikscript.ignore.user", arguments: [{ word: flag.word }] },
+    });
+  }
+  assert.ok(glosses > 0);
+
+  const absent = await client.request("quikscript/fixes", {
+    textDocument: { uri: "file:///draft/absent.txt" },
+  });
+  assert.deepEqual(absent.result, { flags: [] });
+
+  await client.request("workspace/executeCommand", {
+    command: flags[0].ignore.occurrence.command,
+    arguments: flags[0].ignore.occurrence.arguments,
+  });
+  const second = await client.published();
+  assert.deepEqual(said(second.params.diagnostics), [A, B].map(complaint));
+  const again = await client.request("quikscript/fixes", { textDocument: { uri } });
+  /** @type {any[]} */
+  const rest = again.result.flags;
+  assert.deepEqual(
+    rest.map((flag) => [flag.word, flag.occurrence, flag.range]),
+    [
+      [A, 1, held[1].range],
+      [B, 0, held[2].range],
+    ],
+  );
+
+  const bye = await client.request("shutdown", null);
+  assert.equal(bye.result, null);
+  client.notify("exit", null);
+  assert.equal(await exitedWithin(client, 2000), 0);
+});
+
+test("with no root an untitled document is offered no project ignore", async () => {
+  const uri = "untitled:Untitled-2";
+  const F = misspelled(GOOD);
+
+  const client = new Client(target);
+  await client.request("initialize", {
+    processId: process.pid,
+    rootUri: null,
+    capabilities: {},
+  });
+  client.notify("initialized", {});
+  client.notify("textDocument/didOpen", {
+    textDocument: { uri, languageId: "plaintext", version: 1, text: `${F}\n` },
+  });
+  const first = await client.published();
+  assert.deepEqual(said(first.params.diagnostics), [complaint(F)]);
+
+  const answered = await client.request("quikscript/fixes", { textDocument: { uri } });
+  /** @type {any[]} */
+  const flags = answered.result.flags;
+  assert.equal(flags.length, 1);
+  assert.deepEqual(flags[0].range, first.params.diagnostics[0].range);
+  assert.deepEqual(flags[0].ignore, {
+    occurrence: {
+      command: "quikscript.ignore.occurrence",
+      arguments: [{ uri, word: F, occurrence: 0 }],
+    },
+    project: null,
+    user: { command: "quikscript.ignore.user", arguments: [{ word: F }] },
+  });
 
   const bye = await client.request("shutdown", null);
   assert.equal(bye.result, null);

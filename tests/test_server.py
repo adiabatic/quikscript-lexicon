@@ -1,6 +1,6 @@
 """The editor server's checks, driven from pytest so `make check` runs them.
 
-The node-side suite is the load-bearing proof of the editor work: `tsc --noEmit` holds the server's JSDoc types to the LSP library's own declarations, and the protocol tests bundle the server and speak real LSP over stdio to the exact artifact BBEdit will launch. The VS Code client is plain JavaScript on the same terms, held to the editor API's own declarations by the same typecheck. All of it needs node; like the Desk page's tests, everything here is skipped when it is not on PATH.
+The node-side suite is the load-bearing proof of the editor work: `tsc --noEmit` holds the server's JSDoc types to the LSP library's own declarations, and the protocol tests bundle the server and speak real LSP over stdio to the exact artifact BBEdit will launch. The VS Code client is plain JavaScript on the same terms, held to the editor API's own declarations by the same typecheck, with the fixes panel's view model proved by its own `node --test` suite. All of it needs node; like the Desk page's tests, everything here is skipped when it is not on PATH.
 """
 
 import shutil
@@ -75,3 +75,8 @@ def test_the_vscode_client_typechecks_against_the_editor_apis_declarations(
 ) -> None:
     assert NPM is not None
     report("tsc --noEmit", run(client, NPM, "run", "check"))
+
+
+def test_the_client_suite_proves_the_panels_view_model(client: Path) -> None:
+    assert NPM is not None
+    report("node --test", run(client, NPM, "test"))

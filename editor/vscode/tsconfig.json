@@ -10,5 +10,5 @@
     "resolveJsonModule": true,
     "skipLibCheck": true
   },
-  "include": ["*.js"]
+  "include": ["*.js", "lib/*.js", "test/*.js", "media/*.js"]
 }
