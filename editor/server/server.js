@@ -299,8 +299,11 @@ connection.onDidCloseTextDocument(({ textDocument }) => {
 connection.onHover(({ textDocument, position: place }) => {
   const held = documents.get(textDocument.uri);
   if (!held) return null;
+  const starts = lineStarts(held.text);
+  const at = offsetAt(starts, held.text, place);
+  const here = position(starts, at);
   const result = checked(textDocument.uri);
-  const point = { start: place, end: place };
+  const point = { start: here, end: here };
   const flag = result ? result.flags.find((one) => touches(one.range, point)) : null;
   if (flag) {
     const shown = advised(offered(flag.word), reader());
@@ -310,8 +313,7 @@ connection.onHover(({ textDocument, position: place }) => {
       range: flag.range,
     };
   }
-  const starts = lineStarts(held.text);
-  const found = hovered(held.text, offsetAt(starts, held.text, place), reader(), writer());
+  const found = hovered(held.text, at, reader(), writer());
   if (!found) return null;
   return {
     contents: { kind: "markdown", value: found.value },

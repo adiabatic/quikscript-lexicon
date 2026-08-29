@@ -5,6 +5,7 @@ const HYPHEN = "-";
 const SPACE = " ";
 const GAP = "  ";
 const FENCE = "```";
+const TAG = "plaintext";
 const UNKNOWN = "Unknown Quikscript spelling.";
 const NONE = "No suggestions.";
 /** @type {Record<string, string>} */
@@ -18,7 +19,7 @@ const NAMED_FACE = { ...FACE_OF, [CONTRACTION]: "Senior contraction" };
  * @returns {string}
  */
 function fenced(lines) {
-  return [FENCE, ...lines, FENCE].join("\n");
+  return [FENCE + TAG, ...lines, FENCE].join("\n");
 }
 
 /**

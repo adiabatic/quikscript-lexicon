@@ -24,7 +24,7 @@ const BAD = "".repeat(9);
  * @returns {string}
  */
 function fence(...lines) {
-  return ["```", ...lines, "```"].join("\n");
+  return ["```plaintext", ...lines, "```"].join("\n");
 }
 
 /**
@@ -37,7 +37,7 @@ function sifted(value, within) {
   /** @type {string[]} */
   const out = [];
   for (const line of value.split("\n")) {
-    if (line.trim() === "```") {
+    if (line.trim().startsWith("```")) {
       inside = !inside;
       continue;
     }

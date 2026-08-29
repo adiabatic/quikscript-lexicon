@@ -17,7 +17,7 @@ const INLINE = { textDocument: { publishDiagnostics: { codeActionsInline: 1 } } 
 const READ_EAT = "\uE668\uE671\uE653";
 const READ_ET = "\uE668\uE672\uE653";
 const READ_TOLD =
-  "```\n" +
+  "```plaintext\n" +
   `${READ_EAT}\n` +
   "```\n\n" +
   "**read** \u2014 singular noun, verb, infinitive\n\n" +
@@ -551,11 +551,17 @@ test("a misspelling hovers the fixes it is offered until it is excused", async (
   });
   assert.equal(over.result.contents.kind, "markdown");
   const lines = over.result.contents.value.split("\n");
-  assert.deepEqual(lines.slice(0, 3), ["Unknown Quikscript spelling.", "", "```"]);
+  assert.deepEqual(lines.slice(0, 3), ["Unknown Quikscript spelling.", "", "```plaintext"]);
   assert.equal(lines[3 + offers.length], "```");
   for (const [at, fix] of offers.entries()) {
     assert.ok(lines[3 + at].startsWith(fix), `fix ${at} out of Desk's order`);
   }
+
+  const past = await client.request("textDocument/hover", {
+    textDocument: { uri },
+    position: { line: 0, character: 999 },
+  });
+  assert.deepEqual(past.result, over.result);
 
   await client.request("workspace/executeCommand", {
     command: "quikscript.ignore.occurrence",
@@ -567,6 +573,40 @@ test("a misspelling hovers the fixes it is offered until it is excused", async (
     position: { line: 0, character: 1 },
   });
   assert.equal(quiet.result, null);
+});
+
+test("a misspelling inside a markdown code span is hovered no fixes", async () => {
+  const uri = "file:///draft/spans.md";
+  const word = misspelled(READ_ET);
+  const client = new Client(target);
+  await client.request("initialize", {
+    processId: process.pid,
+    rootUri: null,
+    capabilities: {},
+  });
+  client.notify("initialized", {});
+  client.notify("textDocument/didOpen", {
+    textDocument: {
+      uri,
+      languageId: "markdown",
+      version: 1,
+      text: `\`${word}\` ${word}\n`,
+    },
+  });
+  const first = await client.published();
+  assert.deepEqual(said(first.params.diagnostics), [complaint(word)]);
+
+  const spanned = await client.request("textDocument/hover", {
+    textDocument: { uri },
+    position: { line: 0, character: 1 },
+  });
+  assert.equal(spanned.result, null);
+
+  const loose = await client.request("textDocument/hover", {
+    textDocument: { uri },
+    position: { line: 0, character: word.length + 3 },
+  });
+  assert.ok(loose.result.contents.value.startsWith("Unknown Quikscript spelling."));
 });
 
 test("hover names the word and completions replace the latin", async () => {
