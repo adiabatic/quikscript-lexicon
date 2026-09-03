@@ -8,7 +8,7 @@ const WRITE = writings(data);
 
 test("the readings key every union spelling and the writings every latin", () => {
   assert.equal(READ.size, data.words.split("\n").length);
-  assert.equal(WRITE.size, 77535);
+  assert.equal(WRITE.size, 77538);
 });
 
 test("a reading names its row and the column the spelling sits in", () => {

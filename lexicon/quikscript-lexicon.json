@@ -10,10 +10,10 @@
             "block": "U+E650–U+E67E"
         },
         "counts": {
-            "headwords": 56655,
-            "entries": 108431,
-            "phrases": 1602,
-            "added": 6
+            "headwords": 56658,
+            "entries": 108434,
+            "phrases": 1603,
+            "added": 9
         }
     },
     "letters": [
@@ -799,6 +799,7 @@
         "ingle-nook",
         "ingle-nooks",
         "inter alia",
+        "ipad's",
         "ipse dixit",
         "ipse dixits",
         "ipso facto",
@@ -58353,6 +58354,9 @@
         "quikscript's_NP0+POS_𐑒𐑢𐑦𐑒𐑕𐑒𐑮𐑦𐑐𐑑𐑕": [{"Latn": "quikscript's", "qs": "", "Shaw": "𐑒𐑢𐑦𐑒𐑕𐑒𐑮𐑦𐑐𐑑𐑕", "pos": "NP0+POS", "ipa": "ˈkwɪkskrɪpts", "freq": 0}],
         "quickscript_NP0_𐑒𐑢𐑦𐑒𐑕𐑒𐑮𐑦𐑐𐑑": [{"Latn": "quickscript", "qs": "", "Shaw": "𐑒𐑢𐑦𐑒𐑕𐑒𐑮𐑦𐑐𐑑", "pos": "NP0", "ipa": "ˈkwɪkskrɪpt", "freq": 0}],
         "quickscript_AJ0_𐑒𐑢𐑦𐑒𐑕𐑒𐑮𐑦𐑐𐑑": [{"Latn": "quickscript", "qs": "", "Shaw": "𐑒𐑢𐑦𐑒𐑕𐑒𐑮𐑦𐑐𐑑", "pos": "AJ0", "ipa": "ˈkwɪkskrɪpt", "freq": 0}],
-        "quickscript's_NP0+POS_𐑒𐑢𐑦𐑒𐑕𐑒𐑮𐑦𐑐𐑑𐑕": [{"Latn": "quickscript's", "qs": "", "Shaw": "𐑒𐑢𐑦𐑒𐑕𐑒𐑮𐑦𐑐𐑑𐑕", "pos": "NP0+POS", "ipa": "ˈkwɪkskrɪpts", "freq": 0}]
+        "quickscript's_NP0+POS_𐑒𐑢𐑦𐑒𐑕𐑒𐑮𐑦𐑐𐑑𐑕": [{"Latn": "quickscript's", "qs": "", "Shaw": "𐑒𐑢𐑦𐑒𐑕𐑒𐑮𐑦𐑐𐑑𐑕", "pos": "NP0+POS", "ipa": "ˈkwɪkskrɪpts", "freq": 0}],
+        "ipad_NP0_𐑲𐑐𐑨𐑛": [{"Latn": "ipad", "qs": "", "Shaw": "𐑲𐑐𐑨𐑛", "pos": "NP0", "ipa": "ˈaɪpæd", "freq": 0}],
+        "ipads_NN2_𐑲𐑐𐑨𐑛𐑟": [{"Latn": "ipads", "qs": "", "Shaw": "𐑲𐑐𐑨𐑛𐑟", "pos": "NN2", "ipa": "ˈaɪpædz", "freq": 0}],
+        "ipad's_NP0+POS_𐑲𐑐𐑨𐑛𐑟": [{"Latn": "ipad's", "qs": "", "Shaw": "𐑲𐑐𐑨𐑛𐑟", "pos": "NP0+POS", "ipa": "ˈaɪpædz", "freq": 0}]
     }
 }
