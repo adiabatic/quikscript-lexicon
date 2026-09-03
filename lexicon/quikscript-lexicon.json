@@ -10,10 +10,10 @@
             "block": "U+E650–U+E67E"
         },
         "counts": {
-            "headwords": 56663,
-            "entries": 108439,
+            "headwords": 56665,
+            "entries": 108441,
             "phrases": 1605,
-            "added": 14
+            "added": 16
         }
     },
     "letters": [
@@ -58364,6 +58364,8 @@
         "iphones_NN2_𐑲𐑓𐑴𐑯𐑟": [{"Latn": "iphones", "qs": "", "Shaw": "𐑲𐑓𐑴𐑯𐑟", "pos": "NN2", "ipa": "ˈaɪfəʊnz", "freq": 0}],
         "iphone's_NP0+POS_𐑲𐑓𐑴𐑯𐑟": [{"Latn": "iphone's", "qs": "", "Shaw": "𐑲𐑓𐑴𐑯𐑟", "pos": "NP0+POS", "ipa": "ˈaɪfəʊnz", "freq": 0}],
         "ipods_NN2_𐑲𐑐𐑪𐑛𐑟": [{"Latn": "ipods", "qs": "", "Shaw": "𐑲𐑐𐑪𐑛𐑟", "pos": "NN2", "ipa": "ˈaɪpɒdz", "freq": 0}],
-        "ipod's_NP0+POS_𐑲𐑐𐑪𐑛𐑟": [{"Latn": "ipod's", "qs": "", "Shaw": "𐑲𐑐𐑪𐑛𐑟", "pos": "NP0+POS", "ipa": "ˈaɪpɒdz", "freq": 0}]
+        "ipod's_NP0+POS_𐑲𐑐𐑪𐑛𐑟": [{"Latn": "ipod's", "qs": "", "Shaw": "𐑲𐑐𐑪𐑛𐑟", "pos": "NP0+POS", "ipa": "ˈaɪpɒdz", "freq": 0}],
+        "eggnog_NN1_𐑧𐑜𐑯𐑪𐑜": [{"Latn": "eggnog", "qs": "", "Shaw": "𐑧𐑜𐑯𐑪𐑜", "pos": "NN1", "ipa": "ˈeɡnɒɡ", "freq": 0}],
+        "eggnogs_NN2_𐑧𐑜𐑯𐑪𐑜𐑟": [{"Latn": "eggnogs", "qs": "", "Shaw": "𐑧𐑜𐑯𐑪𐑜𐑟", "pos": "NN2", "ipa": "ˈeɡnɒɡz", "freq": 0}]
     }
 }
