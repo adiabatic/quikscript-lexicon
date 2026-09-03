@@ -10,10 +10,10 @@
             "block": "U+E650–U+E67E"
         },
         "counts": {
-            "headwords": 56676,
-            "entries": 108452,
+            "headwords": 56680,
+            "entries": 108456,
             "phrases": 1605,
-            "added": 27
+            "added": 31
         }
     },
     "letters": [
@@ -58377,6 +58377,10 @@
         "ligating_AJ0_𐑤𐑲𐑜𐑱𐑑𐑦𐑙": [{"Latn": "ligating", "qs": "", "Shaw": "𐑤𐑲𐑜𐑱𐑑𐑦𐑙", "pos": "AJ0", "ipa": "laɪˈɡeɪtɪŋ", "freq": 0}],
         "ligation_NN1_𐑤𐑲𐑜𐑱𐑖𐑩𐑯": [{"Latn": "ligation", "qs": "", "Shaw": "𐑤𐑲𐑜𐑱𐑖𐑩𐑯", "pos": "NN1", "ipa": "laɪˈɡeɪʃən", "freq": 0}],
         "blueberry_NN1_𐑚𐑤𐑵𐑚𐑼𐑦": [{"Latn": "blueberry", "qs": "", "Shaw": "𐑚𐑤𐑵𐑚𐑼𐑦", "pos": "NN1", "ipa": "ˈbluːbəri", "freq": 0}],
-        "blueberries_NN2_𐑚𐑤𐑵𐑚𐑼𐑦𐑟": [{"Latn": "blueberries", "qs": "", "Shaw": "𐑚𐑤𐑵𐑚𐑼𐑦𐑟", "pos": "NN2", "ipa": "ˈbluːbəriz", "freq": 0}]
+        "blueberries_NN2_𐑚𐑤𐑵𐑚𐑼𐑦𐑟": [{"Latn": "blueberries", "qs": "", "Shaw": "𐑚𐑤𐑵𐑚𐑼𐑦𐑟", "pos": "NN2", "ipa": "ˈbluːbəriz", "freq": 0}],
+        "cannoli_NN1_𐑒𐑩𐑯𐑴𐑤𐑦": [{"Latn": "cannoli", "qs": "", "Shaw": "𐑒𐑩𐑯𐑴𐑤𐑦", "pos": "NN1", "ipa": "kəˈnəʊli", "freq": 0}],
+        "cannoli_NN2_𐑒𐑩𐑯𐑴𐑤𐑦": [{"Latn": "cannoli", "qs": "", "Shaw": "𐑒𐑩𐑯𐑴𐑤𐑦", "pos": "NN2", "ipa": "kəˈnəʊli", "freq": 0}],
+        "cannolis_NN2_𐑒𐑩𐑯𐑴𐑤𐑦𐑟": [{"Latn": "cannolis", "qs": "", "Shaw": "𐑒𐑩𐑯𐑴𐑤𐑦𐑟", "pos": "NN2", "ipa": "kəˈnəʊliz", "freq": 0}],
+        "cannolo_NN1_𐑒𐑩𐑯𐑴𐑤𐑴": [{"Latn": "cannolo", "qs": "", "Shaw": "𐑒𐑩𐑯𐑴𐑤𐑴", "pos": "NN1", "ipa": "kəˈnəʊləʊ", "freq": 0}]
     }
 }
