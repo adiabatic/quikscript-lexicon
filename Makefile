@@ -1,4 +1,6 @@
-.PHONY: all artifacts site payload preview bundle vsix check lint test validate freshness
+.PHONY: all artifacts site payload preview bundle vsix install-vsix check lint test validate freshness
+
+VSIX = dist/quikscript-vscode-$(shell node -p "require('./editor/vscode/package.json').version").vsix
 
 all: artifacts
 
@@ -20,6 +22,9 @@ bundle:
 vsix:
 	cd editor/server && npm ci --no-audit --no-fund && node bundle.js ../vscode/dist/quikscript-lsp
 	cd editor/vscode && npm ci --no-audit --no-fund && npx --yes @vscode/vsce@3.9.2 package --out ../../dist/
+
+install-vsix: vsix
+	code --install-extension $(VSIX) --force
 
 check: lint test validate freshness
 

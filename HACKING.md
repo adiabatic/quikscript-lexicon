@@ -28,7 +28,13 @@ code --extensionDevelopmentPath="$PWD" ../..
 
 That opens an Extension Development Host with the repo as its workspace folder, and the client launches `editor/server/server.js` over stdio; edits to the server take effect on the next reload. `make bundle` writes the single-file `editor/server/dist/quikscript-lsp` the protocol suite proves and BBEdit will launch, which the client prefers when one is bundled beside it.
 
-To install into a normal VS Code rather than a development host, `make vsix` bundles the server into the extension and packages `dist/quikscript-vscode-<version>.vsix`, which carries its own server and so needs no checkout on the other end:
+To install into a normal VS Code rather than a development host, `make install-vsix` bundles the server into the extension, packages `dist/quikscript-vscode-<version>.vsix`, which carries its own server and so needs no checkout on the other end, and installs it over whatever copy is already there:
+
+```sh
+make install-vsix
+```
+
+It names the `.vsix` after the version in `editor/vscode/package.json`; reload any open window to pick the new build up. `make vsix` alone stops at the package, for handing the file to someone else:
 
 ```sh
 make vsix
