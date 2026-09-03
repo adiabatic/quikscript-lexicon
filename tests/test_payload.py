@@ -82,8 +82,8 @@ def test_the_word_set_is_the_dictionary_and_the_senior_contractions() -> None:
     counted, *listed = artifact(HUNSPELL_DIC, ROOT).splitlines()
     assert counted == str(len(listed))
     assert frozenset(listed) < frozenset(words)
-    assert len(listed) == 75585
-    assert len(words) == 75654
+    assert len(listed) == 75587
+    assert len(words) == 75656
     assert len(words) - len(listed) == 69
 
 
@@ -116,7 +116,7 @@ def test_the_confusion_group_is_the_vowels() -> None:
 
 
 def test_the_readings_key_exactly_the_union() -> None:
-    assert len(READS) == 110230
+    assert len(READS) == 110233
     assert {line.split("\t")[0] for line in READS} == frozenset(LEXICON.union)
 
 
@@ -129,7 +129,7 @@ def test_a_reading_names_its_row_and_the_column_the_spelling_sits_in() -> None:
 
 def test_the_reading_columns_count_the_masters_divergences() -> None:
     counted = collections.Counter(line.split("\t")[3] for line in READS)
-    assert counted == {"senior": 107723, "x": 2326, "contraction": 154, "junior": 27}
+    assert counted == {"senior": 107726, "x": 2326, "contraction": 154, "junior": 27}
 
 
 def test_every_reading_joins_the_writings_on_latin_and_tag() -> None:
@@ -140,8 +140,8 @@ def test_every_reading_joins_the_writings_on_latin_and_tag() -> None:
 
 
 def test_the_writings_carry_every_row_that_spells_a_token() -> None:
-    assert len(WRITES) == 107727
-    assert len({line.split("\t")[0] for line in WRITES}) == 77538
+    assert len(WRITES) == 107730
+    assert len({line.split("\t")[0] for line in WRITES}) == 77541
 
 
 def test_a_writing_is_lowercased_and_fully_fielded() -> None:

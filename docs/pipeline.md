@@ -74,7 +74,7 @@ ReadLex is a lexicon of English, and there are words this one needs that English
 
 Two fields are the table’s own. `source` names where the word comes from, on the rule [`shavian-divergences.tsv`](../src/qslex/data/shavian-divergences.tsv) sets that a hand-written row cites an authority. `qs` is the finished spelling, and it is a **fixture rather than an input** — the build never reads it, and the validator fails if the rules stop producing it, which is the arrangement [`manual-spellings.tsv`](../src/qslex/data/manual-spellings.tsv) already uses.
 
-Six of the table’s rows are the alphabet’s name, and three are a product the corpus knows the sibling of:
+Six of the table’s rows are the alphabet’s name, and six are two products the corpus knows a sibling of:
 
 | word | pos | ipa | qs |
 | --- | --- | --- | --- |
@@ -87,6 +87,9 @@ Six of the table’s rows are the alphabet’s name, and three are a product the
 | ipad | `NP0` | ˈaɪpæd | ·I·Pea·At·Day |
 | ipads | `NN2` | ˈaɪpædz | ·I·Pea·At·Day·Zoo |
 | ipad's | `NP0+POS` | ˈaɪpædz | ·I·Pea·At·Day·Zoo |
+| iphone | `NP0` | ˈaɪfəʊn | ·I·Fee·Owe·No |
+| iphones | `NN2` | ˈaɪfəʊnz | ·I·Fee·Owe·No·Zoo |
+| iphone's | `NP0+POS` | ˈaɪfəʊnz | ·I·Fee·Owe·No·Zoo |
 
 Both spellings of the name are carried because both are used: the Manual writes **Quickscript** throughout — “even writers of Junior Quickscript should soon contract to single letters” ([p.12](https://adiabatic.github.io/abbots-morton-spaceport/the-manual.html#junior-contractions)) — and [quikscript.net](https://www.quikscript.net/) and this repository write **Quikscript**. They are one word, and share one Quikscript spelling.
 
@@ -102,7 +105,7 @@ Nothing in the table is invented, and each field says where it came from:
 
 Both possessives land on the [phrase list](#qs_converter_phrasestxt) automatically, because a single word containing an apostrophe never composes — which is why upstream’s `guy's`, `lloyd's` and `parkinson's` are on it already.
 
-**iPad** is the same arrangement with a different authority: ReadLex carries `ipod` `NP0` ˈaɪpɒd 𐑲𐑐𐑪𐑛 at `freq` 0 and not its sibling, so the row takes upstream’s shape and joins upstream’s own aɪ to its pad pæd 𐑐𐑨𐑛, as `ipod` joins it to pod. The Latin is lowercase as `ipod` is, and it is the transliterator’s `NP0` handling, not the row, that puts the namer dot on it. The plural takes `NN2`, the tag ReadLex gives the plural of a trade name — `biros`, `hoovers`, `macs` — and the possessive takes `NP0+POS` as the name’s does; the two share one spelling, `'s` voicing to ·Zoo after ·Day exactly as the plural does, so here the possessive row buys the phrase list its apostrophe entry rather than a string no other column carries.
+**iPad and iPhone** are the same arrangement with a different authority: ReadLex carries `ipod` `NP0` ˈaɪpɒd 𐑲𐑐𐑪𐑛 at `freq` 0 and neither sibling, so each row takes upstream’s shape and joins upstream’s own aɪ to its pad pæd 𐑐𐑨𐑛 or phone fəʊn 𐑓𐑴𐑯, as `ipod` joins it to pod. The Latin is lowercase as `ipod` is, and it is the transliterator’s `NP0` handling, not the row, that puts the namer dot on it. The plural takes `NN2`, the tag ReadLex gives the plural of a trade name — `biros`, `hoovers`, `macs` — and the possessive takes `NP0+POS` as the name’s does; the two share one spelling, `'s` voicing to ·Zoo after ·Day or ·No exactly as the plural does, so here the possessive row buys the phrase list its apostrophe entry rather than a string no other column carries.
 
 **What the validator demands** is stricter than what it demands of the corpus, because a row we wrote ourselves has no excuse for needing latitude. Each added row must produce the `qs` it declares, break no lint check, read back to its own IPA exactly, and reach no word sign — absolutes rather than pinned tolerances, since a table this small can be held to them. It also fails if ReadLex grows the word, so that upstream carrying it becomes a change someone reconciles rather than a second spelling that ships in silence. Holding this pass separately from the corpus pass is also what leaves every corpus invariant where it was, so an upstream bump still diffs against ReadLex alone.
 
