@@ -60,7 +60,7 @@ function check(name, body) {
 }
 
 check("the page's word list is the whole lexicon and the senior contractions", () => {
-  assert.equal(UNION.length, 75661);
+  assert.equal(UNION.length, 75666);
   assert.equal(QS.try_order.length, 44);
   assert.equal(QS.rep.length, 4);
   assert.equal(QS.confusions.length, 1);

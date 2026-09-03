@@ -74,7 +74,7 @@ ReadLex is a lexicon of English, and there are words this one needs that English
 
 Two fields are the table’s own. `source` names where the word comes from, on the rule [`shavian-divergences.tsv`](../src/qslex/data/shavian-divergences.tsv) sets that a hand-written row cites an authority. `qs` is the finished spelling, and it is a **fixture rather than an input** — the build never reads it, and the validator fails if the rules stop producing it, which is the arrangement [`manual-spellings.tsv`](../src/qslex/data/manual-spellings.tsv) already uses.
 
-Six of the table’s rows are the alphabet’s name, eight are three products of one family, of which the corpus carries a single row, two are a compound whose parts the corpus spells, and three are a verb whose parts the corpus spells:
+Six of the table’s rows are the alphabet’s name, eight are three products of one family, of which the corpus carries a single row, four are two compounds whose parts the corpus spells, and nine are a verb, its inflections and its noun, whose parts the corpus spells:
 
 | word | pos | ipa | qs |
 | --- | --- | --- | --- |
@@ -97,6 +97,14 @@ Six of the table’s rows are the alphabet’s name, eight are three products of
 | ligate | `VVI` | laɪˈɡeɪt | ·Low·I·Gay·Eight·Tea |
 | ligate | `VVB` | laɪˈɡeɪt | ·Low·I·Gay·Eight·Tea |
 | ligates | `VVZ` | laɪˈɡeɪts | ·Low·I·Gay·Eight·Tea·See |
+| ligated | `VVN` | laɪˈɡeɪtƏd | ·Low·I·Gay·Eight·Tea·Day |
+| ligated | `VVD` | laɪˈɡeɪtƏd | ·Low·I·Gay·Eight·Tea·Day |
+| ligated | `AJ0` | laɪˈɡeɪtƏd | ·Low·I·Gay·Eight·Tea·Day |
+| ligating | `VVG` | laɪˈɡeɪtɪŋ | ·Low·I·Gay·Eight·Tea·-ing |
+| ligating | `AJ0` | laɪˈɡeɪtɪŋ | ·Low·I·Gay·Eight·Tea·-ing |
+| ligation | `NN1` | laɪˈɡeɪʃən | ·Low·I·Gay·Eight·She·No |
+| blueberry | `NN1` | ˈbluːbəri | ·Bay·Low·Ooze·Bay·Utter·Roe·It |
+| blueberries | `NN2` | ˈbluːbəriz | ·Bay·Low·Ooze·Bay·Utter·Roe·It·Zoo |
 
 Both spellings of the name are carried because both are used: the Manual writes **Quickscript** throughout — “even writers of Junior Quickscript should soon contract to single letters” ([p.12](https://adiabatic.github.io/abbots-morton-spaceport/the-manual.html#junior-contractions)) — and [quikscript.net](https://www.quikscript.net/) and this repository write **Quikscript**. They are one word, and share one Quikscript spelling.
 
@@ -116,9 +124,11 @@ Both possessives land on the [phrase list](#qs_converter_phrasestxt) automatical
 
 **Eggnog** is an ordinary compound ReadLex happens not to reach. It takes the shape of upstream’s own `eggplant` `NN1` ˈeɡplɑːnt 𐑧𐑜𐑐𐑤𐑭𐑯𐑑 — unhyphenated, stressed on the first element — and joins upstream’s egg eɡ 𐑧𐑜 to the nog its `noggin` ˈnɒɡɪn 𐑯𐑪𐑜𐑦𐑯 and `snog` snɒɡ 𐑕𐑯𐑪𐑜 already spell ·No·Ox·Gay. The plural takes `NN2` and the voiced ending of `eggplants` and `eggs` eɡz 𐑧𐑜𐑟, ·Zoo after ·Gay. No possessive row is needed, because the plural carries the string it would.
 
-**Ligate** is a verb ReadLex happens not to reach, though it carries `ligature`. It takes the shape of upstream’s own `negate` `VVI` nɪˈɡeɪt 𐑯𐑦𐑜𐑱𐑑 — stressed on the -gate, as `migrate` maɪˈɡreɪt 𐑥𐑲𐑜𐑮𐑱𐑑 and `dilate` daɪˈleɪt 𐑛𐑲𐑤𐑱𐑑 are — and joins upstream’s lie laɪ 𐑤𐑲 to its gate ɡeɪt 𐑜𐑱𐑑. Both the `VVI` and the `VVB` row are carried, because ReadLex gives every such verb both. The third-person singular takes `VVZ` and the voiceless ending of `negates` nɪˈɡeɪts 𐑯𐑦𐑜𐑱𐑑𐑕, ·See after ·Tea.
+**Ligate** is a verb ReadLex happens not to reach, though it carries `ligature`. It takes the shape of upstream’s own `negate` `VVI` nɪˈɡeɪt 𐑯𐑦𐑜𐑱𐑑 — stressed on the -gate, as `migrate` maɪˈɡreɪt 𐑥𐑲𐑜𐑮𐑱𐑑 and `dilate` daɪˈleɪt 𐑛𐑲𐑤𐑱𐑑 are — and joins upstream’s lie laɪ 𐑤𐑲 to its gate ɡeɪt 𐑜𐑱𐑑. Both the `VVI` and the `VVB` row are carried, because ReadLex gives every such verb both. The third-person singular takes `VVZ` and the voiceless ending of `negates` nɪˈɡeɪts 𐑯𐑦𐑜𐑱𐑑𐑕, ·See after ·Tea. The inflections and the noun follow the same family row for row: `ligated` takes the `VVN`, `VVD` and `AJ0` rows and the tagged -Əd ending of `negated` nɪˈɡeɪtƏd 𐑯𐑦𐑜𐑱𐑑𐑩𐑛, whose Ə marks the vowel the Manual’s TD pair forces and Quikscript leaves unwritten, `ligating` the `VVG` and `AJ0` rows of `negating` nɪˈɡeɪtɪŋ 𐑯𐑦𐑜𐑱𐑑𐑦𐑙, and `ligation` the `NN1` row and the -ʃən ending of `negation` nɪˈɡeɪʃən 𐑯𐑦𐑜𐑱𐑖𐑩𐑯 and `dilation` daɪˈleɪʃən 𐑛𐑲𐑤𐑱𐑖𐑩𐑯.
 
-**What the validator demands** is stricter than what it demands of the corpus, because a row we wrote ourselves has no excuse for needing latitude. Each added row must produce the `qs` it declares, break no lint check, read back to its own IPA exactly, and reach no word sign — absolutes rather than pinned tolerances, since a table this small can be held to them. It also fails if ReadLex grows the word, so that upstream carrying it becomes a change someone reconciles rather than a second spelling that ships in silence. Holding this pass separately from the corpus pass is also what leaves every corpus invariant where it was, so an upstream bump still diffs against ReadLex alone.
+**Blueberry** is the same arrangement as eggnog with a different family. It takes the shape of upstream’s own `blackberry` `NN1` ˈblækbəri 𐑚𐑤𐑨𐑒𐑚𐑼𐑦 — and its `cranberry`, `raspberry` and `strawberry`, all first-stressed — and joins upstream’s blue bluː 𐑚𐑤𐑵 to the -berry those rows share. The plural takes `NN2` and the voiced ending of `blackberries` ˈblækbəriz 𐑚𐑤𐑨𐑒𐑚𐑼𐑦𐑟. There is no possessive row, because ReadLex carries no possessive for any berry.
+
+**What the validator demands** is stricter than what it demands of the corpus, because a row we wrote ourselves has no excuse for needing latitude. Each added row must produce the `qs` it declares, break no lint check, read back to its own IPA by the round trip’s [licensed edits](../src/qslex/roundtrip.py) alone, and reach no word sign — absolutes rather than pinned tolerances, since a table this small can be held to them. The edits are the only latitude, and they are the rules’ rather than the row’s: `ligated` drops the schwa its -Əd carries because Quikscript writes every such -ted that way, and a hand-written row cannot be held to a read-back the terminal conventions make impossible. It also fails if ReadLex grows the word, so that upstream carrying it becomes a change someone reconciles rather than a second spelling that ships in silence. Holding this pass separately from the corpus pass is also what leaves every corpus invariant where it was, so an upstream bump still diffs against ReadLex alone.
 
 ## Artifact shapes
 

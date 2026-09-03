@@ -272,7 +272,7 @@ def added(
 ) -> list[str]:
     """Hold the words the corpus lacks to a stricter standard than the corpus rows.
 
-    They are held separately, and not folded into the pass above, for two reasons. The corpus invariants stay invariants, so an upstream bump still diffs against ReadLex alone; and a row we wrote ourselves has no excuse for needing one. Where a corpus row may break lint under a declared pragma or read back with a licensed difference, an added row must produce the spelling it declares, lint clean, read back exactly, and reach no word sign.
+    They are held separately, and not folded into the pass above, for two reasons. The corpus invariants stay invariants, so an upstream bump still diffs against ReadLex alone; and a row we wrote ourselves has no excuse for needing one. Where a corpus row may break lint under a declared pragma, an added row must produce the spelling it declares, lint clean, read back to its IPA by the licensed edits alone, and reach no word sign. The edits are the round trip’s own table, not a tolerance pinned per row: a -ted, -ing or -tion ending drops its schwa for any word, and a row we wrote is no more able to write it than a corpus row is.
 
     The collision check is the one that matters over time: if ReadLex ever carries the word, this fails and says so, rather than letting a second spelling of it ship in silence.
     """
@@ -311,9 +311,12 @@ def added(
         for spelling in dict.fromkeys(
             s for s in (result.senior, result.junior, result.x_letter) if s
         ):
-            if source_phonemes(tokens) != spelled_phonemes(spelling, read_back):
+            said = source_phonemes(tokens)
+            written = spelled_phonemes(spelling, read_back)
+            if said != written and align(said, written) is None:
                 failures.append(
-                    f"{where} spelled {spelling} does not read back to {ipa}"
+                    f"{where} spelled {spelling} reads back as {' '.join(written)}, "
+                    f"not {ipa}"
                 )
     return failures
 

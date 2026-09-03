@@ -10,10 +10,10 @@
             "block": "U+E650–U+E67E"
         },
         "counts": {
-            "headwords": 56668,
-            "entries": 108444,
+            "headwords": 56676,
+            "entries": 108452,
             "phrases": 1605,
-            "added": 19
+            "added": 27
         }
     },
     "letters": [
@@ -58369,6 +58369,14 @@
         "eggnogs_NN2_𐑧𐑜𐑯𐑪𐑜𐑟": [{"Latn": "eggnogs", "qs": "", "Shaw": "𐑧𐑜𐑯𐑪𐑜𐑟", "pos": "NN2", "ipa": "ˈeɡnɒɡz", "freq": 0}],
         "ligate_VVI_𐑤𐑲𐑜𐑱𐑑": [{"Latn": "ligate", "qs": "", "Shaw": "𐑤𐑲𐑜𐑱𐑑", "pos": "VVI", "ipa": "laɪˈɡeɪt", "freq": 0}],
         "ligate_VVB_𐑤𐑲𐑜𐑱𐑑": [{"Latn": "ligate", "qs": "", "Shaw": "𐑤𐑲𐑜𐑱𐑑", "pos": "VVB", "ipa": "laɪˈɡeɪt", "freq": 0}],
-        "ligates_VVZ_𐑤𐑲𐑜𐑱𐑑𐑕": [{"Latn": "ligates", "qs": "", "Shaw": "𐑤𐑲𐑜𐑱𐑑𐑕", "pos": "VVZ", "ipa": "laɪˈɡeɪts", "freq": 0}]
+        "ligates_VVZ_𐑤𐑲𐑜𐑱𐑑𐑕": [{"Latn": "ligates", "qs": "", "Shaw": "𐑤𐑲𐑜𐑱𐑑𐑕", "pos": "VVZ", "ipa": "laɪˈɡeɪts", "freq": 0}],
+        "ligated_VVN_𐑤𐑲𐑜𐑱𐑑𐑩𐑛": [{"Latn": "ligated", "qs": "", "Shaw": "𐑤𐑲𐑜𐑱𐑑𐑩𐑛", "pos": "VVN", "ipa": "laɪˈɡeɪtƏd", "freq": 0}],
+        "ligated_VVD_𐑤𐑲𐑜𐑱𐑑𐑩𐑛": [{"Latn": "ligated", "qs": "", "Shaw": "𐑤𐑲𐑜𐑱𐑑𐑩𐑛", "pos": "VVD", "ipa": "laɪˈɡeɪtƏd", "freq": 0}],
+        "ligated_AJ0_𐑤𐑲𐑜𐑱𐑑𐑩𐑛": [{"Latn": "ligated", "qs": "", "Shaw": "𐑤𐑲𐑜𐑱𐑑𐑩𐑛", "pos": "AJ0", "ipa": "laɪˈɡeɪtƏd", "freq": 0}],
+        "ligating_VVG_𐑤𐑲𐑜𐑱𐑑𐑦𐑙": [{"Latn": "ligating", "qs": "", "Shaw": "𐑤𐑲𐑜𐑱𐑑𐑦𐑙", "pos": "VVG", "ipa": "laɪˈɡeɪtɪŋ", "freq": 0}],
+        "ligating_AJ0_𐑤𐑲𐑜𐑱𐑑𐑦𐑙": [{"Latn": "ligating", "qs": "", "Shaw": "𐑤𐑲𐑜𐑱𐑑𐑦𐑙", "pos": "AJ0", "ipa": "laɪˈɡeɪtɪŋ", "freq": 0}],
+        "ligation_NN1_𐑤𐑲𐑜𐑱𐑖𐑩𐑯": [{"Latn": "ligation", "qs": "", "Shaw": "𐑤𐑲𐑜𐑱𐑖𐑩𐑯", "pos": "NN1", "ipa": "laɪˈɡeɪʃən", "freq": 0}],
+        "blueberry_NN1_𐑚𐑤𐑵𐑚𐑼𐑦": [{"Latn": "blueberry", "qs": "", "Shaw": "𐑚𐑤𐑵𐑚𐑼𐑦", "pos": "NN1", "ipa": "ˈbluːbəri", "freq": 0}],
+        "blueberries_NN2_𐑚𐑤𐑵𐑚𐑼𐑦𐑟": [{"Latn": "blueberries", "qs": "", "Shaw": "𐑚𐑤𐑵𐑚𐑼𐑦𐑟", "pos": "NN2", "ipa": "ˈbluːbəriz", "freq": 0}]
     }
 }
