@@ -42,7 +42,7 @@ Words the affix fallback constructs take the same fork, because the root’s row
 
 Upstream’s three Shavian letter classes conditioned an epenthetic 𐑩 as well as voicing. The Manual has no epenthetic vowel — [§ Terminal -es, -ed](https://adiabatic.github.io/abbots-morton-spaceport/the-manual.html#terminal-es-ed) omits the separator between its seven pairs — so the classes reduce to two:
 
-- **Sibilants** ·See ·Zoo ·She ·Zhivago ·Cheer ·Jay: a following possessive or plural is bare ·Zoo with nothing before it. Mr Jones's = ·May·Roe ·Jay·Owe·No·Zoo·Zoo, “with one name-dot, no apostrophe”. (·Zhivago is not among the Manual’s seven pairs, but the corpus writes garages with bare ·Zoo, so it conditions the same way — the ruling recorded in [`docs/word-signs.md`](word-signs.md).)
+- **Sibilants** ·See ·Zoo ·She ·J’ai ·Cheer ·Jay: a following possessive or plural is bare ·Zoo with nothing before it. Mr Jones's = ·May·Roe ·Jay·Owe·No·Zoo·Zoo, “with one name-dot, no apostrophe”. (·J’ai is not among the Manual’s seven pairs, but the corpus writes garages with bare ·Zoo, so it conditions the same way — the ruling recorded in [`docs/word-signs.md`](word-signs.md).)
 - **Voiceless finals** ·Pea ·Tea ·Key ·Fee ·Thaw ·See ·She ·Cheer ·Loch: a constructed -s devoices to ·See (cups, mates, racks), matching upstream’s `s_follows` exactly where the corpus was checked.
 - Everything else, vowels included, takes voiced ·Zoo.
 

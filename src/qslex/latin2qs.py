@@ -52,7 +52,7 @@ def _qs(*names: str) -> str:
 
 
 # Letter classes that decide how a clitic or constructed suffix is voiced. A sibilant final takes bare ·Zoo with no separating vowel (Jones's = ·Jay·Owe·No·Zoo·Zoo); a voiceless final devoices -s to ·See and -ed to ·Tea; everything else, vowels included, takes the voiced letter.
-SIBILANTS = frozenset(_qs(n) for n in ("See", "Zoo", "She", "Zhivago", "Cheer", "Jay"))
+SIBILANTS = frozenset(_qs(n) for n in ("See", "Zoo", "She", "J’ai", "Cheer", "Jay"))
 VOICELESS = frozenset(
     _qs(n) for n in ("Pea", "Tea", "Key", "Fee", "Thaw", "See", "She", "Cheer", "Loch")
 )

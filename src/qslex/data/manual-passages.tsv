@@ -44,7 +44,7 @@ no-how	41	see	·See·Eat	senior
 no-how	42	what	·Why	contraction		
 no-how	43	should	·She·Day	contraction		
 no-how	44	make	·May·Key	contraction		
-no-how	45	things	·Thaw·It·Oolong·Zoo	senior		
+no-how	45	things	·Thaw·It·-ing·Zoo	senior		
 no-how	46	very	·Vie·Roe	contraction		
 no-how	47	much	·May·Cheer	contraction		
 no-how	48	better	·Bay·Et·Tea·Utter·Roe	senior		
@@ -80,7 +80,7 @@ parental-advice	21	which	·Cheer	contraction
 parental-advice	22	are	·Roe	contraction		
 parental-advice	23	not	·No·Ox·Tea	senior		
 parental-advice	24	so	·See	contraction		
-parental-advice	25	wrong	·Roe·Ox·Oolong	senior		
+parental-advice	25	wrong	·Roe·Ox·-ing	senior		
 parental-advice	26	as	·At	contraction		
 parental-advice	27	they	·They·Eight	senior		
 parental-advice	28	are	·Roe	contraction		
@@ -149,7 +149,7 @@ gown-shop	39	be	·Bay	senior
 gown-shop	40	many	·May·Et·No·It	senior		
 gown-shop	41	more	·May·Awe·Roe	senior		
 gown-shop	42	new	·No·Ye·Ooze	senior		
-gown-shop	43	things	·Thaw·It·Oolong·Zoo	senior		
+gown-shop	43	things	·Thaw·It·-ing·Zoo	senior		
 gown-shop	44	in	·It·No	senior		
 gown-shop	45	soon	·See·Ooze·No	senior		
 gown-shop	46	she's	·She·Zoo	differs	·She·Eat·Zoo	§III’s she-sign ·She with the clitic 's; the lexicon spells ʃiːz out
@@ -160,9 +160,9 @@ gown-shop	50	friend	·Fee·Roe·Et·No·Day	senior
 gown-shop	51	shall	·She·Low	contraction		
 gown-shop	52	you	·Ye	contraction		
 gown-shop	53	be	·Bay	senior		
-gown-shop	54	bringing	·Bay·Roe·It·Oolong·Oolong	senior		
+gown-shop	54	bringing	·Bay·Roe·It·-ing·-ing	senior		
 gown-shop	55	her	·He·Utter·Roe	senior		
-gown-shop	56	along	·Utter·Low·Ox·Oolong	senior		
+gown-shop	56	along	·Utter·Low·Ox·-ing	senior		
 gown-shop	57	to	·Tea	senior		
 gown-shop	58	see	·See·Eat	senior		
 gown-shop	59	me	·May	contraction		
@@ -173,7 +173,7 @@ gown-shop	63	show	·She·Owe	senior
 rip-van-winkle	0	he'd	·He’·Day	differs	·He·Eat·Day	§III’s he-sign ·He with the clitic 'd, apostrophe and all; the lexicon spells hiːd out
 rip-van-winkle	1	carry	·Key·At·Roe·It	senior		
 rip-van-winkle	2	a	·Utter	senior		
-rip-van-winkle	3	fowling	·Fee·Out·Low·Oolong	senior		
+rip-van-winkle	3	fowling	·Fee·Out·Low·-ing	senior		
 rip-van-winkle	4	piece	·Pea·Eat·See	senior		
 rip-van-winkle	5	on	·Ox	contraction		
 rip-van-winkle	6	his	·He·Zoo	contraction		
@@ -181,7 +181,7 @@ rip-van-winkle	7	shoulder	·She·Owe·Low·Day·Utter·Roe	senior
 rip-van-winkle	8	for	·Fee	senior		
 rip-van-winkle	9	hours	·Out·Roe·Zoo	senior		
 rip-van-winkle	10	together	·Tea·Utter·Gay·Et·They·Utter·Roe	senior		
-rip-van-winkle	11	trudging	·Tea·Roe·Utter·Jay·Oolong	senior		
+rip-van-winkle	11	trudging	·Tea·Roe·Utter·Jay·-ing	senior		
 rip-van-winkle	12	through	·Thaw·Roe·Ooze	senior		
 rip-van-winkle	13	woods	·Way·Foot·Day·Zoo	senior		
 rip-van-winkle	14	and	·No	senior		
@@ -224,11 +224,11 @@ rip-van-winkle	50	all	·Awe·Low	senior
 rip-van-winkle	51	country	·Key·Utter·No·Tea·Roe·It	senior		
 rip-van-winkle	52	frolics	·Fee·Roe·Ox·Low·It·Key·See	senior		
 rip-van-winkle	53	for	·Fee	senior		
-rip-van-winkle	54	husking	·He·Utter·See·Key·Oolong	senior		
+rip-van-winkle	54	husking	·He·Utter·See·Key·-ing	senior		
 rip-van-winkle	55	indian	·It·No·Day·It·Utter·No	senior		
 rip-van-winkle	56	corn	·Key·Awe·Roe·No	senior		
 rip-van-winkle	57	or	·Awe·Roe	senior		
-rip-van-winkle	58	building	·Bay·It·Low·Day·Oolong	senior		
+rip-van-winkle	58	building	·Bay·It·Low·Day·-ing	senior		
 rip-van-winkle	59	stone	·See·Tea·Owe·No	senior		
 rip-van-winkle	60	fences	·Fee·Et·No·See·Zoo	senior		
 rip-van-winkle	61	the	·They	senior		
@@ -254,7 +254,7 @@ rip-van-winkle	80	jobs	·Jay·Ox·Bay·Zoo	senior
 rip-van-winkle	81	as	·At	contraction		
 rip-van-winkle	82	their	·They·Eight·Roe	senior		
 rip-van-winkle	83	less	·Low·Et·See	senior		
-rip-van-winkle	84	obliging	·Utter·Bay·Low·I·Jay·Oolong	senior		
+rip-van-winkle	84	obliging	·Utter·Bay·Low·I·Jay·-ing	senior		
 rip-van-winkle	85	husbands	·He·Utter·Zoo·Bay·Utter·No·Day·Zoo	senior		
 rip-van-winkle	86	wouldn't	·Way·Day·No·Tea	contraction		
 rip-van-winkle	87	do	·Day	contraction		
@@ -277,11 +277,11 @@ rip-van-winkle	103	own	·Owe·No	senior
 rip-van-winkle	104	but	·Bay·Tea	contraction		
 rip-van-winkle	105	as	·At	contraction		
 rip-van-winkle	106	to	·Tea	senior		
-rip-van-winkle	107	doing	·Day·Oolong	contraction		
+rip-van-winkle	107	doing	·Day·-ing	contraction		
 rip-van-winkle	108	family	·Fee·At·May·It·Low·It	senior		
 rip-van-winkle	109	duties	·Day·Ye·Ooze·Tea·It·Zoo	senior		
 rip-van-winkle	110	and	·No	senior		
-rip-van-winkle	111	keeping	·Key·Eat·Pea·Oolong	senior		
+rip-van-winkle	111	keeping	·Key·Eat·Pea·-ing	senior		
 rip-van-winkle	112	his	·He·Zoo	contraction		
 rip-van-winkle	113	farm	·Fee·Ah·Roe·May	senior		
 rip-van-winkle	114	in	·It·No	senior		
@@ -330,7 +330,7 @@ senior-examples-1	36	head	·He·Et·Day	senior
 senior-examples-1	37	over	·Owe·Vie·Utter·Roe	senior		
 senior-examples-1	38	the	·They	senior		
 senior-examples-1	39	southernmost	·See·Utter·They·Utter·Roe·No·May·Owe·See·Tea	senior		
-senior-examples-1	40	angle	·At·Oolong·Gay·Low	senior		
+senior-examples-1	40	angle	·At·-ing·Gay·Low	senior		
 senior-examples-1	41	of	·Vie	senior		
 senior-examples-1	42	the	·They	senior		
 senior-examples-1	43	world	·Way·Utter·Roe·Low·Day	senior		
@@ -381,9 +381,9 @@ senior-examples-1	87	and	·No	senior
 senior-examples-1	88	intrigue	·It·No·Tea·Roe·Eat·Gay	senior		
 senior-examples-1	89	and	·No	senior		
 senior-examples-1	90	spanish	·See·Pea·At·No·It·She	senior		
-senior-examples-1	91	fighting	·Fee·I·Tea·Oolong	senior		
+senior-examples-1	91	fighting	·Fee·I·Tea·-ing	senior		
 senior-examples-1	92	and	·No	senior		
-senior-examples-1	93	gold-hunting	·Gay·Owe·Low·Day-·He·Utter·No·Tea·Oolong	absent		a nonce compound; ReadLex has gold and hunting but no hyphenated form
+senior-examples-1	93	gold-hunting	·Gay·Owe·Low·Day-·He·Utter·No·Tea·-ing	absent		a nonce compound; ReadLex has gold and hunting but no hyphenated form
 senior-examples-1	94	there	·They·Eight·Roe	senior		
 senior-examples-1	95	is	·Zoo	senior		
 senior-examples-1	96	a	·Utter	senior		
@@ -458,7 +458,7 @@ senior-examples-2	30	determined	·Day·It·Tea·Utter·Roe·May·It·No·Day	sen
 senior-examples-2	31	under-jaw	·Utter·No·Day·Utter·Roe-·Jay·Awe	absent		a nonce compound; ReadLex has under and jaw but no hyphenated form
 senior-examples-2	32	there	·They·Eight·Roe	senior		
 senior-examples-2	33	was	·Way·Utter·Zoo	senior		
-senior-examples-2	34	something	·See·Utter·May·Thaw·It·Oolong	senior		
+senior-examples-2	34	something	·See·Utter·May·Thaw·It·-ing	senior		
 senior-examples-2	35	neat	·No·Eat·Tea	senior		
 senior-examples-2	36	and	·No	senior		
 senior-examples-2	37	high-bred	·He·I-·Bay·Roe·Et·Day	absent		a nonce compound; ReadLex has high and bred but no hyphenated form
@@ -524,7 +524,7 @@ senior-examples-3	45	dearth	·Day·Utter·Roe·Thaw	senior
 senior-examples-3	46	of	·Vie	senior		
 senior-examples-3	47	subjects	·See·Utter·Bay·Jay·Et·Key·Tea·See	senior		
 senior-examples-3	48	at	·At·Tea	senior		
-senior-examples-3	49	length	·Low·Et·Oolong·Thaw	senior		
+senior-examples-3	49	length	·Low·Et·-ing·Thaw	senior		
 senior-examples-3	50	she	·She	contraction		
 senior-examples-3	51	passed	·Pea·At·See·Tea	differs	·Pea·Ah·See·Tea	TRAP-BATH: Read’s ·At against the ·Ah of the RRP row the row policy keeps — the same trade as contrast and example
 senior-examples-3	52	into	·It·No·Tea	contraction		
@@ -535,7 +535,7 @@ senior-examples-3	56	the	·They	senior
 senior-examples-3	57	consideration	·Key·No·See·It·Day·Utter·Roe·Eight·She·No	senior		
 senior-examples-3	58	of	·Vie	senior		
 senior-examples-3	59	sixty-five	·See·It·Excite·Tea·It-·Fee·I·Vie	absent		ReadLex has sixty and five but writes no hyphenated numeral
-senior-examples-3	60	francs	·Fee·Roe·At·Oolong·Key·See	senior		
+senior-examples-3	60	francs	·Fee·Roe·At·-ing·Key·See	senior		
 senior-examples-3	61	and	·No	senior		
 senior-examples-3	62	a	·Utter	senior		
 senior-examples-3	63	glass	·Gay·Low·At·See	differs	·Gay·Low·Ah·See	TRAP-BATH: Read’s ·At against the ·Ah of the RRP row the row policy keeps — the same trade as contrast and example
@@ -561,7 +561,7 @@ bo-peep	16	and	·No	junior
 bo-peep	17	they'll	·They·Eight’·Low	differs	·They·Eight·Low	Read writes the apostrophe inside the word; a spelling comes from the IPA alone and carries no apostrophe, however ReadLex’s own Latin is written
 bo-peep	18	come	·Key·Utter·May	junior		
 bo-peep	19	home	·He·Owe·May	junior		
-bo-peep	20	bringing	·Bay·Roe·It·Oolong·It·Oolong	differs	·Bay·Roe·It·Oolong·Oolong	Junior does not use the -ing terminal: ‘these Senior facilities are of course impossible as a first stage in children’s writing’ (§ Note). The junior column applies the affix rules all the same, per #3
+bo-peep	20	bringing	·Bay·Roe·It·-ing·It·-ing	differs	·Bay·Roe·It·-ing·-ing	Junior does not use the -ing terminal: ‘these Senior facilities are of course impossible as a first stage in children’s writing’ (§ Note). The junior column applies the affix rules all the same, per #3
 bo-peep	21	their	·They·Eight·Roe	junior		
 bo-peep	22	tails	·Tea·Eight·Low·Zoo	junior		
 bo-peep	23	behind	·Bay·It·He·I·No·Day	junior		
@@ -573,7 +573,7 @@ jack-horner	3	sat	·See·At·Tea	junior
 jack-horner	4	in	·It·No	junior		
 jack-horner	5	his	·He·It·Zoo	junior		
 jack-horner	6	corner	·Key·Awe·Roe·No·Utter·Roe	junior		
-jack-horner	7	eating	·Eat·Tea·It·Oolong	differs	·Eat·Tea·Oolong	Junior does not use the -ing terminal: ‘these Senior facilities are of course impossible as a first stage in children’s writing’ (§ Note). The junior column applies the affix rules all the same, per #3
+jack-horner	7	eating	·Eat·Tea·It·-ing	differs	·Eat·Tea·-ing	Junior does not use the -ing terminal: ‘these Senior facilities are of course impossible as a first stage in children’s writing’ (§ Note). The junior column applies the affix rules all the same, per #3
 jack-horner	8	his	·He·It·Zoo	junior		
 jack-horner	9	christmas	·Key·Roe·It·See·May·Utter·See	junior		
 jack-horner	10	pie	·Pea·I	junior		
@@ -610,10 +610,10 @@ ride-a-cock-horse	11	upon	·Utter·Pea·Ox·No	junior
 ride-a-cock-horse	12	a	·Utter	junior		
 ride-a-cock-horse	13	white	·Why·I·Tea	junior		
 ride-a-cock-horse	14	horse	·He·Awe·Roe·See	junior		
-ride-a-cock-horse	15	rings	·Roe·It·Oolong·Zoo	junior		
+ride-a-cock-horse	15	rings	·Roe·It·-ing·Zoo	junior		
 ride-a-cock-horse	16	on	·Ox·No	junior		
 ride-a-cock-horse	17	her	·He·Utter·Roe	junior		
-ride-a-cock-horse	18	fingers	·Fee·It·Oolong·Gay·Utter·Roe·Zoo	junior		
+ride-a-cock-horse	18	fingers	·Fee·It·-ing·Gay·Utter·Roe·Zoo	junior		
 ride-a-cock-horse	19	and	·No	junior		
 ride-a-cock-horse	20	bells	·Bay·Et·Low·Zoo	junior		
 ride-a-cock-horse	21	on	·Ox·No	junior		

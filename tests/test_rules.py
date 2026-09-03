@@ -87,7 +87,7 @@ def test_es_ed_drops_the_epenthetic_vowel() -> None:
 
 def test_es_ed_catches_sites_upstream_wrote_with_a_plain_schwa() -> None:
     assert all("Ə" not in row.ipa for row in BY_WORD["englishes"])
-    assert senior("englishes") == "·It·Oolong·Gay·Low·It·She·Zoo"
+    assert senior("englishes") == "·It·-ing·Gay·Low·It·She·Zoo"
     assert all("Ə" not in row.ipa for row in BY_WORD["cashboxes"])
     assert senior("cashboxes") == "·Key·At·She·Bay·Ox·Key·See·Zoo"
 
@@ -99,22 +99,22 @@ def test_es_ed_leaves_voicing_alone_because_readlex_already_has_it() -> None:
 
 
 def test_ing_bares_an_affix_but_not_a_root() -> None:
-    assert senior("calling", "AJ0") == "·Key·Awe·Low·Oolong"
-    assert senior("wing", "NN1") == "·Way·It·Oolong"
-    assert senior("bringing", "VVG") == "·Bay·Roe·It·Oolong·Oolong"
-    assert senior("carrying", "NN1") == "·Key·At·Roe·It·It·Oolong"
+    assert senior("calling", "AJ0") == "·Key·Awe·Low·-ing"
+    assert senior("wing", "NN1") == "·Way·It·-ing"
+    assert senior("bringing", "VVG") == "·Bay·Roe·It·-ing·-ing"
+    assert senior("carrying", "NN1") == "·Key·At·Roe·It·It·-ing"
 
 
 def test_ing_stays_bare_after_a_prefix() -> None:
-    assert senior("beings", "NN2") == "·Bay·Eat·Oolong·Zoo"
-    assert senior("undoing", "NN1") == "·Utter·No·Day·Ooze·Oolong"
-    assert senior("willingness", "NN1") == "·Way·It·Low·Oolong·No·Et·See"
+    assert senior("beings", "NN2") == "·Bay·Eat·-ing·Zoo"
+    assert senior("undoing", "NN1") == "·Utter·No·Day·Ooze·-ing"
+    assert senior("willingness", "NN1") == "·Way·It·Low·-ing·No·Et·See"
 
 
 def test_the_changed_meaning_rider_restores_the_root_not_the_affix() -> None:
-    assert senior("being", "NN1") == senior("being", "VBG") == "·Bay·Eat·Oolong"
-    assert senior("writings", "NN2") == "·Roe·I·Tea·Oolong·Zoo"
-    assert senior("canning", "NN1") == "·Key·At·No·Oolong"
+    assert senior("being", "NN1") == senior("being", "VBG") == "·Bay·Eat·-ing"
+    assert senior("writings", "NN2") == "·Roe·I·Tea·-ing·Zoo"
+    assert senior("canning", "NN1") == "·Key·At·No·-ing"
 
 
 def test_al_omits_the_vowel_only_after_a_consonant() -> None:
@@ -159,11 +159,11 @@ def test_tion_and_en_on_split_on_the_latin_spelling() -> None:
     assert senior("fashion", "NN1") == "·Fee·At·She·No"
     assert senior("ashen", "AJ0") == "·At·She·Utter·No"
     assert senior("action", "NN1") == "·At·Key·She·No"
-    assert senior("vision", "NN1") == "·Vie·It·Zhivago·No"
+    assert senior("vision", "NN1") == "·Vie·It·J’ai·No"
 
 
 def test_land_ment_drops_the_vowel_except_in_men() -> None:
-    assert senior("england", "NP0") == "·It·Oolong·Gay·Low·No·Day"
+    assert senior("england", "NP0") == "·It·-ing·Gay·Low·No·Day"
     assert senior("seaman", "NN1") == "·See·Eat·May·No"
     assert senior("seamen", "NN2") == "·See·Eat·May·Et·No"
     assert senior("cement", "NN1") == "·See·It·May·Et·No·Tea"
@@ -251,9 +251,9 @@ def test_y_holds_a_lemma_constant_across_the_ed_and_ing_seam() -> None:
     assert senior("squeegee") == "·See·Key·Way·Eat·Jay·Eat"
     assert senior("squeegees") == "·See·Key·Way·Eat·Jay·Eat·Zoo"
     assert senior("squeegeed") == "·See·Key·Way·Eat·Jay·Eat·Day"
-    assert senior("squeegeeing") == "·See·Key·Way·Eat·Jay·Eat·Oolong"
+    assert senior("squeegeeing") == "·See·Key·Way·Eat·Jay·Eat·-ing"
     assert senior("fricasseed") == "·Fee·Roe·It·Key·Utter·See·Eat·Day"
-    assert senior("fricasseeing") == "·Fee·Roe·It·Key·Utter·See·Eat·Oolong"
+    assert senior("fricasseeing") == "·Fee·Roe·It·Key·Utter·See·Eat·-ing"
 
 
 def test_y_leaves_a_compound_whose_last_element_is_a_word_of_its_own() -> None:
@@ -396,8 +396,8 @@ def test_senior_and_x_letter_differ_only_where_recorded() -> None:
 
 
 def test_a_terminal_or_prefix_rule_reaches_every_element_of_a_compound() -> None:
-    assert senior("adding-machine", "NN1") == "·At·Day·Oolong-·May·Utter·She·Eat·No"
-    assert senior("adding", "VVG") == "·At·Day·Oolong"
+    assert senior("adding-machine", "NN1") == "·At·Day·-ing-·May·Utter·She·Eat·No"
+    assert senior("adding", "VVG") == "·At·Day·-ing"
     assert (
         senior("air-conditioned", "AJ0") == "·Eight·Roe-·Key·No·Day·It·She·Utter·No·Day"
     )
@@ -415,15 +415,15 @@ def test_the_vowel_before_a_final_l_comes_back_when_a_syllable_follows() -> None
     assert senior("able-bodied", "AJ0") == "·Eight·Bay·Utter·Low-·Bay·Ox·Day·It·Day"
     assert senior("cable", "NN1") == "·Key·Eight·Bay·Low"
     assert senior("cable-car", "NN1") == "·Key·Eight·Bay·Utter·Low-·Key·Ah·Roe"
-    assert senior("feeding-bottle", "NN1") == "·Fee·Eat·Day·Oolong-·Bay·Ox·Tea·Low"
+    assert senior("feeding-bottle", "NN1") == "·Fee·Eat·Day·-ing-·Bay·Ox·Tea·Low"
 
 
 def test_a_ruling_keyed_on_an_element_governs_the_compound() -> None:
-    assert senior("left-wing", "NN1") == "·Low·Et·Fee·Tea-·Way·It·Oolong"
-    assert senior("well-being", "NN1") == "·Way·Et·Low-·Bay·Eat·Oolong"
-    assert senior("ding-dong", "NN1") == "·Day·It·Oolong-·Day·Ox·Oolong"
+    assert senior("left-wing", "NN1") == "·Low·Et·Fee·Tea-·Way·It·-ing"
+    assert senior("well-being", "NN1") == "·Way·Et·Low-·Bay·Eat·-ing"
+    assert senior("ding-dong", "NN1") == "·Day·It·-ing-·Day·Ox·-ing"
     assert senior("leading-strings", "NN2") == (
-        "·Low·Eat·Day·Oolong-·See·Tea·Roe·It·Oolong·Zoo"
+        "·Low·Eat·Day·-ing-·See·Tea·Roe·It·-ing·Zoo"
     )
 
 
@@ -511,7 +511,7 @@ def test_undecided_y_flags_an_unstressed_eat_until_a_ruling_covers_it() -> None:
 
 
 def test_spell_without_tables_still_produces_a_spelling() -> None:
-    assert spell(context_for("calling"), Tables()).senior == "·Key·Awe·Low·Oolong"
+    assert spell(context_for("calling"), Tables()).senior == "·Key·Awe·Low·-ing"
 
 
 def test_every_ruling_carries_a_note() -> None:

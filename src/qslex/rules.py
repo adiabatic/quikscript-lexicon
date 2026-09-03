@@ -389,7 +389,7 @@ def apply_ing(context: Context, letters: Letters) -> Letters:
     if _ing_stem(latin).endswith("y"):
         return letters
     for index in range(len(letters) - 2, 0, -1):
-        if letters[index].name == "It" and letters[index + 1].name == "Oolong":
+        if letters[index].name == "It" and letters[index + 1].name == "-ing":
             return _drop(letters, index)
     return letters
 

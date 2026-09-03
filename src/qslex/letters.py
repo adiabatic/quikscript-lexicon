@@ -26,7 +26,7 @@ VOWELS = frozenset(
 )
 
 SEPARATORS = frozenset("- '’")
-LETTER = re.compile(r"·([A-Za-z]+)|(.)")
+LETTER = re.compile(r"·(-ing|J’ai|[A-Za-z]+)|(.)")
 
 
 @dataclass(frozen=True)

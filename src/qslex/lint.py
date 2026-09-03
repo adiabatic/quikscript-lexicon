@@ -84,17 +84,17 @@ def _ing_affix(latin: str) -> str:
 
 
 ING_SHAPES = {
-    "ing": ("Oolong",),
-    "ings": ("Oolong", "Zoo"),
-    "ingly": ("Oolong", "Low", "It"),
-    "ingness": ("Oolong", "No", "Et", "See"),
+    "ing": ("-ing",),
+    "ings": ("-ing", "Zoo"),
+    "ingly": ("-ing", "Low", "It"),
+    "ingness": ("-ing", "No", "Et", "See"),
 }
 
 
 def ing_vowel_omitted(site: Site, tables: Tables) -> str:
     """“Provided it is an affix and not a root, omit vowel-i.” (terminal-ing)
 
-    “Spell -ing in full after roots ending in -y: ·Key·At·Roe·It·It·Oolong = carrying.” A root ending in -i is the same case — taxi, ski — and is skipped with it.
+    “Spell -ing in full after roots ending in -y: ·Key·At·Roe·It·It·-ing = carrying.” A root ending in -i is the same case — taxi, ski — and is skipped with it.
     """
     affix = _ing_affix(site.latin)
     stem = site.latin[: site.latin.rindex("ing")] if affix else ""
@@ -200,7 +200,7 @@ def x_letter_only_with_x(site: Site, tables: Tables) -> str:
 CHECKS: tuple[Check, ...] = (
     Check(
         "terminal-ing-vowel-omitted",
-        "an -ing affix is written ·Oolong with no ·It before it",
+        "an -ing affix is written ·-ing with no ·It before it",
         ing_vowel_omitted,
     ),
     Check(

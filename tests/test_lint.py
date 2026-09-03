@@ -45,16 +45,16 @@ def test_a_misaligned_entry_is_treated_as_one_element() -> None:
 
 def test_an_ing_affix_may_not_keep_its_vowel() -> None:
     assert "terminal-ing-vowel-omitted" in broken(
-        "abasing", "·Utter·Bay·Eight·See·It·Oolong", "əˈbeɪsɪŋ"
+        "abasing", "·Utter·Bay·Eight·See·It·-ing", "əˈbeɪsɪŋ"
     )
     assert "terminal-ing-vowel-omitted" not in broken(
-        "abasing", "·Utter·Bay·Eight·See·Oolong", "əˈbeɪsɪŋ"
+        "abasing", "·Utter·Bay·Eight·See·-ing", "əˈbeɪsɪŋ"
     )
 
 
 def test_a_root_ending_in_y_or_i_keeps_its_vowel() -> None:
-    assert not broken("carrying", "·Key·At·Roe·It·It·Oolong", "ˈkærɪɪŋ")
-    assert not broken("skiing", "·See·Key·Eat·It·Oolong", "ˈskiːɪŋ")
+    assert not broken("carrying", "·Key·At·Roe·It·It·-ing", "ˈkærɪɪŋ")
+    assert not broken("skiing", "·See·Key·Eat·It·-ing", "ˈskiːɪŋ")
 
 
 def test_a_final_l_drops_only_an_unstressed_vowel() -> None:
@@ -121,7 +121,7 @@ def test_no_more_x_letters_than_the_latin_has_x() -> None:
         "next", "·No·Et·Key·See·Tea", "nekst", "·No·Et·Excite·Excite"
     )
     assert "x-letter-only-with-x" not in broken(
-        "xerox", "·Zhivago·Eat·Roe·Ox·Key·See", "ˈzɪəRɒks", "·Zhivago·Eat·Roe·Ox·Excite"
+        "xerox", "·J’ai·Eat·Roe·Ox·Key·See", "ˈzɪəRɒks", "·J’ai·Eat·Roe·Ox·Excite"
     )
 
 

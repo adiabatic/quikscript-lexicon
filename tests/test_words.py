@@ -245,9 +245,9 @@ def test_a_listed_contraction_does_not_reach_the_senior_column() -> None:
 def test_doing_is_carried_under_the_terminal_ing_anchor() -> None:
     doing = [entry for entry in CONTRACTIONS if entry.word == "doing"]
     assert [(e.contraction, e.authority) for e in doing] == [
-        ("·Day·Oolong", "terminal-ing")
+        ("·Day·-ing", "terminal-ing")
     ]
-    assert senior("doing", "VDG") == "·Day·Ooze·Oolong"
+    assert senior("doing", "VDG") == "·Day·Ooze·-ing"
 
 
 def test_done_is_carried_under_the_no_how_anchor() -> None:
