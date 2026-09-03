@@ -1,4 +1,6 @@
-const TOKEN = /[\uE650-\uE66C\uE670-\uE67E][\uE650-\uE66C\uE670-\uE67E-]*/g;
+const TOKEN =
+  /[\uE650-\uE66C\uE670-\uE67E](?:[\p{Cf}\uFE00-\uFE0F]*[\uE650-\uE66C\uE670-\uE67E-])*/gu;
+const INVISIBLE = /[\p{Cf}\uFE00-\uFE0F]/u;
 const HYPHEN = "-";
 const NAMER = "·";
 const SPACE = " ";
@@ -10,12 +12,19 @@ function stripFrontMatter(text) {
   return text.replace(FRONT_MATTER, "");
 }
 
+function named(text, at) {
+  let back = at - 1;
+  while (back >= 0 && INVISIBLE.test(text[back])) back -= 1;
+  return text[back] === NAMER;
+}
+
 function tokens(text) {
   const found = [];
   TOKEN.lastIndex = 0;
   for (let match = TOKEN.exec(text); match !== null; match = TOKEN.exec(text)) {
-    if (match[0].length === 1 && text[match.index - 1] === NAMER) continue;
-    found.push({ word: match[0], start: match.index, end: TOKEN.lastIndex });
+    const word = match[0].split(INVISIBLE).join("");
+    if (word.length === 1 && named(text, match.index)) continue;
+    found.push({ word, start: match.index, end: TOKEN.lastIndex });
   }
   return found;
 }

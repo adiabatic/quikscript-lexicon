@@ -113,7 +113,7 @@ function wrap(text, flagged) {
     span.className = "miss";
     span.dataset.w = hit.word;
     span.dataset.occ = String(occurrence);
-    span.textContent = hit.word;
+    span.textContent = written.slice(hit.start, hit.end);
     pieces.append(span);
     at = hit.end;
   }

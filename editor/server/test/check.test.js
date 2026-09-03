@@ -54,6 +54,18 @@ test("a single letter after a namer dot is not checked", () => {
   assert.equal(published(`\u00b7${BAD}\n`, "plaintext").length, 1);
 });
 
+test("an invisible mark inside a run does not end the word", () => {
+  const joined = BAD.slice(0, 4) + "\u200c" + BAD.slice(4);
+  const found = published(`\u201c${joined}\u201d\n`, "plaintext");
+  assert.equal(found.length, 1);
+  assert.deepEqual(found[0].range, {
+    start: { line: 0, character: 1 },
+    end: { line: 0, character: 1 + joined.length },
+  });
+  assert.equal(found[0].message, `Unknown Quikscript spelling: ${BAD}`);
+  assert.deepEqual(published(`${GOOD.slice(0, 1)}\ufe00${GOOD.slice(1)}\n`, "plaintext"), []);
+});
+
 test("positions are utf-16 line and character offsets", () => {
   const found = published(`${GOOD}\nab ${BAD}\n`, "plaintext");
   assert.equal(found.length, 1);

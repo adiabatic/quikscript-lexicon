@@ -52,7 +52,7 @@ QUIKSCRIPT = SAMPLE.splitlines()[-1].split(" ")
 
 NODE = shutil.which("node")
 HERE = Path(__file__).resolve().parent
-CORE_TESTS, CORE_CHECKS = "desk_core.js", 41
+CORE_TESTS, CORE_CHECKS = "desk_core.js", 42
 PAGE_TESTS, PAGE_CHECKS = "desk_page.js", 36
 
 

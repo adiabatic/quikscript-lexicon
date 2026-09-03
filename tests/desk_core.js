@@ -73,6 +73,10 @@ const APOSTROPHE = "’";
 const ANGLE_OPEN = "\uE66E";
 const ANGLE_CLOSE = "\uE66F";
 const UNASSIGNED = "\uE66D";
+const ZWNJ = "\u200C";
+const ZWJ = "\u200D";
+const VARIATION = "\uFE0F";
+const SOFT_HYPHEN = "\u00AD";
 
 check("tokens are runs of Quikscript letters with their offsets", () => {
   assert.deepEqual(tokens(""), []);
@@ -106,6 +110,24 @@ check("a single letter after a namer dot is a letter named, not a word", () => {
     tokens(`${A} ${DOT}${B} ${C}`).map((hit) => hit.start),
     [0, 5],
   );
+});
+
+check("an invisible mark rides inside a run", () => {
+  for (const mark of [ZWNJ, ZWJ, VARIATION, SOFT_HYPHEN]) {
+    const hits = tokens(`${A}${mark}${B}`);
+    assert.equal(hits.length, 1, show(mark));
+    assert.equal(hits[0].word, A + B, show(mark));
+    assert.equal(hits[0].start, 0);
+    assert.equal(hits[0].end, 3);
+  }
+  assert.deepEqual(
+    tokens(`${A}${ZWNJ} ${B}`).map((hit) => [hit.word, hit.start, hit.end]),
+    [
+      [A, 0, 1],
+      [B, 3, 4],
+    ],
+  );
+  assert.deepEqual(tokens(`${DOT}${ZWNJ}${A}`), []);
 });
 
 check("a right single quote splits a run", () => {
