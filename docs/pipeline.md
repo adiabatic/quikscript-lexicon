@@ -74,7 +74,7 @@ ReadLex is a lexicon of English, and there are words this one needs that English
 
 Two fields are the table’s own. `source` names where the word comes from, on the rule [`shavian-divergences.tsv`](../src/qslex/data/shavian-divergences.tsv) sets that a hand-written row cites an authority. `qs` is the finished spelling, and it is a **fixture rather than an input** — the build never reads it, and the validator fails if the rules stop producing it, which is the arrangement [`manual-spellings.tsv`](../src/qslex/data/manual-spellings.tsv) already uses.
 
-Six of the table’s rows are the alphabet’s name, eight are three products of one family, of which the corpus carries a single row, four are two compounds whose parts the corpus spells, nine are a verb, its inflections and its noun, whose parts the corpus spells, four are an Italian loan under its two plurals and its Italian singular, and one is an adjective beside the noun and verb the corpus carries:
+Six of the table’s rows are the alphabet’s name, eight are three products of one family, of which the corpus carries a single row, four are two compounds whose parts the corpus spells, nine are a verb, its inflections and its noun, whose parts the corpus spells, four are an Italian loan under its two plurals and its Italian singular, and three are an adjective, with its comparative and superlative, beside the noun and verb the corpus carries:
 
 | word | pos | ipa | qs |
 | --- | --- | --- | --- |
@@ -110,6 +110,8 @@ Six of the table’s rows are the alphabet’s name, eight are three products of
 | cannolis | `NN2` | kəˈnəʊliz | ·Key·Utter·No·Owe·Low·It·Zoo |
 | cannolo | `NN1` | kəˈnəʊləʊ | ·Key·Utter·No·Owe·Low·Owe |
 | crispy | `AJ0` | ˈkrɪspi | ·Key·Roe·It·See·Pea·It |
+| crispier | `AJC` | ˈkrɪspɪəR | ·Key·Roe·It·See·Pea·It·Utter·Roe |
+| crispiest | `AJS` | ˈkrɪspiəst | ·Key·Roe·It·See·Pea·It·Et·See·Tea |
 
 Both spellings of the name are carried because both are used: the Manual writes **Quickscript** throughout — “even writers of Junior Quickscript should soon contract to single letters” ([p.12](https://adiabatic.github.io/abbots-morton-spaceport/the-manual.html#junior-contractions)) — and [quikscript.net](https://www.quikscript.net/) and this repository write **Quikscript**. They are one word, and share one Quikscript spelling.
 
@@ -135,7 +137,7 @@ Both possessives land on the [phrase list](#qs_converter_phrasestxt) automatical
 
 **Cannoli** is an Italian loan the corpus does not reach, and it comes in with the shape ReadLex gives loans of its kind. The English singular takes upstream’s own `ravioli` `NN1` ˌrævɪˈəʊli 𐑮𐑨𐑝𐑦𐑴𐑤𐑦 — an Italian plural English uses as a singular — joining the unstressed kə of `canal` kəˈnæl 𐑒𐑩𐑯𐑨𐑤 to ravioli’s -oli. The word is carried a second time as `NN2`, because it is also its own plural, on the row ReadLex gives `graffiti` and `paparazzi` beside their -o singulars; `cannolis` is the English plural on `raviolis` ˌrævɪˈəʊliz 𐑮𐑨𐑝𐑦𐑴𐑤𐑦𐑟. **Cannolo**, the Italian singular, takes the `NN1` row of `graffito` ɡrəˈfiːtəʊ 𐑜𐑮𐑩𐑓𐑰𐑑𐑴 and `paparazzo`, its final -o the əʊ of `polo` ˈpəʊləʊ 𐑐𐑴𐑤𐑴.
 
-**Crispy** is a gap beside a word the corpus has: ReadLex carries `crisp` krɪsp 𐑒𐑮𐑦𐑕𐑐 as adjective, noun and verb, and `crispness`, but not the -y adjective. It takes the `AJ0` row of `wispy` ˈwɪspi 𐑢𐑦𐑕𐑐𐑦 and `frisky` ˈfrɪski 𐑓𐑮𐑦𐑕𐑒𐑦, upstream’s crisp with the terminal -y those rows end in, which the rules write ·It.
+**Crispy** is a gap beside a word the corpus has: ReadLex carries `crisp` krɪsp 𐑒𐑮𐑦𐑕𐑐 as adjective, noun and verb, and `crispness`, but not the -y adjective. It takes the `AJ0` row of `wispy` ˈwɪspi 𐑢𐑦𐑕𐑐𐑦 and `frisky` ˈfrɪski 𐑓𐑮𐑦𐑕𐑒𐑦, upstream’s crisp with the terminal -y those rows end in, which the rules write ·It. Its comparative and superlative follow `risky` ˈrɪski 𐑮𐑦𐑕𐑒𐑦, whose `riskier` ˈrɪskɪəR 𐑮𐑦𐑕𐑒𐑦𐑼 and `riskiest` ˈrɪskiəst 𐑮𐑦𐑕𐑒𐑦𐑩𐑕𐑑 give the `AJC` and `AJS` rows their endings: ReadLex writes the comparative’s vowel ɪə and the superlative’s iə, and the rules write the -est terminal ·Et. The corpus’s own `crisper` and `crispest` stay as they are, the comparative and superlative of crisp.
 
 **What the validator demands** is stricter than what it demands of the corpus, because a row we wrote ourselves has no excuse for needing latitude. Each added row must produce the `qs` it declares, break no lint check, read back to its own IPA by the round trip’s [licensed edits](../src/qslex/roundtrip.py) alone, and reach no word sign — absolutes rather than pinned tolerances, since a table this small can be held to them. The edits are the only latitude, and they are the rules’ rather than the row’s: `ligated` drops the schwa its -Əd carries because Quikscript writes every such -ted that way, and a hand-written row cannot be held to a read-back the terminal conventions make impossible. It also fails if ReadLex grows the word, so that upstream carrying it becomes a change someone reconciles rather than a second spelling that ships in silence. Holding this pass separately from the corpus pass is also what leaves every corpus invariant where it was, so an upstream bump still diffs against ReadLex alone.
 

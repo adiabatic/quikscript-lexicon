@@ -20,7 +20,7 @@ function published(text, languageId, excused, overlooked) {
 }
 
 test("the fixtures hold: one word the lexicon spells, two it does not", () => {
-  assert.equal(WORDS.active.size, 75670);
+  assert.equal(WORDS.active.size, 75672);
   assert.ok(WORDS.active.has(GOOD));
   assert.ok(!WORDS.active.has(BAD));
   assert.ok(!WORDS.active.has(WORSE));
