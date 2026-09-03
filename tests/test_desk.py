@@ -125,9 +125,9 @@ def test_both_forms_of_a_divergent_row_are_accepted() -> None:
 
 def test_the_page_carries_the_dictionary_and_the_senior_contractions() -> None:
     assert LEXICON.union == tuple(sorted(frozenset(LEXICON.listed) | CONTRACTED))
-    assert len(LEXICON.listed) == 75587
+    assert len(LEXICON.listed) == 75588
     assert len(CONTRACTED) == 75
-    assert len(LEXICON.union) == 75656
+    assert len(LEXICON.union) == 75657
 
 
 def test_the_contractions_the_dictionary_already_lists_widen_nothing() -> None:
