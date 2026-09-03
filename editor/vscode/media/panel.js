@@ -212,9 +212,9 @@ function painted(state) {
   }
 }
 
-const top = writer(0, (fix) => ({ type: "copy", text: fix }), COPY);
-top.root.classList.add("lookup");
-board.before(top.root);
+const lookup = writer(0, (fix) => ({ type: "copy", text: fix }), COPY);
+lookup.root.classList.add("lookup");
+board.before(lookup.root);
 
 window.addEventListener("message", (event) => {
   const message = event.data;
