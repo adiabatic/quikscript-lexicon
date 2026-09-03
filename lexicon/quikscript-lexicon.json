@@ -10,10 +10,10 @@
             "block": "U+E650–U+E67E"
         },
         "counts": {
-            "headwords": 56665,
-            "entries": 108441,
+            "headwords": 56668,
+            "entries": 108444,
             "phrases": 1605,
-            "added": 16
+            "added": 19
         }
     },
     "letters": [
@@ -58366,6 +58366,9 @@
         "ipods_NN2_𐑲𐑐𐑪𐑛𐑟": [{"Latn": "ipods", "qs": "", "Shaw": "𐑲𐑐𐑪𐑛𐑟", "pos": "NN2", "ipa": "ˈaɪpɒdz", "freq": 0}],
         "ipod's_NP0+POS_𐑲𐑐𐑪𐑛𐑟": [{"Latn": "ipod's", "qs": "", "Shaw": "𐑲𐑐𐑪𐑛𐑟", "pos": "NP0+POS", "ipa": "ˈaɪpɒdz", "freq": 0}],
         "eggnog_NN1_𐑧𐑜𐑯𐑪𐑜": [{"Latn": "eggnog", "qs": "", "Shaw": "𐑧𐑜𐑯𐑪𐑜", "pos": "NN1", "ipa": "ˈeɡnɒɡ", "freq": 0}],
-        "eggnogs_NN2_𐑧𐑜𐑯𐑪𐑜𐑟": [{"Latn": "eggnogs", "qs": "", "Shaw": "𐑧𐑜𐑯𐑪𐑜𐑟", "pos": "NN2", "ipa": "ˈeɡnɒɡz", "freq": 0}]
+        "eggnogs_NN2_𐑧𐑜𐑯𐑪𐑜𐑟": [{"Latn": "eggnogs", "qs": "", "Shaw": "𐑧𐑜𐑯𐑪𐑜𐑟", "pos": "NN2", "ipa": "ˈeɡnɒɡz", "freq": 0}],
+        "ligate_VVI_𐑤𐑲𐑜𐑱𐑑": [{"Latn": "ligate", "qs": "", "Shaw": "𐑤𐑲𐑜𐑱𐑑", "pos": "VVI", "ipa": "laɪˈɡeɪt", "freq": 0}],
+        "ligate_VVB_𐑤𐑲𐑜𐑱𐑑": [{"Latn": "ligate", "qs": "", "Shaw": "𐑤𐑲𐑜𐑱𐑑", "pos": "VVB", "ipa": "laɪˈɡeɪt", "freq": 0}],
+        "ligates_VVZ_𐑤𐑲𐑜𐑱𐑑𐑕": [{"Latn": "ligates", "qs": "", "Shaw": "𐑤𐑲𐑜𐑱𐑑𐑕", "pos": "VVZ", "ipa": "laɪˈɡeɪts", "freq": 0}]
     }
 }

@@ -238,7 +238,7 @@ test("the bundled server checks a markdown document end to end", async () => {
   client.notify("initialized", {});
 
   const logged = await client.next((message) => message.method === "window/logMessage");
-  assert.match(logged.params.message, /75659 spellings/);
+  assert.match(logged.params.message, /75661 spellings/);
 
   client.notify("textDocument/didOpen", {
     textDocument: { uri, languageId: "markdown", version: 1, text: opened },
