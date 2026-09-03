@@ -10,10 +10,10 @@
             "block": "U+E650–U+E67E"
         },
         "counts": {
-            "headwords": 56680,
-            "entries": 108456,
+            "headwords": 56681,
+            "entries": 108457,
             "phrases": 1605,
-            "added": 31
+            "added": 32
         }
     },
     "letters": [
@@ -58381,6 +58381,7 @@
         "cannoli_NN1_𐑒𐑩𐑯𐑴𐑤𐑦": [{"Latn": "cannoli", "qs": "", "Shaw": "𐑒𐑩𐑯𐑴𐑤𐑦", "pos": "NN1", "ipa": "kəˈnəʊli", "freq": 0}],
         "cannoli_NN2_𐑒𐑩𐑯𐑴𐑤𐑦": [{"Latn": "cannoli", "qs": "", "Shaw": "𐑒𐑩𐑯𐑴𐑤𐑦", "pos": "NN2", "ipa": "kəˈnəʊli", "freq": 0}],
         "cannolis_NN2_𐑒𐑩𐑯𐑴𐑤𐑦𐑟": [{"Latn": "cannolis", "qs": "", "Shaw": "𐑒𐑩𐑯𐑴𐑤𐑦𐑟", "pos": "NN2", "ipa": "kəˈnəʊliz", "freq": 0}],
-        "cannolo_NN1_𐑒𐑩𐑯𐑴𐑤𐑴": [{"Latn": "cannolo", "qs": "", "Shaw": "𐑒𐑩𐑯𐑴𐑤𐑴", "pos": "NN1", "ipa": "kəˈnəʊləʊ", "freq": 0}]
+        "cannolo_NN1_𐑒𐑩𐑯𐑴𐑤𐑴": [{"Latn": "cannolo", "qs": "", "Shaw": "𐑒𐑩𐑯𐑴𐑤𐑴", "pos": "NN1", "ipa": "kəˈnəʊləʊ", "freq": 0}],
+        "crispy_AJ0_𐑒𐑮𐑦𐑕𐑐𐑦": [{"Latn": "crispy", "qs": "", "Shaw": "𐑒𐑮𐑦𐑕𐑐𐑦", "pos": "AJ0", "ipa": "ˈkrɪspi", "freq": 0}]
     }
 }
