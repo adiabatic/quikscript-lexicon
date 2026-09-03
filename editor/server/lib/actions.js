@@ -2,9 +2,10 @@ const { suggest } = require("../../../src/qslex/web/core.js");
 
 const QUICKFIX = "quickfix";
 const OCCURRENCE = "quikscript.ignore.occurrence";
+const DIRECTORY = "quikscript.ignore.directory";
 const PROJECT = "quikscript.ignore.project";
 const USER = "quikscript.ignore.user";
-const COMMANDS = [OCCURRENCE, PROJECT, USER];
+const COMMANDS = [OCCURRENCE, DIRECTORY, PROJECT, USER];
 const HOARD = 4096;
 
 /** @typedef {import("./check.js").Span} Span */
@@ -53,10 +54,10 @@ function told(title, command, args) {
  * @param {Flag} flag
  * @param {Span[]} everywhere
  * @param {string[]} offers
- * @param {boolean} project
+ * @param {{directory: boolean, project: boolean}} tiers
  * @returns {Action[]}
  */
-function actions(uri, flag, everywhere, offers, project) {
+function actions(uri, flag, everywhere, offers, tiers) {
   /** @type {Action[]} */
   const out = [];
   const others = everywhere.length - 1;
@@ -85,9 +86,12 @@ function actions(uri, flag, everywhere, offers, project) {
       { uri, word: flag.word, occurrence: flag.occurrence },
     ]),
   );
-  if (project) out.push(told("Ignore in this project", PROJECT, [{ uri, word: flag.word }]));
+  if (tiers.directory) {
+    out.push(told("Ignore in this directory", DIRECTORY, [{ uri, word: flag.word }]));
+  }
+  if (tiers.project) out.push(told("Ignore in this project", PROJECT, [{ uri, word: flag.word }]));
   out.push(told("Ignore everywhere", USER, [{ word: flag.word }]));
   return out;
 }
 
-module.exports = { COMMANDS, OCCURRENCE, PROJECT, USER, actions, adviser };
+module.exports = { COMMANDS, DIRECTORY, OCCURRENCE, PROJECT, USER, actions, adviser };

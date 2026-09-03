@@ -11,7 +11,15 @@ const { tokens } = require("../../src/qslex/web/core.js");
 const { lexicon } = require("./lib/lexicon.js");
 const { CAP, diagnostics, flagged, lineStarts, offsetAt, position, spot } = require("./lib/check.js");
 const { debouncer } = require("./lib/debounce.js");
-const { COMMANDS, OCCURRENCE, PROJECT, USER, actions, adviser } = require("./lib/actions.js");
+const {
+  COMMANDS,
+  DIRECTORY,
+  OCCURRENCE,
+  PROJECT,
+  USER,
+  actions,
+  adviser,
+} = require("./lib/actions.js");
 const { above, ledger, projectIgnorePath, userIgnorePath } = require("./lib/ignores.js");
 const { skipRanges } = require("./lib/markdown.js");
 const { readings, writings } = require("./lib/lookup.js");
@@ -29,7 +37,7 @@ const ASKED = 200;
 /** @typedef {import("./lib/actions.js").Edit} Edit */
 /** @typedef {{command: string, arguments: unknown[]}} Order */
 /** @typedef {{fix: string, gloss: string, edit: {changes: Record<string, Edit[]>}}} Offer */
-/** @typedef {{word: string, occurrence: number, range: Span, spans: Span[], fixes: Offer[], ignore: {occurrence: Order, project: Order | null, user: Order}}} Fixed */
+/** @typedef {{word: string, occurrence: number, range: Span, spans: Span[], fixes: Offer[], ignore: {occurrence: Order, directory: Order | null, project: Order | null, user: Order}}} Fixed */
 
 const connection = createConnection();
 const words = lexicon(data);
@@ -94,6 +102,19 @@ function projectRoot(uri) {
   if (!file) return roots[0] || null;
   const owned = roots.find((root) => file === root || file.startsWith(root + path.sep));
   return owned || path.dirname(file);
+}
+
+/** @param {string} uri */
+function directoryOf(uri) {
+  const file = localPath(uri);
+  return file ? path.dirname(file) : null;
+}
+
+/** @param {string} uri */
+function tiersFor(uri) {
+  const root = projectRoot(uri);
+  const home = directoryOf(uri);
+  return { directory: home !== null && home !== root, project: root !== null };
 }
 
 /** @param {string} uri */
@@ -162,14 +183,14 @@ function spanned(flags) {
  * @returns {import("./lib/actions.js").Action[][]}
  */
 function crafted(uri, flags, everywhere) {
-  const project = projectRoot(uri) !== null;
+  const tiers = tiersFor(uri);
   const started = Date.now();
   /** @type {import("./lib/actions.js").Action[][]} */
   const out = [];
   let spent = 0;
   for (const flag of flags) {
     if (spent >= BUDGET || Date.now() - started >= PATIENCE) break;
-    const built = actions(uri, flag, everywhere.get(flag.word) || [], offered(flag.word), project);
+    const built = actions(uri, flag, everywhere.get(flag.word) || [], offered(flag.word), tiers);
     out.push(built);
     for (const action of built) {
       spent += 1 + (action.edit ? action.edit.changes[uri].length : 0);
@@ -185,7 +206,7 @@ function crafted(uri, flags, everywhere) {
  * @returns {Fixed[]}
  */
 function gathered(uri, flags, everywhere) {
-  const project = projectRoot(uri) !== null;
+  const tiers = tiersFor(uri);
   const started = Date.now();
   /** @type {Fixed[]} */
   const out = [];
@@ -208,7 +229,10 @@ function gathered(uri, flags, everywhere) {
           command: OCCURRENCE,
           arguments: [{ uri, word: flag.word, occurrence: flag.occurrence }],
         },
-        project: project ? { command: PROJECT, arguments: [{ uri, word: flag.word }] } : null,
+        directory: tiers.directory
+          ? { command: DIRECTORY, arguments: [{ uri, word: flag.word }] }
+          : null,
+        project: tiers.project ? { command: PROJECT, arguments: [{ uri, word: flag.word }] } : null,
         user: { command: USER, arguments: [{ word: flag.word }] },
       },
     });
@@ -452,6 +476,10 @@ connection.onExecuteCommand(({ command, arguments: args }) => {
       : null;
   if (command === OCCURRENCE && uri && word && count !== null) {
     overlookedFor(uri).add(spot(word, count));
+  } else if (command === DIRECTORY && uri && word) {
+    const home = directoryOf(uri);
+    if (!home) return null;
+    files.append(projectIgnorePath(home), word);
   } else if (command === PROJECT && uri && word) {
     const root = projectRoot(uri);
     if (!root) return null;

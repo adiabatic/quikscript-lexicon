@@ -9,4 +9,4 @@ Quikscript is Private Use Area text, so install a Quikscript font and point `edi
 - `quikscript.completions` — `off` (the default), `onDemand`, or `auto`.
 - `quikscript.serverPath` — path to a `quikscript-lsp` other than the one packaged here.
 
-Words can be excused in a `.quikscript-ignore` file beside the document or at the workspace root, or in the user file under `${XDG_CONFIG_HOME:-~/.config}/quikscript`. The quick fixes write them for you.
+Words can be excused in a `.quikscript-ignore` file beside the document, in any directory above it, or at the workspace root, or in the user file under `${XDG_CONFIG_HOME:-~/.config}/quikscript`. The quick fixes and the Fixes panel write them for you. The directory tier is offered only when the document's own directory is not the workspace root itself, since there the two would write the same file.

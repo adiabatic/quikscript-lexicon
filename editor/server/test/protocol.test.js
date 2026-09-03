@@ -1,7 +1,15 @@
 const assert = require("node:assert/strict");
 const { test, before, after } = require("node:test");
 const { spawn } = require("node:child_process");
-const { existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, statSync } = require("node:fs");
+const {
+  existsSync,
+  mkdirSync,
+  mkdtempSync,
+  readFileSync,
+  readdirSync,
+  rmSync,
+  statSync,
+} = require("node:fs");
 const path = require("node:path");
 const { pathToFileURL } = require("node:url");
 const { bundle } = require("../bundle.js");
@@ -218,6 +226,7 @@ test("the bundled server checks a markdown document end to end", async () => {
     executeCommandProvider: {
       commands: [
         "quikscript.ignore.occurrence",
+        "quikscript.ignore.directory",
         "quikscript.ignore.project",
         "quikscript.ignore.user",
       ],
@@ -340,11 +349,12 @@ test("quick fixes speak Desk's order and each ignore tier holds its scope", asyn
   const A = misspelled(GOOD);
   const B = misspelled(A);
   const C = misspelled(B);
+  const D = misspelled(C);
   const ws = path.join(scratch, "ws");
   mkdirSync(path.join(ws, "deep"), { recursive: true });
   const uri = pathToFileURL(path.join(ws, "deep", "draft.md")).href;
   const other = pathToFileURL(path.join(ws, "notes.txt")).href;
-  const opened = `${A} ${A} ${B} ${C}\n`;
+  const opened = `${A} ${A} ${B} ${C} ${D}\n`;
 
   const client = new Client(target);
   await client.request("initialize", {
@@ -360,13 +370,18 @@ test("quick fixes speak Desk's order and each ignore tier holds its scope", asyn
   const first = await client.published();
   assert.equal(first.params.uri, uri);
   const held = first.params.diagnostics;
-  assert.deepEqual(said(held), [A, A, B, C].map(complaint));
+  assert.deepEqual(said(held), [A, A, B, C, D].map(complaint));
 
   const offers = core.suggest(A, advice());
   assert.ok(offers.length > 0);
   const expected = offers
     .flatMap((fix) => [fix, `${fix} — and the 1 other written the same way`])
-    .concat(["Ignore this occurrence", "Ignore in this project", "Ignore everywhere"]);
+    .concat([
+      "Ignore this occurrence",
+      "Ignore in this directory",
+      "Ignore in this project",
+      "Ignore everywhere",
+    ]);
   assert.deepEqual(titled(held[0].codeActions), expected);
   for (const action of held[0].codeActions) {
     if (action.edit) {
@@ -416,7 +431,7 @@ test("quick fixes speak Desk's order and each ignore tier holds its scope", asyn
   });
   const second = await client.published();
   assert.equal(second.params.uri, uri);
-  assert.deepEqual(said(second.params.diagnostics), [A, B, C].map(complaint));
+  assert.deepEqual(said(second.params.diagnostics), [A, B, C, D].map(complaint));
   assert.deepEqual(second.params.diagnostics[0].range, held[1].range);
   const trimmed = await client.request("textDocument/codeAction", {
     textDocument: { uri },
@@ -425,7 +440,12 @@ test("quick fixes speak Desk's order and each ignore tier holds its scope", asyn
   });
   assert.deepEqual(
     titled(trimmed.result),
-    offers.concat(["Ignore this occurrence", "Ignore in this project", "Ignore everywhere"]),
+    offers.concat([
+      "Ignore this occurrence",
+      "Ignore in this directory",
+      "Ignore in this project",
+      "Ignore everywhere",
+    ]),
   );
 
   await client.request("workspace/executeCommand", {
@@ -434,28 +454,53 @@ test("quick fixes speak Desk's order and each ignore tier holds its scope", asyn
   });
   const third = await client.published();
   assert.equal(third.params.uri, uri);
-  assert.deepEqual(said(third.params.diagnostics), [A, C].map(complaint));
+  assert.deepEqual(said(third.params.diagnostics), [A, C, D].map(complaint));
+  assert.equal(readFileSync(path.join(ws, ".quikscript-ignore"), "utf8"), `${B}\n`);
+
+  await client.request("workspace/executeCommand", {
+    command: "quikscript.ignore.directory",
+    arguments: [{ uri, word: D }],
+  });
+  const fourth = await client.published();
+  assert.equal(fourth.params.uri, uri);
+  assert.deepEqual(said(fourth.params.diagnostics), [A, C].map(complaint));
+  assert.equal(readFileSync(path.join(ws, "deep", ".quikscript-ignore"), "utf8"), `${D}\n`);
   assert.equal(readFileSync(path.join(ws, ".quikscript-ignore"), "utf8"), `${B}\n`);
 
   client.notify("textDocument/didOpen", {
-    textDocument: { uri: other, languageId: "plaintext", version: 1, text: `${A} ${B} ${C}\n` },
+    textDocument: {
+      uri: other,
+      languageId: "plaintext",
+      version: 1,
+      text: `${A} ${B} ${C} ${D}\n`,
+    },
   });
-  const fourth = await client.published();
-  assert.equal(fourth.params.uri, other);
-  assert.deepEqual(said(fourth.params.diagnostics), [A, C].map(complaint));
+  const fifth = await client.published();
+  assert.equal(fifth.params.uri, other);
+  assert.deepEqual(said(fifth.params.diagnostics), [A, C, D].map(complaint));
+  const beside = await client.request("textDocument/codeAction", {
+    textDocument: { uri: other },
+    range: fifth.params.diagnostics[0].range,
+    context: { diagnostics: [] },
+  });
+  assert.deepEqual(titled(beside.result).slice(-3), [
+    "Ignore this occurrence",
+    "Ignore in this project",
+    "Ignore everywhere",
+  ]);
 
   await client.request("workspace/executeCommand", {
     command: "quikscript.ignore.user",
     arguments: [{ word: C }],
   });
-  const fifth = await client.next(
+  const sixth = await client.next(
     (message) => message.method === PUBLISHED && message.params.uri === uri,
   );
-  const sixth = await client.next(
+  const seventh = await client.next(
     (message) => message.method === PUBLISHED && message.params.uri === other,
   );
-  assert.deepEqual(said(fifth.params.diagnostics), [complaint(A)]);
   assert.deepEqual(said(sixth.params.diagnostics), [complaint(A)]);
+  assert.deepEqual(said(seventh.params.diagnostics), [A, D].map(complaint));
   assert.equal(
     readFileSync(path.join(scratch, "xdg", "quikscript", "ignore"), "utf8"),
     `${C}\n`,
@@ -476,9 +521,9 @@ test("quick fixes speak Desk's order and each ignore tier holds its scope", asyn
   revived.notify("textDocument/didOpen", {
     textDocument: { uri, languageId: "markdown", version: 1, text: opened },
   });
-  const seventh = await revived.published();
-  assert.equal(seventh.params.uri, uri);
-  assert.deepEqual(said(seventh.params.diagnostics), [A, A].map(complaint));
+  const eighth = await revived.published();
+  assert.equal(eighth.params.uri, uri);
+  assert.deepEqual(said(eighth.params.diagnostics), [A, A].map(complaint));
   const parted = await revived.request("shutdown", null);
   assert.equal(parted.result, null);
   revived.notify("exit", null);
@@ -503,6 +548,17 @@ test("with no workspace root the project tier lands beside the file", async () =
   });
   const first = await client.published();
   assert.deepEqual(said(first.params.diagnostics), [complaint(D)]);
+
+  const answered = await client.request("quikscript/fixes", { textDocument: { uri } });
+  assert.deepEqual(answered.result.flags[0].ignore, {
+    occurrence: {
+      command: "quikscript.ignore.occurrence",
+      arguments: [{ uri, word: D, occurrence: 0 }],
+    },
+    directory: null,
+    project: { command: "quikscript.ignore.project", arguments: [{ uri, word: D }] },
+    user: { command: "quikscript.ignore.user", arguments: [{ word: D }] },
+  });
 
   const refused = await client.request("workspace/executeCommand", {
     command: "quikscript.ignore.project",
@@ -772,6 +828,13 @@ test("an untitled document reads the project ignores it writes", async () => {
   assert.deepEqual(second.params.diagnostics, []);
   assert.equal(readFileSync(path.join(den, ".quikscript-ignore"), "utf8"), `${E}\n`);
 
+  const nowhere = await client.request("workspace/executeCommand", {
+    command: "quikscript.ignore.directory",
+    arguments: [{ uri, word: E }],
+  });
+  assert.equal(nowhere.result, null);
+  assert.deepEqual(readdirSync(den), [".quikscript-ignore"]);
+
   const bye = await client.request("shutdown", null);
   assert.equal(bye.result, null);
   client.notify("exit", null);
@@ -834,6 +897,7 @@ test("quikscript/fixes hands each flag its fixes, glosses, edits and ignores", a
         command: "quikscript.ignore.occurrence",
         arguments: [{ uri, word: flag.word, occurrence: flag.occurrence }],
       },
+      directory: null,
       project: { command: "quikscript.ignore.project", arguments: [{ uri, word: flag.word }] },
       user: { command: "quikscript.ignore.user", arguments: [{ word: flag.word }] },
     });
@@ -895,6 +959,7 @@ test("with no root an untitled document is offered no project ignore", async () 
       command: "quikscript.ignore.occurrence",
       arguments: [{ uri, word: F, occurrence: 0 }],
     },
+    directory: null,
     project: null,
     user: { command: "quikscript.ignore.user", arguments: [{ word: F }] },
   });

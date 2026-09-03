@@ -4,8 +4,8 @@
 /** @typedef {{changes: Record<string, Edit[]>}} Change */
 /** @typedef {{command: string, arguments: unknown[]}} Order */
 /** @typedef {{fix: string, gloss: string, edit: Change}} Offer */
-/** @typedef {"occurrence" | "project" | "user"} Tier */
-/** @typedef {{occurrence: Order, project: Order | null, user: Order}} Ignore */
+/** @typedef {"occurrence" | "directory" | "project" | "user"} Tier */
+/** @typedef {{occurrence: Order, directory: Order | null, project: Order | null, user: Order}} Ignore */
 /** @typedef {{word: string, occurrence: number, range: Span, spans: Span[], fixes: Offer[], ignore: Ignore}} Fixed */
 /** @typedef {{uri: string, flags: Fixed[]}} Held */
 /** @typedef {{kind: "word", flag: number, word: string, occurrence: number, others: number, line: number, character: number}} Named */
@@ -30,6 +30,7 @@
 /** @type {[Tier, string][]} */
 const TIERS = [
   ["occurrence", "Ignore this occurrence"],
+  ["directory", "Ignore in this directory"],
   ["project", "Ignore in this project"],
   ["user", "Ignore everywhere"],
 ];

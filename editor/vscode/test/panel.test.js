@@ -35,14 +35,18 @@ function offered(fix, gloss, range) {
 /**
  * @param {string} word
  * @param {number} occurrence
+ * @param {boolean} directory
  * @param {boolean} project
  */
-function ignored(word, occurrence, project) {
+function ignored(word, occurrence, directory, project) {
   return {
     occurrence: {
       command: "quikscript.ignore.occurrence",
       arguments: [{ uri: URI, word, occurrence }],
     },
+    directory: directory
+      ? { command: "quikscript.ignore.directory", arguments: [{ uri: URI, word }] }
+      : null,
     project: project
       ? { command: "quikscript.ignore.project", arguments: [{ uri: URI, word }] }
       : null,
@@ -64,7 +68,7 @@ const FLAGS = [
     range: HERE,
     spans: EVERYWHERE,
     fixes: [offered(GOOD, "good", HERE), offered(OTHER, "", HERE)],
-    ignore: ignored(BAD, 0, true),
+    ignore: ignored(BAD, 0, true, true),
   },
   {
     word: MUTE,
@@ -72,7 +76,7 @@ const FLAGS = [
     range: LONE,
     spans: [LONE],
     fixes: [],
-    ignore: ignored(MUTE, 0, false),
+    ignore: ignored(MUTE, 0, false, false),
   },
   {
     word: BAD,
@@ -80,7 +84,7 @@ const FLAGS = [
     range: AGAIN,
     spans: EVERYWHERE,
     fixes: [offered(GOOD, "good", AGAIN), offered(OTHER, "", AGAIN)],
-    ignore: ignored(BAD, 1, true),
+    ignore: ignored(BAD, 1, true, true),
   },
 ];
 
@@ -98,6 +102,7 @@ test("each flag heads its own card, its offers ahead of the ignore tiers", () =>
       "ignore",
       "ignore",
       "ignore",
+      "ignore",
       "word",
       "none",
       "ignore",
@@ -105,6 +110,7 @@ test("each flag heads its own card, its offers ahead of the ignore tiers", () =>
       "word",
       "offer",
       "offer",
+      "ignore",
       "ignore",
       "ignore",
       "ignore",
@@ -121,7 +127,7 @@ test("each flag heads its own card, its offers ahead of the ignore tiers", () =>
   });
   assert.deepEqual(out[1], { kind: "offer", flag: 0, at: 0, fix: GOOD, gloss: "good", others: 2 });
   assert.deepEqual(out[2], { kind: "offer", flag: 0, at: 1, fix: OTHER, gloss: "", others: 2 });
-  assert.deepEqual(out[10], {
+  assert.deepEqual(out[11], {
     kind: "word",
     flag: 2,
     word: BAD,
@@ -183,13 +189,29 @@ test("each ignore tier hands back the server's own command", () => {
       arguments: [{ uri: URI, word: BAD, occurrence: 0 }],
     },
   });
+  assert.deepEqual(resolved(HELD, { type: "ignore", flag: 0, tier: "directory" }), {
+    order: { command: "quikscript.ignore.directory", arguments: [{ uri: URI, word: BAD }] },
+  });
   assert.deepEqual(resolved(HELD, { type: "ignore", flag: 0, tier: "project" }), {
     order: { command: "quikscript.ignore.project", arguments: [{ uri: URI, word: BAD }] },
   });
   assert.deepEqual(resolved(HELD, { type: "ignore", flag: 0, tier: "user" }), {
     order: { command: "quikscript.ignore.user", arguments: [{ word: BAD }] },
   });
+  assert.equal(resolved(HELD, { type: "ignore", flag: 1, tier: "directory" }), null);
   assert.equal(resolved(HELD, { type: "ignore", flag: 1, tier: "project" }), null);
+});
+
+test("a document in its project's root has no directory tier", () => {
+  const rooted = { ...FLAGS[0], ignore: ignored(BAD, 0, false, true) };
+  assert.deepEqual(rows([rooted]), [
+    { kind: "word", flag: 0, word: BAD, occurrence: 0, others: 2, line: 0, character: 4 },
+    { kind: "offer", flag: 0, at: 0, fix: GOOD, gloss: "good", others: 2 },
+    { kind: "offer", flag: 0, at: 1, fix: OTHER, gloss: "", others: 2 },
+    { kind: "ignore", flag: 0, tier: "occurrence", label: "Ignore this occurrence" },
+    { kind: "ignore", flag: 0, tier: "project", label: "Ignore in this project" },
+    { kind: "ignore", flag: 0, tier: "user", label: "Ignore everywhere" },
+  ]);
 });
 
 test("a reveal answers with the flagged range", () => {
