@@ -632,6 +632,22 @@ test("hover names the word and completions replace the latin", async () => {
   });
   assert.equal(walled.result, null);
 
+  const spelled = await client.request("quikscript/writings", { text: "Read zzxq" });
+  assert.deepEqual(spelled.result, {
+    words: [
+      {
+        latin: "read",
+        items: [
+          { label: READ_EAT, detail: "singular noun, verb, infinitive", sortText: "0000" },
+          { label: READ_ET, detail: "past-tense verb, past participle", sortText: "0001" },
+        ],
+      },
+      { latin: "zzxq", items: [] },
+    ],
+  });
+  const blank = await client.request("quikscript/writings", {});
+  assert.deepEqual(blank.result, { words: [] });
+
   const bye = await client.request("shutdown", null);
   assert.equal(bye.result, null);
   client.notify("exit", null);

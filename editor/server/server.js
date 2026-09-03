@@ -16,13 +16,14 @@ const { above, ledger, projectIgnorePath, userIgnorePath } = require("./lib/igno
 const { skipRanges } = require("./lib/markdown.js");
 const { readings, writings } = require("./lib/lookup.js");
 const { glossed, hovered, listed } = require("./lib/hover.js");
-const { completions } = require("./lib/complete.js");
+const { completions, written } = require("./lib/complete.js");
 
 const DELAY = 200;
 const BUDGET = 10000;
 const PATIENCE = 500;
 const MODES = ["off", "onDemand", "auto"];
 const MARKDOWN = "markdown";
+const ASKED = 200;
 
 /** @typedef {import("./lib/check.js").Span} Span */
 /** @typedef {import("./lib/actions.js").Edit} Edit */
@@ -431,6 +432,11 @@ connection.onRequest(
     return { flags: built };
   },
 );
+
+connection.onRequest("quikscript/writings", (/** @type {{text?: unknown}} */ asked) => {
+  const text = typeof asked?.text === "string" ? asked.text.slice(0, ASKED) : "";
+  return { words: written(text, writer()) };
+});
 
 connection.onExecuteCommand(({ command, arguments: args }) => {
   const asked = /** @type {{uri?: unknown, word?: unknown, occurrence?: unknown}} */ (

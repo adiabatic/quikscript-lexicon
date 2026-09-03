@@ -1,14 +1,15 @@
 const path = require("node:path");
 const { existsSync } = require("node:fs");
-const { Range, Uri, WorkspaceEdit, commands, languages, window, workspace } = require("vscode");
+const { Range, Uri, WorkspaceEdit, commands, env, languages, window, workspace } = require("vscode");
 const { LanguageClient, TransportKind } = require("vscode-languageclient/node");
-const { resolved, rows, shell } = require("./lib/panel.js");
+const { resolved, rows, shell, shown } = require("./lib/panel.js");
 
 const SECTION = "quikscript";
 const BUNDLED = ["dist", "quikscript-lsp"];
 const BESIDE = ["..", "server", "server.js"];
 const VIEW = "quikscript.fixes";
 const FIXES = "quikscript/fixes";
+const WRITINGS = "quikscript/writings";
 const MEDIA = "media";
 const STYLES = ["quikscript-webview.css", "panel.css"];
 const SCRIPT = "panel.js";
@@ -21,6 +22,7 @@ const CLEAN = "Nothing flagged.";
 /** @typedef {import("./lib/panel.js").Fixed} Fixed */
 /** @typedef {import("./lib/panel.js").Span} Span */
 /** @typedef {import("./lib/panel.js").State} State */
+/** @typedef {import("./lib/panel.js").Written} Written */
 
 /** @type {LanguageClient | undefined} */
 let client;
@@ -57,7 +59,25 @@ function subject() {
 /** @param {State} next */
 function post(next) {
   told = next;
-  if (view) view.webview.postMessage(next);
+  if (view) view.webview.postMessage({ type: "state", state: next });
+}
+
+/**
+ * @param {number} id
+ * @param {string} text
+ */
+async function written(id, text) {
+  /** @type {{rows: import("./lib/panel.js").Shown[], note: string}} */
+  let answer = { rows: [], note: STILL };
+  if (client && client.isRunning()) {
+    try {
+      const words = /** @type {{words: Written[]}} */ (
+        await client.sendRequest(WRITINGS, { text })
+      );
+      answer = { rows: shown(words.words), note: "" };
+    } catch {}
+  }
+  if (view) view.webview.postMessage({ type: "written", id, ...answer });
 }
 
 async function refresh() {
@@ -96,6 +116,8 @@ async function applied(change) {
 /** @param {any} message */
 async function handle(message) {
   if (message.type === "ready") return post(told);
+  if (message.type === "copy") return env.clipboard.writeText(String(message.text));
+  if (message.type === "write") return written(Number(message.id), String(message.text));
   const answer = resolved(held, message);
   if (!answer) return;
   if ("edit" in answer) return applied(answer.edit);

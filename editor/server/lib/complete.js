@@ -5,6 +5,8 @@ const WORDY = /[A-Za-z'’-]/;
 const CURLY = /’/g;
 const TRAILING = /'+$/;
 const HYPHEN = "-";
+const RUN = /[A-Za-z'’-]+/g;
+const MOST = 20;
 
 /** @typedef {import("./lookup.js").Writing} Writing */
 /** @typedef {{label: string, detail: string, sortText: string}} Item */
@@ -98,4 +100,27 @@ function completions(text, offset, write) {
   return { word: text.slice(start, end), start, end, items: items(senses) };
 }
 
-module.exports = { completions, worded };
+/**
+ * @param {string} text
+ * @param {Map<string, Writing[]>} write
+ * @returns {{latin: string, items: Item[]}[]}
+ */
+function written(text, write) {
+  /** @type {{latin: string, items: Item[]}[]} */
+  const out = [];
+  for (const [run] of text.matchAll(RUN)) {
+    if (out.length >= MOST) break;
+    if (!LETTER.test(run)) continue;
+    const key = run.toLowerCase().replace(CURLY, "'").replace(TRAILING, "");
+    const senses = write.get(key);
+    const pieces = senses || !key.includes(HYPHEN) ? [key] : key.split(HYPHEN);
+    for (const piece of pieces) {
+      if (!LETTER.test(piece)) continue;
+      const held = write.get(piece);
+      out.push({ latin: piece, items: held ? items(held) : [] });
+    }
+  }
+  return out;
+}
+
+module.exports = { completions, worded, written };

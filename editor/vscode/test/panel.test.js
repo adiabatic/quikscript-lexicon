@@ -1,6 +1,6 @@
 const assert = require("node:assert/strict");
 const { test } = require("node:test");
-const { resolved, rows, shell } = require("../lib/panel.js");
+const { resolved, rows, shell, shown } = require("../lib/panel.js");
 
 /** @typedef {import("../lib/panel.js").Fixed} Fixed */
 /** @typedef {import("../lib/panel.js").Held} Held */
@@ -110,15 +110,31 @@ test("each flag heads its own card, its offers ahead of the ignore tiers", () =>
       "ignore",
     ],
   );
-  assert.deepEqual(out[0], { kind: "word", flag: 0, word: BAD, line: 0, character: 4 });
+  assert.deepEqual(out[0], {
+    kind: "word",
+    flag: 0,
+    word: BAD,
+    occurrence: 0,
+    others: 2,
+    line: 0,
+    character: 4,
+  });
   assert.deepEqual(out[1], { kind: "offer", flag: 0, at: 0, fix: GOOD, gloss: "good", others: 2 });
   assert.deepEqual(out[2], { kind: "offer", flag: 0, at: 1, fix: OTHER, gloss: "", others: 2 });
-  assert.deepEqual(out[10], { kind: "word", flag: 2, word: BAD, line: 2, character: 0 });
+  assert.deepEqual(out[10], {
+    kind: "word",
+    flag: 2,
+    word: BAD,
+    occurrence: 1,
+    others: 2,
+    line: 2,
+    character: 0,
+  });
 });
 
 test("a word with nothing to offer says none, and a rootless document has no project tier", () => {
   assert.deepEqual(rows([FLAGS[1]]), [
-    { kind: "word", flag: 0, word: MUTE, line: 3, character: 2 },
+    { kind: "word", flag: 0, word: MUTE, occurrence: 0, others: 0, line: 3, character: 2 },
     { kind: "none" },
     { kind: "ignore", flag: 0, tier: "occurrence", label: "Ignore this occurrence" },
     { kind: "ignore", flag: 0, tier: "user", label: "Ignore everywhere" },
@@ -149,6 +165,17 @@ test("a sweep rewrites every occurrence the flag knows of", () => {
   });
 });
 
+test("a typed spelling rewrites the flag alone or every occurrence", () => {
+  assert.deepEqual(resolved(HELD, { type: "typed", flag: 2, fix: OTHER, sweep: false }), {
+    edit: { changes: { [URI]: [{ range: AGAIN, newText: OTHER }] } },
+  });
+  assert.deepEqual(resolved(HELD, { type: "typed", flag: 0, fix: OTHER, sweep: true }), {
+    edit: { changes: { [URI]: EVERYWHERE.map((range) => ({ range, newText: OTHER })) } },
+  });
+  assert.equal(resolved(HELD, { type: "typed", flag: 0, fix: "", sweep: false }), null);
+  assert.equal(resolved(HELD, { type: "typed", flag: 7, fix: OTHER, sweep: false }), null);
+});
+
 test("each ignore tier hands back the server's own command", () => {
   assert.deepEqual(resolved(HELD, { type: "ignore", flag: 0, tier: "occurrence" }), {
     order: {
@@ -174,6 +201,28 @@ test("a stale flag or a vanished offer answers nothing", () => {
   assert.equal(resolved(HELD, { type: "fix", flag: 1, at: 0, sweep: false }), null);
   assert.equal(resolved(HELD, { type: "fix", flag: 0, at: 5, sweep: true }), null);
   assert.equal(resolved(HELD, { type: "ignore", flag: 4, tier: "user" }), null);
+});
+
+test("a written word shows each form under its gloss, a phrase its whole line first", () => {
+  const read = { latin: "read", items: [{ label: GOOD, detail: "verb" }, { label: OTHER, detail: "noun" }] };
+  const this_ = { latin: "this", items: [{ label: MUTE, detail: "determiner" }] };
+  const none = { latin: "zzxq", items: [] };
+  assert.deepEqual(shown([read]), [
+    { kind: "form", fix: GOOD, gloss: "verb" },
+    { kind: "form", fix: OTHER, gloss: "noun" },
+  ]);
+  assert.deepEqual(shown([read, this_]), [
+    { kind: "phrase", fix: `${GOOD} ${MUTE}` },
+    { kind: "form", fix: GOOD, gloss: "read — verb" },
+    { kind: "form", fix: OTHER, gloss: "read — noun" },
+    { kind: "form", fix: MUTE, gloss: "this — determiner" },
+  ]);
+  assert.deepEqual(shown([read, none]), [
+    { kind: "form", fix: GOOD, gloss: "read — verb" },
+    { kind: "form", fix: OTHER, gloss: "read — noun" },
+    { kind: "missing", latin: "zzxq" },
+  ]);
+  assert.deepEqual(shown([]), []);
 });
 
 test("the shell lets fonts in as data and names every file it was handed", () => {

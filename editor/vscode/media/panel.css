@@ -110,25 +110,67 @@ button:focus-visible {
   color: var(--vscode-foreground);
 }
 
-.ignore {
+.ignores {
   margin-block-start: 11px;
-  padding: 11px 11px 0;
+  padding-block-start: 6px;
   border-block-start: 1px solid var(--vscode-widget-border, var(--vscode-panel-border));
-  border-radius: 0;
+}
+
+.ignore {
+  min-block-size: 28px;
+  padding: 5px 11px;
   color: var(--vscode-descriptionForeground);
   font-size: var(--vscode-font-size);
   line-height: 1.4;
 }
 
-.ignore + .ignore {
-  margin-block-start: 0;
-  padding-block-start: 0;
-  border-block-start: 0;
-}
-
 .ignore:hover,
 .ignore:focus-visible {
   color: var(--vscode-foreground);
+}
+
+.writer {
+  margin: 0;
+}
+
+.lookup {
+  max-inline-size: 36rem;
+  margin-block-end: 11px;
+}
+
+section .writer {
+  margin-block-start: 11px;
+  padding-block-start: 11px;
+  border-block-start: 1px solid var(--vscode-widget-border, var(--vscode-panel-border));
+}
+
+.latin {
+  display: block;
+  inline-size: 100%;
+  min-block-size: 28px;
+  padding: 4px 8px;
+  border: 1px solid var(--vscode-input-border, transparent);
+  border-radius: 2px;
+  background: var(--vscode-input-background);
+  color: var(--vscode-input-foreground);
+  font: inherit;
+}
+
+.latin::placeholder {
+  color: var(--vscode-input-placeholderForeground);
+}
+
+.latin:focus {
+  outline: 1px solid var(--vscode-focusBorder);
+  outline-offset: -1px;
+}
+
+.written {
+  overflow: hidden;
+}
+
+.written:not(:empty) {
+  margin-block-start: 6px;
 }
 
 .quiet {
