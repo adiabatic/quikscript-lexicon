@@ -95,6 +95,19 @@ check("a middle dot splits a run", () => {
   );
 });
 
+check("a single letter after a namer dot is a letter named, not a word", () => {
+  assert.deepEqual(tokens(`${DOT}${A}`), []);
+  assert.deepEqual(tokens(`${DOT}${A} ${DOT}${B}${DOT}${C}`), []);
+  assert.deepEqual(
+    tokens(`${DOT}${A}${B} ${A} ${NAMER}${A}`).map((hit) => hit.word),
+    [A + B, A, A],
+  );
+  assert.deepEqual(
+    tokens(`${A} ${DOT}${B} ${C}`).map((hit) => hit.start),
+    [0, 5],
+  );
+});
+
 check("a right single quote splits a run", () => {
   assert.deepEqual(
     tokens(`${A}${B}${APOSTROPHE}${C}`).map((hit) => hit.word),

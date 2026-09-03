@@ -1,5 +1,6 @@
 const TOKEN = /[\uE650-\uE66C\uE670-\uE67E][\uE650-\uE66C\uE670-\uE67E-]*/g;
 const HYPHEN = "-";
+const NAMER = "·";
 const SPACE = " ";
 const OFFERS = 10;
 const DISTANT = 3;
@@ -13,6 +14,7 @@ function tokens(text) {
   const found = [];
   TOKEN.lastIndex = 0;
   for (let match = TOKEN.exec(text); match !== null; match = TOKEN.exec(text)) {
+    if (match[0].length === 1 && text[match.index - 1] === NAMER) continue;
     found.push({ word: match[0], start: match.index, end: TOKEN.lastIndex });
   }
   return found;

@@ -48,6 +48,12 @@ test("an unknown spelling is flagged over its full range", () => {
   ]);
 });
 
+test("a single letter after a namer dot is not checked", () => {
+  const letter = BAD[0];
+  assert.deepEqual(published(`\u00b7${letter} and \u00b7${letter}\u00b7${letter}\n`, "plaintext"), []);
+  assert.equal(published(`\u00b7${BAD}\n`, "plaintext").length, 1);
+});
+
 test("positions are utf-16 line and character offsets", () => {
   const found = published(`${GOOD}\nab ${BAD}\n`, "plaintext");
   assert.equal(found.length, 1);
