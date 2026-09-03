@@ -134,6 +134,12 @@ def test_verbal_s_attaches_solid(t: Transliterator) -> None:
     assert words(t, "It's here.", contractions=False)[0] == qs("·It·Tea·See")
 
 
+def test_a_tolerated_contraction_is_never_written(t: Transliterator) -> None:
+    assert t.transliterate("It is done.", Options(junior=False)).strip() == (
+        "\ue670 \ue65b \ue653\ue67a\ue666."
+    )
+
+
 def test_all_is_a_word_not_a_contraction_half(t: Transliterator) -> None:
     out = words(t, "I do all the work.", contractions=False)
     assert out[1] == qs("·Day·Ooze")
@@ -415,8 +421,9 @@ def test_a_pseudo_tag_gains_no_closing_tag(t: Transliterator) -> None:
 
 # --- the Manual’s specimen passages -------------------------------------------
 
-# Rows the replay cannot reproduce, each for a reason the layers own: the fixture cannot record a leading apostrophe, a phrase match hides a word from the word-level contraction layer, Read contracts beyond his own list, and the row policy keeps both RRPVar pronunciations of against.
+# Rows the replay cannot reproduce, each for a reason the layers own: the fixture cannot record a leading apostrophe, a phrase match hides a word from the word-level contraction layer, Read contracts beyond his own list, a tolerated contraction is accepted but never written, and the row policy keeps both RRPVar pronunciations of against.
 REPLAY_PINS = {
+    ("no-how", 38): "·Day·Utter·No",
     ("parental-advice", 11): "·Low·It·Tea·Low",
     ("gown-shop", 24): "·Why·Et·Vie",
     ("marys-lamb", 30): "’·Tea·Way·Ox·Zoo",

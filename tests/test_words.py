@@ -250,6 +250,14 @@ def test_doing_is_carried_under_the_terminal_ing_anchor() -> None:
     assert senior("doing", "VDG") == "·Day·Ooze·Oolong"
 
 
+def test_done_is_carried_under_the_no_how_anchor() -> None:
+    done = [entry for entry in CONTRACTIONS if entry.word == "done"]
+    assert [(e.contraction, e.authority) for e in done] == [("·Day·No", "no-how")]
+    assert not done[0].written
+    assert all(e.written for e in CONTRACTIONS if e.word != "done")
+    assert senior("done", "VDN") == "·Day·Utter·No"
+
+
 def test_unknown_contraction_kind(tmp_path: Path) -> None:
     rows = [["also", "", "affix", "·Awe·Low·See", "senior-contractions", ""]]
     path = write_tsv(tmp_path / "c.tsv", CONTRACTIONS_HEADER, rows)

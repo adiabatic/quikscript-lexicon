@@ -314,6 +314,8 @@ class Transliterator:
         self.contraction_words: dict[tuple[str, str], str] = {}
         self.contraction_end: dict[str, str] = dict(CONTRACTION_END)
         for entry in load_contractions():
+            if not entry.written:
+                continue
             spelling = _contraction_qs(entry.contraction)
             if entry.kind == "clitic":
                 self.contraction_end[entry.word] = spelling

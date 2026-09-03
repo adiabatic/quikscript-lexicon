@@ -126,17 +126,17 @@ def test_both_forms_of_a_divergent_row_are_accepted() -> None:
 def test_the_page_carries_the_dictionary_and_the_senior_contractions() -> None:
     assert LEXICON.union == tuple(sorted(frozenset(LEXICON.listed) | CONTRACTED))
     assert len(LEXICON.listed) == 75583
-    assert len(CONTRACTED) == 74
-    assert len(LEXICON.union) == 75651
+    assert len(CONTRACTED) == 75
+    assert len(LEXICON.union) == 75652
 
 
 def test_the_contractions_the_dictionary_already_lists_widen_nothing() -> None:
-    """Six of the 74 are spellings the columns carry anyway, for six reasons.
+    """Six of the 75 are spellings the columns carry anyway, for six reasons.
 
     be and that are Manual word signs the senior column already writes, cannot is spelled as the list spells it, and do, think and she collide with an unrelated entry each — the ordinals nd/rd and th, and the interjection sh. Set arithmetic gets all six right; a count of rows would not.
     """
     assert len(CONTRACTED & frozenset(LEXICON.listed)) == 6
-    assert len(LEXICON.union) - len(LEXICON.listed) == 68
+    assert len(LEXICON.union) - len(LEXICON.listed) == 69
 
 
 def test_only_the_word_rows_of_the_contraction_list_reach_the_page() -> None:

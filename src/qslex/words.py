@@ -15,7 +15,9 @@ SIGN_AUTHORITIES = {"junior-contractions", "common-words"}
 CONTRACTIONS_FILE = "contractions.tsv"
 CONTRACTIONS_HEADER = ["word", "pos", "kind", "contraction", "authority", "note"]
 KINDS = {"word", "clitic"}
-CONTRACTION_AUTHORITIES = {"senior-contractions", "terminal-ing"}
+CONTRACTION_AUTHORITIES = {"senior-contractions", "terminal-ing", "no-how"}
+# Anchored in a specimen passage rather than a rule, so a checker accepts the form and the converter never writes it.
+TOLERATED_AUTHORITIES = frozenset({"no-how"})
 
 # The core eight the Manual sanctions for Junior writing too, in its own order.
 CORE_EIGHT = ("the", "of", "and", "to", "it", "is", "for", "be")
@@ -41,6 +43,11 @@ class Contraction:
     contraction: str
     authority: str
     note: str
+
+    @property
+    def written(self) -> bool:
+        """Whether the converter’s contraction layer may write this form, or only accept it."""
+        return self.authority not in TOLERATED_AUTHORITIES
 
 
 Signs = dict[tuple[str, str], Sign]

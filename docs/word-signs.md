@@ -7,7 +7,7 @@ Authority links go to the [AMS Manual transcription][manual]; every letter-name 
 ## Artifacts
 
 - `src/qslex/data/word-signs.tsv` — the 105 rows that reach a column: the core eight, the three abbreviations, the Manual’s standard word-outlines, and the two rows that list one of those outlines again so that it reaches inside a contraction ([Tier 3](#tier-3-the-standard-word-outlines)). Columns: `word`, `pos`, `tier`, `senior`, `junior`, `full`, `authority`, `note`.
-- `src/qslex/data/contractions.tsv` — the [§III contraction list][senior], which reaches **no** column. Its ≈50 printed entries make 78 rows: several cover an inflected set (`be/ing/en`, `come/s/ing`, `make/ing, made`), and two are the clitics generalized below. A 79th comes from the [terminal -ing][ing] section instead, which prints ·Day·Oolong = doing among its Root Contractions plus Affix where the §III list itself stops at do, did, don't and didn't; `authority` names which of the two anchors a row has. Columns: `word`, `pos`, `kind`, `contraction`, `authority`, `note`.
+- `src/qslex/data/contractions.tsv` — the [§III contraction list][senior], which reaches **no** column. Its ≈50 printed entries make 78 rows: several cover an inflected set (`be/ing/en`, `come/s/ing`, `make/ing, made`), and two are the clitics generalized below. A 79th comes from the [terminal -ing][ing] section instead, which prints ·Day·Oolong = doing among its Root Contractions plus Affix where the §III list itself stops at do, did, don't and didn't, and an 80th from the [No-how][no-how] passage, which writes done ·Day·No at its second occurrence after spelling it out at the first — a form the checker accepts and the converter never writes, that anchor being running text rather than a rule; `authority` names which of the three anchors a row has. Columns: `word`, `pos`, `kind`, `contraction`, `authority`, `note`.
 - `src/qslex/words.py` — the loaders and the substitution, which rejects an unknown tier, a Manual anchor that does not belong to this table, a Junior spelling that merely repeats the Senior one, a part-of-speech row that a general row already shadows, and a missing core sign.
 - `src/qslex/letters.py` — the letter-name primitives this layer shares with the rules.
 - `src/qslex/elements.py` — the split into elements it shares with them too, so that neither layer can disagree with the other about where a boundary is.
@@ -175,6 +175,7 @@ The word-sign section of [`src/qslex/validate.py`](../src/qslex/validate.py) fai
 [spelling]: https://adiabatic.github.io/abbots-morton-spaceport/the-manual.html#spelling
 [tips]: https://adiabatic.github.io/abbots-morton-spaceport/the-manual.html#writing-tips
 [ing]: https://adiabatic.github.io/abbots-morton-spaceport/the-manual.html#terminal-ing
+[no-how]: https://adiabatic.github.io/abbots-morton-spaceport/the-manual.html#no-how
 [note]: https://adiabatic.github.io/abbots-morton-spaceport/the-manual.html#examples-note
 [plan]: https://github.com/adiabatic/quikscript-lexicon/issues/8
 [rules]: https://github.com/adiabatic/quikscript-lexicon/issues/2

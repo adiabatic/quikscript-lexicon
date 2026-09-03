@@ -83,8 +83,8 @@ def test_the_word_set_is_the_dictionary_and_the_senior_contractions() -> None:
     assert counted == str(len(listed))
     assert frozenset(listed) < frozenset(words)
     assert len(listed) == 75583
-    assert len(words) == 75651
-    assert len(words) - len(listed) == 68
+    assert len(words) == 75652
+    assert len(words) - len(listed) == 69
 
 
 def test_a_frequency_is_written_only_where_there_is_one() -> None:
@@ -116,7 +116,7 @@ def test_the_confusion_group_is_the_vowels() -> None:
 
 
 def test_the_readings_key_exactly_the_union() -> None:
-    assert len(READS) == 110226
+    assert len(READS) == 110227
     assert {line.split("\t")[0] for line in READS} == frozenset(LEXICON.union)
 
 
@@ -129,7 +129,7 @@ def test_a_reading_names_its_row_and_the_column_the_spelling_sits_in() -> None:
 
 def test_the_reading_columns_count_the_masters_divergences() -> None:
     counted = collections.Counter(line.split("\t")[3] for line in READS)
-    assert counted == {"senior": 107720, "x": 2326, "contraction": 153, "junior": 27}
+    assert counted == {"senior": 107720, "x": 2326, "contraction": 154, "junior": 27}
 
 
 def test_every_reading_joins_the_writings_on_latin_and_tag() -> None:
