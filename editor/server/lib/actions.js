@@ -10,8 +10,8 @@ const SUGGESTION_CACHE_LIMIT = 4096;
 
 /** @typedef {import("./check.js").Span} Span */
 /** @typedef {{range: Span, newText: string}} Edit */
-/** @typedef {{title: string, command: string, arguments: unknown[]}} Order */
-/** @typedef {{title: string, kind: "quickfix", isPreferred?: boolean, edit?: {changes: Record<string, Edit[]>}, command?: Order}} Action */
+/** @typedef {{title: string, command: string, arguments: unknown[]}} Command */
+/** @typedef {{title: string, kind: "quickfix", isPreferred?: boolean, edit?: {changes: Record<string, Edit[]>}, command?: Command}} Action */
 /** @typedef {{word: string, occurrence: number, range: Span}} Flag */
 
 /**

@@ -4,7 +4,7 @@
 /** @typedef {import("../lib/panel.js").WordRow} WordRow */
 /** @typedef {{postMessage(message: unknown): void}} VsCodeApi */
 /** @typedef {(fix: string, all: boolean) => unknown} Picker */
-/** @typedef {{root: HTMLElement, input: HTMLInputElement, ask(): void, answer(id: number, rows: LookupRow[], note: string): void}} LookupForm */
+/** @typedef {{root: HTMLElement, input: HTMLInputElement, requestLookup(): void, showResults(id: number, rows: LookupRow[], note: string): void}} LookupForm */
 
 const EMPTY = "No suggestions";
 const PROMPT = "Spell it in Latin letters";
@@ -23,26 +23,26 @@ let lastRequestId = 0;
 
 /**
  * @param {string} tag
- * @param {string} mark
+ * @param {string} className
  * @param {string} text
  * @returns {HTMLElement}
  */
-function made(tag, mark, text) {
+function textElement(tag, className, text) {
   const element = document.createElement(tag);
-  element.className = mark;
+  element.className = className;
   element.textContent = text;
   return element;
 }
 
 /**
- * @param {string} mark
+ * @param {string} className
  * @param {unknown} message
  * @returns {HTMLButtonElement}
  */
-function pressed(mark, message) {
+function messageButton(className, message) {
   const button = document.createElement("button");
   button.type = "button";
-  button.className = mark;
+  button.className = className;
   button.addEventListener("click", () => vscodeApi.postMessage(message));
   return button;
 }
@@ -51,11 +51,11 @@ function pressed(mark, message) {
  * @param {WordRow} row
  * @returns {HTMLButtonElement}
  */
-function worded(row) {
-  const button = pressed("word", { type: "reveal", flag: row.flag });
+function wordButton(row) {
+  const button = messageButton("word", { type: "reveal", flag: row.flag });
   button.append(
-    made("span", "text", row.word),
-    made("span", "position", `${row.line + 1}:${row.character + 1}`),
+    textElement("span", "text", row.word),
+    textElement("span", "position", `${row.line + 1}:${row.character + 1}`),
   );
   return button;
 }
@@ -68,17 +68,17 @@ function worded(row) {
  * @param {string} hint
  * @returns {HTMLElement}
  */
-function choice(fix, gloss, others, pick, hint) {
+function suggestionElement(fix, gloss, others, pick, hint) {
   const suggestion = document.createElement("div");
   suggestion.className = "suggestion";
-  const button = pressed("fix", pick(fix, false));
-  button.append(made("span", "text", fix));
-  if (gloss) button.append(made("span", "gloss", gloss));
+  const button = messageButton("fix", pick(fix, false));
+  button.append(textElement("span", "text", fix));
+  if (gloss) button.append(textElement("span", "gloss", gloss));
   if (hint) button.title = hint;
   suggestion.append(button);
   if (others > 0) {
     const rest = others === 1 ? "the 1 other" : `the ${others} others`;
-    const fixAll = pressed("fix-all", pick(fix, true));
+    const fixAll = messageButton("fix-all", pick(fix, true));
     fixAll.textContent = `(${others})`;
     fixAll.title = `Correct this misspelling and ${rest} written the same way`;
     suggestion.append(fixAll);
@@ -93,7 +93,7 @@ function choice(fix, gloss, others, pick, hint) {
 function suggestionRow(row) {
   /** @type {Picker} */
   const pick = (_fix, all) => ({ type: "fix", flag: row.flag, at: row.at, all });
-  return choice(row.fix, row.gloss, row.others, pick, "");
+  return suggestionElement(row.fix, row.gloss, row.others, pick, "");
 }
 
 /**
@@ -105,7 +105,7 @@ function suggestionRow(row) {
 function lookupForm(others, pick, hint) {
   const root = document.createElement("form");
   root.className = "lookup-form";
-  const results = made("div", "lookup-results", "");
+  const results = textElement("div", "lookup-results", "");
   root.addEventListener("submit", (event) => {
     event.preventDefault();
     const first = /** @type {HTMLButtonElement | null} */ (results.querySelector("button.fix"));
@@ -120,38 +120,39 @@ function lookupForm(others, pick, hint) {
   root.append(input, results);
   /** @type {ReturnType<typeof setTimeout> | undefined} */
   let timer;
-  let sent = 0;
+  let currentRequestId = 0;
   /** @type {LookupForm} */
   const form = {
     root,
     input,
-    ask() {
+    requestLookup() {
       const text = input.value.trim();
       if (!text) {
-        sent = 0;
+        currentRequestId = 0;
         results.replaceChildren();
         return;
       }
       lastRequestId += 1;
-      sent = lastRequestId;
+      currentRequestId = lastRequestId;
       pendingLookups.set(lastRequestId, form);
       vscodeApi.postMessage({ type: "lookup", id: lastRequestId, text });
     },
-    answer(id, rows, note) {
-      if (id !== sent) return;
+    showResults(id, rows, note) {
+      if (id !== currentRequestId) return;
       results.replaceChildren();
-      if (note) results.append(made("p", "note", note));
+      if (note) results.append(textElement("p", "note", note));
       for (const row of rows) {
-        if (row.kind === "phrase") results.append(choice(row.fix, "", others, pick, hint));
+        if (row.kind === "phrase")
+          results.append(suggestionElement(row.fix, "", others, pick, hint));
         else if (row.kind === "form")
-          results.append(choice(row.fix, row.gloss, others, pick, hint));
-        else results.append(made("p", "note", `No spelling for ${row.latin}`));
+          results.append(suggestionElement(row.fix, row.gloss, others, pick, hint));
+        else results.append(textElement("p", "note", `No spelling for ${row.latin}`));
       }
     },
   };
   input.addEventListener("input", () => {
     clearTimeout(timer);
-    timer = setTimeout(() => form.ask(), LOOKUP_DEBOUNCE_MS);
+    timer = setTimeout(() => form.requestLookup(), LOOKUP_DEBOUNCE_MS);
   });
   return form;
 }
@@ -169,7 +170,7 @@ function fixInput(row) {
   const draft = drafts.get(key);
   if (draft) {
     form.input.value = draft;
-    form.ask();
+    form.requestLookup();
   }
   return form;
 }
@@ -178,8 +179,8 @@ function fixInput(row) {
 function render(state) {
   container.replaceChildren();
   /** @type {Set<string>} */
-  const live = new Set();
-  if (state.rows.length === 0) container.append(made("p", "note", state.note));
+  const shownKeys = new Set();
+  if (state.rows.length === 0) container.append(textElement("p", "note", state.note));
   let section = container;
   /** @type {WordRow | null} */
   let wordRow = null;
@@ -189,27 +190,27 @@ function render(state) {
     if (row.kind === "word") {
       section = document.createElement("section");
       container.append(section);
-      section.append(worded(row));
+      section.append(wordButton(row));
       wordRow = row;
       ignores = null;
-      live.add(`${row.word} ${row.occurrence}`);
+      shownKeys.add(`${row.word} ${row.occurrence}`);
     } else if (row.kind === "none") {
-      section.append(made("p", "note", EMPTY));
+      section.append(textElement("p", "note", EMPTY));
     } else if (row.kind === "suggestion") {
       section.append(suggestionRow(row));
     } else {
       if (!ignores) {
         if (wordRow) section.append(fixInput(wordRow).root);
-        ignores = made("div", "ignores", "");
+        ignores = textElement("div", "ignores", "");
         section.append(ignores);
       }
-      const button = pressed("ignore", { type: "ignore", flag: row.flag, scope: row.scope });
+      const button = messageButton("ignore", { type: "ignore", flag: row.flag, scope: row.scope });
       button.textContent = row.label;
       ignores.append(button);
     }
   }
   for (const key of drafts.keys()) {
-    if (!live.has(key)) drafts.delete(key);
+    if (!shownKeys.has(key)) drafts.delete(key);
   }
 }
 
@@ -222,7 +223,7 @@ window.addEventListener("message", (event) => {
   if (message.type === "lookupResult") {
     const form = pendingLookups.get(message.id);
     pendingLookups.delete(message.id);
-    if (form) form.answer(message.id, message.rows, message.note);
+    if (form) form.showResults(message.id, message.rows, message.note);
   } else if (message.type === "state") {
     render(message.state);
   }

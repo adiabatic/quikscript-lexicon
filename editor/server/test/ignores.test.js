@@ -62,9 +62,9 @@ test("reading returns the union of every existing file and skips missing ones", 
 });
 
 test("an edited file is re-read when its mtime changes", () => {
-  const home = path.join(scratch, "mtime");
-  mkdirSync(home, { recursive: true });
-  const file = projectIgnorePath(home);
+  const directory = path.join(scratch, "mtime");
+  mkdirSync(directory, { recursive: true });
+  const file = projectIgnorePath(directory);
   const files = ignoreFileCache();
   writeFileSync(file, "\uE650\n");
   utimesSync(file, new Date(1000000000000), new Date(1000000000000));
@@ -85,9 +85,9 @@ test("appending is idempotent and makes the directories it needs", () => {
 });
 
 test("appending completes a file that ends mid-line", () => {
-  const home = path.join(scratch, "midline");
-  mkdirSync(home, { recursive: true });
-  const file = projectIgnorePath(home);
+  const directory = path.join(scratch, "midline");
+  mkdirSync(directory, { recursive: true });
+  const file = projectIgnorePath(directory);
   writeFileSync(file, "\uE650");
   const files = ignoreFileCache();
   files.append(file, "\uE651");

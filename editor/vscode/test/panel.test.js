@@ -58,7 +58,7 @@ const FIRST = span(0, 4, 7);
 const SECOND = span(2, 0, 3);
 const THIRD = span(5, 8, 11);
 const LONE = span(3, 2, 4);
-const EVERYWHERE = [FIRST, SECOND, THIRD];
+const BAD_SPANS = [FIRST, SECOND, THIRD];
 
 /** @type {Flag[]} */
 const FLAGS = [
@@ -66,7 +66,7 @@ const FLAGS = [
     word: BAD,
     occurrence: 0,
     range: FIRST,
-    spans: EVERYWHERE,
+    spans: BAD_SPANS,
     fixes: [suggestion(GOOD, "good", FIRST), suggestion(OTHER, "", FIRST)],
     ignore: ignored(BAD, 0, true, true),
   },
@@ -82,7 +82,7 @@ const FLAGS = [
     word: BAD,
     occurrence: 1,
     range: SECOND,
-    spans: EVERYWHERE,
+    spans: BAD_SPANS,
     fixes: [suggestion(GOOD, "good", SECOND), suggestion(OTHER, "", SECOND)],
     ignore: ignored(BAD, 1, true, true),
   },
@@ -181,7 +181,7 @@ test("a plain fix returns the suggestion's edit", () => {
 
 test("fix all rewrites every occurrence of the flagged word", () => {
   assert.deepEqual(resolveMessage(DOCUMENT_FLAGS, { type: "fix", flag: 2, at: 0, all: true }), {
-    edit: { changes: { [URI]: EVERYWHERE.map((range) => ({ range, newText: GOOD })) } },
+    edit: { changes: { [URI]: BAD_SPANS.map((range) => ({ range, newText: GOOD })) } },
   });
 });
 
@@ -195,7 +195,7 @@ test("a typed spelling rewrites the flag alone or every occurrence", () => {
   assert.deepEqual(
     resolveMessage(DOCUMENT_FLAGS, { type: "typed", flag: 0, fix: OTHER, all: true }),
     {
-      edit: { changes: { [URI]: EVERYWHERE.map((range) => ({ range, newText: OTHER })) } },
+      edit: { changes: { [URI]: BAD_SPANS.map((range) => ({ range, newText: OTHER })) } },
     },
   );
   assert.equal(
@@ -260,7 +260,7 @@ test("an out-of-range flag or suggestion index returns null", () => {
   assert.equal(resolveMessage(DOCUMENT_FLAGS, { type: "ignore", flag: 4, scope: "user" }), null);
 });
 
-test("a written word shows each form under its gloss, a phrase its whole line first", () => {
+test("lookupRows glosses each form, and a phrase whose every word has a spelling gets a phrase row first", () => {
   const read = { latin: "read", items: [{ label: GOOD, detail: "verb" }, { label: OTHER, detail: "noun" }] };
   const this_ = { latin: "this", items: [{ label: NO_SUGGESTIONS, detail: "determiner" }] };
   const none = { latin: "zzxq", items: [] };

@@ -167,7 +167,7 @@ class Client {
     });
   }
 
-  published() {
+  nextDiagnostics() {
     return this.next((message) => message.method === PUBLISHED);
   }
 }
@@ -180,9 +180,9 @@ class Client {
 function exitedWithin(client, ms) {
   return Promise.race([
     client.exited,
-    new Promise((resolve) => setTimeout(resolve, ms, "lingered").unref()),
+    new Promise((resolve) => setTimeout(resolve, ms, "still running").unref()),
   ]).then((outcome) => {
-    if (outcome === "lingered") {
+    if (outcome === "still running") {
       client.child.kill("SIGKILL");
       throw new Error(`server still running after ${ms} ms; stderr:\n${client.stderr}`);
     }
@@ -243,7 +243,7 @@ test("the bundled server checks a markdown document end to end", async () => {
   client.notify("textDocument/didOpen", {
     textDocument: { uri, languageId: "markdown", version: 1, text: opened },
   });
-  const first = await client.published();
+  const first = await client.nextDiagnostics();
   assert.equal(first.params.uri, uri);
   assert.equal(first.params.version, 1);
   for (const diagnostic of first.params.diagnostics) {
@@ -314,11 +314,11 @@ test("the bundled server checks a markdown document end to end", async () => {
   client.notify("textDocument/didOpen", {
     textDocument: { uri: other, languageId: "plaintext", version: 1, text: `\`${BAD}\`\n` },
   });
-  const third = await client.published();
+  const third = await client.nextDiagnostics();
   assert.equal(third.params.uri, other);
   assert.equal(third.params.diagnostics.length, 1);
   client.notify("textDocument/didClose", { textDocument: { uri: other } });
-  const fourth = await client.published();
+  const fourth = await client.nextDiagnostics();
   assert.equal(fourth.params.uri, other);
   assert.deepEqual(fourth.params.diagnostics, []);
 
@@ -367,7 +367,7 @@ test("quick fixes follow suggest() order, and the directory, project and user ig
     textDocument: { uri, languageId: "markdown", version: 1, text: opened },
   });
 
-  const first = await client.published();
+  const first = await client.nextDiagnostics();
   assert.equal(first.params.uri, uri);
   const diagnostics = first.params.diagnostics;
   assert.deepEqual(firstMessageLines(diagnostics), [A, A, B, C, D].map(unknownMessage));
@@ -429,7 +429,7 @@ test("quick fixes follow suggest() order, and the directory, project and user ig
     command: "quikscript.ignore.occurrence",
     arguments: [{ uri, word: A, occurrence: 0 }],
   });
-  const second = await client.published();
+  const second = await client.nextDiagnostics();
   assert.equal(second.params.uri, uri);
   assert.deepEqual(firstMessageLines(second.params.diagnostics), [A, B, C, D].map(unknownMessage));
   assert.deepEqual(second.params.diagnostics[0].range, diagnostics[1].range);
@@ -452,7 +452,7 @@ test("quick fixes follow suggest() order, and the directory, project and user ig
     command: "quikscript.ignore.project",
     arguments: [{ uri, word: B }],
   });
-  const third = await client.published();
+  const third = await client.nextDiagnostics();
   assert.equal(third.params.uri, uri);
   assert.deepEqual(firstMessageLines(third.params.diagnostics), [A, C, D].map(unknownMessage));
   assert.equal(readFileSync(path.join(ws, ".quikscript-ignore"), "utf8"), `${B}\n`);
@@ -461,7 +461,7 @@ test("quick fixes follow suggest() order, and the directory, project and user ig
     command: "quikscript.ignore.directory",
     arguments: [{ uri, word: D }],
   });
-  const fourth = await client.published();
+  const fourth = await client.nextDiagnostics();
   assert.equal(fourth.params.uri, uri);
   assert.deepEqual(firstMessageLines(fourth.params.diagnostics), [A, C].map(unknownMessage));
   assert.equal(readFileSync(path.join(ws, "deep", ".quikscript-ignore"), "utf8"), `${D}\n`);
@@ -475,7 +475,7 @@ test("quick fixes follow suggest() order, and the directory, project and user ig
       text: `${A} ${B} ${C} ${D}\n`,
     },
   });
-  const fifth = await client.published();
+  const fifth = await client.nextDiagnostics();
   assert.equal(fifth.params.uri, other);
   assert.deepEqual(firstMessageLines(fifth.params.diagnostics), [A, C, D].map(unknownMessage));
   const notesActions = await client.request("textDocument/codeAction", {
@@ -521,7 +521,7 @@ test("quick fixes follow suggest() order, and the directory, project and user ig
   restarted.notify("textDocument/didOpen", {
     textDocument: { uri, languageId: "markdown", version: 1, text: opened },
   });
-  const eighth = await restarted.published();
+  const eighth = await restarted.nextDiagnostics();
   assert.equal(eighth.params.uri, uri);
   assert.deepEqual(firstMessageLines(eighth.params.diagnostics), [A, A].map(unknownMessage));
   const secondShutdown = await restarted.request("shutdown", null);
@@ -531,9 +531,9 @@ test("quick fixes follow suggest() order, and the directory, project and user ig
 });
 
 test("with no workspace root, a project ignore is written in the file's directory", async () => {
-  const home = path.join(scratch, "lone");
-  mkdirSync(home, { recursive: true });
-  const uri = pathToFileURL(path.join(home, "notes.txt")).href;
+  const directory = path.join(scratch, "lone");
+  mkdirSync(directory, { recursive: true });
+  const uri = pathToFileURL(path.join(directory, "notes.txt")).href;
   const D = misspelled(GOOD);
 
   const client = new Client(target);
@@ -546,7 +546,7 @@ test("with no workspace root, a project ignore is written in the file's director
   client.notify("textDocument/didOpen", {
     textDocument: { uri, languageId: "plaintext", version: 1, text: `${D}\n` },
   });
-  const first = await client.published();
+  const first = await client.nextDiagnostics();
   assert.deepEqual(firstMessageLines(first.params.diagnostics), [unknownMessage(D)]);
 
   const answered = await client.request("quikscript/fixes", { textDocument: { uri } });
@@ -565,16 +565,16 @@ test("with no workspace root, a project ignore is written in the file's director
     arguments: [{ uri, word: "nope" }],
   });
   assert.equal(refused.result, null);
-  assert.ok(!existsSync(path.join(home, ".quikscript-ignore")));
+  assert.ok(!existsSync(path.join(directory, ".quikscript-ignore")));
 
   await client.request("workspace/executeCommand", {
     command: "quikscript.ignore.project",
     arguments: [{ uri, word: D }],
   });
-  const second = await client.published();
+  const second = await client.nextDiagnostics();
   assert.equal(second.params.uri, uri);
   assert.deepEqual(second.params.diagnostics, []);
-  assert.equal(readFileSync(path.join(home, ".quikscript-ignore"), "utf8"), `${D}\n`);
+  assert.equal(readFileSync(path.join(directory, ".quikscript-ignore"), "utf8"), `${D}\n`);
 
   const shutdownResponse = await client.request("shutdown", null);
   assert.equal(shutdownResponse.result, null);
@@ -595,7 +595,7 @@ test("a misspelling's diagnostic lists its suggestions", async () => {
   client.notify("textDocument/didOpen", {
     textDocument: { uri, languageId: "plaintext", version: 1, text: `${word}\n` },
   });
-  const first = await client.published();
+  const first = await client.nextDiagnostics();
 
   const suggestions = core.suggest(word, suggestContext());
   assert.ok(suggestions.length > 0);
@@ -612,7 +612,7 @@ test("a misspelling's diagnostic lists its suggestions", async () => {
     command: "quikscript.ignore.occurrence",
     arguments: [{ uri, word, occurrence: 0 }],
   });
-  const second = await client.published();
+  const second = await client.nextDiagnostics();
   assert.deepEqual(second.params.diagnostics, []);
 });
 
@@ -629,7 +629,7 @@ test("a code action request whose only is the empty kind gets the quick fixes", 
   client.notify("textDocument/didOpen", {
     textDocument: { uri, languageId: "plaintext", version: 1, text: `${word}\n` },
   });
-  const first = await client.published();
+  const first = await client.nextDiagnostics();
 
   const asked = await client.request("textDocument/codeAction", {
     textDocument: { uri },
@@ -653,13 +653,13 @@ test("hover names the word and completions replace the latin", async () => {
   client.notify("textDocument/didOpen", {
     textDocument: { uri, languageId: "plaintext", version: 1, text: `read ${READ_EAT}\n` },
   });
-  await client.published();
+  await client.nextDiagnostics();
 
-  const over = await client.request("textDocument/hover", {
+  const hover = await client.request("textDocument/hover", {
     textDocument: { uri },
     position: { line: 0, character: 6 },
   });
-  assert.deepEqual(over.result, {
+  assert.deepEqual(hover.result, {
     contents: { kind: "markdown", value: READ_HOVER },
     range: { start: { line: 0, character: 5 }, end: { line: 0, character: 8 } },
   });
@@ -704,7 +704,7 @@ test("hover names the word and completions replace the latin", async () => {
       text: "```\nread\n```\n",
     },
   });
-  await client.published();
+  await client.nextDiagnostics();
   const inFence = await client.request("textDocument/completion", {
     textDocument: { uri: fenced },
     position: { line: 1, character: 4 },
@@ -746,7 +746,7 @@ test("completions are off by default and each mode works", async () => {
   client.notify("textDocument/didOpen", {
     textDocument: { uri, languageId: "plaintext", version: 1, text: "read\n" },
   });
-  await client.published();
+  await client.nextDiagnostics();
   const positionParams = { textDocument: { uri }, position: { line: 0, character: 4 } };
 
   const refused = await client.request("textDocument/completion", {
@@ -774,11 +774,11 @@ test("completions are off by default and each mode works", async () => {
   client.notify("workspace/didChangeConfiguration", {
     settings: { quikscript: { completions: "off" } },
   });
-  const shut = await client.request("textDocument/completion", {
+  const offResponse = await client.request("textDocument/completion", {
     ...positionParams,
     context: { triggerKind: 1 },
   });
-  assert.equal(shut.result, null);
+  assert.equal(offResponse.result, null);
 
   const shutdownResponse = await client.request("shutdown", null);
   assert.equal(shutdownResponse.result, null);
@@ -805,7 +805,7 @@ test("a client that supports workspace/configuration is asked for its settings",
   client.notify("textDocument/didOpen", {
     textDocument: { uri, languageId: "plaintext", version: 1, text: "read\n" },
   });
-  await client.published();
+  await client.nextDiagnostics();
   const positionParams = { textDocument: { uri }, position: { line: 0, character: 4 } };
   const answered = await client.request("textDocument/completion", positionParams);
   assert.equal(answered.result.length, 2);
@@ -815,8 +815,8 @@ test("a client that supports workspace/configuration is asked for its settings",
     (message) => message.method === "workspace/configuration",
   );
   client.send({ id: repulled.id, result: [{ completions: "off" }] });
-  const shut = await client.request("textDocument/completion", positionParams);
-  assert.equal(shut.result, null);
+  const offResponse = await client.request("textDocument/completion", positionParams);
+  assert.equal(offResponse.result, null);
 
   const shutdownResponse = await client.request("shutdown", null);
   assert.equal(shutdownResponse.result, null);
@@ -840,14 +840,14 @@ test("an untitled document can add a project ignore but not a directory ignore",
   client.notify("textDocument/didOpen", {
     textDocument: { uri, languageId: "plaintext", version: 1, text: `${E}\n` },
   });
-  const first = await client.published();
+  const first = await client.nextDiagnostics();
   assert.deepEqual(firstMessageLines(first.params.diagnostics), [unknownMessage(E)]);
 
   await client.request("workspace/executeCommand", {
     command: "quikscript.ignore.project",
     arguments: [{ uri, word: E }],
   });
-  const second = await client.published();
+  const second = await client.nextDiagnostics();
   assert.equal(second.params.uri, uri);
   assert.deepEqual(second.params.diagnostics, []);
   assert.equal(readFileSync(path.join(workspaceDir, ".quikscript-ignore"), "utf8"), `${E}\n`);
@@ -882,7 +882,7 @@ test("quikscript/fixes returns each flagged word's suggestions, glosses, edits a
   client.notify("textDocument/didOpen", {
     textDocument: { uri, languageId: "plaintext", version: 1, text: `${A} ${A} ${B}\n` },
   });
-  const first = await client.published();
+  const first = await client.nextDiagnostics();
   const diagnostics = first.params.diagnostics;
   assert.deepEqual(firstMessageLines(diagnostics), [A, A, B].map(unknownMessage));
 
@@ -937,7 +937,7 @@ test("quikscript/fixes returns each flagged word's suggestions, glosses, edits a
     command: flags[0].ignore.occurrence.command,
     arguments: flags[0].ignore.occurrence.arguments,
   });
-  const second = await client.published();
+  const second = await client.nextDiagnostics();
   assert.deepEqual(firstMessageLines(second.params.diagnostics), [A, B].map(unknownMessage));
   const again = await client.request("quikscript/fixes", { textDocument: { uri } });
   /** @type {any[]} */
@@ -970,7 +970,7 @@ test("with no root, an untitled document gets no project ignore", async () => {
   client.notify("textDocument/didOpen", {
     textDocument: { uri, languageId: "plaintext", version: 1, text: `${F}\n` },
   });
-  const first = await client.published();
+  const first = await client.nextDiagnostics();
   assert.deepEqual(firstMessageLines(first.params.diagnostics), [unknownMessage(F)]);
 
   const answered = await client.request("quikscript/fixes", { textDocument: { uri } });

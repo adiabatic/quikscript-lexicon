@@ -86,7 +86,7 @@ test("an unknown word gets no completion, and a caret outside any word finds no 
   assert.equal(latinWordAt("''", 1), null);
 });
 
-test("a latin phrase is written word by word, with the unknown left empty", () => {
+test("a Latin phrase is looked up one word at a time, and an unknown word gets no items", () => {
   assert.deepEqual(lookupSpellings("Read, dogs' zzxq", SPELLINGS_BY_LATIN), [
     { latin: "read", items: READ_ITEMS },
     { latin: "dogs", items: lookupSpellings("dogs", SPELLINGS_BY_LATIN)[0].items },

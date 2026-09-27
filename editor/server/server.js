@@ -48,9 +48,9 @@ const MAX_LOOKUP_TEXT = 200;
 
 /** @typedef {import("./lib/check.js").Span} Span */
 /** @typedef {import("./lib/actions.js").Edit} Edit */
-/** @typedef {{command: string, arguments: unknown[]}} Order */
+/** @typedef {{command: string, arguments: unknown[]}} Command */
 /** @typedef {{fix: string, gloss: string, edit: {changes: Record<string, Edit[]>}}} Suggestion */
-/** @typedef {{word: string, occurrence: number, range: Span, spans: Span[], fixes: Suggestion[], ignore: {occurrence: Order, directory: Order | null, project: Order | null, user: Order}}} Fixed */
+/** @typedef {{word: string, occurrence: number, range: Span, spans: Span[], fixes: Suggestion[], ignore: {occurrence: Command, directory: Command | null, project: Command | null, user: Command}}} FixListEntry */
 
 const connection = createConnection();
 const words = lexicon(data);
@@ -222,12 +222,12 @@ function buildCodeActions(uri, flags, everywhere) {
  * @param {string} uri
  * @param {import("./lib/actions.js").Flag[]} flags
  * @param {Map<string, Span[]>} everywhere
- * @returns {Fixed[]}
+ * @returns {FixListEntry[]}
  */
 function buildFixList(uri, flags, everywhere) {
   const scopes = ignoreScopesFor(uri);
   const started = Date.now();
-  /** @type {Fixed[]} */
+  /** @type {FixListEntry[]} */
   const out = [];
   let work = 0;
   for (const flag of flags) {

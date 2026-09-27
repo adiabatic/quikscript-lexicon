@@ -38,12 +38,12 @@ function section(word, latin, entries, spellingsByLatin) {
   /** @type {Map<string, Map<string, Set<string>>>} */
   const columns = new Map();
   /** @type {Set<string>} */
-  const written = new Set();
+  const uncontractedForms = new Set();
   for (const entry of entries) {
     for (const row of rows) {
       if (row.pos !== entry.pos) continue;
       if (entry.column === CONTRACTION) {
-        if (row.senior && row.senior !== word) written.add(row.senior);
+        if (row.senior && row.senior !== word) uncontractedForms.add(row.senior);
         continue;
       }
       if (spellingIn(row, entry.column) !== word) continue;
@@ -74,7 +74,7 @@ function section(word, latin, entries, spellingsByLatin) {
     );
   }
   if (entries.some((entry) => entry.column === CONTRACTION)) {
-    const forms = [...written].sort();
+    const forms = [...uncontractedForms].sort();
     if (forms.length > 0) {
       lines.push("Senior contraction — written out:");
       lines.push(fenced(forms));

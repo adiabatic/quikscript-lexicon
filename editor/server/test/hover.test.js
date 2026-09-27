@@ -148,7 +148,7 @@ test("an unknown spelling has no hover", () => {
   assert.equal(hoverMarkdown(BAD, LATIN_BY_SPELLING, SPELLINGS_BY_LATIN), null);
 });
 
-test("the hover attaches to the token at or just behind the position", () => {
+test("hoverAt finds the token that contains the position or ends at it", () => {
   const text = `on ${READ_EAT}\n`;
   for (const offset of [3, 4, 6]) {
     assert.deepEqual(hoverAt(text, offset, LATIN_BY_SPELLING, SPELLINGS_BY_LATIN), {
