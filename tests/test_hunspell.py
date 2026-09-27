@@ -47,7 +47,7 @@ def mutate(word: str) -> str:
     )
 
 
-def spell_the_pair_out() -> tuple[str, str]:
+def pair_form_of_an_x_letter_word() -> tuple[str, str]:
     for word in WORDS:
         for x_letter, pair in X_LETTERS:
             if x_letter in word and word.replace(x_letter, pair) not in LISTED:
@@ -55,7 +55,7 @@ def spell_the_pair_out() -> tuple[str, str]:
     raise AssertionError("no X-letter spelling whose pair form is free")
 
 
-def write_the_x_letter_in() -> tuple[str, str]:
+def x_letter_form_of_a_pair_word() -> tuple[str, str]:
     for word in WORDS:
         for x_letter, pair in X_LETTERS:
             if pair in word and word.replace(pair, x_letter) not in LISTED:
@@ -87,7 +87,7 @@ def installed(tmp_path_factory: pytest.TempPathFactory) -> Path:
     return base
 
 
-def test_the_dictionary_counts_its_own_entries() -> None:
+def test_the_first_line_of_the_dic_file_is_the_entry_count() -> None:
     assert str(len(WORDS)) == COUNT
 
 
@@ -190,7 +190,7 @@ def test_hunspell_flags_a_mutated_entry_and_suggests_the_original(
 def test_hunspell_suggests_the_x_letter_first_where_the_pair_is_spelled_out(
     installed: Path,
 ) -> None:
-    spelled_out, substituted = spell_the_pair_out()
+    spelled_out, substituted = pair_form_of_an_x_letter_word()
     reported = check(installed, spelled_out + "\n", "-a")[1:]
     assert suggested(reported[0])[:1] == [substituted]
 
@@ -199,7 +199,7 @@ def test_hunspell_suggests_the_x_letter_first_where_the_pair_is_spelled_out(
 def test_hunspell_suggests_the_pair_first_where_no_x_letter_is_allowed(
     installed: Path,
 ) -> None:
-    substituted, spelled_out = write_the_x_letter_in()
+    substituted, spelled_out = x_letter_form_of_a_pair_word()
     reported = check(installed, substituted + "\n", "-a")[1:]
     assert suggested(reported[0])[:1] == [spelled_out]
 

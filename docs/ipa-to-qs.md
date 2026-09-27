@@ -32,7 +32,7 @@ The validator tokenizes every IPA string in the corpus. It fails if any of these
 - A mapping row is never used.
 - A quirk rule matches nothing, touches a word it does not list, or lists a word it no longer touches.
 - A stress override is never used, touches a word it does not list, or changes nothing.
-- An ɪə decision contradicts the Shavian column and has no row in `shavian-divergences.tsv`.
+- A row’s stressed EAR count differs from the Shavian column’s 𐑽 count, and the row has no entry in `shavian-divergences.tsv`.
 - The number of `əʊ` in the normalized text differs from the number of ·Owe tokens.
 - A token count differs from its expected value in `EXPECTED_TOKEN_COUNTS`. The counted tokens include `R`, `Ə`, `I`, `Æ`, `Ɑː`, `ʍ`, the word signs, weak `u` and the affricates.
 - The raw corpus contains a schwa-less `ɪR`, `aɪR` or `aʊR` (`FORBIDDEN_RAW_PATTERNS`).
@@ -181,7 +181,7 @@ A total function from IPA segments to letters cannot see which suffix a word has
 | [§ Terminal -age][age]                                                                                              | manage = `-·Utter·Jay`, marriage = `-·It·Jay` after a -y root                               | ·It, since ReadLex writes plain `ɪ`, so the `I` tag does not catch it      |                                                                                                                                                       |
 | [§ Terminal -y][y]                                                                                                  | coffee `-·It`; legatee, lessee, payee keep ·Eat “where the terminal is stressed”            | ·Eat wherever ReadLex writes a full `iː`, because its row is unconditional | the happY `i` row above already has `terminal-y` as its authority; whether a full `iː` at that terminal is stressed is a question for the rules layer |
 
-Quikscript’s terminal conventions are keyed to the *spelling* of the suffix, and the IPA column does not carry that information. The rules layer implements them. This mapping writes each segment as it is, and that layer rewrites the result. Two rows of the tagged pass-through table are also resolved there. Following [§ Terminal -es, -ed][esed], the rules layer drops `Ə` outright. `I` keeps its ·It unless a terminal rule rewrites that vowel, and in most rows with `I`, such as banquet and basketry, no rule does.
+Quikscript’s terminal conventions are keyed to the *spelling* of the suffix, and the IPA column does not record that information. The rules layer implements them. This mapping writes each segment as it is, and that layer rewrites the result. Two rows of the tagged pass-through table are also resolved there. Following [§ Terminal -es, -ed][esed], the rules layer drops `Ə` outright. `I` keeps its ·It unless a terminal rule rewrites that vowel, and in most rows with `I`, such as banquet and basketry, no rule does.
 
 ## Quirk normalizations (to be fixed upstream)
 

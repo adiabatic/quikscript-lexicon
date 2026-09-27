@@ -645,7 +645,8 @@ def main(argv: list[str] | None = None) -> int:
     )
     if unexpected:
         failures.append(
-            f"{len(unexpected)} ɪə decisions contradict Shavian unexpectedly"
+            f"{len(unexpected)} rows have a stressed EAR count that differs from the "
+            f"Shavian column and no row in shavian-divergences.tsv"
         )
     unhit = sorted(set(divergences) - divergence_hits)
     if unhit:
@@ -802,10 +803,10 @@ def main(argv: list[str] | None = None) -> int:
             f"these words rewrite rows but no manual-spellings.tsv row checks their "
             f"spelling against the Manual: {uncorroborated}"
         )
-    busy = {key for key in tables.signs if key[0] in sign_changes}
+    rewriting_rows = {key for key in tables.signs if key[0] in sign_changes}
     print(
         f"  {len(tables.signs)} rows, {len(sign_hits)} used, "
-        f"{len(tables.signs) - len(busy)} that rewrite nothing"
+        f"{len(tables.signs) - len(rewriting_rows)} that rewrite nothing"
     )
     for word, spelling in sorted(core_signs.items()):
         print(f"  core: {word:5} {spelling}")

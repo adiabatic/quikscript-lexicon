@@ -98,14 +98,14 @@ def test_es_ed_leaves_voicing_alone_because_readlex_already_has_it() -> None:
     assert senior("tipped", "VVD") == "·Tea·It·Pea·Tea"
 
 
-def test_ing_bares_an_affix_but_not_a_root() -> None:
+def test_ing_omits_its_vowel_in_an_affix_but_not_in_a_root() -> None:
     assert senior("calling", "AJ0") == "·Key·Awe·Low·-ing"
     assert senior("wing", "NN1") == "·Way·It·-ing"
     assert senior("bringing", "VVG") == "·Bay·Roe·It·-ing·-ing"
     assert senior("carrying", "NN1") == "·Key·At·Roe·It·It·-ing"
 
 
-def test_ing_stays_bare_after_a_prefix() -> None:
+def test_ing_omits_its_vowel_after_a_prefix() -> None:
     assert senior("beings", "NN2") == "·Bay·Eat·-ing·Zoo"
     assert senior("undoing", "NN1") == "·Utter·No·Day·Ooze·-ing"
     assert senior("willingness", "NN1") == "·Way·It·Low·-ing·No·Et·See"
@@ -337,7 +337,7 @@ def test_con_com_is_the_only_prefix_that_rewrites() -> None:
         ("inquire", "VVB", "·It·No·Key·Way·I·Roe"),
     ],
 )
-def test_the_other_prefixes_are_satisfied_by_readlex_already(
+def test_words_with_the_other_prefixes_get_their_manual_spelling(
     word: str, pos: str, expected: str
 ) -> None:
     assert senior(word, pos) == expected
@@ -452,7 +452,7 @@ def test_split_gives_a_prefix_form_entry_no_final_element() -> None:
     assert [e.context.final for e in elements if e.word] == [False]
 
 
-def test_split_leaves_an_entry_the_alignment_guard_rejects_whole() -> None:
+def test_split_keeps_an_entry_the_alignment_guard_rejects_as_one_element() -> None:
     for word in ("to-day", "dhs"):
         context = context_for(word)
         elements = split(context, naive(context))

@@ -15,7 +15,7 @@ from qslex.rules import NO_TABLES
 from tsv import write_tsv
 
 
-def broken(word: str, spelling: str, ipa: str, x_letter: str = "") -> set[str]:
+def failed_checks(word: str, spelling: str, ipa: str, x_letter: str = "") -> set[str]:
     return {check for check, _, _ in lint(word, spelling, x_letter, ipa, NO_TABLES)}
 
 
@@ -32,7 +32,9 @@ def test_the_shipped_exemption_table_is_empty() -> None:
     assert load_exemptions() == {}
 
 
-def test_an_element_is_cut_where_the_spelling_and_the_latin_agree() -> None:
+def test_an_entry_is_split_into_elements_where_the_spelling_and_the_latin_line_up() -> (
+    None
+):
     cut = sites("corn-exchange", "·Key·Awe·Roe·No-·It·Key·See", "", "ˈkɔːRn-ɪks")
     assert [site.latin for site in cut] == ["corn", "exchange"]
     assert [site.last for site in cut] == [False, True]
@@ -44,83 +46,85 @@ def test_a_misaligned_entry_is_treated_as_one_element() -> None:
 
 
 def test_an_ing_affix_may_not_keep_its_vowel() -> None:
-    assert "terminal-ing-vowel-omitted" in broken(
+    assert "terminal-ing-vowel-omitted" in failed_checks(
         "abasing", "·Utter·Bay·Eight·See·It·-ing", "əˈbeɪsɪŋ"
     )
-    assert "terminal-ing-vowel-omitted" not in broken(
+    assert "terminal-ing-vowel-omitted" not in failed_checks(
         "abasing", "·Utter·Bay·Eight·See·-ing", "əˈbeɪsɪŋ"
     )
 
 
 def test_a_root_ending_in_y_or_i_keeps_its_vowel() -> None:
-    assert not broken("carrying", "·Key·At·Roe·It·It·-ing", "ˈkærɪɪŋ")
-    assert not broken("skiing", "·See·Key·Eat·It·-ing", "ˈskiːɪŋ")
+    assert not failed_checks("carrying", "·Key·At·Roe·It·It·-ing", "ˈkærɪɪŋ")
+    assert not failed_checks("skiing", "·See·Key·Eat·It·-ing", "ˈskiːɪŋ")
 
 
 def test_a_final_l_drops_only_an_unstressed_vowel() -> None:
-    assert "terminal-al-vowel-omitted" in broken(
+    assert "terminal-al-vowel-omitted" in failed_checks(
         "final", "·Fee·I·No·Utter·Low", "ˈfaɪnəl"
     )
-    assert "terminal-al-vowel-omitted" not in broken(
+    assert "terminal-al-vowel-omitted" not in failed_checks(
         "final", "·Fee·I·No·Low", "ˈfaɪnəl"
     )
-    assert "terminal-al-vowel-omitted" not in broken(
+    assert "terminal-al-vowel-omitted" not in failed_checks(
         "distil", "·Day·It·See·Tea·It·Low", "dɪˈstɪl"
     )
 
 
 def test_a_vowel_before_the_l_keeps_the_one_after_it() -> None:
-    assert not broken("loyal", "·Low·Oy·Utter·Low", "ˈlɔɪəl")
-    assert not broken("burial", "·Bay·Et·Roe·It·Utter·Low", "ˈberɪəl")
+    assert not failed_checks("loyal", "·Low·Oy·Utter·Low", "ˈlɔɪəl")
+    assert not failed_checks("burial", "·Bay·Et·Roe·It·Utter·Low", "ˈberɪəl")
 
 
 def test_ent_and_ance_are_written_invariably_with_utter() -> None:
-    assert "terminal-ent-ance-utter" in broken(
+    assert "terminal-ent-ance-utter" in failed_checks(
         "urgent", "·Utter·Roe·Jay·It·No·Tea", "ˈɜːRdʒənt"
     )
-    assert "terminal-ent-ance-utter" not in broken(
+    assert "terminal-ent-ance-utter" not in failed_checks(
         "urgent", "·Utter·Roe·Jay·Utter·No·Tea", "ˈɜːRdʒənt"
     )
 
 
 def test_ment_is_not_ent() -> None:
-    assert not broken("abasement", "·Utter·Bay·Eight·See·May·No·Tea", "əˈbeɪsmənt")
+    assert not failed_checks(
+        "abasement", "·Utter·Bay·Eight·See·May·No·Tea", "əˈbeɪsmənt"
+    )
 
 
 def test_land_and_ment_omit_the_unstressed_vowel() -> None:
-    assert "terminal-land-ment-vowel-omitted" in broken(
+    assert "terminal-land-ment-vowel-omitted" in failed_checks(
         "abasement", "·Utter·Bay·Eight·See·May·Utter·No·Tea", "əˈbeɪsmənt"
     )
 
 
 def test_men_is_the_one_that_keeps_its_vowel() -> None:
-    assert not broken("dutchmen", "·Day·Utter·Cheer·May·Utter·No", "ˈdʌtʃmən")
-    assert not broken("seamen", "·See·Eat·May·Et·No", "ˈsiːmen")
-    assert "terminal-men-keeps-a-vowel" in broken(
+    assert not failed_checks("dutchmen", "·Day·Utter·Cheer·May·Utter·No", "ˈdʌtʃmən")
+    assert not failed_checks("seamen", "·See·Eat·May·Et·No", "ˈsiːmen")
+    assert "terminal-men-keeps-a-vowel" in failed_checks(
         "dutchmen", "·Day·Utter·Cheer·May·No", "ˈdʌtʃmən"
     )
 
 
 def test_an_initial_ex_takes_et_before_the_x_letter() -> None:
-    assert "initial-ex-et" in broken(
+    assert "initial-ex-et" in failed_checks(
         "excite", "·It·Key·See·I·Tea", "ɪkˈsaɪt", "·It·Excite·I·Tea"
     )
-    assert "initial-ex-et" not in broken(
+    assert "initial-ex-et" not in failed_checks(
         "excite", "·It·Key·See·I·Tea", "ɪkˈsaɪt", "·Et·Excite·I·Tea"
     )
 
 
 def test_a_stressed_ex_keeps_its_own_vowel() -> None:
-    assert "initial-ex-et" not in broken(
+    assert "initial-ex-et" not in failed_checks(
         "exit", "·It·Key·See·It·Tea", "ˈeksɪt", "·It·Excite·It·Tea"
     )
 
 
 def test_no_more_x_letters_than_the_latin_has_x() -> None:
-    assert "x-letter-only-with-x" in broken(
+    assert "x-letter-only-with-x" in failed_checks(
         "next", "·No·Et·Key·See·Tea", "nekst", "·No·Et·Excite·Excite"
     )
-    assert "x-letter-only-with-x" not in broken(
+    assert "x-letter-only-with-x" not in failed_checks(
         "xerox", "·J’ai·Eat·Roe·Ox·Key·See", "ˈzɪəRɒks", "·J’ai·Eat·Roe·Ox·Excite"
     )
 
