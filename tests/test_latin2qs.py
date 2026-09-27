@@ -149,7 +149,9 @@ def test_all_is_a_word_not_a_contraction_half(t: Transliterator) -> None:
 # --- the contraction layer ----------------------------------------------------
 
 
-def test_the_grade_defaults_the_facilities_and_does_not_bar_them() -> None:
+def test_the_grade_sets_the_facility_defaults_and_explicit_options_override_them() -> (
+    None
+):
     assert (Options().x_letters, Options().contractions) == (True, True)
     junior = Options(junior=True)
     assert (junior.x_letters, junior.contractions) == (False, False)
@@ -172,7 +174,9 @@ def test_a_contracted_stem_takes_its_clitics(t: Transliterator) -> None:
     assert out[4] == qs("·Way") + "’" + qs("·Low")
 
 
-def test_nt_generalizes_to_unlisted_stems(t: Transliterator) -> None:
+def test_nt_attaches_to_a_listed_stem_whose_nt_form_is_not_listed(
+    t: Transliterator,
+) -> None:
     assert words(t, "You shouldn't go.", contractions=True)[1] == qs("·She·Day·No·Tea")
 
 
@@ -422,7 +426,7 @@ def test_a_pseudo_tag_gains_no_closing_tag(t: Transliterator) -> None:
 # --- the Manual’s specimen passages -------------------------------------------
 
 # Expected output for passage words the transliterator cannot write as the Manual does. no-how 38: done is a tolerated contraction, which the checker accepts but the transliterator never writes. parental-advice 11: the phrase “a little” matches first, so the word-level contraction layer never sees little. gown-shop 24: Read writes whatever as the what-sign plus ever, a contraction his own list does not have. marys-lamb 30: manual-passages.tsv cannot record the leading apostrophe of 'twas. marys-lamb 32: the row policy keeps both RRPVar pronunciations of against, so the output joins both spellings with ⬌.
-REPLAY_PINS = {
+PASSAGE_EXPECTED_OUTPUTS = {
     ("no-how", 38): "·Day·Utter·No",
     ("parental-advice", 11): "·Low·It·Tea·Low",
     ("gown-shop", 24): "·Why·Et·Vie",
@@ -432,7 +436,9 @@ REPLAY_PINS = {
 
 
 @pytest.mark.parametrize("passage", sorted(SPECIMENS))
-def test_the_specimen_passages_replay(passage: str, t: Transliterator) -> None:
+def test_the_transliterator_reproduces_the_specimen_passages(
+    passage: str, t: Transliterator
+) -> None:
     rows = [w for w in load_passages() if w.passage == passage]
     text = " ".join(w.latin for w in rows)
     options = Options(junior=SPECIMENS[passage].level == "junior")
@@ -442,9 +448,9 @@ def test_the_specimen_passages_replay(passage: str, t: Transliterator) -> None:
         if row.outcome == "absent":
             continue
         got = chunk.replace("·", "")
-        pin = REPLAY_PINS.get((row.passage, row.index))
-        if pin is not None:
-            allowed = {render_qs(parse(pin)).replace("·", "")}
+        expected = PASSAGE_EXPECTED_OUTPUTS.get((row.passage, row.index))
+        if expected is not None:
+            allowed = {render_qs(parse(expected)).replace("·", "")}
         elif row.outcome == "differs":
             allowed = {
                 render_qs(parse(row.spelling)).replace("·", ""),

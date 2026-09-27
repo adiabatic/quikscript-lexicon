@@ -74,7 +74,7 @@ def x_letter(word: str, pos: str = "") -> str:
     return produced[0][2]
 
 
-def test_the_fixture_covers_every_rule() -> None:
+def test_the_manual_examples_cover_every_rule() -> None:
     covered = {example.rule for example in EXAMPLES}
     assert covered == set(RULE_IDS) | {"section-2"} | SIGN_ANCHORS
 
@@ -187,7 +187,7 @@ def test_ess_est_writes_et_but_only_where_the_terminal_is_real() -> None:
     assert senior("honest", "AJ0") == "·Ox·No·Utter·See·Tea"
 
 
-def test_ess_est_reaches_across_a_hiatus_seam() -> None:
+def test_ess_est_applies_after_a_hiatus_marker() -> None:
     assert senior("keenness", "NN1") == "·Key·Eat·No·No·Et·See"
     assert senior("goalless", "AJ0") == "·Gay·Owe·Low·Low·Et·See"
     assert senior("suddenness", "NN1") == "·See·Utter·Day·Utter·No·No·Et·See"
@@ -211,7 +211,7 @@ def test_y_writes_it_wherever_the_terminal_is_unstressed() -> None:
     assert senior("prima facie") == "·Pea·Roe·I·May·Utter ·Fee·Eight·She·It"
 
 
-def test_y_sees_through_an_inflection() -> None:
+def test_y_applies_before_a_final_s() -> None:
     assert senior("rabies", "NN1") == "·Roe·Eight·Bay·It·Zoo"
     assert senior("series", "NN0") == "·See·Eat·Utter·Roe·It·Zoo"
     assert senior("specie", "NN1") == "·See·Pea·Eat·She·It"
@@ -228,7 +228,7 @@ def test_a_plural_terminal_is_spelled_as_its_own_singular() -> None:
     assert senior("shoetrees", "NN2") == "·She·Ooze·Tea·Roe·Eat·Zoo"
 
 
-def test_y_leaves_an_es_that_spells_an_ending_of_its_own() -> None:
+def test_y_does_not_rewrite_an_es_that_is_an_ending_of_its_own() -> None:
     assert senior("theses", "NN2") == "·Thaw·Eat·See·Eat·Zoo"
     assert senior("crises", "NN2") == "·Key·Roe·I·See·Eat·Zoo"
     assert senior("oases", "NN2") == "·Owe·Eight·See·Eat·Zoo"
@@ -246,7 +246,7 @@ def test_fricassee_is_the_stress_minimal_pair_in_both_numbers() -> None:
     assert senior("fricassees", "VVZ") == "·Fee·Roe·It·Key·Utter·See·Eat·Zoo"
 
 
-def test_y_holds_a_lemma_constant_across_the_ed_and_ing_seam() -> None:
+def test_y_spells_a_lemma_the_same_before_ed_and_ing() -> None:
     assert terminal_for(context_for("squeegeed")) is None
     assert senior("squeegee") == "·See·Key·Way·Eat·Jay·Eat"
     assert senior("squeegees") == "·See·Key·Way·Eat·Jay·Eat·Zoo"
@@ -256,7 +256,9 @@ def test_y_holds_a_lemma_constant_across_the_ed_and_ing_seam() -> None:
     assert senior("fricasseeing") == "·Fee·Roe·It·Key·Utter·See·Eat·-ing"
 
 
-def test_y_leaves_a_compound_whose_last_element_is_a_word_of_its_own() -> None:
+def test_y_does_not_rewrite_a_compound_whose_last_element_is_a_word_of_its_own() -> (
+    None
+):
     assert senior("carefree", "AJ0") == "·Key·Eight·Roe·Fee·Roe·Eat"
     assert senior("braintree", "NP0") == "·Bay·Roe·Eight·No·Tea·Roe·Eat"
     assert senior("honeybee", "NN1") == "·He·Utter·No·It·Bay·Eat"
@@ -265,7 +267,7 @@ def test_y_leaves_a_compound_whose_last_element_is_a_word_of_its_own() -> None:
     assert senior("adoptee", "NN1") == "·Utter·Day·Ox·Pea·Tea·Eat"
 
 
-def test_y_never_touches_a_terminal_the_ipa_stresses() -> None:
+def test_y_does_not_rewrite_a_terminal_the_ipa_stresses() -> None:
     assert senior("legatee", "NN1") == "·Low·Et·Gay·Utter·Tea·Eat"
     assert senior("lessee", "NN1") == "·Low·Et·See·Eat"
     assert senior("payee", "NN1") == "·Pea·Eight·Eat"
@@ -273,7 +275,7 @@ def test_y_never_touches_a_terminal_the_ipa_stresses() -> None:
     assert senior("ash-key", "NN1") == "·At·She-·Key·Eat"
 
 
-def test_y_still_reduces_the_loanword_schwa_it_always_did() -> None:
+def test_y_writes_it_for_the_final_schwa_of_a_loanword_ending_in_e() -> None:
     assert senior("krone") == "·Key·Roe·Owe·No·It"
     assert senior("lasagne", "NN1") == "·Low·Utter·Zoo·Ah·No·Ye·It"
     assert senior("vice versa", "AV0") == "·Vie·I·See·It ·Vie·Utter·Roe·See·Utter"
@@ -294,7 +296,7 @@ def test_ward_is_contracted_but_not_when_stressed() -> None:
     assert senior("toward") == "·Tea·Utter·Way·Awe·Roe·Day"
 
 
-def test_ward_declines_a_stressed_utter_readlex_never_writes() -> None:
+def test_ward_does_not_rewrite_a_stressed_utter() -> None:
     context = context_for("edward", "NP0")
     match = WARD.search(context.latin)
     assert match is not None
@@ -364,7 +366,7 @@ def test_x_letter_is_scoped_to_the_word_and_not_to_the_entry() -> None:
     )
 
 
-def test_the_element_split_retires_a_ruling_the_mechanical_path_reproduces() -> None:
+def test_the_element_split_spells_exercise_books_without_an_x_decisions_row() -> None:
     assert "exercise-books" not in TABLES.x_decisions
     assert (
         x_letter("exercise-books", "NN2")
@@ -372,7 +374,7 @@ def test_the_element_split_retires_a_ruling_the_mechanical_path_reproduces() -> 
     )
 
 
-def test_an_x_letter_ruling_is_keyed_on_the_element(tmp_path: Path) -> None:
+def test_an_x_decisions_row_is_keyed_on_the_element(tmp_path: Path) -> None:
     rows = [["box", "", "unaligned", "a compound uses its element's row"]]
     tables = Tables(x_decisions=load_x_decisions(x_decisions_file(tmp_path, rows)))
     result = spell(context_for("ballot-box", "NN1"), tables)
@@ -395,7 +397,7 @@ def test_senior_and_x_letter_differ_only_where_recorded() -> None:
     assert senior("expect", "VVB") == "·It·Key·See·Pea·Et·Key·Tea"
 
 
-def test_a_terminal_or_prefix_rule_reaches_every_element_of_a_compound() -> None:
+def test_a_terminal_or_prefix_rule_applies_to_every_element_of_a_compound() -> None:
     assert senior("adding-machine", "NN1") == "·At·Day·-ing-·May·Utter·She·Eat·No"
     assert senior("adding", "VVG") == "·At·Day·-ing"
     assert (
@@ -408,7 +410,7 @@ def test_a_terminal_or_prefix_rule_reaches_every_element_of_a_compound() -> None
     assert senior("combination", "NN1") == "·Key·Ox·May·Bay·It·No·Eight·She·No"
 
 
-def test_the_vowel_before_a_final_l_comes_back_when_a_syllable_follows() -> None:
+def test_the_vowel_before_a_final_l_is_written_when_a_syllable_follows() -> None:
     assert senior("rifle", "NN1") == "·Roe·I·Fee·Low"
     assert senior("rifleman", "NN1") == "·Roe·I·Fee·Utter·Low·May·No"
     assert senior("able", "AJ0") == "·Eight·Bay·Low"
@@ -418,7 +420,7 @@ def test_the_vowel_before_a_final_l_comes_back_when_a_syllable_follows() -> None
     assert senior("feeding-bottle", "NN1") == "·Fee·Eat·Day·-ing-·Bay·Ox·Tea·Low"
 
 
-def test_a_ruling_keyed_on_an_element_governs_the_compound() -> None:
+def test_a_rule_words_row_keyed_on_an_element_applies_to_the_compound() -> None:
     assert senior("left-wing", "NN1") == "·Low·Et·Fee·Tea-·Way·It·-ing"
     assert senior("well-being", "NN1") == "·Way·Et·Low-·Bay·Eat·-ing"
     assert senior("ding-dong", "NN1") == "·Day·It·-ing-·Day·Ox·-ing"
@@ -458,7 +460,7 @@ def test_split_leaves_an_entry_the_alignment_guard_rejects_whole() -> None:
     assert senior("to-day", "NN1") == "·Tea·Utter·Day·Eight"
 
 
-def test_a_terminal_owns_the_end_of_each_of_these_words() -> None:
+def test_a_terminal_matches_each_of_these_words() -> None:
     for word in ("fashion", "ashen", "settlement", "eagle", "manage", "highest"):
         assert terminal_for(context_for(word)) is not None, word
 
@@ -494,13 +496,13 @@ def test_naive_marks_only_the_first_letter_of_a_token_as_stressed() -> None:
     assert (schwa.name, schwa.stressed) == ("Utter", False)
 
 
-def test_undecided_ing_defers_to_any_participle_suffix() -> None:
+def test_undecided_ing_excludes_a_participle_ending_and_a_y_stem() -> None:
     assert undecided_ing("wing", {"calling"})
     assert not undecided_ing("bookkeeping", {"keeping"})
     assert not undecided_ing("carrying", set())
 
 
-def test_undecided_y_flags_an_unstressed_eat_until_a_ruling_covers_it() -> None:
+def test_undecided_y_flags_an_unstressed_eat_until_a_rule_words_row_covers_it() -> None:
     for word in ("algae", "carefree", "apogees", "honeybees", "theses"):
         context = context_for(word)
         assert undecided_y(context, naive(context), Tables()), word
@@ -514,24 +516,28 @@ def test_spell_without_tables_still_produces_a_spelling() -> None:
     assert spell(context_for("calling"), Tables()).senior == "·Key·Awe·Low·-ing"
 
 
-def test_every_ruling_carries_a_note() -> None:
+def test_every_rule_words_row_has_a_note() -> None:
     for (rule, word), entry in load_rule_words().items():
         assert entry.note, (rule, word)
 
 
-def test_a_ruling_that_substitutes_nothing_is_rejected(tmp_path: Path) -> None:
+def test_an_x_decisions_row_that_substitutes_nothing_is_rejected(
+    tmp_path: Path,
+) -> None:
     rows = [["next", "·No·Et·Key·See·Tea", "unaligned", "the ks is spelled out"]]
     with pytest.raises(ValueError, match="has no X-letter"):
         load_x_decisions(x_decisions_file(tmp_path, rows))
 
 
-def test_a_ruling_that_keeps_the_c_of_xc_is_rejected(tmp_path: Path) -> None:
+def test_an_x_decisions_row_that_keeps_the_c_of_xc_is_rejected(tmp_path: Path) -> None:
     rows = [["excite", "·Et·Excite·See·I·Tea", "unaligned", "the X-letter covers it"]]
     with pytest.raises(ValueError, match="already covers"):
         load_x_decisions(x_decisions_file(tmp_path, rows))
 
 
-def test_an_empty_column_rules_that_a_word_takes_no_x_letter(tmp_path: Path) -> None:
+def test_an_empty_x_letter_column_means_the_word_gets_no_x_letter(
+    tmp_path: Path,
+) -> None:
     rows = [["x-ray-xylophone", "", "multiple-x", "neither x spells a ·Key·See"]]
     decisions = load_x_decisions(x_decisions_file(tmp_path, rows))
     assert decisions["x-ray-xylophone"].x_letter == ""

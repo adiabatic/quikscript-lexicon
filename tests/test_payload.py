@@ -54,7 +54,7 @@ def test_building_the_payload_twice_is_byte_identical() -> None:
     assert again.encode("utf-8") == WRITTEN.encode("utf-8")
 
 
-def test_the_file_is_the_desk_pages_object_grown_by_the_lookup_maps() -> None:
+def test_the_file_is_the_desk_pages_object_plus_the_lookup_maps() -> None:
     page, _ = build_page()
     inlined = payload(LEXICON)
     assert inlined in page
@@ -67,7 +67,7 @@ def test_the_file_is_the_desk_pages_object_grown_by_the_lookup_maps() -> None:
     assert "\n" not in WRITTEN.removesuffix("\n")
 
 
-def test_the_payload_carries_its_data_as_one_json_object() -> None:
+def test_the_payload_has_the_expected_top_level_keys() -> None:
     assert sorted(DATA) == [
         "confusions",
         "latin_by_spelling",
@@ -159,7 +159,7 @@ def test_a_spellings_by_latin_line_is_lowercased_with_every_required_field() -> 
         assert qs
 
 
-def test_read_keeps_its_heteronyms_apart_by_tag() -> None:
+def test_read_has_one_spellings_by_latin_row_per_tag() -> None:
     rows = [
         line.split("\t")
         for line in SPELLINGS_BY_LATIN_LINES
@@ -174,7 +174,7 @@ def test_read_keeps_its_heteronyms_apart_by_tag() -> None:
     ]
 
 
-def test_lead_keeps_its_two_nouns_side_by_side() -> None:
+def test_lead_has_two_nn1_rows_with_different_spellings() -> None:
     rows = [
         line.split("\t")
         for line in SPELLINGS_BY_LATIN_LINES
@@ -186,7 +186,7 @@ def test_lead_keeps_its_two_nouns_side_by_side() -> None:
     ]
 
 
-def test_a_diverging_row_carries_its_junior_column() -> None:
+def test_a_diverging_rows_junior_spelling_appears_in_both_maps() -> None:
     (line,) = [
         line for line in SPELLINGS_BY_LATIN_LINES if line.startswith("couldn't\t")
     ]
@@ -202,7 +202,7 @@ def test_a_diverging_row_carries_its_junior_column() -> None:
     assert f"{junior}\tcouldn't\tVM0+XX0\tjunior" in LATIN_BY_SPELLING_LINES
 
 
-def test_a_spaced_spelling_reaches_neither_map() -> None:
+def test_a_spaced_spelling_is_in_neither_map() -> None:
     assert not any(" " in line.split("\t")[0] for line in LATIN_BY_SPELLING_LINES)
     assert not any(
         " " in field

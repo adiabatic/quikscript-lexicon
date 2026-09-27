@@ -65,7 +65,9 @@ def test_the_server_typechecks_against_the_lsp_librarys_declarations(
     report("tsc --noEmit", run(installed, NPM, "run", "check"))
 
 
-def test_the_node_suite_proves_the_bundled_server_over_stdio(installed: Path) -> None:
+def test_the_node_suite_passes_against_the_bundled_server_over_stdio(
+    installed: Path,
+) -> None:
     assert NPM is not None
     report("node --test", run(installed, NPM, "test"))
 
@@ -77,6 +79,6 @@ def test_the_vscode_client_typechecks_against_the_editor_apis_declarations(
     report("tsc --noEmit", run(client, NPM, "run", "check"))
 
 
-def test_the_client_suite_proves_the_panels_view_model(client: Path) -> None:
+def test_the_client_suite_passes_against_the_panels_view_model(client: Path) -> None:
     assert NPM is not None
     report("node --test", run(client, NPM, "test"))

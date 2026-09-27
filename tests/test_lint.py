@@ -28,7 +28,7 @@ def test_every_check_says_what_the_manual_requires() -> None:
     assert all(check.requires for check in CHECKS)
 
 
-def test_the_shipped_table_excuses_nothing() -> None:
+def test_the_shipped_exemption_table_is_empty() -> None:
     assert load_exemptions() == {}
 
 
@@ -125,13 +125,13 @@ def test_no_more_x_letters_than_the_latin_has_x() -> None:
     )
 
 
-def test_a_pragma_needs_a_known_reason(tmp_path: Path) -> None:
+def test_an_exemption_needs_a_known_reason(tmp_path: Path) -> None:
     rows = [["initial-ex-et", "pre-exist", "because-i-said-so", ""]]
     with pytest.raises(ValueError, match="reason must be 'known-defect'"):
         load_exemptions(exemption_file(tmp_path, rows))
 
 
-def test_a_pragma_for_an_unknown_check_is_rejected(tmp_path: Path) -> None:
+def test_an_exemption_for_an_unknown_check_is_rejected(tmp_path: Path) -> None:
     rows = [["no-such-check", "pre-exist", "stressed", ""]]
     with pytest.raises(ValueError, match="is not a check"):
         load_exemptions(exemption_file(tmp_path, rows))

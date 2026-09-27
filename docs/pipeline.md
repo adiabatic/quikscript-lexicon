@@ -203,7 +203,7 @@ With the four small keys, a consumer needs no other file:
 Two of the small keys duplicate other files:
 
 - `phrases` duplicates `qs_converter_phrases.txt`. The same call to `build.artifacts()` writes both, and `make check` rebuilds and byte-compares both.
-- `c5_to_penn` duplicates `src/qslex/data/c5-to-penn.tsv`, which is a hand-edited input that the build reads. `test_the_masters_tag_map_is_the_table_the_converter_reads` in `tests/test_build.py` checks that the two are equal.
+- `c5_to_penn` duplicates `src/qslex/data/c5-to-penn.tsv`, which is a hand-edited input that the build reads. `test_the_lexicon_jsons_tag_map_equals_c5_to_penn_tsv` in `tests/test_build.py` checks that the two are equal.
 
 `letters` appears in no other file. The lexicon JSON is the only place the alphabet is named.
 
@@ -274,7 +274,7 @@ rows = converter(
 )
 ```
 
-Written out with `json.dumps(rows, ensure_ascii=False, indent=4)` and a trailing newline, that gives the same bytes the build used to write as `qs_converter.json`. `test_the_master_carries_the_converter_shape_it_no_longer_ships` in `tests/test_build.py` checks that this rebuild equals the table the build computes in memory. It fails if the lexicon JSON stops containing what the rebuild needs.
+Written out with `json.dumps(rows, ensure_ascii=False, indent=4)` and a trailing newline, that gives the same bytes the build used to write as `qs_converter.json`. `test_the_converter_table_can_be_rebuilt_from_the_lexicon_json` in `tests/test_build.py` checks that this rebuild equals the table the build computes in memory. It fails if the lexicon JSON stops containing what the rebuild needs.
 
 ### qs_converter_phrases.txt
 

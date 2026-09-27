@@ -12,7 +12,7 @@ from conftest import ADDED, CORPUS, TABLES, built, context_of
 from tsv import write_tsv
 
 BUILT = built()
-MASTER = json.loads(BUILT[LEXICON_JSON])
+LEXICON_JSON_DATA = json.loads(BUILT[LEXICON_JSON])
 
 GOOD = [
     "quikscript",
@@ -30,7 +30,7 @@ def added_file(tmp_path: Path, rows: list[list[str]]) -> Path:
     return write_tsv(tmp_path / "added-words.tsv", ADDED_HEADER, rows)
 
 
-def test_the_shipped_table_loads_and_every_row_declares_its_provenance() -> None:
+def test_the_shipped_table_loads_and_every_row_has_a_source_and_a_note() -> None:
     assert ADDED
     for entry in ADDED:
         assert entry.source and entry.note
@@ -38,7 +38,7 @@ def test_the_shipped_table_loads_and_every_row_declares_its_provenance() -> None
         assert entry.headword == f"{entry.word}_{entry.pos}_{entry.shavian}"
 
 
-def test_the_rules_produce_every_spelling_the_table_declares() -> None:
+def test_the_rules_produce_every_spelling_the_table_lists() -> None:
     """The build spells added words with the rules and never reads their `qs` column, so this test checks that column against the rules.
 
     The validator runs the same check. This copy covers a run of the test suite alone.
@@ -49,7 +49,7 @@ def test_the_rules_produce_every_spelling_the_table_declares() -> None:
         assert not result.junior and not result.x_letter, entry.word
 
 
-def test_no_added_word_duplicates_a_word_the_corpus_already_carries() -> None:
+def test_no_added_word_duplicates_a_word_the_corpus_already_contains() -> None:
     corpus = {row.word.lower() for row in CORPUS}
     assert not {entry.word for entry in ADDED} & corpus
 
@@ -66,16 +66,16 @@ def test_both_spellings_of_the_name_share_one_quikscript_spelling() -> None:
     assert by_word["quickscript's"] == base + "·See"
 
 
-def test_the_added_words_reach_the_master_and_the_flat_projection() -> None:
+def test_the_added_words_appear_in_the_lexicon_json_and_tsv() -> None:
     rows = {tuple(line.split("\t")[:2]) for line in BUILT[LEXICON_TSV].splitlines()[1:]}
     for entry in ADDED:
-        assert entry.headword in MASTER["entries"]
+        assert entry.headword in LEXICON_JSON_DATA["entries"]
         assert (entry.word, render_qs(parse(entry.qs))) in rows
 
 
-def test_the_master_counts_the_added_words_separately() -> None:
+def test_the_lexicon_json_counts_the_added_words_separately() -> None:
     """`meta.source` names the ReadLex repository and commit, and ReadLex is no longer the source of every entry."""
-    assert MASTER["meta"]["counts"]["added"] == len(ADDED)
+    assert LEXICON_JSON_DATA["meta"]["counts"]["added"] == len(ADDED)
 
 
 def test_the_possessives_are_listed_as_phrases() -> None:
@@ -120,7 +120,7 @@ def test_the_same_word_under_two_tags_is_allowed(tmp_path: Path) -> None:
     assert len(load_added_words(added_file(tmp_path, [GOOD, second]))) == 2
 
 
-def test_an_added_row_wears_no_variant_tag(tmp_path: Path) -> None:
+def test_an_added_row_has_an_empty_variant_tag(tmp_path: Path) -> None:
     """An added row belongs to no accent, so its `var` tag is empty. `variants.kept` raises on an empty tag. An added row that reached the row policy would therefore raise an error instead of being counted in the per-tag row counts in var-tags.tsv."""
     entry = load_added_words(added_file(tmp_path, [GOOD]))[0]
     assert entry.row.var == ""

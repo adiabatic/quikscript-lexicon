@@ -22,7 +22,7 @@ def loaded(tmp_path: Path, rows: list[list[str]]) -> tuple[str, ...]:
     return tuple(word.outcome for word in load_passages(passages_file(tmp_path, rows)))
 
 
-def test_a_junior_passage_cannot_use_a_senior_verdict(tmp_path: Path) -> None:
+def test_a_junior_passage_cannot_use_a_senior_outcome(tmp_path: Path) -> None:
     rows = [*GOOD_ROWS[:2], ["bo-peep", "0", "little", "·Low", "senior", "", ""]]
     with pytest.raises(ValueError, match="cannot have outcome"):
         loaded(tmp_path, rows)
@@ -49,7 +49,7 @@ def test_words_must_be_in_order(tmp_path: Path) -> None:
         loaded(tmp_path, rows)
 
 
-def test_only_a_differing_word_pins_what_we_spell(tmp_path: Path) -> None:
+def test_only_a_differing_word_records_our_spelling(tmp_path: Path) -> None:
     rows = [["no-how", "0", "if", "·It·Fee", "senior", "·It·Fee", ""]]
     with pytest.raises(ValueError, match="only a differing word"):
         loaded(tmp_path, rows)
@@ -61,7 +61,7 @@ def test_a_differing_word_needs_a_note(tmp_path: Path) -> None:
         loaded(tmp_path, rows)
 
 
-def test_a_reproduced_word_takes_no_note(tmp_path: Path) -> None:
+def test_a_reproduced_word_may_not_have_a_note(tmp_path: Path) -> None:
     rows = [["no-how", "0", "if", "·It·Fee", "senior", "", "because"]]
     with pytest.raises(ValueError, match="needs a note"):
         loaded(tmp_path, rows)
@@ -73,6 +73,6 @@ def test_unknown_letter_names_are_rejected(tmp_path: Path) -> None:
         loaded(tmp_path, rows)
 
 
-def test_a_passage_that_loses_words_is_rejected(tmp_path: Path) -> None:
+def test_a_passage_with_missing_words_is_rejected(tmp_path: Path) -> None:
     with pytest.raises(ValueError, match="expected 56"):
         loaded(tmp_path, GOOD_ROWS)

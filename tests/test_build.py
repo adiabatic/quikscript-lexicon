@@ -29,10 +29,10 @@ def table(text: str) -> tuple[list[str], list[list[str]]]:
     return lines[0].split("\t"), [line.split("\t") for line in lines[1:]]
 
 
-MASTER = json.loads(BUILT[LEXICON_JSON])
+LEXICON_JSON_DATA = json.loads(BUILT[LEXICON_JSON])
 
 
-def test_the_build_emits_every_declared_artifact() -> None:
+def test_the_build_emits_exactly_the_five_artifacts() -> None:
     assert set(BUILT) == {
         LEXICON_JSON,
         LEXICON_TSV,
@@ -42,26 +42,26 @@ def test_the_build_emits_every_declared_artifact() -> None:
     }
 
 
-def test_the_tsv_projection_declares_its_header_and_keeps_to_it() -> None:
+def test_the_tsv_has_its_header_and_every_row_has_one_field_per_column() -> None:
     header, rows = table(BUILT[LEXICON_TSV])
     assert tuple(header) == TSV_HEADER
     assert {len(row) for row in rows} == {len(TSV_HEADER)}
 
 
-def test_the_tsv_projection_is_deduplicated() -> None:
+def test_the_tsv_is_deduplicated() -> None:
     _, rows = table(BUILT[LEXICON_TSV])
     flat = [tuple(row) for row in rows]
     assert len(flat) == len(set(flat))
     assert len(flat) < len(ENTRIES)
 
 
-def test_the_two_lexicon_artifacts_are_the_same_projection() -> None:
+def test_the_tsv_and_json_list_the_same_entries() -> None:
     _, rows = table(BUILT[LEXICON_TSV])
-    grouped = MASTER["entries"]
+    grouped = LEXICON_JSON_DATA["entries"]
     assert set(grouped) == {entry.headword for entry in ENTRIES}
     records = [record for group in grouped.values() for record in group]
     assert len(records) == len(ENTRIES)
-    projection = {
+    json_rows = {
         (
             record["Latn"],
             record["qs"],
@@ -74,7 +74,7 @@ def test_the_two_lexicon_artifacts_are_the_same_projection() -> None:
         )
         for record in records
     }
-    assert projection == {tuple(row) for row in rows}
+    assert json_rows == {tuple(row) for row in rows}
 
 
 def test_the_x_column_is_confined_to_words_with_an_x() -> None:
@@ -126,18 +126,24 @@ def test_rendering_the_same_entries_twice_is_byte_identical() -> None:
     }
 
 
-def test_the_master_declares_what_it_holds() -> None:
-    assert MASTER["meta"]["version"] == SCHEMA_VERSION
-    assert MASTER["meta"]["counts"] == {
+def test_the_lexicon_json_has_its_version_counts_and_top_level_keys() -> None:
+    assert LEXICON_JSON_DATA["meta"]["version"] == SCHEMA_VERSION
+    assert LEXICON_JSON_DATA["meta"]["counts"] == {
         "headwords": len({entry.headword for entry in ENTRIES}),
         "entries": len(ENTRIES),
         "phrases": len(BUILT[PHRASES_TXT].splitlines()),
         "added": len(ADDED),
     }
-    assert set(MASTER) == {"meta", "letters", "c5_to_penn", "phrases", "entries"}
+    assert set(LEXICON_JSON_DATA) == {
+        "meta",
+        "letters",
+        "c5_to_penn",
+        "phrases",
+        "entries",
+    }
 
 
-def test_the_master_carries_the_converter_shape_it_no_longer_ships() -> None:
+def test_the_converter_table_can_be_rebuilt_from_the_lexicon_json() -> None:
     """Tests that dropping qs_converter.json lost nothing.
 
     The converter table is rebuilt from the lexicon JSON’s own entries and `c5_to_penn` map, reading no other file. It must equal the converter table built from the in-memory entries and c5-to-penn.tsv.
@@ -151,12 +157,12 @@ def test_the_master_carries_the_converter_shape_it_no_longer_ships() -> None:
                 entry.get("qs_junior", ""),
                 entry.get("qs_x", ""),
             )
-            for group in MASTER["entries"].values()
+            for group in LEXICON_JSON_DATA["entries"].values()
             for entry in group
         ),
         {
             c5: TagMap(c5, penn, "upstream", "")
-            for c5, penn in MASTER["c5_to_penn"].items()
+            for c5, penn in LEXICON_JSON_DATA["c5_to_penn"].items()
         },
     )
     assert rebuilt == converter(
@@ -164,28 +170,34 @@ def test_the_master_carries_the_converter_shape_it_no_longer_ships() -> None:
     )
 
 
-def test_the_masters_tag_map_is_the_table_the_converter_reads() -> None:
-    assert MASTER["c5_to_penn"] == {c5: tag.penn for c5, tag in load_penn().items()}
+def test_the_lexicon_jsons_tag_map_equals_c5_to_penn_tsv() -> None:
+    assert LEXICON_JSON_DATA["c5_to_penn"] == {
+        c5: tag.penn for c5, tag in load_penn().items()
+    }
 
 
-def test_the_masters_phrases_are_the_file_beside_them() -> None:
-    assert MASTER["phrases"] == BUILT[PHRASES_TXT].splitlines()
+def test_the_lexicon_jsons_phrases_equal_the_phrases_file() -> None:
+    assert LEXICON_JSON_DATA["phrases"] == BUILT[PHRASES_TXT].splitlines()
 
 
-def test_the_masters_letters_name_every_codepoint() -> None:
-    assert {tuple(letter) for letter in MASTER["letters"]} == {LETTERS_HEADER}
-    assert [letter["name"] for letter in MASTER["letters"]] == list(CODEPOINT_OF)
+def test_the_lexicon_jsons_letters_list_every_letter_name_in_order() -> None:
+    assert {tuple(letter) for letter in LEXICON_JSON_DATA["letters"]} == {
+        LETTERS_HEADER
+    }
+    assert [letter["name"] for letter in LEXICON_JSON_DATA["letters"]] == list(
+        CODEPOINT_OF
+    )
 
 
-def test_each_letter_row_carries_the_character_for_its_codepoint() -> None:
-    for letter in MASTER["letters"]:
+def test_each_letter_row_has_the_character_for_its_codepoint() -> None:
+    for letter in LEXICON_JSON_DATA["letters"]:
         codepoint = CODEPOINT_OF[letter["name"]]
         assert int(letter["codepoint"].removeprefix("U+"), 16) == codepoint
         assert letter["qs"] == chr(codepoint)
 
 
 def test_every_letter_is_a_consonant_a_vowel_or_an_x_letter() -> None:
-    kinds = {letter["name"]: letter["class"] for letter in MASTER["letters"]}
+    kinds = {letter["name"]: letter["class"] for letter in LEXICON_JSON_DATA["letters"]}
     assert set(kinds.values()) == {"consonant", "vowel", "x-letter"}
     assert {name for name, kind in kinds.items() if kind == "vowel"} == set(VOWELS)
     assert {name for name, kind in kinds.items() if kind == "x-letter"} == {

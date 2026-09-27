@@ -123,14 +123,14 @@ def test_both_forms_of_a_divergent_row_are_accepted() -> None:
         assert row.junior in accepted
 
 
-def test_the_page_carries_the_dictionary_and_the_senior_contractions() -> None:
+def test_the_pages_word_set_is_the_dictionary_and_the_senior_contractions() -> None:
     assert LEXICON.union == tuple(sorted(frozenset(LEXICON.listed) | CONTRACTED))
     assert len(LEXICON.listed) == 75605
     assert len(CONTRACTED) == 75
     assert len(LEXICON.union) == 75674
 
 
-def test_the_contractions_the_dictionary_already_lists_widen_nothing() -> None:
+def test_six_contractions_are_already_in_the_dictionary() -> None:
     """Six of the 75 contractions are spellings the dictionary already lists.
 
     be and that are Manual word signs that the senior column already writes. cannot has the same spelling in the list and in its own row. do, think and she share a spelling with unrelated entries: the ordinals nd and rd, the ordinal th, and the interjection sh. The test compares sets of spellings rather than counting rows, because some of these spellings belong to more than one row. do has the spelling of both nd and rd, and be has two rows (VBI and VBB).
@@ -139,7 +139,7 @@ def test_the_contractions_the_dictionary_already_lists_widen_nothing() -> None:
     assert len(LEXICON.union) - len(LEXICON.listed) == 69
 
 
-def test_only_the_word_rows_of_the_contraction_list_reach_the_page() -> None:
+def test_only_the_word_rows_of_the_contraction_list_are_in_the_pages_word_set() -> None:
     clitics = [entry for entry in CONTRACTIONS if entry.kind == "clitic"]
     assert {entry.word for entry in clitics} == {"'ll", "n't"}
     assert {
@@ -164,7 +164,7 @@ def test_a_contraction_tagged_for_a_part_of_speech_matches_only_that_tag() -> No
             assert (row.latin.lower(), row.pos) == (entry.word, entry.pos)
 
 
-def test_every_spelling_carries_a_frequency() -> None:
+def test_every_spelling_has_a_frequency() -> None:
     assert set(LEXICON.frequency) == set(LEXICON.union)
 
 
@@ -227,13 +227,13 @@ def test_the_sample_spells_every_word_the_way_the_lexicon_does() -> None:
     assert QUIKSCRIPT[: len(SAMPLE_WORDS)] == [spelled[key] for key in SAMPLE_WORDS]
 
 
-def test_the_sample_carries_exactly_one_word_the_lexicon_does_not() -> None:
+def test_the_sample_has_exactly_one_word_the_lexicon_does_not_list() -> None:
     accepted = frozenset(LEXICON.union)
     assert len(QUIKSCRIPT) == len(SAMPLE_WORDS) + 1
     assert [word for word in QUIKSCRIPT if word not in accepted] == [QUIKSCRIPT[-1]]
 
 
-def test_the_sample_opens_the_textarea() -> None:
+def test_the_textarea_initially_contains_the_sample() -> None:
     assert f">{html.escape(SAMPLE)}</textarea>" in BUILT
 
 
@@ -251,7 +251,7 @@ def test_no_injected_chunk_closes_a_script_element_early() -> None:
     assert BUILT.count("<script>") == BUILT.lower().count("</script") == 4
 
 
-def test_the_page_carries_its_data_as_one_json_object() -> None:
+def test_the_page_contains_its_data_as_one_json_object() -> None:
     written = payload(LEXICON)
     assert written in BUILT
     assert sorted(json.loads(written)) == ["confusions", "rep", "try_order", "words"]
@@ -314,7 +314,7 @@ def under_node(script: str, *arguments: Path) -> str:
 
 
 @pytest.mark.skipif(NODE is None, reason="node is not on PATH")
-def test_the_pages_logic_holds_against_the_lexicon_it_carries(written: Path) -> None:
+def test_the_pages_core_passes_against_its_inlined_lexicon(written: Path) -> None:
     logged = under_node(CORE_TESTS, WEB / CORE, written)
     assert logged.splitlines()[-1] == f"{CORE_CHECKS} checks passed", logged
 

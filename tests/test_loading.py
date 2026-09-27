@@ -104,7 +104,7 @@ def test_codepoint_must_be_u_prefixed(tmp_path: Path) -> None:
         load_mapping(mapping_file(tmp_path, rows))
 
 
-def test_marker_row_may_not_carry_letters(tmp_path: Path) -> None:
+def test_marker_row_may_not_have_letters(tmp_path: Path) -> None:
     rows = [["ˈ", "", PEA, "U+E650", "·Pea", "marker", "", ""]]
     with pytest.raises(ValueError, match="must map to no letters"):
         load_mapping(mapping_file(tmp_path, rows))
@@ -379,7 +379,7 @@ def test_var_tags_reject_a_duplicate_row(tmp_path: Path) -> None:
         load_var_tags(tags_file(tmp_path, [GOOD_TAGS[0], GOOD_TAGS[0]]))
 
 
-def test_an_undocumented_tag_must_declare_the_words_it_covers(tmp_path: Path) -> None:
+def test_an_undocumented_tag_must_list_the_words_it_covers(tmp_path: Path) -> None:
     rows = [*GOOD_TAGS, ["SSB", "SSB", "drop", "1", "", "n"]]
     with pytest.raises(ValueError, match="must list the words it covers"):
         load_var_tags(tags_file(tmp_path, rows))
@@ -406,7 +406,7 @@ def test_var_tags_reject_a_canonical_that_disagrees_on_policy(tmp_path: Path) ->
         load_var_tags(tags_file(tmp_path, rows))
 
 
-def test_a_variant_tag_nobody_has_ruled_on_is_rejected(tmp_path: Path) -> None:
+def test_a_variant_tag_with_no_policy_is_rejected(tmp_path: Path) -> None:
     tags = load_var_tags(tags_file(tmp_path, GOOD_TAGS))
     with pytest.raises(ValueError, match="no policy for the variant tag"):
         kept(tags, "Martian")

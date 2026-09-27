@@ -12,7 +12,7 @@ from conftest import MAPPING, OVERRIDES
 READ_BACK = phonemes_of(MAPPING)
 
 
-def said(ipa: str) -> tuple[str, ...]:
+def source_ipa_phonemes(ipa: str) -> tuple[str, ...]:
     return source_phonemes(tuple(tokenize(ipa, MAPPING, OVERRIDES)))
 
 
@@ -27,9 +27,9 @@ def test_the_x_letters_read_back_to_their_two_sounds() -> None:
     assert READ_BACK["Exam"] == ("ɡ", "z")
 
 
-def test_stress_marks_and_separators_say_nothing() -> None:
-    assert said("ˈkæt") == ("k", "æ", "t")
-    assert said("ˌkæt-ˈdɒɡ") == ("k", "æ", "t", "d", "ɒ", "ɡ")
+def test_stress_marks_and_separators_contribute_no_phonemes() -> None:
+    assert source_ipa_phonemes("ˈkæt") == ("k", "æ", "t")
+    assert source_ipa_phonemes("ˌkæt-ˈdɒɡ") == ("k", "æ", "t", "d", "ɒ", "ɡ")
 
 
 def test_a_spelling_reads_back_letter_by_letter() -> None:
@@ -37,22 +37,22 @@ def test_a_spelling_reads_back_letter_by_letter() -> None:
     assert spelled_phonemes("·No·Et·Excite·Tea", READ_BACK) == ("n", "e", "k", "s", "t")
 
 
-def test_an_untouched_spelling_reads_straight_back() -> None:
-    assert said("kæt") == spelled_phonemes("·Key·At·Tea", READ_BACK)
+def test_an_unchanged_spelling_reads_back_to_its_source_phonemes() -> None:
+    assert source_ipa_phonemes("kæt") == spelled_phonemes("·Key·At·Tea", READ_BACK)
 
 
-def test_an_elided_vowel_is_a_licensed_difference() -> None:
+def test_an_elided_vowel_is_an_allowed_difference() -> None:
     assert align(("l", "ɪ", "t", "ə", "l"), ("l", "ɪ", "t", "l")) == (("ə", ""),)
 
 
-def test_an_inserted_schwa_is_a_licensed_difference() -> None:
+def test_an_inserted_schwa_is_an_allowed_difference() -> None:
     assert align(("k", "l", "ɪ"), ("k", "ə", "l", "ɪ")) == (("", "ə"),)
 
 
-def test_a_lost_or_changed_consonant_is_not_licensed() -> None:
+def test_a_lost_or_changed_consonant_is_not_allowed() -> None:
     assert align(("k", "æ", "p"), ("k", "æ")) is None
     assert align(("k", "æ", "t"), ("ɡ", "æ", "t")) is None
 
 
-def test_every_licensed_difference_says_why() -> None:
+def test_every_allowed_difference_has_a_reason() -> None:
     assert all(EDITS.values())
