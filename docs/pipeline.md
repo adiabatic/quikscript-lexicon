@@ -19,7 +19,7 @@ Everything is generated into [`lexicon/`](../lexicon) and committed, so the file
 
 **One set of entries.** `build.artifacts()` generates every artifact from the same list of spelled entries in one call, and the lexicon JSON contains everything the other artifacts are derived from. This rules out the kind of generation bug that gave upstream’s TSV duplicate rows ([Shavian-info/readlex#124](https://github.com/Shavian-info/readlex/pull/124)). Each stage has one source file. Upstream edits `readlex.json`. This repository edits the rule and override tables in `src/qslex/data/`. The build writes `quikscript-lexicon.json`. Nothing the build writes is edited by hand.
 
-**One JSON file.** The repository used to commit a second JSON file, `qs_converter.json`. It covered the same words and had the same spelling in each of the three columns. It differed only in writing a Penn tag where the lexicon JSON writes the C5 tag that maps to it. It was 9 MB. It is no longer committed. The lexicon JSON now includes the tag map, so the file the build used to write can be [rebuilt from the lexicon JSON alone](#the-converter-shape). The other three artifacts stay committed because they are in formats other tools read. A spreadsheet reads the TSV and hunspell reads the `.dic`, and neither reads JSON.
+**One JSON file.** The repository used to commit a second JSON file, `qs_converter.json`. It covered the same words and had the same spelling in each of the three columns. It differed only in writing a Penn tag where the lexicon JSON writes the C5 tag that maps to it. It was 9 MB. It is no longer committed. The lexicon JSON now includes the tag map, so the file the build used to write can be [rebuilt from the lexicon JSON alone](#the-converter-table). The other three artifacts stay committed because they are in formats other tools read. A spreadsheet reads the TSV and hunspell reads the `.dic`, and neither reads JSON.
 
 ## Encoding
 
@@ -171,7 +171,7 @@ Both possessives are added to the [phrase list](#qs_converter_phrasestxt) automa
 
 These are absolute requirements, not expected counts, because the table is small. The differences in `roundtrip.EDITS` are the only exceptions, and they apply to every word, not to one row. For example, `ligated` drops the schwa of its -Əd ending because Quikscript writes every such -ted ending that way. A hand-written row cannot be required to read back without that difference. The validator also fails if ReadLex adds the word. The added row must then be removed or its reason for staying recorded, so the lexicon cannot gain a second row for the word without a check failing. Checking added words in a separate pass leaves every corpus check unchanged, so a corpus update is still compared against ReadLex alone.
 
-## Artifact shapes
+## Artifact formats
 
 ### quikscript-lexicon.json
 
@@ -223,7 +223,7 @@ The sparse columns are empty strings on rows where they do not differ from `qs`.
 
 The TSV **is deduplicated**. Two headwords can list the same inflected form (ax and axe both list axed). Flattening them without removing the duplicate is upstream’s #124 bug.
 
-### The converter shape
+### The converter table
 
 The converter table is not an artifact. The build computes it to derive the phrase list, and the transliterator computes it again from the lexicon JSON when it starts. Neither writes it to a file. This repository still specifies its format, because the transliterator from [#6](https://github.com/adiabatic/quikscript-lexicon/issues/6) is a port of `latin2shaw.py`, and the port depends on using upstream’s format.
 

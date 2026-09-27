@@ -6,7 +6,7 @@ The architecture is upstream’s:
 
 - spaCy tokenizes and tags the text.
 - A phrase matcher merges entries that the tokenizer would otherwise split.
-- Each word is looked up in the [converter table](pipeline.md#the-converter-shape), and the part-of-speech tag chooses between the spellings of a heteronym.
+- Each word is looked up in the [converter table](pipeline.md#the-converter-table), and the part-of-speech tag chooses between the spellings of a heteronym.
 - Affix fallbacks construct words that the lexicon lacks.
 
 Only the lookup values and the letter-class logic are new. Anything not described below works as it does in `latin2shaw.py`.
@@ -48,7 +48,7 @@ Senior is how a fluent writer writes, so by default it uses the X-letters and th
 
 The grade sets defaults and does not forbid either facility. The Manual’s Note on p.25 says that the Sections II and III facilities “are of course impossible as a first stage in children’s writing”. That is advice about teaching children, and it does not limit what a converter may write. So `--junior --x-letters` and `--junior --contractions` are both accepted. The only combination the CLI rejects is `--senior --junior`, which argparse rejects because the two flags are mutually exclusive.
 
-Each of the two sparse columns falls back to `qs` where it is empty, as the [column model](pipeline.md#the-converter-shape) specifies:
+Each of the two sparse columns falls back to `qs` where it is empty, as the [column model](pipeline.md#the-converter-table) specifies:
 
 - `qs_x` is used when the X-letters are on.
 - `qs_junior` is used when the grade is Junior.
@@ -133,7 +133,7 @@ The affix spellings were written from the Manual’s affix conventions and this 
 
 ## Ambiguity the tags cannot settle
 
-Where a converter row is a `⬌`-joined pair, the transliterator writes it out as is, as `latin2shaw.py` does with its own joined rows. The artifact [does not choose between the alternatives](pipeline.md#the-converter-shape), and the transliterator does not pick one either. A proofreader resolves ⬌ in the same way as ⚠️.
+Where a converter row is a `⬌`-joined pair, the transliterator writes it out as is, as `latin2shaw.py` does with its own joined rows. The artifact [does not choose between the alternatives](pipeline.md#the-converter-table), and the transliterator does not pick one either. A proofreader resolves ⬌ in the same way as ⚠️.
 
 Because of the [row policy](pipeline.md#row-policy-the-rrp-family-only), again and against are always joined here. Upstream drops their second RRP pronunciations.
 
@@ -141,7 +141,7 @@ Because of the [row policy](pipeline.md#row-policy-the-rrp-family-only), again a
 
 Apart from the points above, the code is a direct port. It differs from `latin2shaw.py` in these places:
 
-1. **Constructed words use the `0` row, not the first row.** Upstream takes `rows[0]` for affix and plural fallbacks. That worked when `NN` came first, but this artifact [writes `NNP` first](pipeline.md#the-converter-shape). The fallbacks here read the last row, which the converter always writes as the `0` row.
+1. **Constructed words use the `0` row, not the first row.** Upstream takes `rows[0]` for affix and plural fallbacks. That worked when `NN` came first, but this artifact [writes `NNP` first](pipeline.md#the-converter-table). The fallbacks here read the last row, which the converter always writes as the `0` row.
 2. **`esque` is a suffix.** Upstream lists it under prefixes, where `startswith` can never match an English word.
 3. **At most one affix construction per token.** Upstream’s loop keeps matching after a hit and can write a word twice. Here the first successful construction is returned.
 4. **A verb before “to” that fails both special cases is converted normally.** Upstream writes nothing, so “she has to her credit” loses the has.

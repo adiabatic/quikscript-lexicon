@@ -2,12 +2,12 @@
 
 Every file here except this README is generated. Do not edit them by hand: `make artifacts` rewrites them, and `make check` fails if a committed file differs from a fresh build. The spec is [`docs/pipeline.md`](../docs/pipeline.md).
 
-The spec’s [Artifacts](../docs/pipeline.md#artifacts) table says what each file is, and [Artifact shapes](../docs/pipeline.md#artifact-shapes) describes the format of each. No document states how many rows each file has. `meta.counts` in the lexicon JSON has the counts it records, and `make check` compares every file with a fresh build.
+The spec’s [Artifacts](../docs/pipeline.md#artifacts) table says what each file is, and [Artifact formats](../docs/pipeline.md#artifact-formats) describes the format of each. No document states how many rows each file has. `meta.counts` in the lexicon JSON has the counts it records, and `make check` compares every file with a fresh build.
 
 `quikscript-lexicon.json` is the source JSON, and the only JSON file here. It has five keys:
 
 - `entries` is the lexicon itself.
-- `letters`, `c5_to_penn` and `phrases` are the small tables needed to generate the other files from this one. That includes the transliterator’s Latin-to-spellings table, which is [rebuilt at startup rather than shipped](../docs/pipeline.md#the-converter-shape).
+- `letters`, `c5_to_penn` and `phrases` are the small tables needed to generate the other files from this one. That includes the transliterator’s Latin-to-spellings table, which is [rebuilt at startup rather than shipped](../docs/pipeline.md#the-converter-table).
 - `meta` records the schema version, the corpus repository, commit and SHA-256 the file was built from, the PUA block, and the counts.
 
 The other four files are for tools that do not read JSON. A spreadsheet reads the TSV, a tokenizer reads `qs_converter_phrases.txt`, and hunspell reads the `.dic` and `.aff`.

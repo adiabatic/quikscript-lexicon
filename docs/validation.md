@@ -124,7 +124,7 @@ Seven more shapes were considered and not adopted. Each one matches real rows, c
 
 Every row of that table has the same problem: the check keeps the shape and drops the condition. Read states almost every convention with a condition attached, such as “unstressed”, “provided it is an affix” or “where another syllable is added”. A check without the condition no longer tests the rule.
 
-## Three gaps, found and closed
+## Three gaps in the rules
 
 Three places where the rules fell short of what Read states were found by hand and filed as [#10](https://github.com/adiabatic/quikscript-lexicon/issues/10) and [#12](https://github.com/adiabatic/quikscript-lexicon/issues/12). Each was checked against the Manual rule for the word’s ending. All three are fixed. The fourth item of #12 turned out not to be a gap.
 

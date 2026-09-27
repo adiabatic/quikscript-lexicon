@@ -217,7 +217,7 @@ The expected corpus counts are in [`src/qslex/validate.py`](../src/qslex/validat
 
 ## Out of scope
 
-·Excite (U+E66B) and ·Exam (U+E66C) are in the CSUR table but in no mapping row. This is intentional. The Manual limits them to “a Tall ·Excite for ·Key·See sounds : a Deep ·Exam for ·Gay·Zoo sounds — **but only where Orthodox spells these sounds with X**”, and writes ·Excite in tax, fix and ox but ·Key·See in tacks, licks and locks. Tax and tacks are homophones, so IPA alone cannot decide which to write, and a segment mapping cannot make that choice. The lexicon stores the X-letter form in a `qs_x` column derived from the senior column. The rules layer specifies where an X-letter goes ([`docs/orthographic-rules.md`](orthographic-rules.md)), and [`docs/pipeline.md`](pipeline.md#artifact-shapes) describes the column.
+·Excite (U+E66B) and ·Exam (U+E66C) are in the CSUR table but in no mapping row. This is intentional. The Manual limits them to “a Tall ·Excite for ·Key·See sounds : a Deep ·Exam for ·Gay·Zoo sounds — **but only where Orthodox spells these sounds with X**”, and writes ·Excite in tax, fix and ox but ·Key·See in tacks, licks and locks. Tax and tacks are homophones, so IPA alone cannot decide which to write, and a segment mapping cannot make that choice. The lexicon stores the X-letter form in a `qs_x` column derived from the senior column. The rules layer specifies where an X-letter goes ([`docs/orthographic-rules.md`](orthographic-rules.md)), and [`docs/pipeline.md`](pipeline.md#artifact-formats) describes the column.
 
 [csur]: https://www.quikscript.net/csur/
 [manual]: https://adiabatic.github.io/abbots-morton-spaceport/the-manual.html
