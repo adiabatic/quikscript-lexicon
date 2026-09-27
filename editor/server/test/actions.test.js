@@ -27,11 +27,11 @@ function span(line, from, to) {
   return { start: { line, character: from }, end: { line, character: to } };
 }
 
-test("each offer becomes a materialized quickfix, the first preferred", () => {
+test("each suggestion becomes a quickfix with an edit, the first preferred", () => {
   const flag = { word: BAD, occurrence: 0, range: span(0, 0, 9) };
   const everywhere = [span(0, 0, 9), span(2, 4, 13), span(5, 1, 10)];
-  const offers = [GOOD, `${GOOD}-${GOOD}`];
-  const out = actions(URI, flag, everywhere, offers, { directory: true, project: true });
+  const suggestions = [GOOD, `${GOOD}-${GOOD}`];
+  const out = actions(URI, flag, everywhere, suggestions, { directory: true, project: true });
   assert.deepEqual(
     out.map((action) => action.title),
     [
@@ -61,7 +61,7 @@ test("each offer becomes a materialized quickfix, the first preferred", () => {
   assert.equal("isPreferred" in out[2], false);
 });
 
-test("a lone occurrence offers no fix-all, a pair speaks in the singular", () => {
+test("a lone occurrence has no fix-all, and a pair uses the singular", () => {
   const flag = { word: BAD, occurrence: 0, range: span(0, 0, 9) };
   const lone = actions(URI, flag, [flag.range], [GOOD], { directory: false, project: false });
   assert.deepEqual(
@@ -75,7 +75,7 @@ test("a lone occurrence offers no fix-all, a pair speaks in the singular", () =>
   assert.equal(pair[1].title, `${GOOD} — and the 1 other written the same way`);
 });
 
-test("the ignore tiers ride as fully spelled-out commands", () => {
+test("each ignore scope is a quickfix with a full command", () => {
   const flag = { word: BAD, occurrence: 2, range: span(3, 1, 10) };
   const out = actions(URI, flag, [flag.range], [], { directory: true, project: true });
   assert.deepEqual(out, [
@@ -120,9 +120,9 @@ test("the ignore tiers ride as fully spelled-out commands", () => {
 });
 
 test("suggestions are computed once per word and served from the cache", () => {
-  const offered = cachedSuggester(WORDS);
-  const first = offered(BAD);
-  assert.equal(offered(BAD), first);
+  const suggestionsFor = cachedSuggester(WORDS);
+  const first = suggestionsFor(BAD);
+  assert.equal(suggestionsFor(BAD), first);
   assert.deepEqual(
     first,
     core.suggest(BAD, {

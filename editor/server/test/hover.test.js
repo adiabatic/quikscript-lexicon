@@ -32,7 +32,7 @@ function fence(...lines) {
  * @param {boolean} within
  * @returns {string[]}
  */
-function sifted(value, within) {
+function linesByFence(value, within) {
   let inside = false;
   /** @type {string[]} */
   const out = [];
@@ -50,7 +50,7 @@ function sifted(value, within) {
  * @param {string} value
  * @returns {boolean}
  */
-function spelled(value) {
+function hasQuikscript(value) {
   return [...value].some((mark) => {
     const at = mark.codePointAt(0) || 0;
     return (at >= 0xe650 && at <= 0xe66c) || (at >= 0xe670 && at <= 0xe67e);
@@ -79,17 +79,17 @@ function suggestContext() {
   };
 }
 
-const READ_TOLD =
+const READ_HOVER =
   `${fence(READ_EAT)}\n\n` +
   "**read** — singular noun, verb, infinitive\n\n" +
   "**reade** — proper noun\n\n" +
   "**reed** — singular noun";
 
-test("a spelling names every word it writes", () => {
-  assert.equal(hoverMarkdown(READ_EAT, LATIN_BY_SPELLING, SPELLINGS_BY_LATIN), READ_TOLD);
+test("a spelling's hover lists every word it spells", () => {
+  assert.equal(hoverMarkdown(READ_EAT, LATIN_BY_SPELLING, SPELLINGS_BY_LATIN), READ_HOVER);
 });
 
-test("a heteronym's other face reads apart", () => {
+test("the other spelling of a heteronym lists only its own senses", () => {
   assert.equal(
     hoverMarkdown(READ_ET, LATIN_BY_SPELLING, SPELLINGS_BY_LATIN),
     `${fence(READ_ET)}\n\n` +
@@ -98,7 +98,7 @@ test("a heteronym's other face reads apart", () => {
   );
 });
 
-test("a junior form and its senior name each other", () => {
+test("the hovers of a junior form and its senior form list each other", () => {
   assert.equal(
     hoverMarkdown(COULDNT_JUNIOR, LATIN_BY_SPELLING, SPELLINGS_BY_LATIN),
     `${fence(COULDNT_JUNIOR)}\n\n**couldn't** — modal verb + not  \n` +
@@ -111,7 +111,7 @@ test("a junior form and its senior name each other", () => {
   );
 });
 
-test("an x-letter form and its senior name each other", () => {
+test("the hovers of an X-letter form and its senior form list each other", () => {
   assert.equal(
     hoverMarkdown(EXPECT_X, LATIN_BY_SPELLING, SPELLINGS_BY_LATIN),
     `${fence(EXPECT_X)}\n\n**expect** — verb, infinitive  \n` +
@@ -124,7 +124,7 @@ test("an x-letter form and its senior name each other", () => {
   );
 });
 
-test("a §III contraction is read out and written out", () => {
+test("a §III contraction's hover shows the word and its full spelling", () => {
   assert.equal(
     hoverMarkdown(PERHAPS, LATIN_BY_SPELLING, SPELLINGS_BY_LATIN),
     `${fence(PERHAPS)}\n\n**perhaps** — adverb  \n` +
@@ -132,19 +132,19 @@ test("a §III contraction is read out and written out", () => {
   );
 });
 
-test("a hyphenated compound falls back to the pieces it knows", () => {
+test("a hyphenated compound's hover shows each piece the lexicon lists", () => {
   const both = hoverMarkdown(`${READ_EAT}-${READ_ET}`, LATIN_BY_SPELLING, SPELLINGS_BY_LATIN);
   assert.ok(both);
   assert.ok(both.includes("past-tense verb"));
-  assert.ok(both.includes(READ_TOLD));
+  assert.ok(both.includes(READ_HOVER));
   assert.equal(
     hoverMarkdown(`${BAD}-${READ_EAT}`, LATIN_BY_SPELLING, SPELLINGS_BY_LATIN),
-    READ_TOLD,
+    READ_HOVER,
   );
   assert.equal(hoverMarkdown(`${BAD}-${BAD}`, LATIN_BY_SPELLING, SPELLINGS_BY_LATIN), null);
 });
 
-test("an unknown spelling stays silent", () => {
+test("an unknown spelling has no hover", () => {
   assert.equal(hoverMarkdown(BAD, LATIN_BY_SPELLING, SPELLINGS_BY_LATIN), null);
 });
 
@@ -152,7 +152,7 @@ test("the hover attaches to the token at or just behind the position", () => {
   const text = `on ${READ_EAT}\n`;
   for (const offset of [3, 4, 6]) {
     assert.deepEqual(hoverAt(text, offset, LATIN_BY_SPELLING, SPELLINGS_BY_LATIN), {
-      value: READ_TOLD,
+      value: READ_HOVER,
       start: 3,
       end: 6,
     });
@@ -165,28 +165,31 @@ test("no spelling in a hover renders outside a fence", () => {
   const spellings = data.words.split("\n").map((line) => line.split("\t", 1)[0]);
   let seen = 0;
   for (let at = 0; at < spellings.length; at += 97) {
-    const told = hoverMarkdown(spellings[at], LATIN_BY_SPELLING, SPELLINGS_BY_LATIN);
-    if (!told) continue;
+    const hoverText = hoverMarkdown(spellings[at], LATIN_BY_SPELLING, SPELLINGS_BY_LATIN);
+    if (!hoverText) continue;
     seen += 1;
-    assert.ok(!spelled(sifted(told, false).join("\n")), `unfenced spelling in ${spellings[at]}`);
+    assert.ok(
+      !hasQuikscript(linesByFence(hoverText, false).join("\n")),
+      `unfenced spelling in ${spellings[at]}`,
+    );
   }
   assert.ok(seen > 500);
 });
 
-test("the fixes are listed in Desk's order, each glossed", () => {
-  const offers = suggest(misspelled(READ_EAT), suggestContext());
-  assert.ok(offers.length > 0);
-  const lines = listed(offers, LATIN_BY_SPELLING);
-  assert.equal(lines.length, offers.length);
-  for (const [at, fix] of offers.entries()) assert.ok(lines[at].startsWith(fix));
+test("suggestions are listed in the order suggest() returns, each glossed", () => {
+  const suggestions = suggest(misspelled(READ_EAT), suggestContext());
+  assert.ok(suggestions.length > 0);
+  const lines = listed(suggestions, LATIN_BY_SPELLING);
+  assert.equal(lines.length, suggestions.length);
+  for (const [at, suggestion] of suggestions.entries()) assert.ok(lines[at].startsWith(suggestion));
   assert.ok(lines.some((line) => line.includes(" — ")));
 });
 
-test("a misspelling with nothing to offer lists nothing", () => {
+test("a misspelling with no suggestions lists none", () => {
   assert.deepEqual(listed([], LATIN_BY_SPELLING), []);
 });
 
-test("a fix outside the senior column names its face", () => {
+test("a suggestion outside the senior column names its column", () => {
   assert.equal(
     glossed(COULDNT_JUNIOR, LATIN_BY_SPELLING),
     "couldn't — modal verb + not (Junior)",
@@ -195,7 +198,7 @@ test("a fix outside the senior column names its face", () => {
   assert.equal(glossed(PERHAPS, LATIN_BY_SPELLING), "perhaps — adverb (Senior contraction)");
 });
 
-test("a fix the lexicon does not carry whole is glossed from its pieces", () => {
+test("a suggestion the lexicon does not list is glossed from its pieces", () => {
   assert.equal(glossed(`${READ_EAT}-${READ_ET}`, LATIN_BY_SPELLING), "read/reade/reed-read/red");
   assert.equal(glossed(`${READ_EAT} ${READ_ET}`, LATIN_BY_SPELLING), "read/reade/reed read/red");
   assert.equal(glossed(`${BAD}-${READ_ET}`, LATIN_BY_SPELLING), "read/red");

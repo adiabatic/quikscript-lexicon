@@ -15,28 +15,28 @@ const WORSE = "\uE651".repeat(9);
  * @param {Set<string>} [ignoredWords]
  * @param {Set<string>} [ignoredOccurrences]
  */
-function published(text, languageId, ignoredWords, ignoredOccurrences) {
+function diagnosticsFor(text, languageId, ignoredWords, ignoredOccurrences) {
   return diagnostics(
     text,
     flagged(text, languageId, WORDS.active, ignoredWords, ignoredOccurrences),
   );
 }
 
-test("the fixtures hold: one word the lexicon spells, two it does not", () => {
+test("the fixtures are as expected: one word the lexicon spells, two it does not", () => {
   assert.equal(WORDS.active.size, 75674);
   assert.ok(WORDS.active.has(GOOD));
   assert.ok(!WORDS.active.has(BAD));
   assert.ok(!WORDS.active.has(WORSE));
 });
 
-test("a clean document publishes nothing", () => {
-  assert.deepEqual(published("", "plaintext"), []);
-  assert.deepEqual(published(`latin and ${GOOD}\n`, "plaintext"), []);
-  assert.deepEqual(published(`${GOOD}-${GOOD}\n`, "plaintext"), []);
+test("a clean document has no diagnostics", () => {
+  assert.deepEqual(diagnosticsFor("", "plaintext"), []);
+  assert.deepEqual(diagnosticsFor(`latin and ${GOOD}\n`, "plaintext"), []);
+  assert.deepEqual(diagnosticsFor(`${GOOD}-${GOOD}\n`, "plaintext"), []);
 });
 
 test("an unknown spelling is flagged over its full range", () => {
-  const found = published(`one ${BAD} two\n`, "plaintext");
+  const found = diagnosticsFor(`one ${BAD} two\n`, "plaintext");
   assert.deepEqual(found, [
     {
       range: {
@@ -53,31 +53,31 @@ test("an unknown spelling is flagged over its full range", () => {
 
 test("a single letter after a namer dot is not checked", () => {
   const letter = BAD[0];
-  assert.deepEqual(published(`\u00b7${letter} and \u00b7${letter}\u00b7${letter}\n`, "plaintext"), []);
-  assert.equal(published(`\u00b7${BAD}\n`, "plaintext").length, 1);
+  assert.deepEqual(diagnosticsFor(`\u00b7${letter} and \u00b7${letter}\u00b7${letter}\n`, "plaintext"), []);
+  assert.equal(diagnosticsFor(`\u00b7${BAD}\n`, "plaintext").length, 1);
 });
 
 test("an invisible mark inside a run does not end the word", () => {
   const joined = BAD.slice(0, 4) + "\u200c" + BAD.slice(4);
-  const found = published(`\u201c${joined}\u201d\n`, "plaintext");
+  const found = diagnosticsFor(`\u201c${joined}\u201d\n`, "plaintext");
   assert.equal(found.length, 1);
   assert.deepEqual(found[0].range, {
     start: { line: 0, character: 1 },
     end: { line: 0, character: 1 + joined.length },
   });
   assert.equal(found[0].message, `Unknown Quikscript spelling: ${BAD}`);
-  assert.deepEqual(published(`${GOOD.slice(0, 1)}\ufe00${GOOD.slice(1)}\n`, "plaintext"), []);
+  assert.deepEqual(diagnosticsFor(`${GOOD.slice(0, 1)}\ufe00${GOOD.slice(1)}\n`, "plaintext"), []);
 });
 
 test("positions are utf-16 line and character offsets", () => {
-  const found = published(`${GOOD}\nab ${BAD}\n`, "plaintext");
+  const found = diagnosticsFor(`${GOOD}\nab ${BAD}\n`, "plaintext");
   assert.equal(found.length, 1);
   assert.deepEqual(found[0].range.start, { line: 1, character: 3 });
 });
 
 test("every line ending style delimits lines", () => {
   for (const ending of ["\n", "\r", "\r\n"]) {
-    const found = published(`${GOOD}${ending}${ending}${BAD}${ending}`, "plaintext");
+    const found = diagnosticsFor(`${GOOD}${ending}${ending}${BAD}${ending}`, "plaintext");
     assert.equal(found.length, 1);
     assert.deepEqual(found[0].range.start, { line: 2, character: 0 });
   }
@@ -85,7 +85,7 @@ test("every line ending style delimits lines", () => {
 
 test("markdown skips front matter, fences, and code spans", () => {
   const text = `---\nqs: ${BAD}\n---\n\n${GOOD} ${BAD}\n\n\`${BAD}\`\n\n\`\`\`\n${BAD}\n\`\`\`\n`;
-  const found = published(text, "markdown");
+  const found = diagnosticsFor(text, "markdown");
   assert.equal(found.length, 1);
   assert.deepEqual(found[0].range.start, { line: 4, character: GOOD.length + 1 });
 });
@@ -93,10 +93,10 @@ test("markdown skips front matter, fences, and code spans", () => {
 test("any other language id is checked as plain text", () => {
   const text = `\`${BAD}\`\n`;
   for (const languageId of ["plaintext", "latex", "org", ""]) {
-    assert.equal(published(text, languageId).length, 1);
+    assert.equal(diagnosticsFor(text, languageId).length, 1);
   }
-  assert.equal(published(text, "markdown").length, 0);
-  assert.equal(published(text, "Markdown").length, 0);
+  assert.equal(diagnosticsFor(text, "markdown").length, 0);
+  assert.equal(diagnosticsFor(text, "Markdown").length, 0);
 });
 
 test("occurrences are numbered per word across the whole document", () => {
@@ -112,13 +112,13 @@ test("occurrences are numbered per word across the whole document", () => {
   );
 });
 
-test("an excused spelling is passed over by exact match alone", () => {
+test("an ignored spelling is skipped only on an exact match", () => {
   const ignoredWords = new Set([BAD]);
   assert.equal(flagged(`${BAD} ${WORSE}\n`, "plaintext", WORDS.active, ignoredWords).length, 1);
   assert.equal(flagged(`${BAD}-${BAD}\n`, "plaintext", WORDS.active, ignoredWords).length, 1);
 });
 
-test("a session ignore is keyed to one occurrence and survives unrelated edits", () => {
+test("an ignored occurrence is keyed by its occurrence number and still applies after unrelated edits", () => {
   const ignoredOccurrences = new Set([occurrenceKey(BAD, 1)]);
   const before = flagged(
     `${BAD} ${BAD}\n`,
@@ -158,5 +158,5 @@ test("a position past the line end stays on its line", () => {
 
 test("a pathological document is capped at five hundred diagnostics", () => {
   const text = `${BAD}\n`.repeat(501);
-  assert.equal(published(text, "plaintext").length, 500);
+  assert.equal(diagnosticsFor(text, "plaintext").length, 500);
 });

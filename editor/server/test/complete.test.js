@@ -15,7 +15,7 @@ const READ_ITEMS = [
   { label: READ_ET, detail: "past-tense verb, past participle", sortText: "0001" },
 ];
 
-test("a latin word completes to its spellings, commonest first", () => {
+test("a latin word completes to its spellings, most frequent first", () => {
   assert.deepEqual(completions("I will read this", 11, SPELLINGS_BY_LATIN), {
     word: "read",
     start: 7,
@@ -32,7 +32,7 @@ test("the caret anywhere in the word completes the whole word", () => {
   }
 });
 
-test("capitalization is looked through and kept for filtering", () => {
+test("lookup ignores case and keeps the typed word for filtering", () => {
   const found = completions("Read", 4, SPELLINGS_BY_LATIN);
   assert.ok(found);
   assert.equal(found.word, "Read");
@@ -59,14 +59,14 @@ test("a trailing apostrophe is left out of the word", () => {
   assert.deepEqual([found.word, found.start, found.end], ["dogs", 4, 8]);
 });
 
-test("an unknown compound falls back past its hyphens", () => {
+test("an unknown compound completes the part after its last hyphen", () => {
   const found = completions("zzq-read", 8, SPELLINGS_BY_LATIN);
   assert.ok(found);
   assert.deepEqual([found.word, found.start, found.end], ["read", 4, 8]);
   assert.deepEqual(found.items, READ_ITEMS);
 });
 
-test("a range that no longer holds the caret is never offered", () => {
+test("a range that no longer contains the caret gets no completion", () => {
   assert.equal(completions("the dogs' dinner", 9, SPELLINGS_BY_LATIN), null);
   assert.equal(completions("zzq-read", 1, SPELLINGS_BY_LATIN), null);
   assert.equal(completions("read", 99, SPELLINGS_BY_LATIN), null);
@@ -79,7 +79,7 @@ test("a listed compound keeps its whole range", () => {
   assert.equal(found.items.length, 1);
 });
 
-test("no word, no answer", () => {
+test("an unknown word gets no completion, and a caret outside any word finds no word", () => {
   assert.equal(completions("zzqqxx", 6, SPELLINGS_BY_LATIN), null);
   assert.equal(completions("a  b", 2, SPELLINGS_BY_LATIN), null);
   assert.equal(latinWordAt("  ", 1), null);

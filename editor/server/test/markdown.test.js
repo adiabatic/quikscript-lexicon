@@ -19,7 +19,7 @@ test("a backtick fence is skipped through its closing line", () => {
   assert.deepEqual(skipRanges(text), [{ start: 4, end: text.length - 4 }]);
 });
 
-test("a tilde fence may carry an info string with backticks", () => {
+test("a tilde fence may have an info string with backticks", () => {
   const text = `~~~ quik \`s\`\n${QS}\n~~~\n`;
   assert.deepEqual(skipRanges(text), [{ start: 0, end: text.length }]);
 });
@@ -58,7 +58,7 @@ test("an inline code span is skipped with its backticks", () => {
   assert.deepEqual(skipRanges(text), [{ start: 4, end: 9 }]);
 });
 
-test("a double-backtick span may hold a single backtick", () => {
+test("a double-backtick span may contain a single backtick", () => {
   const text = `\`\` \` ${QS} \`\` tail\n`;
   assert.deepEqual(skipRanges(text), [{ start: 0, end: 11 }]);
 });

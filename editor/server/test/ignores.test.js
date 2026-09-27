@@ -22,7 +22,7 @@ after(() => {
   rmSync(scratch, { recursive: true, force: true });
 });
 
-test("the user file sits under xdg config home, or its default", () => {
+test("the user file is under XDG_CONFIG_HOME, or ~/.config by default", () => {
   assert.equal(
     userIgnorePath({ XDG_CONFIG_HOME: "/somewhere" }),
     path.join("/somewhere", "quikscript", "ignore"),
@@ -33,7 +33,7 @@ test("the user file sits under xdg config home, or its default", () => {
   );
 });
 
-test("the cascade names an ignore file for every directory up to the root", () => {
+test("ancestorIgnorePaths lists an ignore file for every directory up to the root", () => {
   const paths = ancestorIgnorePaths(path.join("/a", "b", "c"));
   assert.deepEqual(paths, [
     path.join("/a", "b", "c", ".quikscript-ignore"),
@@ -43,7 +43,7 @@ test("the cascade names an ignore file for every directory up to the root", () =
   ]);
 });
 
-test("reading unions every file that exists and shrugs at the missing", () => {
+test("reading returns the union of every existing file and skips missing ones", () => {
   const deep = path.join(scratch, "one", "two", "three");
   mkdirSync(deep, { recursive: true });
   writeFileSync(projectIgnorePath(path.join(scratch, "one")), "  \uE650  \r\n\uE651\r\n\r\n");
@@ -61,8 +61,8 @@ test("reading unions every file that exists and shrugs at the missing", () => {
   assert.deepEqual([...files.read(sources)].sort(), ["\uE650", "\uE651", "\uE652", "\uE653"]);
 });
 
-test("an edited file is re-read when its clock changes", () => {
-  const home = path.join(scratch, "clock");
+test("an edited file is re-read when its mtime changes", () => {
+  const home = path.join(scratch, "mtime");
   mkdirSync(home, { recursive: true });
   const file = projectIgnorePath(home);
   const files = ignoreFileCache();
