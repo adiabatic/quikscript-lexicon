@@ -10,11 +10,11 @@ Authority links go to the [AMS Manual transcription][manual]. Every letter-name 
 
 ## Artifacts
 
-- `src/qslex/rules.py` has the rule engine and the twenty-seven rules. Each rule is a pure function of a `Context`: the Latin spelling, the POS tag, the quirk-normalized IPA, its tokens, and whether the entry ends with this word. Per-word decisions that a row’s own data cannot settle come from tables (`rule-words.tsv`, `x-rulings.tsv`, the word signs). No rule looks anything up in the corpus.
+- `src/qslex/rules.py` has the rule engine and the twenty-seven rules. Each rule is a pure function of a `Context`: the Latin spelling, the POS tag, the quirk-normalized IPA, its tokens, and whether the entry ends with this word. Per-word decisions that a row’s own data cannot settle come from tables (`rule-words.tsv`, `x-decisions.tsv`, the word signs). No rule looks anything up in the corpus.
 - `src/qslex/elements.py` finds the boundaries inside an entry. The word-sign layer uses the same split, so the two layers always agree on where an entry’s words begin and end ([One entry, several words](#one-entry-several-words)).
 - `src/qslex/data/manual-spellings.tsv` is the table of Manual examples: 381 rows covering every rule, 137 of them spellings the Manual writes out itself. Twenty of the rows belong to the word-sign layer rather than to a rule ([`docs/word-signs.md`](word-signs.md)). Columns: `word`, `pos`, `column` (`senior`/`x-letter`), `kind` (`word`/`terminal`/`prefix`), `spelling`, `source`, `rule`, `note`.
 - `src/qslex/data/rule-words.tsv` has per-word decisions for the five rules whose trigger the data cannot settle. It has 453 rows. Each is `apply` or `skip`, with an authority and a note.
-- `src/qslex/data/x-rulings.tsv` has the ten words where matching each Latin `x` to a letter pair cannot place the X-letter.
+- `src/qslex/data/x-decisions.tsv` has the ten words where matching each Latin `x` to a letter pair cannot place the X-letter.
 - `src/qslex/manual.py` loads the Manual examples table. It rejects an unknown rule anchor, an unknown letter name, and a derived spelling with no note.
 
 Run the checks:
@@ -144,7 +144,7 @@ fricassee needs nothing. ReadLex marks the verb final-stressed, so fricasseed an
 
 ·Excite substitutes for ·Key·See and ·Exam for ·Gay·Zoo, “**but only where Orthodox spells these sounds with X**”. tax and tacks are homophones, and so are next and necks. The IPA cannot show the choice, so the lexicon stores the X-letter form in a `qs_x` column built from the senior spelling ([#8][plan]).
 
-The substitution is made per **word** of the entry ([One entry, several words](#one-entry-several-words)). Where a word’s Latin has one `x` and its spelling has one ·Key·See or ·Gay·Zoo pair, the X-letter replaces that pair. A word with no such pair gets no X-letter and needs no decision: anxious (/ŋkʃ/), sexual (/kʃu/), luxury, faux, xenon and xylophone are all correctly left alone. `x-rulings.tsv` decides the ten words where this fails. They have either two x’s (xerox, executrix, vaxxed) or one x and several pairs (textbooks, waxworks, alexics).
+The substitution is made per **word** of the entry ([One entry, several words](#one-entry-several-words)). Where a word’s Latin has one `x` and its spelling has one ·Key·See or ·Gay·Zoo pair, the X-letter replaces that pair. A word with no such pair gets no X-letter and needs no decision: anxious (/ŋkʃ/), sexual (/kʃu/), luxury, faux, xenon and xylophone are all correctly left alone. `x-decisions.tsv` decides the ten words where this fails. They have either two x’s (xerox, executrix, vaxxed) or one x and several pairs (textbooks, waxworks, alexics).
 
 **·Et applies only to a word-initial unstressed ex-.** The Manual’s rider says “·Et·Excite for Excite, Extreme, Expect with an initial vowel ·Et easier than ·It”. The rider offers ·Et as easier to write, and so concedes that the sound is ·It. The Manual’s own `sixty` = ·See·It·Excite·Tea·It keeps ·It, so the rider is not a general vowel rule. The senior column follows the IPA. ReadLex writes unstressed ex- as /ɪk/- or /ɪɡ/-, giving ·It·Key·See, and has ·Et only for a real DRESS vowel: next, text, texture, expert.
 
@@ -181,7 +181,7 @@ This affects two rules and no others: [`terminal-al-el-le-il`][al], and the -abl
 
 **Per-word decisions are keyed on the element, not on the entry.** When this change was made, 38 rows keyed on a compound were removed, because a row for the element already decided them. gas-ring, napkin-ring and wedding-ring all say what `ring` already says. Two rows were re-keyed onto the element they are about: barrow-in-furness to `furness`, and spring-mattress to `mattress`. Nine words that the split newly exposed were given decisions. One is `revoir` in au revoir. The other eight are -ing words that are not ReadLex entries in their own right, so they have no `VVG` tag (`circuiting` from short-circuiting, `poohing` from pooh-poohing, `ding` from ding-dong, and five more).
 
-`x-rulings.tsv` has since been keyed per element as well ([#11][x-letter]). The X-letter substitution was the last rule still matched against the whole entry. The exercise-books row was removed in that change. Per element, exercise has one x and one pair. books has no x, so the substitution leaves its ·Key·See alone. The mechanical substitution now gives what the row used to record. The ten remaining rows are all single words. Because rows are keyed on the element, a row keyed `xerox` would also apply inside a compound containing xerox. No corpus entry shows this, so `tests/test_rules.py` tests it with a made-up row for the `box` of ballot-box.
+`x-decisions.tsv` has since been keyed per element as well ([#11][x-letter]). The X-letter substitution was the last rule still matched against the whole entry. The exercise-books row was removed in that change. Per element, exercise has one x and one pair. books has no x, so the substitution leaves its ·Key·See alone. The mechanical substitution now gives what the row used to record. The ten remaining rows are all single words. Because rows are keyed on the element, a row keyed `xerox` would also apply inside a compound containing xerox. No corpus entry shows this, so `tests/test_rules.py` tests it with a made-up row for the `box` of ballot-box.
 
 ## Decisions
 
@@ -260,9 +260,9 @@ The rules section of [`src/qslex/validate.py`](../src/qslex/validate.py) runs ov
 - `terminal-nt` stays out of the junior column: its rewrites and the word-level sign cases are the only rows with a Junior spelling. Their number must equal `EXPECTED_JUNIOR_DIVERGENCES`, and each Junior spelling must equal the spelling with the word signs unapplied and `terminal-nt` not applied ([`docs/word-signs.md`](word-signs.md#what-the-validator-checks));
 - every terminal matches at least one word. This is counted per element, so a terminal that only ever matches the end of a word inside a compound still passes. The ten rules that are not terminals (-es/-ed, -ing and the eight prefixes) have no pattern to count matches for, because each decides inside its own `apply` function instead of matching the end of the Latin. They are checked by their expected counts and by the undecided-word check below;
 - every Manual example word is reproduced, and exactly two are missing from ReadLex;
-- every row in `rule-words.tsv` and `x-rulings.tsv` is used. A row counts as used only when the rule consulted it: the rule applied under an `apply` row, or a `skip` row stopped it. It does not count if some corpus entry merely has the same key. So the validator fails on any row that no longer matches anything;
+- every row in `rule-words.tsv` and `x-decisions.tsv` is used. A row counts as used only when the rule consulted it: the rule applied under an `apply` row, or a `skip` row stopped it. It does not count if some corpus entry merely has the same key. So the validator fails on any row that no longer matches anything;
 - no -ing, -est/-ess, -ful, -y, be-/de-/re- or X-letter decision is left undecided;
-- no X-letter is written for a word with no `x` in it, and no word whose `x-rulings.tsv` row says it takes no X-letter still has a ·Key·See or ·Gay·Zoo pair in its own run.
+- no X-letter is written for a word with no `x` in it, and no word whose `x-decisions.tsv` row says it takes no X-letter still has a ·Key·See or ·Gay·Zoo pair in its own run.
 
 [manual]: https://adiabatic.github.io/abbots-morton-spaceport/the-manual.html
 [plan]: https://github.com/adiabatic/quikscript-lexicon/issues/8

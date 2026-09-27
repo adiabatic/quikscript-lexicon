@@ -101,7 +101,7 @@ Two more checks were written and then moved out of the lint:
 - a ·Key·See or ·Gay·Zoo pair that no X-letter covers;
 - a superfluous ·See for the C of -xc-, which [§II][section-2] warns against.
 
-Either can appear in a shipped spelling only through a hand-written row in `x-rulings.tsv`. Any word the mechanical X-letter substitution does not handle is already reported by the validator as an undecided word, with a clearer message. Both checks are now assertions on the `x-rulings.tsv` rows, in `rules.py::load_x_rulings`. There they apply to every row, not only to the rows that some corpus entry uses.
+Either can appear in a shipped spelling only through a hand-written row in `x-decisions.tsv`. Any word the mechanical X-letter substitution does not handle is already reported by the validator as an undecided word, with a clearer message. Both checks are now assertions on the `x-decisions.tsv` rows, in `rules.py::load_x_decisions`. There they apply to every row, not only to the rows that some corpus entry uses.
 
 Only half of the first check can move to the loader. A row may leave the `x-letter` column empty, which means the word takes no X-letter. A word with more than one x, none of which spells ·Key·See, needs such a row. The row cannot show whether the spelling that ships still contains a pair. So the check is split in two:
 

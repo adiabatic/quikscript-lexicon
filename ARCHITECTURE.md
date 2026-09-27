@@ -13,7 +13,7 @@ The files below are listed in the order a word passes through the pipeline.
 - `src/qslex/rules.py` — Read’s terminal, affix and prefix conventions, applied on top of the segment mapping to each element of a compound. It also produces the ·Excite/·Exam X-letter column, and it applies the n't elision to the senior column only (spec: [`docs/orthographic-rules.md`](docs/orthographic-rules.md)).
 - `src/qslex/data/manual-spellings.tsv` — every spelling the Manual writes out, and every example word it names. The validator checks the rules’ output against these expected spellings.
 - `src/qslex/data/rule-words.tsv` — per-word decisions for the five rules whose trigger the data cannot decide by itself.
-- `src/qslex/data/x-rulings.tsv` — the words where the Latin `x` cannot be aligned to a letter pair mechanically.
+- `src/qslex/data/x-decisions.tsv` — the words where the Latin `x` cannot be aligned to a letter pair mechanically.
 - `src/qslex/words.py` — the lexical layer, which runs last. It applies the Manual’s word signs, standard word-outlines and abbreviations, and the junior forms where they differ (spec: [`docs/word-signs.md`](docs/word-signs.md)).
 - `src/qslex/data/word-signs.tsv` — the core eight, the three abbreviations and every standard word-outline, with the junior form where it differs.
 - `src/qslex/data/contractions.tsv` — the Manual’s §III Senior contractions, plus two forms the list omits: doing, which the terminal -ing section prints, and done, which the No-how passage writes. The build does not apply them to any spelling column. The transliterator writes every row except done, and the spelling checkers accept every whole-word row.

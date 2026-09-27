@@ -18,12 +18,12 @@ from qslex.rules import (
     SENIOR_ONLY,
     TERMINAL_RULES,
     WARD,
-    X_RULINGS_HEADER,
+    X_DECISIONS_HEADER,
     Tables,
     apply_ally,
     apply_ward,
     load_rule_words,
-    load_x_rulings,
+    load_x_decisions,
     naive,
     split,
     substitutable,
@@ -42,8 +42,8 @@ for _row in KEPT:
     BY_WORD[_row.word.lower()].append(_row)
 
 
-def x_rulings_file(tmp_path: Path, rows: list[list[str]]) -> Path:
-    return write_tsv(tmp_path / "x.tsv", X_RULINGS_HEADER, rows)
+def x_decisions_file(tmp_path: Path, rows: list[list[str]]) -> Path:
+    return write_tsv(tmp_path / "x.tsv", X_DECISIONS_HEADER, rows)
 
 
 def context_for(word: str, pos: str = "") -> Context:
@@ -365,7 +365,7 @@ def test_x_letter_is_scoped_to_the_word_and_not_to_the_entry() -> None:
 
 
 def test_the_element_split_retires_a_ruling_the_mechanical_path_reproduces() -> None:
-    assert "exercise-books" not in TABLES.x_rulings
+    assert "exercise-books" not in TABLES.x_decisions
     assert (
         x_letter("exercise-books", "NN2")
         == "·Et·Excite·Utter·Roe·See·I·Zoo-·Bay·Foot·Key·See"
@@ -373,10 +373,10 @@ def test_the_element_split_retires_a_ruling_the_mechanical_path_reproduces() -> 
 
 
 def test_an_x_letter_ruling_is_keyed_on_the_element(tmp_path: Path) -> None:
-    rows = [["box", "", "unaligned", "a compound reaches its element's ruling"]]
-    tables = Tables(x_rulings=load_x_rulings(x_rulings_file(tmp_path, rows)))
+    rows = [["box", "", "unaligned", "a compound uses its element's row"]]
+    tables = Tables(x_decisions=load_x_decisions(x_decisions_file(tmp_path, rows)))
     result = spell(context_for("ballot-box", "NN1"), tables)
-    assert result.x_rulings == (("box", "·Bay·Ox·Key·See"),)
+    assert result.x_decisions == (("box", "·Bay·Ox·Key·See"),)
     assert result.x_letter == ""
     assert x_letter("ballot-box", "NN1") == "·Bay·At·Low·Utter·Tea-·Bay·Ox·Excite"
 
@@ -468,7 +468,7 @@ def test_rule_ids_are_unique() -> None:
 
 
 def test_senior_only_names_only_terminals() -> None:
-    """`_stack` keeps the junior letters unchanged for a `SENIOR_ONLY` rule only in its terminal branch, so a word rule or a misspelled id in the set would have no effect and raise no error."""
+    """`_apply_rules` keeps the junior letters unchanged for a `SENIOR_ONLY` rule only in its terminal branch, so a word rule or a misspelled id in the set would have no effect and raise no error."""
     assert {terminal.id for terminal in TERMINAL_RULES} >= SENIOR_ONLY
 
 
@@ -521,20 +521,20 @@ def test_every_ruling_carries_a_note() -> None:
 
 def test_a_ruling_that_substitutes_nothing_is_rejected(tmp_path: Path) -> None:
     rows = [["next", "·No·Et·Key·See·Tea", "unaligned", "the ks is spelled out"]]
-    with pytest.raises(ValueError, match="carries no X-letter"):
-        load_x_rulings(x_rulings_file(tmp_path, rows))
+    with pytest.raises(ValueError, match="has no X-letter"):
+        load_x_decisions(x_decisions_file(tmp_path, rows))
 
 
 def test_a_ruling_that_keeps_the_c_of_xc_is_rejected(tmp_path: Path) -> None:
     rows = [["excite", "·Et·Excite·See·I·Tea", "unaligned", "the X-letter covers it"]]
     with pytest.raises(ValueError, match="already covers"):
-        load_x_rulings(x_rulings_file(tmp_path, rows))
+        load_x_decisions(x_decisions_file(tmp_path, rows))
 
 
 def test_an_empty_column_rules_that_a_word_takes_no_x_letter(tmp_path: Path) -> None:
     rows = [["x-ray-xylophone", "", "multiple-x", "neither x spells a ·Key·See"]]
-    ruled = load_x_rulings(x_rulings_file(tmp_path, rows))
-    assert ruled["x-ray-xylophone"].x_letter == ""
+    decisions = load_x_decisions(x_decisions_file(tmp_path, rows))
+    assert decisions["x-ray-xylophone"].x_letter == ""
 
 
 def test_a_spelling_is_substitutable_while_a_pair_is_left_in_it() -> None:

@@ -15,7 +15,7 @@ from qslex.words import Signs, apply_signs, load_word_signs
 RULE_WORDS_FILE = "rule-words.tsv"
 RULE_WORDS_HEADER = ["rule", "word", "decision", "authority", "note"]
 DECISIONS = {"apply", "skip"}
-GATED_RULES = {
+SKIPPABLE_RULES = {
     "prefix-be-de-re",
     "terminal-ess-est",
     "terminal-ful",
@@ -24,9 +24,9 @@ GATED_RULES = {
 }
 SENIOR_ONLY = frozenset({"terminal-nt"})
 
-X_RULINGS_FILE = "x-rulings.tsv"
-X_RULINGS_HEADER = ["word", "x-letter", "reason", "note"]
-X_RULING_REASONS = {"multiple-x", "unaligned"}
+X_DECISIONS_FILE = "x-decisions.tsv"
+X_DECISIONS_HEADER = ["word", "x-letter", "reason", "note"]
+X_DECISION_REASONS = {"multiple-x", "unaligned"}
 X_LETTERS = frozenset({"Excite", "Exam"})
 
 EPENTHESIS = "Ə"
@@ -58,7 +58,7 @@ class Context:
     tokens: tuple[Token, ...]
     final: bool = True
 
-    def within(self, latin: str, final: bool) -> Context:
+    def for_element(self, latin: str, final: bool) -> Context:
         """This context narrowed to one element of its entry.
 
         Only `latin` and `final` (whether this element ends the entry) change. `ipa` and `tokens` still describe the whole entry. For the exchange element of corn-exchange, `ipa` is still `ˈkɔːRn-ɪkstʃeɪndʒ`, whose only stress mark is on corn. A rule that needs one element’s IPA gets it from `elements.chunks`, as `substitute_x` does.
@@ -72,10 +72,10 @@ class Spelling:
     junior: str
     x_letter: str
     applied: tuple[str, ...]
-    ruled: tuple[tuple[str, str], ...]
+    decisions: tuple[tuple[str, str], ...]
     signed: tuple[str, ...]
     signs: tuple[tuple[str, str], ...]
-    x_rulings: tuple[tuple[str, str], ...]
+    x_decisions: tuple[tuple[str, str], ...]
     elements: tuple[Element, ...]
 
 
@@ -141,7 +141,7 @@ def _reducible(letters: Letters, index: int, among: frozenset[str] = REDUCIBLE) 
     return not letters[index].stressed and letters[index].name in among
 
 
-def _force(
+def _set_vowel_before(
     letters: Letters,
     offset: int,
     shape: tuple[str, ...],
@@ -150,7 +150,7 @@ def _force(
 ) -> Letters:
     """Rewrite the unstressed vowel before `shape` at the end of the word to `want`.
 
-    `among` lists the vowels the rule may rewrite. Only terminal -y passes a set with ·Eat in it. Read reserves ·Eat “for distinction where the terminal is stressed”, so an unstressed ·Eat at that terminal is rewritten. Every other caller keeps a full ·Eat as the vowel ReadLex intends. (-ia/-ea and -ier/-ior do not call this function. `_tighten` chooses between ·It and ·Eat by stress for them.) docs/orthographic-rules.md gives the same reason for ·Et in the paragraph **·Et is not a reducible vowel**.
+    `among` lists the vowels the rule may rewrite. Only terminal -y passes a set with ·Eat in it. Read reserves ·Eat “for distinction where the terminal is stressed”, so an unstressed ·Eat at that terminal is rewritten. Every other caller keeps a full ·Eat as the vowel ReadLex intends. (-ia/-ea and -ier/-ior do not call this function. `_set_vowel_by_stress` chooses between ·It and ·Eat by stress for them.) docs/orthographic-rules.md gives the same reason for ·Et in the paragraph **·Et is not a reducible vowel**.
     """
     if not _ends(letters, offset, *shape):
         return letters
@@ -160,7 +160,7 @@ def _force(
     return _rename(letters, index, want)
 
 
-def _restored(context: Context) -> bool:
+def _element_follows(context: Context) -> bool:
     """Whether another element follows this one, so the vowel before a word-final L is kept.
 
     “Where another syllable is added, the vowel sound before this L must be clearly pronounced and spelt in most cases: as it must be in — finally, orally, animality, initially, officially, levelling, devilry, caviller, rif(u)leman.” A following element of a compound adds a syllable in the same way a suffix does, so able-bodied and cable-car keep the vowel that able and cable drop.
@@ -190,7 +190,7 @@ class RuleWord:
 
 
 @dataclass(frozen=True)
-class XLetterRule:
+class XLetterDecision:
     word: str
     x_letter: str
     reason: str
@@ -200,14 +200,14 @@ class XLetterRule:
 @dataclass(frozen=True)
 class Tables:
     words: dict[tuple[str, str], RuleWord] = field(default_factory=dict)
-    x_rulings: dict[str, XLetterRule] = field(default_factory=dict)
+    x_decisions: dict[str, XLetterDecision] = field(default_factory=dict)
     signs: Signs = field(default_factory=dict)
 
     def skipped(self, rule: str, latin: str) -> bool:
         entry = self.words.get((rule, latin))
         return entry is not None and entry.decision == "skip"
 
-    def ruled(self, rule: str, latin: str) -> bool:
+    def has_decision(self, rule: str, latin: str) -> bool:
         return (rule, latin) in self.words
 
     def consulted(
@@ -215,11 +215,13 @@ class Tables:
     ) -> tuple[tuple[str, str], ...]:
         """The rule-words.tsv rows used for this word: rows for rules that applied, and `skip` rows that stopped a rule."""
         keys = {(rule, latin) for rule in fired}
-        keys.update((rule, latin) for rule in GATED_RULES if self.skipped(rule, latin))
+        keys.update(
+            (rule, latin) for rule in SKIPPABLE_RULES if self.skipped(rule, latin)
+        )
         return tuple(sorted(keys & self.words.keys()))
 
-    def x_ruling_for(self, latin: str) -> XLetterRule | None:
-        return self.x_rulings.get(latin)
+    def x_decision_for(self, latin: str) -> XLetterDecision | None:
+        return self.x_decisions.get(latin)
 
 
 NO_TABLES = Tables()
@@ -229,10 +231,10 @@ def load_rule_words(path: Path | None = None) -> dict[tuple[str, str], RuleWord]
     known: dict[tuple[str, str], RuleWord] = {}
     for lineno, source, row in rows_of(path, RULE_WORDS_FILE, RULE_WORDS_HEADER):
         entry = RuleWord(*row)
-        if entry.rule not in GATED_RULES:
+        if entry.rule not in SKIPPABLE_RULES:
             raise ValueError(
-                f"{source}:{lineno}: {entry.rule!r} is not a gated rule "
-                f"(have {sorted(GATED_RULES)})"
+                f"{source}:{lineno}: {entry.rule!r} is not a rule that "
+                f"rule-words.tsv can skip (have {sorted(SKIPPABLE_RULES)})"
             )
         if entry.decision not in DECISIONS:
             raise ValueError(
@@ -250,46 +252,48 @@ def load_rule_words(path: Path | None = None) -> dict[tuple[str, str], RuleWord]
     return known
 
 
-def load_x_rulings(path: Path | None = None) -> dict[str, XLetterRule]:
-    known: dict[str, XLetterRule] = {}
-    for lineno, source, row in rows_of(path, X_RULINGS_FILE, X_RULINGS_HEADER):
-        rule = XLetterRule(*row)
-        if rule.reason not in X_RULING_REASONS:
+def load_x_decisions(path: Path | None = None) -> dict[str, XLetterDecision]:
+    known: dict[str, XLetterDecision] = {}
+    for lineno, source, row in rows_of(path, X_DECISIONS_FILE, X_DECISIONS_HEADER):
+        entry = XLetterDecision(*row)
+        if entry.reason not in X_DECISION_REASONS:
             raise ValueError(
                 f"{source}:{lineno}: reason must be one of "
-                f"{sorted(X_RULING_REASONS)}, got {rule.reason!r}"
+                f"{sorted(X_DECISION_REASONS)}, got {entry.reason!r}"
             )
-        if "x" not in rule.word:
+        if "x" not in entry.word:
             raise ValueError(
-                f"{source}:{lineno}: {rule.word!r} has no x to take an X-letter"
+                f"{source}:{lineno}: {entry.word!r} has no x to take an X-letter"
             )
-        if not rule.note:
-            raise ValueError(f"{source}:{lineno}: every X-letter ruling needs a note")
-        unknown = unknown_names(rule.x_letter)
+        if not entry.note:
+            raise ValueError(
+                f"{source}:{lineno}: every x-decisions.tsv row needs a note"
+            )
+        unknown = unknown_names(entry.x_letter)
         if unknown:
             raise ValueError(f"{source}:{lineno}: unknown letter names {unknown}")
-        spelled = names(parse(rule.x_letter))
-        if rule.x_letter and not X_LETTERS.intersection(spelled):
+        spelled = names(parse(entry.x_letter))
+        if entry.x_letter and not X_LETTERS.intersection(spelled):
             raise ValueError(
-                f"{source}:{lineno}: {rule.x_letter} carries no X-letter; leave "
-                f"the column empty to rule that this word takes none"
+                f"{source}:{lineno}: {entry.x_letter} has no X-letter; leave "
+                f"the column empty to record that this word takes none"
             )
-        if "xc" in rule.word and any(
+        if "xc" in entry.word and any(
             first in X_LETTERS and second == "See"
             for first, second in zip(spelled, spelled[1:], strict=False)
         ):
             raise ValueError(
-                f"{source}:{lineno}: {rule.x_letter} adds a ·See after the "
+                f"{source}:{lineno}: {entry.x_letter} adds a ·See after the "
                 f"X-letter that the X-letter already covers"
             )
-        if rule.word in known:
-            raise ValueError(f"{source}:{lineno}: duplicate row for {rule.word!r}")
-        known[rule.word] = rule
+        if entry.word in known:
+            raise ValueError(f"{source}:{lineno}: duplicate row for {entry.word!r}")
+        known[entry.word] = entry
     return known
 
 
 def load_tables() -> Tables:
-    return Tables(load_rule_words(), load_x_rulings(), load_word_signs())
+    return Tables(load_rule_words(), load_x_decisions(), load_word_signs())
 
 
 def apply_es_ed(context: Context, letters: Letters) -> Letters:
@@ -401,11 +405,11 @@ def apply_ally(context: Context, letters: Letters, match: re.Match[str]) -> Lett
             return letters
         index = len(letters) - offset - 2
         if letters[index - 1].is_vowel:
-            return _force(letters, offset, ("Low", "It"), "Utter")
+            return _set_vowel_before(letters, offset, ("Low", "It"), "Utter")
         return _insert(letters, index, "Utter")
     if match.group(1) in {"ably", "ibly"}:
         return _omit(letters, offset, ("Low", "It"))
-    if _restored(context):
+    if _element_follows(context):
         return letters
     return _omit(letters, offset, ("Low",))
 
@@ -416,7 +420,7 @@ def apply_tion(context: Context, letters: Letters, match: re.Match[str]) -> Lett
 
 def apply_ess(context: Context, letters: Letters, match: re.Match[str]) -> Letters:
     shape = ("See", "Tea") if match.group(1) == "est" else ("See",)
-    return _force(letters, _offset(match, letters), shape, "Et")
+    return _set_vowel_before(letters, _offset(match, letters), shape, "Et")
 
 
 def apply_land(context: Context, letters: Letters, match: re.Match[str]) -> Letters:
@@ -433,7 +437,7 @@ def apply_land(context: Context, letters: Letters, match: re.Match[str]) -> Lett
 def apply_nt(context: Context, letters: Letters, match: re.Match[str]) -> Letters:
     """Elide the vowel before n't, in the senior column only.
 
-    Nothing inflects an n't, so `NT` has no trailing inflection group. `_offset` reads that group and would raise an IndexError, so this passes an offset of 0. The junior column keeps the vowel, as the Manual’s Junior Bo-peep passage does in doesn't. `SENIOR_ONLY` tells `_stack` to leave the junior letters alone.
+    Nothing inflects an n't, so `NT` has no trailing inflection group. `_offset` reads that group and would raise an IndexError, so this passes an offset of 0. The junior column keeps the vowel, as the Manual’s Junior Bo-peep passage does in doesn't. `SENIOR_ONLY` tells `_apply_rules` to leave the junior letters alone.
     """
     return _omit(letters, 0, ("No", "Tea"))
 
@@ -441,34 +445,36 @@ def apply_nt(context: Context, letters: Letters, match: re.Match[str]) -> Letter
 def apply_ent(context: Context, letters: Letters, match: re.Match[str]) -> Letters:
     offset = _offset(match, letters)
     for shape in (("No", "Tea"), ("No", "See")):
-        after = _force(letters, offset, shape, "Utter")
+        after = _set_vowel_before(letters, offset, shape, "Utter")
         if after != letters:
             return after
     return letters
 
 
 def apply_ous(context: Context, letters: Letters, match: re.Match[str]) -> Letters:
-    return _force(letters, _offset(match, letters), ("See",), "Utter")
+    return _set_vowel_before(letters, _offset(match, letters), ("See",), "Utter")
 
 
 def apply_er(context: Context, letters: Letters, match: re.Match[str]) -> Letters:
-    return _force(letters, _offset(match, letters), ("Roe",), "Utter")
+    return _set_vowel_before(letters, _offset(match, letters), ("Roe",), "Utter")
 
 
 def apply_ier(context: Context, letters: Letters, match: re.Match[str]) -> Letters:
-    return _tighten(letters, _offset(match, letters), ("Utter", "Roe"))
+    return _set_vowel_by_stress(letters, _offset(match, letters), ("Utter", "Roe"))
 
 
 def apply_ia(context: Context, letters: Letters, match: re.Match[str]) -> Letters:
     offset = _offset(match, letters)
     for shape in (("Utter", "No"), ("Utter",)):
-        after = _tighten(letters, offset, shape)
+        after = _set_vowel_by_stress(letters, offset, shape)
         if after != letters:
             return after
     return letters
 
 
-def _tighten(letters: Letters, offset: int, shape: tuple[str, ...]) -> Letters:
+def _set_vowel_by_stress(
+    letters: Letters, offset: int, shape: tuple[str, ...]
+) -> Letters:
     """The -ia/-ier vowel: ·It when unstressed, ·Eat when stressed."""
     if not _ends(letters, offset, *shape):
         return letters
@@ -484,7 +490,7 @@ def apply_y(context: Context, letters: Letters, match: re.Match[str]) -> Letters
     An -es after a silent e can be the plural of a word ending in e (houses, similes). The vowel that plural adds is always reduced, so after -es only a full ·Eat is treated as the terminal vowel. That ·Eat is apogee’s in apogees and the Greek ending’s in theses, and the Latin spelling cannot tell the two apart: see `_y_plural`.
     """
     among = UNREDUCED if _y_plural(match) else Y_REDUCIBLE
-    return _force(letters, _offset(match, letters), (), "It", among)
+    return _set_vowel_before(letters, _offset(match, letters), (), "It", among)
 
 
 def _y_plural(match: re.Match[str]) -> bool:
@@ -496,14 +502,14 @@ def _y_plural(match: re.Match[str]) -> bool:
 
 
 def apply_ain(context: Context, letters: Letters, match: re.Match[str]) -> Letters:
-    return _force(letters, _offset(match, letters), ("No",), "Utter")
+    return _set_vowel_before(letters, _offset(match, letters), ("No",), "Utter")
 
 
 def apply_age(context: Context, letters: Letters, match: re.Match[str]) -> Letters:
     latin = context.latin
     stem = latin[: latin.rindex("age")]
     want = "It" if stem.endswith(("y", "i")) else "Utter"
-    return _force(letters, _offset(match, letters), ("Jay",), want)
+    return _set_vowel_before(letters, _offset(match, letters), ("Jay",), want)
 
 
 def apply_ward(context: Context, letters: Letters, match: re.Match[str]) -> Letters:
@@ -530,13 +536,13 @@ def apply_ful(context: Context, letters: Letters, match: re.Match[str]) -> Lette
 
 
 def apply_al(context: Context, letters: Letters, match: re.Match[str]) -> Letters:
-    if _restored(context):
+    if _element_follows(context):
         return letters
     return _omit(letters, _offset(match, letters), ("Low",))
 
 
 def apply_en_on(context: Context, letters: Letters, match: re.Match[str]) -> Letters:
-    return _force(letters, _offset(match, letters), ("No",), "Utter")
+    return _set_vowel_before(letters, _offset(match, letters), ("No",), "Utter")
 
 
 Apply = Callable[[Context, Letters], Letters]
@@ -623,7 +629,7 @@ RULES: tuple[Rule | Terminal, ...] = WORD_RULES + TERMINAL_RULES
 RULE_IDS = tuple(rule.id for rule in RULES)
 
 
-def claims(terminal: Terminal, context: Context) -> bool:
+def matches_ending(terminal: Terminal, context: Context) -> bool:
     """Whether this terminal’s pattern matches the end of the word, whether or not the rule changes any letters."""
     return terminal.latin.search(context.latin) is not None
 
@@ -664,7 +670,7 @@ def split(context: Context, letters: Letters) -> tuple[Element, ...]:
         return (Element(context, letters),)
     last = len(pairs) - 1
     return tuple(
-        Element(context.within(part, index == last), run)
+        Element(context.for_element(part, index == last), run)
         for index, (part, run) in enumerate(pairs)
     )
 
@@ -685,7 +691,7 @@ def substitutable(spelling: str) -> bool:
     return bool(_pairs(parse(spelling)))
 
 
-def _substituted(latin: str, said: str, letters: Letters) -> Letters:
+def _substituted(latin: str, chunk: str, letters: Letters) -> Letters:
     """Substitute the X-letter in one word, writing ·Et for an initial ex- whose IPA chunk has no stress mark at its start.
 
     The Manual allows ·Et for an *unstressed* initial ex-: “with an initial vowel ·Et easier than ·It”. This checks for ReadLex’s stress mark at the start of the word’s own chunk. It does not use the `stressed` flag that `naive` set on the letter. corn-exchange has its only mark on corn, so the ex- of exchange is unstressed and takes ·Et. exquisite `ˈɪkskwɪzɪt` has a mark at its start and keeps its ·It, as sixty does. The `stressed` flag comes from `is_stressed`, which treats a chunk with no stress mark as a word that keeps its own stress. That is right for the monosyllables it was written for and wrong for a polysyllable whose stress is not on its first syllable.
@@ -698,7 +704,7 @@ def _substituted(latin: str, said: str, letters: Letters) -> Letters:
     index, name = pairs[0]
     out = _rename(_drop(letters, index + 1), index, name)
     initial = latin.startswith("ex") and index == 1 and out[0].name == "It"
-    if initial and not marked(said):
+    if initial and not marked(chunk):
         out = _rename(out, 0, "Et")
     return out
 
@@ -706,30 +712,30 @@ def _substituted(latin: str, said: str, letters: Letters) -> Letters:
 def substitute_x(
     context: Context, letters: Letters, tables: Tables
 ) -> tuple[Letters, tuple[tuple[str, str], ...]]:
-    """Apply the X-letter substitution to each word of the entry, and return the `x-rulings.tsv` rows used as (word, spelling) pairs.
+    """Apply the X-letter substitution to each word of the entry, and return the `x-decisions.tsv` rows used as (word, spelling) pairs.
 
-    An x and the letter pair it stands for belong to one word. Matching the whole entry string treated the ex- of cross-examine and corn-exchange as not initial, and counted a pair in a second word as a second pair in the first. `x-rulings.tsv` is looked up per word for the same reason `_stack` looks up `rule-words.tsv` per word: each row is a decision about one word. exercise-books needed a row only while entries were matched whole.
+    An x and the letter pair it stands for belong to one word. Matching the whole entry string treated the ex- of cross-examine and corn-exchange as not initial, and counted a pair in a second word as a second pair in the first. `x-decisions.tsv` is looked up per word for the same reason `_apply_rules` looks up `rule-words.tsv` per word: each row is a decision about one word. exercise-books needed a row only while entries were matched whole.
 
     Every part that is not a separator gets a chunk of the IPA, including the empty word at the end of an entry such as ex-. `qslex.lint` splits the IPA the same way, so a rule and the lint check that re-derives it read the same stress mark.
 
     Each returned pair has the spelling of that word alone. The validator uses it to check that a row with an empty `x-letter` column leaves no pair in that word, and the other words of the entry do not matter to that check.
     """
     parts = split(context, letters)
-    spoken = [part.context.latin not in DIVIDERS for part in parts]
-    said = iter(chunks(context.ipa, sum(spoken)))
+    has_chunk = [part.context.latin not in DIVIDERS for part in parts]
+    ipa_chunks = iter(chunks(context.ipa, sum(has_chunk)))
     out: list[Letter] = []
     hits: list[tuple[str, str]] = []
-    for part, sounds in zip(parts, spoken, strict=True):
-        chunk = next(said) if sounds else ""
+    for part, part_has_chunk in zip(parts, has_chunk, strict=True):
+        chunk = next(ipa_chunks) if part_has_chunk else ""
         if not part.word:
             out.extend(part.letters)
             continue
         latin = part.context.latin
-        declared = tables.x_ruling_for(latin)
-        if declared is not None:
-            shipped = parse(declared.x_letter) if declared.x_letter else part.letters
-            hits.append((latin, render(shipped)))
-            out.extend(shipped)
+        row = tables.x_decision_for(latin)
+        if row is not None:
+            spelled = parse(row.x_letter) if row.x_letter else part.letters
+            hits.append((latin, render(spelled)))
+            out.extend(spelled)
             continue
         out.extend(_substituted(latin, chunk, part.letters))
     return tuple(out), tuple(hits)
@@ -757,7 +763,7 @@ def undecided_prefix(context: Context, letters: Letters, tables: Tables) -> bool
 
     A rewrite means ReadLex’s vowel differs from the Manual’s. Nothing in the data separates the Manual’s begin and decide, where the prefix is real, from Berlin and Denise, where the letters only start the same way. So the rule matches on the Latin string, and every word it would change needs a row.
     """
-    if tables.ruled("prefix-be-de-re", context.latin):
+    if tables.has_decision("prefix-be-de-re", context.latin):
         return False
     return _prefixed(context, letters, "prefix-be-de-re") != letters
 
@@ -767,7 +773,7 @@ def undecided_ess(context: Context, letters: Letters, tables: Tables) -> bool:
 
     The Manual standardizes the *variable* unstressed vowel of this terminal, which ReadLex writes as schwa. An ·It there is evidence that the Latin -est/-ess is part of the root rather than the suffix (forest, harvest, tempest, Furness). So each such word needs a row in rule-words.tsv, and the Latin spelling alone does not decide it.
     """
-    if tables.ruled("terminal-ess-est", context.latin):
+    if tables.has_decision("terminal-ess-est", context.latin):
         return False
     match = ESS.search(context.latin)
     if match is None:
@@ -789,7 +795,7 @@ def undecided_y(context: Context, letters: Letters, tables: Tables) -> bool:
 
     After a plural -s, the same ·Eat also raises `_y_plural`’s question (apogees against theses). That is decided in the same table and counted with the same undecided words. Every unstressed ·Eat at this terminal is decided by hand.
     """
-    if tables.ruled("terminal-y", context.latin):
+    if tables.has_decision("terminal-y", context.latin):
         return False
     found = terminal_for(context)
     if found is None or found[0].id != "terminal-y":
@@ -803,7 +809,7 @@ def undecided_y(context: Context, letters: Letters, tables: Tables) -> bool:
 
 def undecided_ful(context: Context, letters: Letters, tables: Tables) -> bool:
     """Whether ReadLex’s -ful vowel differs from the one the Manual assigns for this POS, with no rule-words.tsv row."""
-    if tables.ruled("terminal-ful", context.latin):
+    if tables.has_decision("terminal-ful", context.latin):
         return False
     match = FUL.search(context.latin)
     if match is None:
@@ -814,10 +820,10 @@ def undecided_ful(context: Context, letters: Letters, tables: Tables) -> bool:
 def undecided_x_letter(context: Context, letters: Letters, tables: Tables) -> str:
     """The reason the X-letter substitution cannot decide this word, `multiple-x` or `unaligned`, or "".
 
-    Returns "" when the word has no x, has an `x-rulings.tsv` row, or has at most one ·Key·See or ·Gay·Zoo pair. The validator fails on every word this returns a reason for.
+    Returns "" when the word has no x, has an `x-decisions.tsv` row, or has at most one ·Key·See or ·Gay·Zoo pair. The validator fails on every word this returns a reason for.
     """
     latin = context.latin
-    if "x" not in latin or tables.x_ruling_for(latin) is not None:
+    if "x" not in latin or tables.x_decision_for(latin) is not None:
         return ""
     if latin.count("x") > 1:
         return "multiple-x"
@@ -826,12 +832,14 @@ def undecided_x_letter(context: Context, letters: Letters, tables: Tables) -> st
     return ""
 
 
-def _gated(rule: Rule | Terminal, context: Context, tables: Tables) -> bool:
+def _skipped_by_decision(
+    rule: Rule | Terminal, context: Context, tables: Tables
+) -> bool:
     """Whether a `skip` row in rule-words.tsv switches this rule off for this word."""
-    return rule.id in GATED_RULES and tables.skipped(rule.id, context.latin)
+    return rule.id in SKIPPABLE_RULES and tables.skipped(rule.id, context.latin)
 
 
-def _stack(
+def _apply_rules(
     element: Element, tables: Tables
 ) -> tuple[Letters, Letters, tuple[str, ...]]:
     """Run one word through the rules. Returns the senior letters, the junior letters and the ids of the rules that fired.
@@ -842,7 +850,7 @@ def _stack(
     letters = element.letters
     applied: list[str] = []
     for rule in WORD_RULES:
-        if _gated(rule, context, tables):
+        if _skipped_by_decision(rule, context, tables):
             continue
         after = rule.apply(context, letters)
         if after != letters:
@@ -852,7 +860,7 @@ def _stack(
     if found is None:
         return letters, letters, tuple(applied)
     terminal, match = found
-    if _gated(terminal, context, tables):
+    if _skipped_by_decision(terminal, context, tables):
         return letters, letters, tuple(applied)
     after = terminal.apply(context, letters, match)
     junior = letters if terminal.id in SENIOR_ONLY else after
@@ -866,18 +874,18 @@ def spell(context: Context, tables: Tables = NO_TABLES) -> Spelling:
     out: list[Letter] = []
     kept: list[Letter] = []
     fired: set[str] = set()
-    rulings: set[tuple[str, str]] = set()
+    decisions: set[tuple[str, str]] = set()
     parts = split(context, naive(context))
     for element in parts:
         if not element.word:
             out.extend(element.letters)
             kept.extend(element.letters)
             continue
-        after, declined, applied = _stack(element, tables)
+        after, junior_letters, applied = _apply_rules(element, tables)
         out.extend(after)
-        kept.extend(declined)
+        kept.extend(junior_letters)
         fired.update(applied)
-        rulings.update(tables.consulted(applied, element.context.latin))
+        decisions.update(tables.consulted(applied, element.context.latin))
     letters = tuple(out)
     unelided = tuple(kept)
     senior, junior, signed, consulted = apply_signs(
@@ -887,15 +895,15 @@ def spell(context: Context, tables: Tables = NO_TABLES) -> Spelling:
         _, junior, _, _ = apply_signs(
             context.latin, context.pos, unelided, tables.signs
         )
-    lig, hits = substitute_x(context, senior, tables)
+    x_lettered, hits = substitute_x(context, senior, tables)
     return Spelling(
         senior=render(senior),
         junior="" if names(junior) == names(senior) else render(junior),
-        x_letter="" if names(lig) == names(senior) else render(lig),
+        x_letter="" if names(x_lettered) == names(senior) else render(x_lettered),
         applied=tuple(rule.id for rule in RULES if rule.id in fired),
-        ruled=tuple(sorted(rulings)),
+        decisions=tuple(sorted(decisions)),
         signed=signed,
         signs=consulted,
-        x_rulings=hits,
+        x_decisions=hits,
         elements=parts,
     )

@@ -100,7 +100,7 @@ def ing_vowel_omitted(site: Site, tables: Tables) -> str:
     stem = site.latin[: site.latin.rindex("ing")] if affix else ""
     if not affix or stem.endswith(("y", "i")):
         return ""
-    if tables.ruled("terminal-ing", site.latin):
+    if tables.has_decision("terminal-ing", site.latin):
         return ""
     shape = ING_SHAPES[affix]
     if not _tail(site, *shape):

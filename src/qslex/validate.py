@@ -30,8 +30,8 @@ from qslex.rules import (
     Context,
     Tables,
     Terminal,
-    claims,
     load_tables,
+    matches_ending,
     spell,
     substitutable,
     undecided_ess,
@@ -361,7 +361,7 @@ def main(argv: list[str] | None = None) -> int:
     rule_changes: collections.Counter[str] = collections.Counter()
     rule_claims: collections.Counter[str] = collections.Counter()
     rule_word_hits: set[tuple[str, str]] = set()
-    x_ruling_hits: set[str] = set()
+    x_decision_hits: set[str] = set()
     sign_changes: collections.Counter[str] = collections.Counter()
     sign_hits: set[tuple[str, str]] = set()
     junior_rows = 0
@@ -437,16 +437,18 @@ def main(argv: list[str] | None = None) -> int:
             spellings["x-letter"][(word, row.pos)].add(result.x_letter or result.senior)
             for rule_id in result.applied:
                 rule_changes[rule_id] += 1
-            rule_word_hits.update(result.ruled)
+            rule_word_hits.update(result.decisions)
             for element in result.elements:
                 if not element.word:
                     continue
                 inner = element.context
                 part = inner.latin
                 for terminal in TERMINAL_RULES:
-                    if claims(terminal, inner):
+                    if matches_ending(terminal, inner):
                         rule_claims[terminal.id] += 1
-                if undecided_ing(part, vvg) and not tables.ruled("terminal-ing", part):
+                if undecided_ing(part, vvg) and not tables.has_decision(
+                    "terminal-ing", part
+                ):
                     undecided["terminal-ing"].add(part)
                 if undecided_ess(inner, element.letters, tables):
                     undecided["terminal-ess-est"].add(part)
@@ -459,11 +461,11 @@ def main(argv: list[str] | None = None) -> int:
                 why = undecided_x_letter(inner, element.letters, tables)
                 if why:
                     undecided[f"x-letter/{why}"].add(part)
-            x_ruling_hits.update(ruling for ruling, _ in result.x_rulings)
-            for ruling, shipped in result.x_rulings:
-                if not tables.x_rulings[ruling].x_letter and substitutable(shipped):
+            x_decision_hits.update(latin for latin, _ in result.x_decisions)
+            for latin, shipped in result.x_decisions:
+                if not tables.x_decisions[latin].x_letter and substitutable(shipped):
                     unsubstituted.append(
-                        f"{ruling!r} is ruled to take no X-letter but ships {shipped}"
+                        f"{latin!r} is ruled to take no X-letter but ships {shipped}"
                     )
             if result.x_letter and "x" not in word:
                 stray_x_letters.append(f"{word!r} has no x but got {result.x_letter}")
@@ -725,7 +727,7 @@ def main(argv: list[str] | None = None) -> int:
             f"pinned rewrite counts for rules that no longer exist: {orphaned}"
         )
 
-    print("\nundecided residue (must be ruled on in rule-words.tsv / x-rulings.tsv):")
+    print("\nundecided residue (must be ruled on in rule-words.tsv / x-decisions.tsv):")
     for label in sorted(undecided):
         words = sorted(undecided[label])
         print(f"  {label}: {len(words)}")
@@ -742,10 +744,10 @@ def main(argv: list[str] | None = None) -> int:
     print(f"  {len(tables.words)} rulings, {len(rule_word_hits)} exercised")
 
     print("\nx-letter rulings:")
-    unused_x_rulings = sorted(set(tables.x_rulings) - x_ruling_hits)
-    print(f"  {len(tables.x_rulings)} rulings, {len(x_ruling_hits)} exercised")
-    if unused_x_rulings:
-        failures.append(f"x-letter rulings never exercised: {unused_x_rulings}")
+    unused_x_decisions = sorted(set(tables.x_decisions) - x_decision_hits)
+    print(f"  {len(tables.x_decisions)} rulings, {len(x_decision_hits)} exercised")
+    if unused_x_decisions:
+        failures.append(f"x-letter rulings never exercised: {unused_x_decisions}")
     print(f"  x-letters on words with no x: {len(stray_x_letters)}")
     for line in stray_x_letters[:10]:
         print(f"    {line}")
