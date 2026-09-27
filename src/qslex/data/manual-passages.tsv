@@ -130,7 +130,7 @@ gown-shop	20	here	·He·Eat·Utter·Roe	senior
 gown-shop	21	as	·At	contraction		
 gown-shop	22	well	·Way·Et·Low	senior		
 gown-shop	23	and	·No	senior		
-gown-shop	24	whatever	·Why·Et·Vie·Utter·Roe	differs	·Why·Ox·Tea·Et·Vie·Utter·Roe	§III contracts whatever to ·Why·Et·Vie, which contractions.tsv carries; the passage writes the what-sign followed by ever in full
+gown-shop	24	whatever	·Why·Et·Vie·Utter·Roe	differs	·Why·Ox·Tea·Et·Vie·Utter·Roe	§III contracts whatever to ·Why·Et·Vie, which contractions.tsv lists; the passage writes the what-sign followed by ever in full
 gown-shop	25	hours	·Out·Zoo	differs	·Out·Roe·Zoo	the transcription’s brackets mark the h Read left off, and he writes no R either; the lexicon spells ReadLex’s ˈaʊəRz, whose R the mapping keeps
 gown-shop	26	were	·Way·Utter·Roe	senior		
 gown-shop	27	any	·Et·No·It	senior		
@@ -320,9 +320,9 @@ senior-examples-1	26	upon	·Utter·Pea·Ox·No	senior
 senior-examples-1	27	the	·They	senior		
 senior-examples-1	28	cliffs	·Key·Low·It·Fee·See	senior		
 senior-examples-1	29	of	·Vie	senior		
-senior-examples-1	30	tierra	·Tea·It·Et·Roe·Utter	absent		part of the Spanish place name Tierra del Fuego, which ReadLex does not carry
-senior-examples-1	31	del	·Day·Et·Low	absent		part of the Spanish place name Tierra del Fuego, which ReadLex does not carry
-senior-examples-1	32	fuego	·Fee·Foot·Eight·Gay·Owe	absent		part of the Spanish place name Tierra del Fuego, which ReadLex does not carry
+senior-examples-1	30	tierra	·Tea·It·Et·Roe·Utter	absent		part of the Spanish place name Tierra del Fuego, which ReadLex does not list
+senior-examples-1	31	del	·Day·Et·Low	absent		part of the Spanish place name Tierra del Fuego, which ReadLex does not list
+senior-examples-1	32	fuego	·Fee·Foot·Eight·Gay·Owe	absent		part of the Spanish place name Tierra del Fuego, which ReadLex does not list
 senior-examples-1	33	and	·No	senior		
 senior-examples-1	34	leaned	·Low·Eat·No·Day	senior		
 senior-examples-1	35	his	·He·Zoo	contraction		
@@ -542,7 +542,7 @@ senior-examples-3	63	glass	·Gay·Low·At·See	differs	·Gay·Low·Ah·See	TRAP-
 senior-examples-3	64	of	·Vie	senior		
 senior-examples-3	65	brandy	·Bay·Roe·At·No·Day·It	senior		
 bo-peep	0	little	·Low·It·Tea·Low	junior		
-bo-peep	1	bo-peep	·Bay·Owe-·Pea·Eat·Pea	absent		the nursery-rhyme name, which ReadLex does not carry
+bo-peep	1	bo-peep	·Bay·Owe-·Pea·Eat·Pea	absent		the nursery-rhyme name, which ReadLex does not list
 bo-peep	2	has	·He·At·Zoo	junior		
 bo-peep	3	lost	·Low·Ox·See·Tea	junior		
 bo-peep	4	her	·He·Utter·Roe	junior		
@@ -558,7 +558,7 @@ bo-peep	13	leave	·Low·Eat·Vie	junior
 bo-peep	14	them	·They·Et·May	junior		
 bo-peep	15	alone	·Utter·Low·Owe·No	junior		
 bo-peep	16	and	·No	junior		
-bo-peep	17	they'll	·They·Eight’·Low	differs	·They·Eight·Low	Read writes the apostrophe inside the word; a spelling comes from the IPA alone and carries no apostrophe, however ReadLex’s own Latin is written
+bo-peep	17	they'll	·They·Eight’·Low	differs	·They·Eight·Low	Read writes the apostrophe inside the word; a spelling comes from the IPA alone and has no apostrophe, however ReadLex’s own Latin is written
 bo-peep	18	come	·Key·Utter·May	junior		
 bo-peep	19	home	·He·Owe·May	junior		
 bo-peep	20	bringing	·Bay·Roe·It·-ing·It·-ing	differs	·Bay·Roe·It·-ing·-ing	Junior does not use the -ing terminal: ‘these Senior facilities are of course impossible as a first stage in children’s writing’ (§ Note). The junior column applies the affix rules all the same, per #3
@@ -568,7 +568,7 @@ bo-peep	23	behind	·Bay·It·He·I·No·Day	junior
 bo-peep	24	them	·They·Et·May	junior		
 jack-horner	0	little	·Low·It·Tea·Low	junior		
 jack-horner	1	jack	·Jay·At·Key	junior		
-jack-horner	2	horner	·He·Awe·Roe·No·Utter·Roe	absent		the nursery-rhyme surname, which ReadLex does not carry
+jack-horner	2	horner	·He·Awe·Roe·No·Utter·Roe	absent		the nursery-rhyme surname, which ReadLex does not list
 jack-horner	3	sat	·See·At·Tea	junior		
 jack-horner	4	in	·It·No	junior		
 jack-horner	5	his	·He·It·Zoo	junior		
