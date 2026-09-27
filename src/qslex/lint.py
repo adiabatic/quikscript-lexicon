@@ -14,16 +14,16 @@ from qslex.tokenizer import marked
 PRAGMAS_FILE = "lint-pragmas.tsv"
 PRAGMAS_HEADER = ["check", "word", "reason", "note"]
 
-# The one reason a word is allowed to break a check: a defect recorded against another issue, not a license. Any other reason is a bare exception, which is what this table exists to prevent.
+# The only reason `load_pragmas` accepts. A pragma may exempt a word from a check only because of a known defect tracked in another issue.
 DEFECT = "known-defect"
 
 REDUCIBLE = frozenset({"It", "Utter"})
 VOWEL_CHARS = frozenset("ɪieæaɑɒɔʊuʌəɜːƏIÆⱭ")
 
-# “While L needs no preceding vowel in Spaniel, one is clearly needed wherever -al follows on a vowel-sound” — so ·Ye counts here as the vowel it stands in for.
+# The Manual says “While L needs no preceding vowel in Spaniel = ·See·Pea·At·No·Ye·Low, one is clearly needed wherever -al follows on a vowel-sound”. ·Ye counts here as the vowel it stands in for.
 VOWELS_BEFORE_L = VOWELS | {"Ye"}
 
-# The Manual’s own trigger for each check, as an Orthodox ending. Latin-gating is the whole difference between a check that re-derives a rule and one that re-reports the corpus: ·Et·No·Tea is only wrong where Orthodox spells -ent, and ReadLex’s own /e/ elsewhere is not this project’s business. A check whose rule keys on the same ending takes that rule’s own pattern — `rules.ENT`, `rules.AL`, and `rules.ALLY`, which claims -able and -ally before -al does. The two written out here are the ones that differ, because -men is the exception the -land rule carves out.
+# Each check runs only where the Orthodox spelling has the ending the Manual’s rule names. Without that condition a check would report ReadLex’s IPA wherever it differs from the rule. For example, ·Et·No·Tea is wrong only where the Orthodox spelling ends in -ent. The lint does not check ReadLex’s /e/ anywhere else. A check whose rule matches the same ending uses that rule’s pattern: `rules.ENT`, `rules.AL` and `rules.ALLY`. `rules.ALLY` matches -able and -ally, so the -al check skips those words, as the terminal rules do by trying `rules.ALLY` before `rules.AL`. The two patterns below differ from `rules.LAND` because -men is the exception to the -land rule and has its own check.
 LAND = re.compile(r"(?<=.)(land|ment|man)(s)?$")
 MEN = re.compile(r"(?<=.)men$")
 
@@ -55,7 +55,7 @@ class Site:
     def reducible_ending(self) -> bool:
         """Whether the last vowel ReadLex wrote for this element is a schwa.
 
-        Every rule these checks re-derive is conditioned on an *unstressed* vowel, and the only vowel ReadLex writes that is unstressed by definition is ə. ɪ and ʌ are syllable nuclei as often as not — distil, fulfil, until — so reading them as reducible is what turns a rule into a false alarm.
+        Every rule these checks re-derive applies to an *unstressed* vowel. ə is the only vowel ReadLex writes that is always unstressed. ɪ and ʌ are often full vowels (distil, fulfil, until), so treating them as reducible would make the checks report false positives.
         """
         vowels = [c for c in self.ipa if c in VOWEL_CHARS]
         return bool(vowels) and vowels[-1] in {"ə", "Ə"}
@@ -94,7 +94,7 @@ ING_SHAPES = {
 def ing_vowel_omitted(site: Site, tables: Tables) -> str:
     """“Provided it is an affix and not a root, omit vowel-i.” (terminal-ing)
 
-    “Spell -ing in full after roots ending in -y: ·Key·At·Roe·It·It·-ing = carrying.” A root ending in -i is the same case — taxi, ski — and is skipped with it.
+    “Spell -ing in full after roots ending in -y: ·Key·At·Roe·It·It·-ing = carrying.” The check also skips roots ending in -i (taxi, ski), which are the same case.
     """
     affix = _ing_affix(site.latin)
     stem = site.latin[: site.latin.rindex("ing")] if affix else ""
@@ -111,7 +111,7 @@ def ing_vowel_omitted(site: Site, tables: Tables) -> str:
 def al_vowel_omitted(site: Site, tables: Tables) -> str:
     """“omit any unstressed vowel sound between L and the preceding consonant”
 
-    Entry-final elements only: “Where another syllable is added, the vowel sound before this L must be clearly pronounced and spelt” — and a following element adds a syllable exactly as a suffix does. (terminal-al-el-le-il)
+    Runs only on an entry’s last element. The Manual says “Where another syllable is added, the vowel sound before this L must be clearly pronounced and spelt”, and a following element adds a syllable as a suffix does. (terminal-al-el-le-il)
     """
     if not site.last or not AL.search(site.latin) or ALLY.search(site.latin):
         return ""
@@ -128,7 +128,7 @@ def al_vowel_omitted(site: Site, tables: Tables) -> str:
 
 
 def ent_ance_utter(site: Site, tables: Tables) -> str:
-    """“written invariably with standard ·Utter·No” (terminal-ent-ance)"""
+    """“Written invariably with — ·Utter·No followed by a penlift” (terminal-ent-ance)"""
     match = ENT.search(site.latin)
     if not match or LAND.search(site.latin) or not site.reducible_ending:
         return ""
@@ -168,7 +168,7 @@ def land_ment_vowel_omitted(site: Site, tables: Tables) -> str:
 def men_keeps_a_vowel(site: Site, tables: Tables) -> str:
     """“The unstressed vowel is omitted for convenient joining except in -men.”
 
-    The Manual says the vowel is kept, not which vowel it is, and ReadLex writes both: seamen ˈsiːmen gives ·May·Et·No, dutchmen ˈdʌtʃmən gives ·May·Utter·No. Either keeps seamen apart from seaman, which is what the exception is for; demanding ·Et would be inventing a sound the corpus does not record. (terminal-land-ment)
+    The Manual says the vowel is kept but not which vowel, and ReadLex writes both. seamen ˈsiːmen gives ·May·Et·No, and dutchmen ˈdʌtʃmən gives ·May·Utter·No. Either vowel keeps seamen distinct from seaman, which is the purpose of the exception. Requiring ·Et would add a sound the corpus does not record. (terminal-land-ment)
     """
     if not MEN.search(site.latin) or not _tail(site, "No"):
         return ""
@@ -179,7 +179,7 @@ def men_keeps_a_vowel(site: Site, tables: Tables) -> str:
 
 
 def initial_ex_et(site: Site, tables: Tables) -> str:
-    """“·Et·Excite for Excite, Extreme, Expect, with an initial vowel ·Et easier than ·It.” (section-2)"""
+    """“·Et·Excite for Excite, Extreme, Expect with an initial vowel ·Et easier than ·It.” (section-2)"""
     spelled = site.x_spelled
     if not site.latin.startswith("ex") or len(spelled) < 2:
         return ""
@@ -239,9 +239,9 @@ CHECK_IDS = tuple(check.id for check in CHECKS)
 
 
 def load_pragmas(path: Path | None = None) -> dict[tuple[str, str], str]:
-    """The words a check is allowed to fire on, and why each is allowed.
+    """The pragmas in `lint-pragmas.tsv`, as (check, word) mapped to the reason.
 
-    Every row records a defect and says what it is, so that the table cannot quietly become the bare exception list this project keeps refusing to write.
+    A pragma exempts one word from one lint check because of a known defect tracked in another issue. Every row must give the reason `known-defect` and a note that describes the defect, so the table cannot become a list of unexplained exceptions.
     """
     pragmas: dict[tuple[str, str], str] = {}
     for lineno, source, row in rows_of(path, PRAGMAS_FILE, PRAGMAS_HEADER):
@@ -264,9 +264,9 @@ def load_pragmas(path: Path | None = None) -> dict[tuple[str, str], str]:
 
 
 def sites(word: str, spelling: str, x_letter: str, ipa: str) -> tuple[Site, ...]:
-    """One Site per element, cut where `qslex.elements` cuts.
+    """One Site per element, split where `qslex.elements` splits.
 
-    Where the Latin, the spelling and the IPA do not agree about how many pieces an entry has, the entry is treated as one element — the same conservatism that keeps to-day and dhs intact.
+    If the Latin parts and the spelling’s runs do not line up one for one, the whole entry is treated as one element. If the IPA does not split into one chunk per word, each element gets the whole IPA string.
     """
     letters = parse(spelling)
     pairs = elements(word, letters)

@@ -18,7 +18,7 @@ REASONS = {"html-entity", "tokenizer-split"}
 FALLBACK = "0"
 JOIN = "⬌"
 
-# The Penn tags a row may name, and the order the tagged rows are written in. Proper nouns come first on purpose: a consumer that falls back from NNP to the NN row — which is what latin2shaw.py does — reaches that fallback before the exact NNP row if NN is written first, so upstream’s own file makes the proper-noun spelling of august, derby, reading, slough and 23 others unreachable. Everything after NNP is alphabetical, because nothing else needs an opinion and an arbitrary order would only invite one.
+# The Penn tags a row may have, and the order the tagged rows are written in. NNP comes first because latin2shaw.py, like the transliterator here, lets an NNP token fall back to the NN row and takes the first row that matches. Upstream’s file writes NN first, so that fallback is taken before the NNP row is reached, and the proper-noun spellings of derby, reading, slough and other words are never used. The tags after NNP are in alphabetical order, because no other tag’s position changes which row is chosen.
 PROPER_NOUN = "NNP"
 PENN_TAGS = frozenset(
     {
@@ -67,9 +67,9 @@ class ConverterError(ValueError):
 
 
 def load_penn(path: Path | None = None) -> dict[str, TagMap]:
-    """C5 to Penn Treebank, for the transliterator’s part-of-speech lookup.
+    """C5 to Penn Treebank tags, for the transliterator’s part-of-speech lookup.
 
-    Only heteronyms consult this: a word with one spelling needs no tagged row, so most of the corpus’s 104 C5 tags never need a Penn equivalent and none is invented for them. The `upstream` rows are the ones forced by reproducing readlex_converter.json exactly; the `standard` rows are pairs upstream’s file cannot separate, or does not reach, where the conventional correspondence is used and said to be used.
+    Only heteronyms and the tagged rows of contractions.tsv need a Penn tag. A word with one spelling needs no tagged row, so most of the corpus’s 104 C5 tags have no Penn equivalent here. The `upstream` rows are the mappings required to reproduce readlex_converter.json exactly. The `standard` rows are tags that upstream’s file cannot tell apart from another tag, or never needs. They map to the conventional Penn tag, and each note says which case applies.
     """
     known: dict[str, TagMap] = {}
     for lineno, source, row in rows_of(path, PENN_FILE, PENN_HEADER):
@@ -112,7 +112,7 @@ def load_phrase_exceptions(path: Path | None = None) -> tuple[PhraseException, .
 
 
 def _forms(spellings: dict[str, tuple[str, str]]) -> dict[str, str]:
-    """One row’s three columns, alternatives joined in one order across all of them."""
+    """One row’s three columns, with the ⬌-joined alternatives in the same order in each."""
     order = sorted(spellings)
     senior = JOIN.join(order)
     junior = JOIN.join(spellings[s][0] for s in order)
@@ -143,9 +143,9 @@ def _collect(
 def converter(
     entries: Iterable[tuple[str, str, str, str, str]], penn: dict[str, TagMap]
 ) -> dict[str, list[dict[str, str]]]:
-    """Latin to spellings, keyed for the transliterator rather than for a reader.
+    """Latin to spellings, keyed by lowercased Latin for the transliterator’s lookup.
 
-    Tagged rows are written only where they can settle something: a word needs both more than one spelling and more than one Penn tag before a part of speech can choose between them. The `0` row is the universal fallback and is always written last, because the consumer takes the first row that matches.
+    Tagged rows are written only where a part of speech can choose between spellings: the word must have more than one spelling and more than one Penn tag. The `0` row is the fallback for every tag. It is always written last, because the transliterator takes the first row that matches the token’s tag and otherwise uses the last row.
     """
     grouped: dict[str, list[tuple[str, str, str, str]]] = {}
     for latin, pos, senior, junior, x_letter in entries:
@@ -178,9 +178,9 @@ def converter(
 
 
 def _composes(entry: str, fallback: dict[str, str]) -> bool:
-    """Whether spelling the pieces separately spells the whole entry.
+    """Whether spelling the pieces separately gives the spelling of the whole entry.
 
-    An entry that does not compose has to be matched as one unit before the text is tokenized, because tokenizing it first would spell its pieces and get a different answer. A single word with an apostrophe never composes: the tokenizer splits the clitic off, and no lexicon entry covers the halves.
+    An entry that does not compose must be matched as a unit before the text is tokenized. Tokenizing it first would spell its pieces and give a different result. A single word with an apostrophe never composes, because the tokenizer splits off the clitic and no lexicon entry spells the clitic on its own.
     """
     pieces = components(entry)
     if len(pieces) == 1:

@@ -4,7 +4,7 @@ from qslex.letters import parse
 from qslex.mapping import Mapping
 from qslex.tokenizer import Token
 
-# The merges the segment mapping makes on the way in, undone on the way out. Each is documented where it is made: the capitals are ReadLex’s own conventions, ʌ/ə/ɜː share ·Utter under Vowels + R, and i/u are the weak-vowel spellings the terminal rules use.
+# IPA symbols the segment mapping writes with the same letter as another symbol, each mapped to that symbol. The round trip applies this table to the ReadLex IPA and to each letter’s reading, so a merged symbol compares equal to the symbol it maps to. ipa-to-qs.tsv and docs/ipa-to-qs.md give the source of each merge. The capitals are ReadLex’s own conventions. ʌ, ə and ɜː share ·Utter under Vowels + R. i and u are the weak vowels the terminal rules use.
 MERGES = {
     "ʌ": "ə",
     "ɜː": "ə",
@@ -22,7 +22,7 @@ MERGES = {
     "F": "f",
 }
 
-# The mapping’s sequence rows cover two phonemes with one row, so the reverse has to know they are two.
+# Each of the mapping’s sequence rows writes two phonemes with two letters. The round trip splits the ReadLex token into those two phonemes before comparing.
 SEQUENCES = {
     "ɪə": ("ɪ", "ə"),
     "eə": ("e", "ə"),
@@ -31,12 +31,12 @@ SEQUENCES = {
     "aʊə": ("aʊ", "ə"),
 }
 
-# The two X-letters no segment mapping reaches, and so the only letters whose phonemes have to be stated here rather than derived. §II gives both.
+# No mapping row writes an X-letter, so these are the only letters whose phonemes are listed here instead of derived from the mapping. §II gives both.
 X_LETTERS = {"Excite": ("k", "s"), "Exam": ("ɡ", "z")}
 
 NOTHING = ""
 
-# Every difference the round trip is allowed to find between what ReadLex said and what the spelling says, with the reason it is allowed. An edit outside this table is a spelling that has stopped meaning what its source meant. A word sign stands for the written word rather than for its sounds, so the rows one rewrites are not read back at all; every edit here belongs to the mapping or to a terminal convention.
+# Every difference the round trip allows between the ReadLex IPA and the spelling’s reading, with the reason for each. A difference outside this table means the spelling no longer represents the sounds it was made from. Rows a word sign rewrites are not read back, because a word sign stands for the written word rather than its sounds. Every entry here therefore comes from the mapping, a terminal or prefix convention, or the X-letter spelling.
 EDITS: dict[tuple[str, str], str] = {
     (
         "ə",
@@ -72,9 +72,9 @@ EDITS: dict[tuple[str, str], str] = {
 
 
 def phonemes_of(mapping: Mapping) -> dict[str, tuple[str, ...]]:
-    """What each letter reads back as, derived from the mapping it is written by.
+    """The phonemes each letter reads back as, derived from the mapping.
 
-    Deriving this rather than writing it out is the point: it fails if two IPA tokens that are not a documented merge ever land on the same letter, which is the property that makes the mapping invertible at all.
+    Deriving the table checks that the mapping can be inverted. It raises ValueError if two IPA tokens that no entry in `MERGES` joins are written with the same letter.
     """
     table: dict[str, tuple[str, ...]] = {}
     for entry in mapping.entries:
@@ -93,7 +93,7 @@ def phonemes_of(mapping: Mapping) -> dict[str, tuple[str, ...]]:
 
 
 def source_phonemes(tokens: tuple[Token, ...]) -> tuple[str, ...]:
-    """What ReadLex said, as a phoneme string with the mapping’s merges applied."""
+    """The ReadLex IPA as a phoneme string, with `MERGES` applied and sequences split."""
     out: list[str] = []
     for token in tokens:
         if token.entry.kind in {"marker", "structural", "hiatus"}:
@@ -106,7 +106,7 @@ def source_phonemes(tokens: tuple[Token, ...]) -> tuple[str, ...]:
 def spelled_phonemes(
     spelling: str, table: dict[str, tuple[str, ...]]
 ) -> tuple[str, ...]:
-    """What the spelling says, read back one letter at a time."""
+    """The phonemes a spelling reads back as, one letter at a time."""
     out: list[str] = []
     for letter in parse(spelling):
         if letter.is_letter:
@@ -117,9 +117,9 @@ def spelled_phonemes(
 def align(
     source: tuple[str, ...], spelled: tuple[str, ...]
 ) -> tuple[tuple[str, str], ...] | None:
-    """The cheapest run of allowed edits carrying `source` to `spelled`, or None.
+    """The fewest differences from `EDITS` that turn `source` into `spelled`, or None.
 
-    None is the failure the check exists for: the spelling can no longer be read back to what ReadLex said by any sequence of differences this project has accounted for.
+    None means no sequence of the differences in `EDITS` turns the ReadLex IPA into the spelling’s reading. That is the failure the round trip checks for.
     """
     infinity = float("inf")
     width = len(spelled) + 1

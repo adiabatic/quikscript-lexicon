@@ -1,6 +1,12 @@
-"""The VS Code client’s stylesheets, carrying the face neither surface can otherwise reach.
+"""Builds the VS Code extension’s two stylesheets, which give the Markdown preview and the extension’s webview a Quikscript font.
 
-editor/vscode/media/quikscript-preview.css and editor/vscode/media/quikscript-webview.css are generated, never hand-edited: the same two `@font-face` rules with the vendored Senior faces inlined as data URIs, and one rule putting that family ahead of the font the surface would paint prose in. VS Code paints Markdown preview prose in the Markdown font and a webview in the workbench font, and no Quikscript face is part of either, so every spelling is a box without this; a code span already resolves through `--vscode-editor-font-family` and is left alone. The rules are scoped by `unicode-range` to the Private Use Area block, so Latin keeps whatever font the reader chose and only Quikscript falls through. The webview is a file of its own rather than a copy of the preview’s because it differs at both ends: it falls back to the workbench font, and it paints the block only through fonts its own page delivers, whose data URIs its page must name in a `font-src` of its own Content-Security-Policy — where the preview’s policy already allows them. Inlining rather than shipping the files beside the stylesheets is what keeps the extension’s copy of a face from drifting from the vendored one, and makes a stale stylesheet a freshness failure rather than a discovery.
+editor/vscode/media/quikscript-preview.css and editor/vscode/media/quikscript-webview.css are generated and never edited by hand. Each has the same two `@font-face` rules, with the vendored Sans Senior faces inlined as data URIs. Each also has one rule that lists that family ahead of the font the surface would otherwise use for prose.
+
+VS Code renders Markdown preview prose in the Markdown font and a webview in the workbench font. Neither font has Quikscript letters, so without these stylesheets every spelling renders as a box. A code span already uses `--vscode-editor-font-family` and is left alone. The `@font-face` rules are limited by `unicode-range` to the Quikscript codepoints in the Private Use Area (U+E650–E67E), so Latin text keeps the reader’s font and only Quikscript uses these faces.
+
+The webview has its own file for two reasons. Its fallback is the workbench font. It can also use only fonts that its own page supplies, so its page must allow their data URIs in the `font-src` of its own Content-Security-Policy. The preview’s policy already allows them.
+
+The faces are inlined rather than shipped as files beside the stylesheets, so the extension always uses the vendored faces. `make check` runs `python -m qslex.preview --check`, which fails whenever a committed stylesheet differs from a rebuild.
 """
 
 from __future__ import annotations
@@ -29,7 +35,7 @@ WORKBENCH_STACK = "var(--vscode-font-family, sans-serif)"
 
 
 def faces(root: Path) -> list[str]:
-    """The `@font-face` rules both stylesheets open with, one per vendored face."""
+    """The `@font-face` rules both stylesheets start with, one for each Sans Senior weight in `FACES`."""
     return [
         "@font-face {\n"
         f"  font-family: '{FAMILY}';\n"
@@ -42,7 +48,7 @@ def faces(root: Path) -> list[str]:
 
 
 def build(root: Path | None = None) -> str:
-    """The preview stylesheet as the file carries it: the faces, then the one rule using them."""
+    """The preview stylesheet: the faces, then the rule that uses them."""
     root = root if root is not None else repo_root()
     blocks = faces(root)
     blocks.append(f"html,\nbody {{\n  font-family: '{FAMILY}', {MARKDOWN_STACK};\n}}\n")
@@ -50,7 +56,7 @@ def build(root: Path | None = None) -> str:
 
 
 def panel(root: Path | None = None) -> str:
-    """The webview stylesheet: the same faces, ahead of the workbench font a panel is painted in."""
+    """The webview stylesheet: the same faces, listed ahead of the workbench font a webview uses."""
     root = root if root is not None else repo_root()
     blocks = faces(root)
     blocks.append(f"body {{\n  font-family: '{FAMILY}', {WORKBENCH_STACK};\n}}\n")

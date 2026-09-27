@@ -79,7 +79,7 @@ EXPECTED_TOKEN_COUNTS = {
     ("aʊə", "no-r"): 51,
 }
 
-# Rows each orthographic rule actually rewrites, counted over the rows the lexicon spells rather than over the whole corpus. Eleven of the Manual’s rules are satisfied by ReadLex’s IPA already and ship as normalizers, so a zero here is a statement, not a bug: it says the corpus never contradicts that rule.
+# Rows each orthographic rule rewrites, counted over the rows the lexicon spells rather than the whole corpus. Eleven of the Manual’s rules rewrite nothing because ReadLex’s IPA already gives the Manual’s spelling. They still run as normalizers, and a zero here means the corpus never contradicts that rule.
 EXPECTED_RULE_CHANGES: dict[str, int] = {
     "terminal-es-ed": 7681,
     "terminal-ing": 10976,
@@ -110,7 +110,7 @@ EXPECTED_RULE_CHANGES: dict[str, int] = {
     "terminal-en-on": 25,
 }
 
-# Rows each word sign or standard outline rewrites, again over the rows the lexicon spells. Most of the Manual’s Common words are already what ReadLex’s IPA gives, and five of the core eight arrive as upstream’s own Ð/T/N/V/F capitals, so a zero here says the corpus agrees with the Manual rather than that the row is idle. Counts include the word inside a phrase entry.
+# Rows each word sign or standard outline rewrites, counted over the rows the lexicon spells. A word that rewrites no row is not listed. For most of the Manual’s Common words, and for the five of the core eight that ReadLex writes with its Ð/T/N/V/F capitals, ReadLex’s IPA already gives the Manual’s spelling. Counts include the word inside a phrase entry.
 EXPECTED_SIGN_CHANGES: dict[str, int] = {
     "'twas": 1,
     "after": 5,
@@ -129,13 +129,13 @@ EXPECTED_SIGN_CHANGES: dict[str, int] = {
     "wasn't": 2,
 }
 
-# Rows whose Junior spelling diverges from the Senior one: non-demonstrative that, the standard outlines that reduce a vowel ReadLex writes in full — was among them both on its own and inside the two contractions that leave it no boundary — and the rows terminal-nt rewrites, whose linking vowel the junior column keeps.
+# Rows whose Junior spelling differs from the Senior one. These are the non-demonstrative rows of that, the standard outlines that reduce a vowel ReadLex writes in full, and the rows terminal-nt rewrites. The standard outlines are always and was, with was also inside 'twas and wasn't, where the element split cannot separate it. The Junior column keeps the linking vowel that terminal-nt drops.
 EXPECTED_JUNIOR_DIVERGENCES = 27
 
-# Words the Manual spells out that ReadLex has no entry for, so the fixture records them without being able to reproduce them.
+# Words in manual-spellings.tsv that ReadLex has no entry for. The table records their spelling, but the lexicon cannot reproduce it.
 EXPECTED_MANUAL_ABSENT = 2
 
-# What the round trip finds when it reads every shipped spelling back to a phoneme string and lays it beside the IPA it came from. Every difference is one of the `EDITS` the mapping and the conventions license, and each is pinned here, so a rule that starts eliding a vowel it has no business eliding shows up as a count that moved.
+# Differences the round trip finds when it reads each shipped spelling back to a phoneme string and compares it with the IPA it came from. Every difference must be one of the kinds in `roundtrip.EDITS`, and each kind has an expected count here. If a rule starts dropping a vowel it should keep, one of these counts changes and the validator fails.
 EXPECTED_ROUNDTRIP_EDITS: dict[tuple[str, str], int] = {
     ("ə", ""): 19527,
     ("ɪ", ""): 11243,
@@ -151,10 +151,10 @@ EXPECTED_ROUNDTRIP_EDITS: dict[tuple[str, str], int] = {
     ("ə", "ɪ"): 14,
 }
 
-# Spellings that read straight back to their own IPA, with nothing elided or leveled.
+# Spellings that read back to their own IPA with no differences.
 EXPECTED_ROUNDTRIP_IDENTICAL = 76618
 
-# A word sign or standard outline stands for the written word rather than for its sounds, so a row one rewrites has nothing to read back.
+# Rows a word sign or standard outline rewrites. The round trip skips them, because such a spelling stands for the written word rather than its sounds.
 EXPECTED_ROUNDTRIP_SKIPPED = 37
 
 FORBIDDEN_RAW_PATTERNS = {
@@ -182,7 +182,7 @@ def stressed_rhotic_ears(ipa: str, tokens: list[Token]) -> int:
 def by_latin(
     spellings: dict[str, dict[tuple[str, str], set[str]]],
 ) -> dict[str, dict[str, set[str]]]:
-    """Every spelling the lexicon carries for a word, by word and then by column."""
+    """Every spelling the lexicon has for each word, keyed by word and then by column."""
     out: dict[str, dict[str, set[str]]] = {}
     for column, table in spellings.items():
         for (latin, _), values in table.items():
@@ -203,9 +203,9 @@ def passages(
     spellings: dict[str, dict[tuple[str, str], set[str]]],
     contractions: tuple[Contraction, ...],
 ) -> list[str]:
-    """Hold every word of the Manual’s specimen passages to what the lexicon spells.
+    """Check every word of the Manual’s specimen passages against the lexicon’s spellings.
 
-    The passages are the one place the Manual writes running text rather than a rule’s example, so they are the only fixture that exercises the word signs, the terminals and the segment mapping together, in the proportions English actually uses them.
+    The passages are the only running text in the Manual. The Manual’s other examples each illustrate one rule. So the passages are the only test data that exercises the word signs, the terminals and the segment mapping together, in the proportions English uses them.
     """
     failures: list[str] = []
     by_word = by_latin(spellings)
@@ -270,11 +270,11 @@ def added(
     overrides: Overrides,
     tables: Tables,
 ) -> list[str]:
-    """Hold the words the corpus lacks to a stricter standard than the corpus rows.
+    """Check the added words, which the corpus lacks, more strictly than the corpus rows.
 
-    They are held separately, and not folded into the pass above, for two reasons. The corpus invariants stay invariants, so an upstream bump still diffs against ReadLex alone; and a row we wrote ourselves has no excuse for needing one. Where a corpus row may break lint under a declared pragma, an added row must produce the spelling it declares, lint clean, read back to its IPA by the licensed edits alone, and reach no word sign. The edits are the round trip’s own table, not a tolerance pinned per row: a -ted, -ing or -tion ending drops its schwa for any word, and a row we wrote is no more able to write it than a corpus row is.
+    This runs apart from the corpus pass in `main` for two reasons. The expected counts cover corpus rows only, so any change to them after an upstream update comes from ReadLex. And a row we wrote ourselves should need no pragma. A corpus row may break a lint check if `lint-pragmas.tsv` exempts it. An added row must produce the spelling in its `qs` column and pass every lint check. It must read back to its IPA using only the differences in `roundtrip.EDITS`, and no word sign may rewrite it. Added rows get no per-row tolerances, because the differences in that table apply to every word. For example, a -ted, -ing or -tion ending drops its schwa whether or not the row came from the corpus.
 
-    The collision check is the one that matters over time: if ReadLex ever carries the word, this fails and says so, rather than letting a second spelling of it ship in silence.
+    The check that the word is not in ReadLex matters most over time. If ReadLex ever adds the word, the validator fails and names it, so the lexicon cannot ship a second spelling of it.
     """
     failures: list[str] = []
     read_back = phonemes_of(mapping)

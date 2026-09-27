@@ -1,6 +1,6 @@
 """Latin text to Quikscript, ported from ReadLex’s latin2shaw.py.
 
-The architecture is upstream’s wholesale — spaCy tokenization, C5-derived Penn tags for heteronyms, dictionary lookup against the converter artifact, affix fallbacks for words the lexicon lacks — with the lookup values and the letter classes changed for Quikscript. The deliberate departures from upstream are specified in docs/latin2qs.md.
+The design is upstream’s: spaCy tokenization, Penn tags derived from C5 for heteronyms, dictionary lookup in the converter table, and affix fallbacks for words the lexicon lacks. The lookup values and the letter classes are changed for Quikscript. docs/latin2qs.md lists the differences from upstream.
 """
 
 from __future__ import annotations
@@ -43,7 +43,7 @@ CONSTRUCTED = "⚠️"
 UNMATCHED = "✢"
 APOSTROPHE = "’"
 
-# The Manual’s angled parentheses, per the CSUR proposal’s punctuation rows.
+# The Manual’s angled parentheses, at the codepoints the CSUR proposal’s punctuation rows give them.
 PARENTHESES = {"(": "\ue66e", ")": "\ue66f"}
 
 
@@ -51,7 +51,7 @@ def _qs(*names: str) -> str:
     return "".join(chr(CODEPOINT_OF[name]) for name in names)
 
 
-# Letter classes that decide how a clitic or constructed suffix is voiced. A sibilant final takes bare ·Zoo with no separating vowel (Jones's = ·Jay·Owe·No·Zoo·Zoo); a voiceless final devoices -s to ·See and -ed to ·Tea; everything else, vowels included, takes the voiced letter.
+# Letter classes that decide how 's and a constructed -s are voiced. After a sibilant, -s is a bare ·Zoo with no vowel before it (Jones's = ·Jay·Owe·No·Zoo·Zoo). After a voiceless letter, -s is ·See. After anything else, vowels included, it is ·Zoo.
 SIBILANTS = frozenset(_qs(n) for n in ("See", "Zoo", "She", "J’ai", "Cheer", "Jay"))
 VOICELESS = frozenset(
     _qs(n) for n in ("Pea", "Tea", "Key", "Fee", "Thaw", "See", "She", "Cheer", "Loch")
@@ -70,7 +70,7 @@ def _s_suffix(last: str) -> str:
     return ZOO
 
 
-# Contraction halves whose separate words are not lexicon entries. The phrase list matches every straight-apostrophe combination whole, so the opening halves are left to the HTML path alone, where _plain’s unidecode never runs and a typographic apostrophe splits don’t into do plus n’t. The clitics keep or drop the apostrophe per the Manual’s own practice: n't attaches solid, the rest keep it (docs/word-signs.md, “Contractions, possessives, and the apostrophe”). The two clitic rows contractions.tsv carries, n't and 'll, are read from there rather than repeated here.
+# Spellings for the halves of a contraction that the tokenizer has split. Some opening halves have no lexicon entry (ca, sha). Others have an entry for a different word (ai) or with a different pronunciation (the verb do is ·Day·Ooze). The phrase list matches every straight-apostrophe contraction whole, so in practice only the HTML path uses the opening halves. That path does not run _plain’s unidecode, so a typographic apostrophe stays and splits don’t into do and n’t. The clitics keep or drop the apostrophe as the Manual does: n't attaches solid, and the rest keep it (docs/word-signs.md, “Contractions, possessives, and the apostrophe”). The two clitic rows in contractions.tsv, n't and 'll, are read from that file instead of being repeated here.
 CONTRACTION_START = {
     "ai": _qs("Eight"),
     "ca": _qs("Key", "Ah"),
@@ -87,7 +87,7 @@ CONTRACTION_END = {
     "'re": APOSTROPHE + _qs("Utter", "Roe"),
 }
 
-# Words that change pronunciation before “to”: have/has when “have to” means must, and the -sed verbs in the past tense only.
+# Words whose pronunciation changes before “to”: have and has when “have to” means must, and the -sed verbs when tagged past tense or past participle.
 HAVE_TO = {
     "have": _qs("He", "At", "Fee"),
     "has": _qs("He", "At", "See"),
@@ -99,7 +99,7 @@ VBD_TO = {
 }
 BEFORE_TO = HAVE_TO | VBD_TO
 
-# Spoken contractions keep the apostrophe, per the Manual’s own practice — they'll = ·They·Eight’·Low in the Junior Bo-peep — so a dictionary spelling that ends in a clitic’s letters gets the apostrophe reinserted before them. Verbal 's and n't attach solid and are left as the dictionary writes them.
+# The Manual keeps the apostrophe in spoken contractions (they'll = ·They·Eight’·Low in the Junior Bo-peep). When a word ends in one of these clitics and its dictionary spelling ends in the clitic’s letters, the apostrophe is put back before those letters. Verbal 's and n't attach solid and are left as the dictionary spells them.
 CLITIC_LETTERS = {
     "'d": _qs("Day"),
     "'ll": _qs("Low"),
@@ -108,7 +108,7 @@ CLITIC_LETTERS = {
     "'re": _qs("Utter", "Roe"),
 }
 
-# The Manual’s Quikscript text quotes with single curly quotes only, so the doubles smartypants educates are demoted after it runs.
+# The Manual’s Quikscript text uses only single curly quotes, so the double quotes smartypants educates are changed to singles after it runs.
 QUOTES = {"&#8220;": "&#8216;", "&#8221;": "&#8217;"}
 
 ORDINAL = re.compile(r"([0-9]+)(st|nd|rd|th|s)")
@@ -120,7 +120,7 @@ ORDINAL_SUFFIXES = {
     "s": _qs("Zoo"),
 }
 
-# Common prefixes and suffixes used in new coinings, re-expressed in Quikscript per the Manual’s affix conventions rather than transliterated from the Shavian strings; tests/test_latin2qs.py holds each to the spelling the lexicon uses inside real words. The productive de-, pre-, pro- and re- take the full stressed vowel a new coining gives them, not the reduced vowel of the lexicalized Latinate stems the prefix rules were written for. The o'er row never spells the bare word, which the lexicon holds; it is kept for the o'er… compounds, which nothing else builds.
+# Common prefixes and suffixes of new coinings, spelled by the Manual’s affix conventions instead of being transliterated from upstream’s Shavian strings. tests/test_latin2qs.py checks some of them against the spelling the lexicon uses inside real words. The productive de-, pre-, pro- and re- take the full stressed vowel of a new coining. The prefix rules’ reduced vowel is for the lexicalized Latinate stems they were written for. The o'er row never spells the bare word, which is in the lexicon. It is used for the o'er… compounds, which nothing else builds.
 PREFIXES: dict[str, str] = {
     "anti": _qs("At", "No", "Tea", "It"),
     "counter": _qs("Key", "Out", "No", "Tea", "Utter", "Roe"),
@@ -150,7 +150,7 @@ PREFIXES: dict[str, str] = {
     "un": _qs("Utter", "No"),
     "under": _qs("Utter", "No", "Day", "Utter", "Roe"),
 }
-# -ness and -less take ·Et, the Manual’s own distinction from the -us, -ous terminal — the one affix a naive transliteration of upstream’s Shavian strings would get wrong. -esque sat in upstream’s prefixes dict, where startswith() can never match it; it is a suffix here.
+# -ness and -less take ·Et, which the Manual uses to distinguish them from the -us, -ous terminal. A direct transliteration of upstream’s Shavian strings would give them ·Utter. Upstream put -esque in its prefixes dict, where startswith() can never match it. Here it is a suffix.
 SUFFIXES: dict[str, str] = {
     "able": _qs("Utter", "Bay", "Low"),
     "bound": _qs("Bay", "Out", "No", "Day"),
@@ -163,7 +163,7 @@ SUFFIXES: dict[str, str] = {
     "like": _qs("Low", "I", "Key"),
     "ness": _qs("No", "Et", "See"),
 }
-# The Manual’s terminal -ful splits on the part of speech: mouthful the noun keeps ·Foot where careful the adjective reduces to ·Utter.
+# The Manual’s terminal -ful depends on the part of speech: the noun mouthful keeps ·Foot, and the adjective careful reduces it to ·Utter.
 FUL_NOUN = _qs("Fee", "Foot", "Low")
 
 NAMER_DOT_ENTS = frozenset(
@@ -246,11 +246,11 @@ HTML_PATTERNS = f"{STYLE}|{SCRIPT}|{TAG}"
 
 @dataclass(frozen=True)
 class Options:
-    """The grade, and the two Senior facilities the grade only sets a default for.
+    """The grade, and the two Senior facilities whose defaults it sets.
 
-    Senior takes the X-letters and the §III contractions; Junior takes neither. The grade defaults them and does not bar them: the Manual’s Note on p.25 calls the Sections II and III facilities impossible as a first stage in children’s writing, which is a fact about teaching a child to write rather than a bar on what a converter may emit, so every combination of the four is reachable and Junior with either facility asked for is spelled, not refused.
+    Senior uses the X-letters and the §III contractions by default. Junior uses neither. The grade sets these defaults but does not forbid either facility. The Manual’s Note on p.25 calls the Sections II and III facilities impossible as a first stage in children’s writing. That is advice about teaching children to write, and it does not limit what a converter may produce. So every combination of grade and facilities is allowed, and Junior with a facility turned on is spelled instead of refused.
 
-    `x_letters` and `contractions` are tri-state on the way in — `None` asks for whatever the grade gives — and plain booleans once constructed, so nothing downstream has to know which way they were set.
+    `x_letters` and `contractions` accept `None`, which means “use the grade’s default”. After construction both are plain booleans, so later code does not need to know how they were set.
     """
 
     junior: bool = False
@@ -288,7 +288,7 @@ def _apostrophized(lower: str, spelling: str) -> str:
 class Transliterator:
     """The spaCy pipeline and the lookup tables, loaded once and reused.
 
-    The Latin-to-spellings shape is rebuilt here from the master rather than read out of a file of its own. It carries nothing the master does not — its Penn tags are the master’s C5 tags through `c5-to-penn.tsv`, which this module already loads for the contractions — so shipping it beside the master would be shipping the same data twice. Deriving it costs about a third of a second at startup, once.
+    The converter table (Latin word to tagged spellings) is rebuilt here from the lexicon JSON instead of being read from a file of its own. It contains nothing the lexicon JSON does not. Its Penn tags are the lexicon’s C5 tags mapped through `c5-to-penn.tsv`, which this module also uses to tag the contractions. A separate file would duplicate that data. Building the table at startup takes a fraction of a second.
     """
 
     def __init__(self, lexicon: Path | None = None) -> None:
@@ -388,13 +388,13 @@ class Transliterator:
                 return row
             if tag == "NNPS" and row["tag"] == "NNS":
                 return row
-            # A relative that is C5’s CJT, the conjunction, which c5-to-penn sends to IN — but spaCy tags it WDT, a tag no converter row can carry.
+            # spaCy tags relative that as WDT, and no converter row has that tag. ReadLex tags it CJT, the conjunction, which c5-to-penn.tsv maps to IN.
             if tag == "WDT" and row["tag"] == "IN":
                 return row
         return rows[-1]
 
     def _spelling(self, row: dict[str, str], options: Options) -> str:
-        # No row carries both sparse columns — an X-letter needs an x in the word and the junior divergences have none — so the two knobs never contend for the same row and the order they are tried in decides nothing.
+        # No row has both qs_x and qs_junior. An X-letter needs an x in the word, and no word with a junior spelling has one. So the order of these two checks does not matter.
         if options.x_letters and (x_letter := row.get(X_COLUMN)):
             return x_letter
         if options.junior and (junior := row.get(JUNIOR_COLUMN)):

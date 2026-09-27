@@ -1,6 +1,6 @@
-"""The derivation every Quikscript spelling checker shares, from the master alone.
+"""The checker data shared by the Desk page and the editor server, derived from the lexicon JSON alone.
 
-The Desk page inlines it and the editor server reads it from a committed payload, but it is one projection: the union word set with its frequencies, the suggestion tables, and the crosschecks that hold them to the shipped hunspell artifacts. One derivation with several consumers is what keeps the page, the server and the dictionary from ever quietly disagreeing about what is a misspelling.
+It computes the word set, frequencies, TRY order, REP table, confusion groups and lookup maps. The Desk page inlines this data, and the editor server reads it from the committed `editor/server/payload.json`. `crosscheck` compares the word set and TRY order with the committed hunspell files, so the page, the server and the dictionary accept the same spellings from the three columns.
 """
 
 from __future__ import annotations
@@ -40,9 +40,9 @@ class Record:
 
 @dataclass(frozen=True)
 class Lexicon:
-    """Everything a checker holds a word against, derived from the master alone.
+    """The word sets and frequencies a checker uses, derived from the lexicon JSON alone.
 
-    `listed` is what the hunspell dictionary carries — the three columns and nothing else — and `union` is that plus the §III Senior contractions, which reach no column but are correct writing all the same. Everything held against the shipped `.dic` and `.aff` is held against `listed`; the one set a checker accepts is `union`. A Junior/Senior toggle swaps the face alone, so neither grade needs a word set of its own.
+    `listed` is the set the hunspell dictionary contains: the spellings in the three columns and nothing else. `union` adds the §III Senior contractions, which are in no column but are correct writing. Comparisons with the committed `.dic` and `.aff` use `listed`. A checker accepts `union`. The Junior/Senior toggle switches only the font, so neither grade needs its own word set.
     """
 
     listed: tuple[str, ...]
@@ -58,9 +58,9 @@ def artifact(name: str, root: Path) -> str:
 
 
 def load_records(root: Path) -> tuple[Record, ...]:
-    """Every entry of the master, flattened in file order.
+    """Every entry of the lexicon JSON, flattened in file order.
 
-    The committed JSON is read rather than the corpus respelled: every projection is built from the artifact it ships beside, so a stale lexicon shows up as a stale page or payload rather than as a checker that quietly checks against a different word set than the hunspell dictionary next to it.
+    This reads the committed JSON rather than respelling the corpus, so the page and the payload are built from the same lexicon as the committed hunspell files. When the lexicon changes, the page and the payload no longer match a rebuild, and `make check` fails.
     """
     master = json.loads(artifact(LEXICON_JSON, root))
     return tuple(
@@ -80,9 +80,9 @@ def load_records(root: Path) -> tuple[Record, ...]:
 def contracted(
     contractions: Iterable[Contraction], records: Iterable[Record]
 ) -> tuple[tuple[str, Record], ...]:
-    """Each §III Senior contraction written out, beside every row it stands for.
+    """Each §III Senior contraction in PUA text, paired with every row it stands for.
 
-    Only the `word` rows are taken. The two `clitic` rows stay out because neither can ever be a token a checker meets: `n't` attaches solid, so it is never written on its own, and a bare `'ll` after an apostrophe is flagged here for the same reason the dictionary flags it, the apostrophe being deliberately outside `WORDCHARS` (docs/pipeline.md). A row’s part-of-speech tag narrows the match to the rows carrying that tag; where it carries none, every row for the headword counts, and the rows are what the frequency the contraction inherits comes from.
+    Only `word` rows are used. The two `clitic` rows are left out because a checker never receives either as a token. `n't` is written joined to its host word, so it never appears alone. The apostrophe is not in `WORDCHARS` (docs/pipeline.md), so in `'ll` the letters after the apostrophe are checked as a word of their own, and a checker flags them as hunspell does. A contraction row with a part-of-speech tag matches only rows with that tag. One with no tag matches every row for its word. The matched rows supply the frequency the contraction takes.
     """
     rows: dict[str, list[Record]] = {}
     for record in records:
@@ -108,11 +108,11 @@ def contracted(
 
 
 def derive(records: Iterable[Record], contractions: Iterable[Contraction]) -> Lexicon:
-    """The one word set and the frequencies a checker needs.
+    """The word sets and the frequencies a checker needs.
 
-    A spelling’s frequency is the highest any row writing it carries, in any column: an X-letter or junior form is the same word as the row’s own spelling, so it inherits that row’s count rather than falling to zero and sorting last in a suggestion list.
+    A spelling’s frequency is the highest frequency of any row with that spelling, in any column. An X-letter or junior form is the same word as the row’s senior spelling, so it gets that row’s frequency. A frequency of zero would sort it last in a suggestion list.
 
-    The §III contractions join the union outright, which is what a Tier 2 facility is (docs/word-signs.md): correct writing the checker accepts whichever face is showing, never the spelling a column carries. Each takes the frequency of the word it contracts, so the suggester ranks it as common as that word.
+    The §III contractions are added to the union directly. docs/word-signs.md describes them as Tier 2: a checker accepts them as correct Senior writing, but no column contains them. Each takes the frequency of the word it contracts, so the suggester ranks it as common as that word.
     """
     rows = tuple(records)
     matched = contracted(contractions, rows)
@@ -135,11 +135,11 @@ def derive(records: Iterable[Record], contractions: Iterable[Contraction]) -> Le
 
 
 def crosscheck(lexicon: Lexicon, root: Path) -> None:
-    """The projection’s word set and its TRY order, held to the shipped hunspell files.
+    """Checks the word set and TRY order against the committed hunspell files.
 
-    Both are re-derived here from the master rather than read out of the `.dic` and the `.aff`, so that a checker and the dictionary cannot disagree quietly. They are the same two derivations `qslex.hunspell` makes for hunspell, so a mismatch means one of the two artifacts is stale, not that the projection wants a wider set.
+    Both are derived from the lexicon JSON and then compared with the committed `.dic` and `.aff`, so a checker and the dictionary cannot disagree without this check failing. The derivations are the functions `qslex.hunspell` uses to write those files, so a mismatch means that either the lexicon JSON or the hunspell files are out of date.
 
-    What is held to the `.dic` is `listed`, the three columns alone. A checker accepts the §III contractions on top of that, and its letter order stays the `.aff`’s TRY over the dictionary’s own word set rather than one recounted over the wider one: the suggester is walking hunspell’s alphabet, and a few dozen more spellings would not move it far enough to be worth two orders that have to be kept apart.
+    The `.dic` is compared with `listed`, the three columns alone. A checker also accepts the §III contractions, but its letter order is the `.aff`’s TRY order, computed over the dictionary’s word set rather than over `union`. The suggester uses hunspell’s letter order, and the few dozen extra spellings would barely change it, so there is one order instead of two.
     """
     lines = artifact(HUNSPELL_DIC, root).splitlines()
     count, words = lines[0], tuple(lines[1:])
@@ -169,9 +169,9 @@ def crosscheck(lexicon: Lexicon, root: Path) -> None:
 
 
 def word_list(lexicon: Lexicon) -> str:
-    """The word set and its frequencies as one string, one spelling to a line.
+    """The word set and its frequencies as one string, one spelling per line.
 
-    A JSON object of tens of thousands of short keys is several hundred kilobytes of quoting and punctuation in a file that is read whole; a tab-separated block costs one split at startup and nothing else. The frequency is left off where it is zero, which is most of the list.
+    A JSON object with one key per spelling would add several hundred kilobytes of quotes and punctuation to a file that is read whole. A tab-separated block needs only one split at startup. The frequency is omitted where it is zero.
     """
     return "\n".join(
         f"{word}\t{lexicon.frequency[word]}" if lexicon.frequency[word] else word
@@ -180,9 +180,9 @@ def word_list(lexicon: Lexicon) -> str:
 
 
 def replacements() -> tuple[tuple[str, str], ...]:
-    """Each X-letter bridged to the letter pair it stands for, both ways.
+    """Each X-letter mapped to its two-letter pair, and the pair back to the X-letter.
 
-    The table the `.aff` writes as REP, and for the same reason: the letters around an X-letter change with it, so neither form of a word is a single-letter edit from the other and no edit-distance suggester alone will turn it up.
+    The `.aff` writes the same table as REP, for the same reason. Replacing an X-letter with its pair takes two single-letter edits, so the other form is not among the single-edit candidates, and an edit-distance search ranks it behind them.
     """
     return tuple(
         (written, meant)
@@ -192,9 +192,9 @@ def replacements() -> tuple[tuple[str, str], ...]:
 
 
 def confusions() -> tuple[str, ...]:
-    """The letter groups a writer mistakes within, one group to a string.
+    """The groups of letters a writer is likely to confuse, one group per string.
 
-    A phonemic script invites a particular misspelling: the right consonant skeleton around the wrong vowel, because the writer heard a vowel the accent or the schwa reduced to something else. So the suggester offers a candidate that stays inside a group ahead of every other single edit, however rare the word — a frequency rank alone buries a common word’s contraction under consonant swaps that happen to be commoner. The vowels are the one group so far; a set of frequently confused consonants would be one more string here, sorted the same way.
+    In a phonemic script, a common misspelling has the right consonants around the wrong vowel. The writer hears a vowel that the lexicon’s accent, or reduction to schwa, spells differently. The suggester therefore lists substitutions within a group after the REP substitutions and before any other single-letter edit, however rare the resulting word. Ranking all single edits by frequency alone would put more frequent words reached by a consonant change ahead of the vowel fix. The vowels are the only group so far. A group of often-confused consonants would be one more string here, sorted the same way.
     """
     return ("".join(sorted(chr(CODEPOINT_OF[name]) for name in VOWELS)),)
 
@@ -202,7 +202,7 @@ def confusions() -> tuple[str, ...]:
 def checker(lexicon: Lexicon) -> dict[str, object]:
     """Everything a checker reads, as one JSON-ready object.
 
-    The Desk page inlines this object and `editor/server/payload.json` carries it beside the two lookup maps, one derivation with two consumers. Sorted keys and a list of pairs for the replacement table, so that a rebuilt projection differs only where the lexicon did.
+    The Desk page inlines this object, and `editor/server/payload.json` contains it plus the two lookup maps. The keys are serialized in sorted order and the replacement table is a list of pairs, so a rebuilt file differs only where the lexicon changed.
     """
     return {
         "confusions": list(confusions()),
@@ -213,9 +213,9 @@ def checker(lexicon: Lexicon) -> dict[str, object]:
 
 
 def readings(records: Iterable[Record], contractions: Iterable[Contraction]) -> str:
-    """Every spelling keyed to the entries that write it, one entry to a line.
+    """The spelling-to-Latin map (`readings`), one entry per line, used for hover.
 
-    The reverse map a hover reads: the spelling, the row’s Latin and its part-of-speech tag, and which column the spelling sits in — `senior`, `junior`, `x`, or `contraction` for the §III forms no column carries. Sibling forms are not repeated here: a consumer joins the writings map on the Latin to reach the row’s other columns. Spaced spellings stay out for the reason `spellings` drops them — no tokenizer ever hands one to a checker — which is what keys this map to exactly the union.
+    Each line has a spelling, the row’s Latin word, its part-of-speech tag, and the column the spelling is in: `senior`, `junior`, `x`, or `contraction` for the §III forms that are in no column. The row’s other columns are not repeated here. A consumer looks the Latin word up in `writings` to find them. Spaced spellings are left out for the reason `spellings` drops them: no tokenizer ever passes one to a checker. As a result, the set of spellings in this map is exactly `union`.
     """
     rows = tuple(records)
     found: set[tuple[str, str, str, str]] = set()
@@ -234,9 +234,9 @@ def readings(records: Iterable[Record], contractions: Iterable[Contraction]) -> 
 
 
 def writings(records: Iterable[Record]) -> str:
-    """Every row a Latin word can be written from, one row to a line.
+    """The Latin-to-spellings map (`writings`), one row per line, used for completions and the Latin lookup box.
 
-    The forward map completions read: the lowercased Latin, the part-of-speech tag, the frequency, and the three columns as the master carries them — junior and X-letter only where they diverge. Heteronyms stay distinct rows, so `read` keeps its two spellings apart by tag and `lead` keeps its two nouns side by side. Spaced spellings are blanked for the reason `spellings` drops them: a completion inserts one token, never a phrase the tokenizer will split back apart.
+    Each line has the lowercased Latin word, the part-of-speech tag, the frequency, and the three columns as the lexicon JSON has them, with junior and X-letter filled in only where they differ from senior. Heteronyms stay separate rows, so `read` keeps its two spellings apart by tag and `lead` keeps both of its nouns. Spaced spellings are blanked for the reason `spellings` drops them: a completion inserts one token, never a phrase the tokenizer would split apart again.
     """
     found: set[tuple[str, str, int, str, str, str]] = set()
     for row in records:
@@ -252,5 +252,5 @@ def writings(records: Iterable[Record]) -> str:
 
 
 def payload(lexicon: Lexicon) -> str:
-    """The checker object serialized the one way both consumers write it."""
+    """The checker object as the JSON text the Desk page inlines, with the same `json.dumps` options `qslex.payload` uses."""
     return json.dumps(checker(lexicon), ensure_ascii=False, sort_keys=True)

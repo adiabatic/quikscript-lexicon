@@ -74,7 +74,7 @@ def pre_r(ipa: str, position: int) -> bool:
 
 
 def marked(ipa: str) -> bool:
-    """Whether ReadLex writes a stress mark at the head of this chunk."""
+    """Whether ReadLex writes a stress mark at the start of this chunk."""
     return bool(ipa) and ipa[0] in STRESS_MARKS
 
 

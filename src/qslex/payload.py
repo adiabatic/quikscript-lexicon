@@ -1,6 +1,6 @@
-"""The editor server’s data file, projected from the lexicon like every artifact.
+"""Builds the editor server’s data file, editor/server/payload.json, from the lexicon.
 
-editor/server/payload.json is generated, never hand-edited: it is the JSON object the Desk page inlines — the word set with its frequencies, the TRY letter order, the REP table and the confusion groups — grown by the two lookup maps only the language server reads: the readings that key each spelling to the entries writing it, and the writings that key each Latin word to its spellings. One derivation feeding every consumer is what makes a server that disagrees with lexicon/ a freshness failure rather than a discovery.
+The file is generated and never edited by hand. It contains the JSON object the Desk page inlines (the word set with its frequencies, the TRY letter order, the REP table and the confusion groups) plus two lookup maps that only the language server reads. `readings` maps each accepted Quikscript spelling to the Latin word, tag and column of each entry with that spelling. `writings` maps each lowercased Latin word to its entries’ tags, frequencies and spelling columns. `make check` runs `python -m qslex.payload --check`, which fails whenever the committed file differs from a rebuild.
 """
 
 from __future__ import annotations
@@ -28,7 +28,7 @@ PAYLOAD = "payload.json"
 
 
 def build(root: Path | None = None) -> tuple[str, Lexicon]:
-    """The payload as the file carries it: one JSON object and one final newline."""
+    """The file’s contents: one JSON object and a final newline."""
     root = root if root is not None else repo_root()
     records = load_records(root)
     contractions = load_contractions()

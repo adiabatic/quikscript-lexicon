@@ -13,7 +13,7 @@ SENIOR = ("senior", "x-letter")
 JUNIOR = ("junior",)
 UNREPRODUCED = frozenset({"differs", "absent"})
 
-# A word with more than one spelling in the lexicon has them all recorded, joined.
+# Separates the spellings in a row’s `ours` column when the lexicon has more than one spelling for the word.
 ALTERNATIVES = " / "
 
 
@@ -34,7 +34,7 @@ class Specimen:
         return frozenset(allowed)
 
 
-# Every specimen passage the Manual prints, keyed by its anchor in the AMS transcription. The Senior ones carry a Latin transcription of their own, in the `data-orthodox` attribute; the four Junior nursery rhymes do not, and their Latin was transcribed by hand. The word counts are pinned so that a passage cannot quietly lose rows: they count the words a passage spells, not its tokens, so a punctuation mark standing alone is dropped and leaves a gap in the index.
+# Every specimen passage the Manual prints, keyed by its anchor in the AMS transcription. The transcription gives each Senior passage’s Latin text in a `data-orthodox` attribute. The four Junior nursery rhymes have no such attribute, so their Latin was transcribed by hand. `load_passages` fails if a passage has a different number of rows than its word count here. The counts are of the words a passage spells, not its tokens. A punctuation mark that stands alone is dropped and leaves a gap in the index.
 SPECIMENS: dict[str, Specimen] = {
     "no-how": Specimen("senior", 56),
     "parental-advice": Specimen("senior", 51),
@@ -68,7 +68,7 @@ class PassageWord:
 def load_passages(path: Path | None = None) -> tuple[PassageWord, ...]:
     """The Manual’s specimen passages, word by word, with each word’s verdict.
 
-    A verdict names the column that reproduces the Manual’s spelling, or says why nothing does: `contraction` where Read reached for one of the contractions `contractions.tsv` carries, under either of its Manual anchors, which this lexicon applies to no column; `absent` where ReadLex has no entry for the word at all; `differs` where the two genuinely disagree, in which case the row pins what this lexicon produces so that the disagreement cannot drift unnoticed.
+    A verdict names the column that reproduces the Manual’s spelling, or says why none does. `contraction` means Read used a contraction that `contractions.tsv` lists, whatever that row’s `authority`. The lexicon applies those contractions to no column. `absent` means ReadLex has no entry for the word. `differs` means the Manual and the lexicon disagree. A `differs` row records the lexicon’s spelling in its `ours` column, and the validator fails if that spelling changes.
     """
     words: list[PassageWord] = []
     last: dict[str, int] = {}

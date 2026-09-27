@@ -1,6 +1,6 @@
-"""The Quikscript Desk page, projected from the lexicon like every artifact.
+"""Builds the Quikscript Desk page, site/index.html, from the lexicon.
 
-site/index.html is generated, never hand-edited: the word set it checks against, the suggestion tables it offers, the fonts it renders in and the Markdown parser it runs are all inlined here from the committed master and the pinned vendored assets. That makes the page a single file that works from a file: URL with no request to anywhere, and it makes a page that disagrees with lexicon/ a freshness failure rather than a discovery.
+site/index.html is generated and never edited by hand. Its word set, suggestion tables, fonts and Markdown parser are all inlined from the committed lexicon JSON and the pinned vendored assets. The page is a single file that works from a file: URL and makes no network requests. `make check` runs `python -m qslex.desk --check`, which fails whenever the committed page differs from a rebuild.
 """
 
 from __future__ import annotations
@@ -83,9 +83,9 @@ class PageError(ProjectionError):
 
 @dataclass(frozen=True)
 class Coverage:
-    """What the page carries, for the log.
+    """Counts printed after a build.
 
-    Every number is pinned in tests/test_desk.py, so this is a convenience for whoever is watching a change land rather than a check of its own.
+    They are informational. tests/test_desk.py checks the spelling counts. Nothing checks the page size.
     """
 
     lexicon: Lexicon
@@ -102,9 +102,9 @@ class Coverage:
 
 
 def asset(name: Path, root: Path) -> bytes:
-    """A vendored file’s bytes, verified against the digest pinned above before use.
+    """A vendored file’s bytes, after checking them against its SHA-256 digest in `SHA256`.
 
-    The page inlines every one of these, so a font or a parser that had drifted would be baked into a generated file and shipped without a diff anyone could read. Provenance for both directories is in their own READMEs.
+    The page inlines each of these files, so a changed font or parser would otherwise end up in the generated page with no readable diff. Each vendored directory’s README records where its files came from.
     """
     path = root / name
     if not path.is_file():
@@ -131,9 +131,9 @@ def variants(word: str) -> tuple[str, ...]:
 
 
 def sample(records: Iterable[Record], lexicon: Lexicon) -> str:
-    """The document the page opens with, built from the lexicon rather than typed.
+    """The document the page opens with, built from the lexicon.
 
-    Every Quikscript spelling in it is looked up by (Latn, pos), so the sample cannot quietly stop being spelled the way the lexicon spells it. The one misspelling is the first candidate variant of the first sample word that the word set rejects, so the page opens with exactly one underline and something to click.
+    Each Quikscript word in it is looked up by (Latn, pos), so the sample always uses the lexicon’s current spellings. The misspelling is the first candidate variant of the first sample word that the word set rejects. The page therefore opens with one underlined word to click.
     """
     spelled = {(row.latin.lower(), row.pos): row.qs for row in records}
     missing = [key for key in SAMPLE_WORDS if not spelled.get(key)]
@@ -153,9 +153,9 @@ def data_uri(raw: bytes) -> str:
 
 
 def substitute(text: str, chunks: Mapping[str, str]) -> str:
-    """Every placeholder filled, and nothing that could close the script it sits in.
+    """Fills every placeholder, and fails if a chunk contains `</script`.
 
-    A chunk carrying `</script` would end its own element wherever the browser’s tokenizer found the string, so the page would truncate quietly rather than fail to build. None of the inputs contains one; this is what keeps it that way.
+    A chunk containing `</script` would end its script element wherever the browser’s HTML tokenizer found the string. Without this check, the page would be truncated and the build would still pass. No input contains the string now.
     """
     for token, chunk in chunks.items():
         if CLOSING_SCRIPT in chunk.lower():
