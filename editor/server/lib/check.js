@@ -18,7 +18,7 @@ const CAP = 500;
  * @param {number} occurrence
  * @returns {string}
  */
-function spot(word, occurrence) {
+function occurrenceKey(word, occurrence) {
   return `${word}\t${occurrence}`;
 }
 
@@ -72,11 +72,17 @@ function offsetAt(starts, text, place) {
  * @param {string} text
  * @param {string} languageId
  * @param {Set<string>} active
- * @param {Set<string>} [excused]
- * @param {Set<string>} [overlooked]
+ * @param {Set<string>} [ignoredWords]
+ * @param {Set<string>} [ignoredOccurrences]
  * @returns {Hit[]}
  */
-function flagged(text, languageId, active, excused = new Set(), overlooked = new Set()) {
+function flagged(
+  text,
+  languageId,
+  active,
+  ignoredWords = new Set(),
+  ignoredOccurrences = new Set(),
+) {
   const skipped = languageId.toLowerCase() === MARKDOWN ? skipRanges(text) : [];
   /** @type {Hit[]} */
   const out = [];
@@ -90,8 +96,8 @@ function flagged(text, languageId, active, excused = new Set(), overlooked = new
     while (at < skipped.length && skipped[at].end <= hit.start) at += 1;
     if (at < skipped.length && skipped[at].start <= hit.start) continue;
     if (accepts(active, hit.word)) continue;
-    if (excused.has(hit.word)) continue;
-    if (overlooked.has(spot(hit.word, occurrence))) continue;
+    if (ignoredWords.has(hit.word)) continue;
+    if (ignoredOccurrences.has(occurrenceKey(hit.word, occurrence))) continue;
     out.push({ word: hit.word, occurrence, start: hit.start, end: hit.end });
   }
   return out;
@@ -113,4 +119,4 @@ function diagnostics(text, hits) {
   }));
 }
 
-module.exports = { CAP, diagnostics, flagged, lineStarts, offsetAt, position, spot };
+module.exports = { CAP, diagnostics, flagged, lineStarts, occurrenceKey, offsetAt, position };

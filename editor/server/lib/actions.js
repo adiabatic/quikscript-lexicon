@@ -54,10 +54,10 @@ function told(title, command, args) {
  * @param {Flag} flag
  * @param {Span[]} everywhere
  * @param {string[]} offers
- * @param {{directory: boolean, project: boolean}} tiers
+ * @param {{directory: boolean, project: boolean}} scopes
  * @returns {Action[]}
  */
-function actions(uri, flag, everywhere, offers, tiers) {
+function actions(uri, flag, everywhere, offers, scopes) {
   /** @type {Action[]} */
   const out = [];
   const others = everywhere.length - 1;
@@ -86,10 +86,10 @@ function actions(uri, flag, everywhere, offers, tiers) {
       { uri, word: flag.word, occurrence: flag.occurrence },
     ]),
   );
-  if (tiers.directory) {
+  if (scopes.directory) {
     out.push(told("Ignore in this directory", DIRECTORY, [{ uri, word: flag.word }]));
   }
-  if (tiers.project) out.push(told("Ignore in this project", PROJECT, [{ uri, word: flag.word }]));
+  if (scopes.project) out.push(told("Ignore in this project", PROJECT, [{ uri, word: flag.word }]));
   out.push(told("Ignore everywhere", USER, [{ word: flag.word }]));
   return out;
 }

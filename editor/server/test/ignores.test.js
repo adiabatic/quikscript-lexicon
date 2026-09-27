@@ -3,7 +3,12 @@ const { test, before, after } = require("node:test");
 const { mkdirSync, mkdtempSync, readFileSync, rmSync, utimesSync, writeFileSync } = require("node:fs");
 const os = require("node:os");
 const path = require("node:path");
-const { above, ledger, projectIgnorePath, userIgnorePath } = require("../lib/ignores.js");
+const {
+  ancestorIgnorePaths,
+  ignoreFileCache,
+  projectIgnorePath,
+  userIgnorePath,
+} = require("../lib/ignores.js");
 
 const ROOT = path.join(__dirname, "..", "..", "..");
 let scratch = "";
@@ -29,7 +34,7 @@ test("the user file sits under xdg config home, or its default", () => {
 });
 
 test("the cascade names an ignore file for every directory up to the root", () => {
-  const paths = above(path.join("/a", "b", "c"));
+  const paths = ancestorIgnorePaths(path.join("/a", "b", "c"));
   assert.deepEqual(paths, [
     path.join("/a", "b", "c", ".quikscript-ignore"),
     path.join("/a", "b", ".quikscript-ignore"),
@@ -46,7 +51,7 @@ test("reading unions every file that exists and shrugs at the missing", () => {
   const user = path.join(scratch, "config", "quikscript", "ignore");
   mkdirSync(path.dirname(user), { recursive: true });
   writeFileSync(user, "\uE653\n");
-  const files = ledger();
+  const files = ignoreFileCache();
   const sources = [
     projectIgnorePath(deep),
     projectIgnorePath(path.join(scratch, "one", "two")),
@@ -60,7 +65,7 @@ test("an edited file is re-read when its clock changes", () => {
   const home = path.join(scratch, "clock");
   mkdirSync(home, { recursive: true });
   const file = projectIgnorePath(home);
-  const files = ledger();
+  const files = ignoreFileCache();
   writeFileSync(file, "\uE650\n");
   utimesSync(file, new Date(1000000000000), new Date(1000000000000));
   assert.deepEqual([...files.read([file])], ["\uE650"]);
@@ -71,7 +76,7 @@ test("an edited file is re-read when its clock changes", () => {
 
 test("appending is idempotent and makes the directories it needs", () => {
   const file = path.join(scratch, "made", "up", "ignore");
-  const files = ledger();
+  const files = ignoreFileCache();
   assert.deepEqual([...files.read([file])], []);
   files.append(file, "\uE650");
   files.append(file, "\uE650");
@@ -84,7 +89,7 @@ test("appending completes a file that ends mid-line", () => {
   mkdirSync(home, { recursive: true });
   const file = projectIgnorePath(home);
   writeFileSync(file, "\uE650");
-  const files = ledger();
+  const files = ignoreFileCache();
   files.append(file, "\uE651");
   assert.equal(readFileSync(file, "utf8"), "\uE650\n\uE651\n");
   files.append(file, "\uE650");

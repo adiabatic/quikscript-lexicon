@@ -9,7 +9,15 @@ const {
 const data = require("./payload.json");
 const { tokens } = require("../../src/qslex/web/core.js");
 const { lexicon } = require("./lib/lexicon.js");
-const { CAP, diagnostics, flagged, lineStarts, offsetAt, position, spot } = require("./lib/check.js");
+const {
+  CAP,
+  diagnostics,
+  flagged,
+  lineStarts,
+  occurrenceKey,
+  offsetAt,
+  position,
+} = require("./lib/check.js");
 const { debouncer } = require("./lib/debounce.js");
 const {
   COMMANDS,
@@ -20,7 +28,12 @@ const {
   actions,
   adviser,
 } = require("./lib/actions.js");
-const { above, ledger, projectIgnorePath, userIgnorePath } = require("./lib/ignores.js");
+const {
+  ancestorIgnorePaths,
+  ignoreFileCache,
+  projectIgnorePath,
+  userIgnorePath,
+} = require("./lib/ignores.js");
 const { skipRanges } = require("./lib/markdown.js");
 const { readings, writings } = require("./lib/lookup.js");
 const { glossed, hovered, listed } = require("./lib/hover.js");
@@ -42,12 +55,12 @@ const ASKED = 200;
 const connection = createConnection();
 const words = lexicon(data);
 const offered = adviser(words);
-const files = ledger();
+const files = ignoreFileCache();
 const userFile = userIgnorePath(process.env);
 /** @type {Map<string, {text: string, languageId: string, version: number}>} */
 const documents = new Map();
 /** @type {Map<string, Set<string>>} */
-const overlooked = new Map();
+const ignoredOccurrences = new Map();
 /** @type {string[]} */
 let roots = [];
 let inlined = false;
@@ -111,26 +124,26 @@ function directoryOf(uri) {
 }
 
 /** @param {string} uri */
-function tiersFor(uri) {
+function ignoreScopesFor(uri) {
   const root = projectRoot(uri);
   const home = directoryOf(uri);
   return { directory: home !== null && home !== root, project: root !== null };
 }
 
 /** @param {string} uri */
-function excusedFor(uri) {
+function ignoredWordsFor(uri) {
   const file = localPath(uri);
   const home = file ? path.dirname(file) : roots[0];
-  const sources = home ? above(home) : [];
+  const sources = home ? ancestorIgnorePaths(home) : [];
   return files.read([...sources, userFile]);
 }
 
 /** @param {string} uri */
-function overlookedFor(uri) {
-  let held = overlooked.get(uri);
+function ignoredOccurrencesFor(uri) {
+  let held = ignoredOccurrences.get(uri);
   if (!held) {
     held = new Set();
-    overlooked.set(uri, held);
+    ignoredOccurrences.set(uri, held);
   }
   return held;
 }
@@ -149,8 +162,8 @@ function checked(uri) {
     held.text,
     held.languageId,
     words.active,
-    excusedFor(uri),
-    overlookedFor(uri),
+    ignoredWordsFor(uri),
+    ignoredOccurrencesFor(uri),
   );
   const found = diagnostics(held.text, hits);
   const flags = hits.map((hit, at) => ({
@@ -183,14 +196,14 @@ function spanned(flags) {
  * @returns {import("./lib/actions.js").Action[][]}
  */
 function crafted(uri, flags, everywhere) {
-  const tiers = tiersFor(uri);
+  const scopes = ignoreScopesFor(uri);
   const started = Date.now();
   /** @type {import("./lib/actions.js").Action[][]} */
   const out = [];
   let spent = 0;
   for (const flag of flags) {
     if (spent >= BUDGET || Date.now() - started >= PATIENCE) break;
-    const built = actions(uri, flag, everywhere.get(flag.word) || [], offered(flag.word), tiers);
+    const built = actions(uri, flag, everywhere.get(flag.word) || [], offered(flag.word), scopes);
     out.push(built);
     for (const action of built) {
       spent += 1 + (action.edit ? action.edit.changes[uri].length : 0);
@@ -206,7 +219,7 @@ function crafted(uri, flags, everywhere) {
  * @returns {Fixed[]}
  */
 function gathered(uri, flags, everywhere) {
-  const tiers = tiersFor(uri);
+  const scopes = ignoreScopesFor(uri);
   const started = Date.now();
   /** @type {Fixed[]} */
   const out = [];
@@ -229,10 +242,12 @@ function gathered(uri, flags, everywhere) {
           command: OCCURRENCE,
           arguments: [{ uri, word: flag.word, occurrence: flag.occurrence }],
         },
-        directory: tiers.directory
+        directory: scopes.directory
           ? { command: DIRECTORY, arguments: [{ uri, word: flag.word }] }
           : null,
-        project: tiers.project ? { command: PROJECT, arguments: [{ uri, word: flag.word }] } : null,
+        project: scopes.project
+          ? { command: PROJECT, arguments: [{ uri, word: flag.word }] }
+          : null,
         user: { command: USER, arguments: [{ word: flag.word }] },
       },
     });
@@ -381,7 +396,7 @@ connection.onDidChangeTextDocument(({ textDocument, contentChanges }) => {
 connection.onDidCloseTextDocument(({ textDocument }) => {
   pending.cancel(textDocument.uri);
   documents.delete(textDocument.uri);
-  overlooked.delete(textDocument.uri);
+  ignoredOccurrences.delete(textDocument.uri);
   connection
     .sendDiagnostics({ uri: textDocument.uri, diagnostics: [] })
     .catch(() => {});
@@ -475,7 +490,7 @@ connection.onExecuteCommand(({ command, arguments: args }) => {
       ? asked.occurrence
       : null;
   if (command === OCCURRENCE && uri && word && count !== null) {
-    overlookedFor(uri).add(spot(word, count));
+    ignoredOccurrencesFor(uri).add(occurrenceKey(word, count));
   } else if (command === DIRECTORY && uri && word) {
     const home = directoryOf(uri);
     if (!home) return null;
@@ -496,7 +511,7 @@ connection.onExecuteCommand(({ command, arguments: args }) => {
 connection.onShutdown(() => {
   pending.clear();
   documents.clear();
-  overlooked.clear();
+  ignoredOccurrences.clear();
 });
 
 connection.listen();

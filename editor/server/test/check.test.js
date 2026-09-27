@@ -2,7 +2,7 @@ const assert = require("node:assert/strict");
 const { test } = require("node:test");
 const data = require("../payload.json");
 const { lexicon } = require("../lib/lexicon.js");
-const { diagnostics, flagged, lineStarts, offsetAt, spot } = require("../lib/check.js");
+const { diagnostics, flagged, lineStarts, occurrenceKey, offsetAt } = require("../lib/check.js");
 
 const WORDS = lexicon(data);
 const GOOD = data.words.split("\n", 1)[0].split("\t", 1)[0];
@@ -12,11 +12,14 @@ const WORSE = "\uE651".repeat(9);
 /**
  * @param {string} text
  * @param {string} languageId
- * @param {Set<string>} [excused]
- * @param {Set<string>} [overlooked]
+ * @param {Set<string>} [ignoredWords]
+ * @param {Set<string>} [ignoredOccurrences]
  */
-function published(text, languageId, excused, overlooked) {
-  return diagnostics(text, flagged(text, languageId, WORDS.active, excused, overlooked));
+function published(text, languageId, ignoredWords, ignoredOccurrences) {
+  return diagnostics(
+    text,
+    flagged(text, languageId, WORDS.active, ignoredWords, ignoredOccurrences),
+  );
 }
 
 test("the fixtures hold: one word the lexicon spells, two it does not", () => {
@@ -110,14 +113,20 @@ test("occurrences are numbered per word across the whole document", () => {
 });
 
 test("an excused spelling is passed over by exact match alone", () => {
-  const excused = new Set([BAD]);
-  assert.equal(flagged(`${BAD} ${WORSE}\n`, "plaintext", WORDS.active, excused).length, 1);
-  assert.equal(flagged(`${BAD}-${BAD}\n`, "plaintext", WORDS.active, excused).length, 1);
+  const ignoredWords = new Set([BAD]);
+  assert.equal(flagged(`${BAD} ${WORSE}\n`, "plaintext", WORDS.active, ignoredWords).length, 1);
+  assert.equal(flagged(`${BAD}-${BAD}\n`, "plaintext", WORDS.active, ignoredWords).length, 1);
 });
 
 test("a session ignore is keyed to one occurrence and survives unrelated edits", () => {
-  const overlooked = new Set([spot(BAD, 1)]);
-  const before = flagged(`${BAD} ${BAD}\n`, "plaintext", WORDS.active, new Set(), overlooked);
+  const ignoredOccurrences = new Set([occurrenceKey(BAD, 1)]);
+  const before = flagged(
+    `${BAD} ${BAD}\n`,
+    "plaintext",
+    WORDS.active,
+    new Set(),
+    ignoredOccurrences,
+  );
   assert.deepEqual(
     before.map((hit) => hit.occurrence),
     [0],
@@ -127,7 +136,7 @@ test("a session ignore is keyed to one occurrence and survives unrelated edits",
     "plaintext",
     WORDS.active,
     new Set(),
-    overlooked,
+    ignoredOccurrences,
   );
   assert.deepEqual(
     after.map((hit) => [hit.word, hit.occurrence]),

@@ -26,7 +26,7 @@ function projectIgnorePath(directory) {
  * @param {string} directory
  * @returns {string[]}
  */
-function above(directory) {
+function ancestorIgnorePaths(directory) {
   const out = [];
   let at = path.resolve(directory);
   for (;;) {
@@ -50,9 +50,9 @@ function parsed(text) {
   return words;
 }
 
-function ledger() {
-  /** @type {Map<string, {stamped: number, words: Set<string>}>} */
-  const held = new Map();
+function ignoreFileCache() {
+  /** @type {Map<string, {mtimeMs: number, words: Set<string>}>} */
+  const cache = new Map();
   return {
     /**
      * @param {string[]} paths
@@ -61,23 +61,23 @@ function ledger() {
     read(paths) {
       const union = new Set();
       for (const file of paths) {
-        let stamped;
+        let mtimeMs;
         try {
-          stamped = statSync(file).mtimeMs;
+          mtimeMs = statSync(file).mtimeMs;
         } catch {
-          held.delete(file);
+          cache.delete(file);
           continue;
         }
-        let entry = held.get(file);
-        if (!entry || entry.stamped !== stamped) {
+        let entry = cache.get(file);
+        if (!entry || entry.mtimeMs !== mtimeMs) {
           let words;
           try {
             words = parsed(readFileSync(file, "utf8"));
           } catch {
             words = new Set();
           }
-          entry = { stamped, words };
-          held.set(file, entry);
+          entry = { mtimeMs, words };
+          cache.set(file, entry);
         }
         for (const word of entry.words) union.add(word);
       }
@@ -96,11 +96,11 @@ function ledger() {
       }
       if (text !== null && parsed(text).has(word)) return;
       if (text === null) mkdirSync(path.dirname(file), { recursive: true });
-      const seam = text === null || text === "" || text.endsWith("\n") ? "" : "\n";
-      appendFileSync(file, `${seam}${word}\n`);
-      held.delete(file);
+      const separator = text === null || text === "" || text.endsWith("\n") ? "" : "\n";
+      appendFileSync(file, `${separator}${word}\n`);
+      cache.delete(file);
     },
   };
 }
 
-module.exports = { above, ledger, projectIgnorePath, userIgnorePath };
+module.exports = { ancestorIgnorePaths, ignoreFileCache, projectIgnorePath, userIgnorePath };
