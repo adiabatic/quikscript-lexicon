@@ -19,7 +19,7 @@ const page = fs.readFileSync(PAGE, "utf8");
 
 const OPEN = "<script>const QS = ";
 const at = page.indexOf(OPEN);
-assert.ok(at > 0, "the page carries its data script");
+assert.ok(at > 0, "the page has its data script");
 const QS = JSON.parse(page.slice(at + OPEN.length, page.indexOf(";</script>", at)));
 assert.deepEqual(Object.keys(QS).sort(), ["confusions", "rep", "try_order", "words"]);
 
@@ -67,8 +67,8 @@ check("the page's word list is the whole lexicon and the senior contractions", (
 });
 
 const [A, B, C] = [...QS.try_order];
-const DOT = "·";
-const NAMER = "⸱";
+const NAMER_DOT = "·";
+const WORD_SEPARATOR_DOT = "⸱";
 const APOSTROPHE = "’";
 const ANGLE_OPEN = "\uE66E";
 const ANGLE_CLOSE = "\uE66F";
@@ -90,29 +90,29 @@ check("tokens are runs of Quikscript letters with their offsets", () => {
 
 check("a middle dot splits a run", () => {
   assert.deepEqual(
-    tokens(`${A}${B}${DOT}${C}${A}`).map((hit) => hit.word),
+    tokens(`${A}${B}${NAMER_DOT}${C}${A}`).map((hit) => hit.word),
     [A + B, C + A],
   );
   assert.deepEqual(
-    tokens(`${NAMER}${A}${B}`).map((hit) => hit.word),
+    tokens(`${WORD_SEPARATOR_DOT}${A}${B}`).map((hit) => hit.word),
     [A + B],
   );
 });
 
 check("a single letter after a namer dot is a letter named, not a word", () => {
-  assert.deepEqual(tokens(`${DOT}${A}`), []);
-  assert.deepEqual(tokens(`${DOT}${A} ${DOT}${B}${DOT}${C}`), []);
+  assert.deepEqual(tokens(`${NAMER_DOT}${A}`), []);
+  assert.deepEqual(tokens(`${NAMER_DOT}${A} ${NAMER_DOT}${B}${NAMER_DOT}${C}`), []);
   assert.deepEqual(
-    tokens(`${DOT}${A}${B} ${A} ${NAMER}${A}`).map((hit) => hit.word),
+    tokens(`${NAMER_DOT}${A}${B} ${A} ${WORD_SEPARATOR_DOT}${A}`).map((hit) => hit.word),
     [A + B, A, A],
   );
   assert.deepEqual(
-    tokens(`${A} ${DOT}${B} ${C}`).map((hit) => hit.start),
+    tokens(`${A} ${NAMER_DOT}${B} ${C}`).map((hit) => hit.start),
     [0, 5],
   );
 });
 
-check("an invisible mark rides inside a run", () => {
+check("an invisible mark inside a run does not split it", () => {
   for (const mark of [ZWNJ, ZWJ, VARIATION, SOFT_HYPHEN]) {
     const hits = tokens(`${A}${mark}${B}`);
     assert.equal(hits.length, 1, show(mark));
@@ -127,7 +127,7 @@ check("an invisible mark rides inside a run", () => {
       [B, 3, 4],
     ],
   );
-  assert.deepEqual(tokens(`${DOT}${ZWNJ}${A}`), []);
+  assert.deepEqual(tokens(`${NAMER_DOT}${ZWNJ}${A}`), []);
 });
 
 check("a right single quote splits a run", () => {
@@ -150,7 +150,7 @@ check("an angled parenthesis splits a run", () => {
   assert.deepEqual(
     tokens(`${A}${UNASSIGNED}${B}`).map((hit) => hit.word),
     [A, B],
-    "the third codepoint in the same gap carries no letter either",
+    "the third codepoint in the same gap has no letter either",
   );
 });
 
@@ -200,7 +200,7 @@ check("an unterminated opening delimiter is left alone", () => {
   assert.equal(stripFrontMatter(open), open);
 });
 
-check("a Quikscript word inside stripped front matter never reaches a token scan", () => {
+check("a Quikscript word inside front matter is not tokenized", () => {
   const word = UNION[0];
   const stripped = stripFrontMatter(`---\ntitle: ${word}\n---\n\n${word}\n`);
   assert.deepEqual(
@@ -255,19 +255,19 @@ const X_LETTERED = QS.rep
   )
   .filter((entry) => !ACCEPTED.has(entry.spelled_out));
 
-check("an X-letter word spelled out is bridged back by the rep table first", () => {
+check("a spelled-out X-letter word gets its REP-table form as the first suggestion", () => {
   assert.ok(X_LETTERED.length > 0, "some X-letter word has an unlisted spelled-out form");
   const { spelled, spelled_out } = X_LETTERED[0];
   assert.equal(accepts(ACCEPTED, spelled_out), false);
-  const offers = suggest(spelled_out, suggestContext());
-  assert.equal(offers[0], spelled, `${show(offers[0])} != ${show(spelled)}`);
+  const suggestions = suggest(spelled_out, suggestContext());
+  assert.equal(suggestions[0], spelled, `${show(suggestions[0])} != ${show(spelled)}`);
 });
 
-check("the rep table bridges the other way too", () => {
+check("the REP table maps the other way too", () => {
   const { spelled, spelled_out } = X_LETTERED[0];
-  const offers = suggest(spelled, suggestContext());
+  const suggestions = suggest(spelled, suggestContext());
   assert.ok(!accepts(ACCEPTED, spelled_out));
-  assert.ok(!offers.includes(spelled_out), "an unlisted spelling is never offered");
+  assert.ok(!suggestions.includes(spelled_out), "an unlisted spelling is never suggested");
   const listed = QS.rep
     .filter(([written, meant]) => written.length === 2 && meant.length === 1)
     .flatMap(([pair, xLetter]) =>
@@ -283,9 +283,9 @@ const GROUP = QS.confusions[0];
 const MISVOWELED = "\uE663\uE67A\uE652\uE65A";
 const WHATS = "\uE663\uE678\uE652\uE65A";
 
-const misgrouped = (word) => (offer) => {
-  if (offer.length !== word.length) return false;
-  const differing = [...offer]
+const isVowelSwap = (word) => (suggestion) => {
+  if (suggestion.length !== word.length) return false;
+  const differing = [...suggestion]
     .map((letter, slot) => [letter, word[slot]])
     .filter(([one, other]) => one !== other);
   return (
@@ -298,20 +298,20 @@ check("the confusion group is the fifteen vowels", () => {
   assert.equal(GROUP.length, 15);
   assert.equal(new Set(GROUP).size, 15);
   for (const letter of GROUP) {
-    const held = letter.codePointAt(0);
-    assert.ok(held >= 0xe670 && held <= 0xe67e, show(letter));
+    const codepoint = letter.codePointAt(0);
+    assert.ok(codepoint >= 0xe670 && codepoint <= 0xe67e, show(letter));
   }
 });
 
-check("a wrong vowel is fixed ahead of every other kind of edit", () => {
+check("a one-vowel swap is suggested before edit-distance suggestions", () => {
   assert.equal(accepts(ACCEPTED, MISVOWELED), false, show(MISVOWELED));
   assert.equal(accepts(ACCEPTED, WHATS), true, show(WHATS));
   assert.equal(freq(WHATS), 0, "a corpus bump that counts it needs a new specimen");
-  const offers = suggest(MISVOWELED, suggestContext());
-  const at = offers.indexOf(WHATS);
-  assert.ok(at >= 0, `${show(WHATS)} not in ${offers.map(show).join(" | ")}`);
-  for (const offer of offers.slice(0, at)) {
-    assert.ok(misgrouped(MISVOWELED)(offer), show(offer));
+  const suggestions = suggest(MISVOWELED, suggestContext());
+  const at = suggestions.indexOf(WHATS);
+  assert.ok(at >= 0, `${show(WHATS)} not in ${suggestions.map(show).join(" | ")}`);
+  for (const suggestion of suggestions.slice(0, at)) {
+    assert.ok(isVowelSwap(MISVOWELED)(suggestion), show(suggestion));
   }
 });
 
@@ -328,38 +328,41 @@ const SAMPLE = page.slice(page.indexOf("<textarea"), page.indexOf("</textarea>")
 const SAMPLE_WORDS = tokens(SAMPLE).map((hit) => hit.word);
 const WRONG = SAMPLE_WORDS.filter((word) => !accepts(ACCEPTED, word));
 
-check("the sample opens with exactly one word the lexicon does not carry", () => {
+check("the sample has exactly one word the lexicon does not list", () => {
   assert.equal(SAMPLE_WORDS.length, 5);
   assert.equal(WRONG.length, 1);
 });
 
 check("the sample's misspelling is an edit away from the word it was made from", () => {
-  const offers = suggest(WRONG[0], suggestContext());
-  assert.ok(offers.length > 0);
-  assert.ok(offers.length <= 10);
+  const suggestions = suggest(WRONG[0], suggestContext());
+  assert.ok(suggestions.length > 0);
+  assert.ok(suggestions.length <= 10);
   const meant = SAMPLE_WORDS[0];
-  assert.ok(offers.includes(meant), `${show(meant)} not in ${offers.map(show).join(" | ")}`);
+  assert.ok(
+    suggestions.includes(meant),
+    `${show(meant)} not in ${suggestions.map(show).join(" | ")}`,
+  );
 });
 
-check("edit-distance offers come commonest first within their tier", () => {
-  const offers = suggest(WRONG[0], suggestContext());
-  const single = offers.filter((offer) => !offer.includes(" "));
-  const bridged = QS.rep.some(([written]) => WRONG[0].includes(written));
-  assert.equal(bridged, false);
-  const grouped = misgrouped(WRONG[0]);
-  const tiers = [
-    single.filter(grouped),
-    single.filter((offer) => !grouped(offer) && distance(WRONG[0], offer, 3) === 1),
-    single.filter((offer) => !grouped(offer) && distance(WRONG[0], offer, 3) === 2),
-    single.filter((offer) => !grouped(offer) && distance(WRONG[0], offer, 3) === 3),
+check("vowel swaps come first, then suggestions by edit distance, each group most frequent first", () => {
+  const suggestions = suggest(WRONG[0], suggestContext());
+  const single = suggestions.filter((suggestion) => !suggestion.includes(" "));
+  const hasRepSubstitution = QS.rep.some(([written]) => WRONG[0].includes(written));
+  assert.equal(hasRepSubstitution, false);
+  const isSwap = isVowelSwap(WRONG[0]);
+  const groups = [
+    single.filter(isSwap),
+    single.filter((suggestion) => !isSwap(suggestion) && distance(WRONG[0], suggestion, 3) === 1),
+    single.filter((suggestion) => !isSwap(suggestion) && distance(WRONG[0], suggestion, 3) === 2),
+    single.filter((suggestion) => !isSwap(suggestion) && distance(WRONG[0], suggestion, 3) === 3),
   ];
   assert.deepEqual(
     single,
-    tiers.flat(),
-    "in-group fixes, then one edit, then two, then three",
+    groups.flat(),
+    "vowel swaps, then one edit, then two, then three",
   );
-  for (const tier of tiers) {
-    const scores = tier.map(freq);
+  for (const group of groups) {
+    const scores = group.map(freq);
     assert.deepEqual(scores, [...scores].sort((one, other) => other - one), scores.join(","));
   }
   assert.ok(freq(single[0]) > 0);
@@ -377,55 +380,57 @@ const THREE_AWAY =
   LONGISH.slice(5);
 const GIBBERISH = A.repeat(10);
 
-check("a typo two edits away is still offered the word it came from", () => {
+check("a typo two edits away still has the word it came from among its suggestions", () => {
   assert.equal(ACCEPTED.has(TWO_AWAY), false, show(TWO_AWAY));
-  const offers = suggest(TWO_AWAY, suggestContext());
+  const suggestions = suggest(TWO_AWAY, suggestContext());
   assert.ok(
-    offers.includes(LONGISH),
-    `${show(LONGISH)} not in ${offers.map(show).join(" | ")}`,
+    suggestions.includes(LONGISH),
+    `${show(LONGISH)} not in ${suggestions.map(show).join(" | ")}`,
   );
 });
 
-check("a typo three edits away is still offered the word it came from", () => {
+check("a typo three edits away still has the word it came from among its suggestions", () => {
   assert.equal(ACCEPTED.has(THREE_AWAY), false, show(THREE_AWAY));
   assert.equal(distance(THREE_AWAY, LONGISH, 3), 3);
-  const offers = suggest(THREE_AWAY, suggestContext());
+  const suggestions = suggest(THREE_AWAY, suggestContext());
   assert.ok(
-    offers.includes(LONGISH),
-    `${show(LONGISH)} not in ${offers.map(show).join(" | ")}`,
+    suggestions.includes(LONGISH),
+    `${show(LONGISH)} not in ${suggestions.map(show).join(" | ")}`,
   );
 });
 
-check("a two-edit offer outranks a commoner offer three edits out", () => {
-  const offers = suggest(TWO_AWAY, suggestContext()).filter((offer) => !offer.includes(" "));
-  const edits = offers.map((offer) => distance(TWO_AWAY, offer, 3));
+check("a two-edit suggestion comes before a more frequent three-edit suggestion", () => {
+  const suggestions = suggest(TWO_AWAY, suggestContext()).filter(
+    (suggestion) => !suggestion.includes(" "),
+  );
+  const edits = suggestions.map((suggestion) => distance(TWO_AWAY, suggestion, 3));
   const near = edits.indexOf(2);
   const far = edits.indexOf(3);
-  assert.ok(near >= 0, "no two-edit offer to hold ahead");
-  assert.ok(far >= 0, "no three-edit offer to hold behind");
-  assert.ok(edits.lastIndexOf(2) < far, offers.map(show).join(" | "));
+  assert.ok(near >= 0, "no two-edit suggestion");
+  assert.ok(far >= 0, "no three-edit suggestion");
+  assert.ok(edits.lastIndexOf(2) < far, suggestions.map(show).join(" | "));
   assert.ok(
-    freq(offers[far]) > freq(offers[near]),
-    "the far offer must be commoner, or frequency alone would order these",
+    freq(suggestions[far]) > freq(suggestions[near]),
+    "the three-edit suggestion must be more frequent, or frequency alone would order these",
   );
 });
 
-check("a typo nothing is within three edits of is offered nothing", () => {
+check("a typo with no word within three edits gets no suggestions", () => {
   assert.equal(ACCEPTED.has(GIBBERISH), false, show(GIBBERISH));
   assert.deepEqual(suggest(GIBBERISH, suggestContext()), []);
 });
 
-check("every offer is a spelling the accepted set takes, and never the word itself", () => {
+check("every suggestion is accepted and differs from the word", () => {
   const sampled = [WRONG[0], CONTRACTION, ...UNION.slice(0, 40)];
   for (const word of sampled) {
     const ctx = suggestContext();
-    const offers = suggest(word, ctx);
-    assert.ok(offers.length <= 10);
-    assert.equal(new Set(offers).size, offers.length, show(word));
-    for (const offer of offers) {
-      assert.notEqual(offer, word);
-      for (const piece of offer.split(" ")) {
-        assert.equal(accepts(ctx.active, piece), true, `${show(word)} -> ${show(offer)}`);
+    const suggestions = suggest(word, ctx);
+    assert.ok(suggestions.length <= 10);
+    assert.equal(new Set(suggestions).size, suggestions.length, show(word));
+    for (const suggestion of suggestions) {
+      assert.notEqual(suggestion, word);
+      for (const piece of suggestion.split(" ")) {
+        assert.equal(accepts(ctx.active, piece), true, `${show(word)} -> ${show(suggestion)}`);
       }
     }
   }
@@ -442,57 +447,59 @@ const RUN_ON = (() => {
   return null;
 })();
 
-check("a run-together pair of words is offered split", () => {
+check("a run-together pair of words gets the split pair as a suggestion", () => {
   assert.ok(RUN_ON, "some pair of common words runs together into an unlisted string");
   const { left, right, joined } = RUN_ON;
   assert.equal(accepts(ACCEPTED, joined), false);
-  const offers = suggest(joined, suggestContext({ limit: 200 }));
-  const split = offers.filter((offer) => offer.includes(" "));
+  const suggestions = suggest(joined, suggestContext({ limit: 200 }));
+  const split = suggestions.filter((suggestion) => suggestion.includes(" "));
   assert.ok(split.length > 0, show(joined));
   assert.ok(
-    offers.includes(`${left} ${right}`),
+    suggestions.includes(`${left} ${right}`),
     `${show(left)} ${show(right)} not in ${split.map(show).join(" | ")}`,
   );
-  for (const offer of split) {
-    const [one, other] = offer.split(" ");
+  for (const suggestion of split) {
+    const [one, other] = suggestion.split(" ");
     assert.equal(accepts(ACCEPTED, one), true);
     assert.equal(accepts(ACCEPTED, other), true);
   }
 });
 
-check("splits are ranked on the rarer half, commonest first", () => {
+check("splits are ranked by the less frequent half, most frequent first", () => {
   const { joined } = RUN_ON;
-  const split = suggest(joined, suggestContext({ limit: 200 })).filter((offer) => offer.includes(" "));
-  const scores = split.map((offer) => Math.min(...offer.split(" ").map(freq)));
+  const split = suggest(joined, suggestContext({ limit: 200 })).filter((suggestion) =>
+    suggestion.includes(" "),
+  );
+  const scores = split.map((suggestion) => Math.min(...suggestion.split(" ").map(freq)));
   assert.deepEqual(scores, [...scores].sort((one, other) => other - one), scores.join(","));
 });
 
-check("splits are ranked after every single-word offer", () => {
+check("splits come after every single-word suggestion", () => {
   const { joined } = RUN_ON;
-  const offers = suggest(joined, suggestContext({ limit: 200 }));
-  const first = offers.findIndex((offer) => offer.includes(" "));
+  const suggestions = suggest(joined, suggestContext({ limit: 200 }));
+  const first = suggestions.findIndex((suggestion) => suggestion.includes(" "));
   if (first >= 0) {
-    assert.ok(offers.slice(first).every((offer) => offer.includes(" ")));
+    assert.ok(suggestions.slice(first).every((suggestion) => suggestion.includes(" ")));
   }
 });
 
 const [ONE, TWO, THREE] = [UNION[100], UNION[200], UNION[300]];
-const PROSE = `${ONE} ${TWO} ${ONE} and ${ONE}${DOT}${THREE}`;
+const PROSE = `${ONE} ${TWO} ${ONE} and ${ONE}${NAMER_DOT}${THREE}`;
 
 check("the numbered occurrence of a word is the one replaced", () => {
   assert.equal(tokens(PROSE).filter((hit) => hit.word === ONE).length, 3);
   const first = replaceOccurrence(PROSE, ONE, 0, TWO);
   const middle = replaceOccurrence(PROSE, ONE, 1, TWO);
   const last = replaceOccurrence(PROSE, ONE, 2, TWO);
-  assert.equal(first, `${TWO} ${TWO} ${ONE} and ${ONE}${DOT}${THREE}`);
-  assert.equal(middle, `${ONE} ${TWO} ${TWO} and ${ONE}${DOT}${THREE}`);
-  assert.equal(last, `${ONE} ${TWO} ${ONE} and ${TWO}${DOT}${THREE}`);
+  assert.equal(first, `${TWO} ${TWO} ${ONE} and ${ONE}${NAMER_DOT}${THREE}`);
+  assert.equal(middle, `${ONE} ${TWO} ${TWO} and ${ONE}${NAMER_DOT}${THREE}`);
+  assert.equal(last, `${ONE} ${TWO} ${ONE} and ${TWO}${NAMER_DOT}${THREE}`);
   assert.notEqual(first, middle);
 });
 
-check("a replacement holding a space splices in whole", () => {
+check("a replacement containing a space is inserted whole", () => {
   const fixed = replaceOccurrence(PROSE, ONE, 1, `${TWO} ${THREE}`);
-  assert.equal(fixed, `${ONE} ${TWO} ${TWO} ${THREE} and ${ONE}${DOT}${THREE}`);
+  assert.equal(fixed, `${ONE} ${TWO} ${TWO} ${THREE} and ${ONE}${NAMER_DOT}${THREE}`);
 });
 
 check("an occurrence past the end falls back to the first", () => {
@@ -507,13 +514,13 @@ check("a word that is not there is left alone", () => {
 });
 
 check("several numbered occurrences are replaced in one pass", () => {
-  const swept = replaceOccurrences(PROSE, ONE, [0, 2], TWO);
-  assert.equal(swept, `${TWO} ${TWO} ${ONE} and ${TWO}${DOT}${THREE}`);
-  assert.equal(replaceOccurrences(PROSE, ONE, [2, 0], TWO), swept, "order does not matter");
+  const replaced = replaceOccurrences(PROSE, ONE, [0, 2], TWO);
+  assert.equal(replaced, `${TWO} ${TWO} ${ONE} and ${TWO}${NAMER_DOT}${THREE}`);
+  assert.equal(replaceOccurrences(PROSE, ONE, [2, 0], TWO), replaced, "order does not matter");
   assert.equal(replaceOccurrences(PROSE, ONE, [1, 1], TWO), replaceOccurrence(PROSE, ONE, 1, TWO));
   assert.equal(
     replaceOccurrences(PROSE, ONE, [0, 1, 2], TWO),
-    `${TWO} ${TWO} ${TWO} and ${TWO}${DOT}${THREE}`,
+    `${TWO} ${TWO} ${TWO} and ${TWO}${NAMER_DOT}${THREE}`,
   );
 });
 

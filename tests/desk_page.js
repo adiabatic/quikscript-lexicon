@@ -150,7 +150,7 @@ class Element extends Fragment {
   }
 
   hidePopover() {
-    assert.equal(this.showing, true, "hidePopover on a shut popover would throw");
+    assert.equal(this.showing, true, "hidePopover on a closed popover would throw");
     this.showing = false;
   }
 
@@ -186,7 +186,7 @@ const strip = (html) =>
     .replace(/\s+/g, " ")
     .trim();
 
-function flatten(element) {
+function withFlatInnerHTML(element) {
   Object.defineProperty(element, "innerHTML", {
     get() {
       return this.html;
@@ -207,8 +207,8 @@ const clipboard = {
   },
 };
 
-const KEPT = "qs-desk.ignored";
-const CHOSEN = "qs-desk.senior";
+const IGNORED_STORAGE_KEY = "qs-desk.ignored";
+const GRADE_STORAGE_KEY = "qs-desk.senior";
 
 function storage() {
   const held = new Map();
@@ -219,7 +219,7 @@ function storage() {
   };
 }
 
-const sealed = {
+const throwingStorage = {
   getItem() {
     throw new Error("this origin has no storage");
   },
@@ -228,10 +228,10 @@ const sealed = {
   },
 };
 
-function stage(supports, kept, platform = "MacIntel") {
+function loadPage(supports, pageStorage, platform = "MacIntel") {
   const parts = {
     source: new Element("textarea"),
-    preview: flatten(new Element("div")),
+    preview: withFlatInnerHTML(new Element("div")),
     grade: new Element("button"),
     popover: new Element("div"),
     copy: new Element("button"),
@@ -276,7 +276,7 @@ function stage(supports, kept, platform = "MacIntel") {
     Node: { ELEMENT_NODE: 1, TEXT_NODE: 3 },
     NodeFilter: { SHOW_TEXT: 4 },
     navigator: { clipboard, platform },
-    localStorage: kept || storage(),
+    localStorage: pageStorage || storage(),
     CSS: { supports: () => supports },
     innerWidth: 1200,
     innerHeight: 800,
@@ -303,7 +303,7 @@ function check(name, body) {
   done.push(name);
 }
 
-const { parts, box } = stage(false);
+const { parts, box } = loadPage(false);
 const { source, preview, grade, popover, copy: copyButton } = parts;
 done.push("the four inline scripts load in order, with no name declared twice");
 
@@ -326,7 +326,7 @@ const marked = (element) =>
   );
 const spans = () => marked(preview);
 
-check("the first render underlines the one word the lexicon does not carry", () => {
+check("the first render underlines the one word the lexicon does not list", () => {
   assert.ok(preview.texts[0].replaced, "the text node holding a misspelling was replaced");
   assert.equal(spans().length, 1);
   assert.equal(spans()[0].dataset.occ, "0");
@@ -345,11 +345,11 @@ const buttonsOf = (element) =>
       ? [node]
       : (node.childNodes || []).filter((held) => held.tagName === "BUTTON"),
   );
-const offersOf = (element) =>
+const suggestionsOf = (element) =>
   buttonsOf(element).filter(
     (node) => !node.classList.contains("ignore") && !node.classList.contains("fix-all"),
   );
-const sweepersOf = (element) =>
+const fixAllButtonsOf = (element) =>
   buttonsOf(element).filter((node) => node.classList.contains("fix-all"));
 const ignoreOf = (element) =>
   buttonsOf(element).filter((node) => node.classList.contains("ignore"));
@@ -360,8 +360,11 @@ check("clicking the underline opens the popover with suggestions", () => {
   assert.equal(popover.childNodes[0].tagName, "DIV");
   assert.equal(popover.childNodes[0].classList.contains("word"), true);
   assert.equal(popover.childNodes[0].textContent, misspelled);
-  const offers = offersOf(popover);
-  assert.ok(offers.length > 0 && offers.length <= 10, `${offers.length} offers`);
+  const suggestions = suggestionsOf(popover);
+  assert.ok(
+    suggestions.length > 0 && suggestions.length <= 10,
+    `${suggestions.length} suggestions`,
+  );
   for (const button of buttonsOf(popover)) assert.equal(button.type, "button");
 });
 
@@ -374,29 +377,29 @@ check("the popover ends with Ignore one and Ignore all, after the suggestions", 
   assert.equal(buttons[buttons.length - 1].classList.contains("ignore"), true);
 });
 
-check("the popover is pinned inside the viewport when anchoring is unavailable", () => {
+check("the popover is placed with left and top when anchor positioning is unavailable", () => {
   assert.equal(popover.classList.contains("anchored"), false);
   assert.equal(popover.style.props.get("left"), "300px");
   assert.equal(popover.style.props.get("top"), "434px");
 });
 
-check("choosing a suggestion edits the source, shuts the popover and re-renders", () => {
-  const button = offersOf(popover)[0];
-  const fix = button.textContent;
+check("choosing a suggestion edits the source, closes the popover and re-renders", () => {
+  const button = suggestionsOf(popover)[0];
+  const suggestion = button.textContent;
   button.fire("click");
   assert.equal(popover.showing, false);
   const written = box.tokens(source.value).map((hit) => hit.word);
-  assert.ok(written.includes(fix));
+  assert.ok(written.includes(suggestion));
   assert.ok(!written.includes(misspelled), "the token is gone, not merely the substring");
   assert.equal(written.length, box.tokens(SAMPLE).length);
   assert.equal(spans().length, 0, "nothing is underlined once the word is spelled right");
 });
 
 check("Command-Z undoes a correction on Apple devices", () => {
-  const held = stage(false);
+  const held = loadPage(false);
   const shown = marked(held.parts.preview);
   held.parts.preview.fire("click", { target: shown[0] });
-  offersOf(held.parts.popover)[0].fire("click");
+  suggestionsOf(held.parts.popover)[0].fire("click");
   assert.equal(held.parts.undo.disabled, false);
   assert.equal(held.parts.undo.title, "Undo last correction (⌘Z)");
   let prevented = false;
@@ -418,11 +421,11 @@ check("Command-Z undoes a correction on Apple devices", () => {
 });
 
 check("Ctrl-Z and the Undo button undo corrections on other devices", () => {
-  const held = stage(false, undefined, "Win32");
+  const held = loadPage(false, undefined, "Win32");
   const correctOnce = () => {
     const shown = marked(held.parts.preview);
     held.parts.preview.fire("click", { target: shown[0] });
-    offersOf(held.parts.popover)[0].fire("click");
+    suggestionsOf(held.parts.popover)[0].fire("click");
   };
   correctOnce();
   assert.equal(held.parts.undo.title, "Undo last correction (Ctrl+Z)");
@@ -441,24 +444,24 @@ check("Ctrl-Z and the Undo button undo corrections on other devices", () => {
 });
 
 check("the correction history holds more than fifty changes", () => {
-  const held = stage(false, undefined, "Win32");
+  const held = loadPage(false, undefined, "Win32");
   const count = 60;
   const shown = marked(held.parts.preview);
   held.parts.preview.fire("click", { target: shown[0] });
-  const fix = offersOf(held.parts.popover)[0].textContent;
+  const suggestion = suggestionsOf(held.parts.popover)[0].textContent;
   held.parts.source.value = Array(count).fill(misspelled).join(" ");
   held.box.render();
-  for (let at = 0; at < count; at += 1) held.box.choose(misspelled, 0, fix);
+  for (let at = 0; at < count; at += 1) held.box.choose(misspelled, 0, suggestion);
   for (let at = 0; at < count; at += 1) held.parts.undo.fire("click");
   assert.equal(held.parts.source.value, Array(count).fill(misspelled).join(" "));
   assert.equal(held.parts.undo.disabled, true);
 });
 
 check("typing starts a fresh correction history", () => {
-  const held = stage(false);
+  const held = loadPage(false);
   const shown = marked(held.parts.preview);
   held.parts.preview.fire("click", { target: shown[0] });
-  offersOf(held.parts.popover)[0].fire("click");
+  suggestionsOf(held.parts.popover)[0].fire("click");
   assert.equal(held.parts.undo.disabled, false);
   held.parts.source.value += " typed";
   held.parts.source.fire("input", { target: held.parts.source });
@@ -477,7 +480,7 @@ check("typing starts a fresh correction history", () => {
   assert.equal(prevented, false, "native text undo remains available");
 });
 
-check("the copy button writes the source and flips its label", () => {
+check("the copy button copies the source to the clipboard", () => {
   copyButton.fire("click");
   assert.equal(copied, source.value);
 });
@@ -507,7 +510,7 @@ check("the grade toggle swaps the font class and nothing else", () => {
   assert.deepEqual(
     spans().map((span) => span.dataset.w),
     [misspelled],
-    "the accepted words do not move with the face",
+    "the accepted words do not change with the font face",
   );
 });
 
@@ -521,7 +524,7 @@ check("occurrence indices count every token, code spans included", () => {
   );
 });
 
-check("YAML front matter never reaches the preview", () => {
+check("YAML front matter is not rendered in the preview", () => {
   source.value = `---\ntitle: ${misspelled}\n---\n\n# heading\n\n${misspelled}\n`;
   box.render();
   assert.ok(!preview.html.includes("title:"), "the front matter block was never handed to marked");
@@ -540,34 +543,34 @@ check("an empty front matter block is stripped too", () => {
 });
 
 check("anchor positioning is used where the browser has it", () => {
-  const anchored = stage(true);
-  assert.equal(anchored.parts.popover.classList.contains("anchored"), true);
-  const shown = marked(anchored.parts.preview);
+  const anchorPage = loadPage(true);
+  assert.equal(anchorPage.parts.popover.classList.contains("anchored"), true);
+  const shown = marked(anchorPage.parts.preview);
   assert.equal(shown.length, 1);
-  anchored.parts.preview.fire("click", { target: shown[0] });
-  assert.equal(anchored.parts.popover.showing, true);
+  anchorPage.parts.preview.fire("click", { target: shown[0] });
+  assert.equal(anchorPage.parts.popover.showing, true);
   assert.equal(shown[0].style.props.get("anchor-name"), "--qs-miss");
-  assert.equal(anchored.parts.popover.style.props.has("left"), false, "no inline placement");
-  assert.equal(anchored.parts.popover.style.props.has("top"), false);
+  assert.equal(anchorPage.parts.popover.style.props.has("left"), false, "no inline placement");
+  assert.equal(anchorPage.parts.popover.style.props.has("top"), false);
 });
 
-check("only one span carries the anchor name at a time", () => {
-  const anchored = stage(true);
-  anchored.parts.source.value = `${misspelled} ${misspelled}\n`;
-  anchored.box.render();
-  const shown = marked(anchored.parts.preview);
+check("only one span has the anchor name at a time", () => {
+  const anchorPage = loadPage(true);
+  anchorPage.parts.source.value = `${misspelled} ${misspelled}\n`;
+  anchorPage.box.render();
+  const shown = marked(anchorPage.parts.preview);
   assert.equal(shown.length, 2);
-  anchored.parts.preview.fire("click", { target: shown[0] });
-  anchored.parts.popover.showing = false;
-  anchored.parts.preview.fire("click", { target: shown[1] });
+  anchorPage.parts.preview.fire("click", { target: shown[0] });
+  anchorPage.parts.popover.showing = false;
+  anchorPage.parts.preview.fire("click", { target: shown[1] });
   assert.equal(shown[0].style.props.has("anchor-name"), false);
   assert.equal(shown[1].style.props.get("anchor-name"), "--qs-miss");
   assert.equal(shown[0].dataset.occ, "0");
   assert.equal(shown[1].dataset.occ, "1");
 });
 
-const shelf = storage();
-const excusing = stage(false, shelf);
+const ignoreStorage = storage();
+const ignoreAllPage = loadPage(false, ignoreStorage);
 const flagged = (held) => marked(held.parts.preview).map((span) => span.dataset.w);
 
 function ignoreTheMisspelling(held) {
@@ -576,46 +579,50 @@ function ignoreTheMisspelling(held) {
   ignoreOf(held.parts.popover)[1].fire("click");
 }
 
-check("the button stays out of sight until something has been ignored", () => {
-  assert.equal(excusing.parts.ignored.hidden, true);
-  assert.deepEqual(flagged(excusing), [misspelled]);
-  assert.equal(shelf.held.has(KEPT), false, "nothing is written before there is any");
+check("the unignore button is hidden until something has been ignored", () => {
+  assert.equal(ignoreAllPage.parts.ignored.hidden, true);
+  assert.deepEqual(flagged(ignoreAllPage), [misspelled]);
+  assert.equal(
+    ignoreStorage.held.has(IGNORED_STORAGE_KEY),
+    false,
+    "nothing is saved before a word is ignored",
+  );
 });
 
-check("ignoring a word drops its underline and writes the word down", () => {
-  ignoreTheMisspelling(excusing);
-  assert.equal(excusing.parts.popover.showing, false, "the popover shuts behind it");
-  assert.deepEqual(flagged(excusing), []);
-  assert.equal(excusing.parts.ignored.hidden, false);
-  assert.equal(excusing.parts.ignored.textContent, "Unignore 1");
-  assert.deepEqual(JSON.parse(shelf.held.get(KEPT)), [misspelled]);
+check("ignoring a word removes its underline and saves the word to storage", () => {
+  ignoreTheMisspelling(ignoreAllPage);
+  assert.equal(ignoreAllPage.parts.popover.showing, false, "the popover closes");
+  assert.deepEqual(flagged(ignoreAllPage), []);
+  assert.equal(ignoreAllPage.parts.ignored.hidden, false);
+  assert.equal(ignoreAllPage.parts.ignored.textContent, "Unignore 1");
+  assert.deepEqual(JSON.parse(ignoreStorage.held.get(IGNORED_STORAGE_KEY)), [misspelled]);
 });
 
-check("a page opened again over the same storage starts out knowing", () => {
-  const again = stage(false, shelf);
-  assert.deepEqual(flagged(again), []);
-  assert.equal(again.parts.ignored.hidden, false);
-  assert.equal(again.parts.ignored.textContent, "Unignore 1");
+check("a reloaded page restores ignored words from storage", () => {
+  const reloadedPage = loadPage(false, ignoreStorage);
+  assert.deepEqual(flagged(reloadedPage), []);
+  assert.equal(reloadedPage.parts.ignored.hidden, false);
+  assert.equal(reloadedPage.parts.ignored.textContent, "Unignore 1");
 });
 
-check("the button clears the list, the storage and the underline it was hiding", () => {
-  excusing.parts.ignored.fire("click");
-  assert.equal(excusing.parts.ignored.hidden, true);
-  assert.deepEqual(JSON.parse(shelf.held.get(KEPT)), []);
-  assert.deepEqual(flagged(excusing), [misspelled]);
-  assert.deepEqual(flagged(stage(false, shelf)), [misspelled]);
+check("the unignore button clears the list and the storage and restores the underline", () => {
+  ignoreAllPage.parts.ignored.fire("click");
+  assert.equal(ignoreAllPage.parts.ignored.hidden, true);
+  assert.deepEqual(JSON.parse(ignoreStorage.held.get(IGNORED_STORAGE_KEY)), []);
+  assert.deepEqual(flagged(ignoreAllPage), [misspelled]);
+  assert.deepEqual(flagged(loadPage(false, ignoreStorage)), [misspelled]);
 });
 
 check("an origin whose storage throws still ignores for the session", () => {
-  const sessional = stage(false, sealed);
-  assert.deepEqual(flagged(sessional), [misspelled]);
-  ignoreTheMisspelling(sessional);
-  assert.deepEqual(flagged(sessional), []);
-  assert.equal(sessional.parts.ignored.textContent, "Unignore 1");
+  const noStoragePage = loadPage(false, throwingStorage);
+  assert.deepEqual(flagged(noStoragePage), [misspelled]);
+  ignoreTheMisspelling(noStoragePage);
+  assert.deepEqual(flagged(noStoragePage), []);
+  assert.equal(noStoragePage.parts.ignored.textContent, "Unignore 1");
 });
 
-const briefly = storage();
-const passing = stage(false, briefly);
+const occurrenceStorage = storage();
+const occurrencePage = loadPage(false, occurrenceStorage);
 
 function ignoreOneOccurrence(held, at) {
   const shown = marked(held.parts.preview);
@@ -623,134 +630,150 @@ function ignoreOneOccurrence(held, at) {
   ignoreOf(held.parts.popover)[0].fire("click");
 }
 
-check("ignoring one occurrence leaves the other underlined and writes nothing", () => {
-  passing.parts.source.value = `${misspelled} ${misspelled}\n`;
-  passing.box.render();
-  assert.equal(marked(passing.parts.preview).length, 2);
-  ignoreOneOccurrence(passing, 0);
-  const shown = marked(passing.parts.preview);
+check("ignoring one occurrence leaves the other underlined and saves nothing to storage", () => {
+  occurrencePage.parts.source.value = `${misspelled} ${misspelled}\n`;
+  occurrencePage.box.render();
+  assert.equal(marked(occurrencePage.parts.preview).length, 2);
+  ignoreOneOccurrence(occurrencePage, 0);
+  const shown = marked(occurrencePage.parts.preview);
   assert.equal(shown.length, 1);
   assert.equal(shown[0].dataset.occ, "1", "the second occurrence is the one still flagged");
-  assert.equal(passing.parts.ignored.hidden, false);
-  assert.equal(passing.parts.ignored.textContent, "Unignore 1");
-  assert.equal(briefly.held.has(KEPT), false, "an occurrence ignore is session-only");
+  assert.equal(occurrencePage.parts.ignored.hidden, false);
+  assert.equal(occurrencePage.parts.ignored.textContent, "Unignore 1");
+  assert.equal(
+    occurrenceStorage.held.has(IGNORED_STORAGE_KEY),
+    false,
+    "an occurrence ignore is session-only",
+  );
 });
 
 check("the button clears occurrence ignores too", () => {
-  passing.parts.ignored.fire("click");
-  assert.equal(passing.parts.ignored.hidden, true);
-  assert.equal(marked(passing.parts.preview).length, 2);
+  occurrencePage.parts.ignored.fire("click");
+  assert.equal(occurrencePage.parts.ignored.hidden, true);
+  assert.equal(marked(occurrencePage.parts.preview).length, 2);
 });
 
-check("ignoring the word everywhere absorbs its occurrence ignores", () => {
-  ignoreOneOccurrence(passing, 0);
-  ignoreTheMisspelling(passing);
-  assert.deepEqual(flagged(passing), []);
-  assert.equal(passing.parts.ignored.textContent, "Unignore 1");
-  assert.deepEqual(JSON.parse(briefly.held.get(KEPT)), [misspelled]);
+check("ignoring the word everywhere replaces its occurrence ignores", () => {
+  ignoreOneOccurrence(occurrencePage, 0);
+  ignoreTheMisspelling(occurrencePage);
+  assert.deepEqual(flagged(occurrencePage), []);
+  assert.equal(occurrencePage.parts.ignored.textContent, "Unignore 1");
+  assert.deepEqual(JSON.parse(occurrenceStorage.held.get(IGNORED_STORAGE_KEY)), [misspelled]);
 });
 
-const sweeping = stage(false);
+const fixAllPage = loadPage(false);
 
-check("every suggestion row carries a correct-all option counting the others", () => {
-  sweeping.parts.source.value = `${misspelled} ${misspelled} ${misspelled}\n`;
-  sweeping.box.render();
-  const shown = marked(sweeping.parts.preview);
+check("every suggestion row has a fix-all option with the count of other occurrences", () => {
+  fixAllPage.parts.source.value = `${misspelled} ${misspelled} ${misspelled}\n`;
+  fixAllPage.box.render();
+  const shown = marked(fixAllPage.parts.preview);
   assert.equal(shown.length, 3);
-  sweeping.parts.preview.fire("click", { target: shown[0] });
-  const offers = offersOf(sweeping.parts.popover);
-  const sweepers = sweepersOf(sweeping.parts.popover);
-  assert.ok(offers.length > 0);
-  assert.equal(sweepers.length, offers.length);
-  for (const [at, held] of sweepers.entries()) {
-    assert.equal(held.type, "button");
-    assert.equal(held.textContent, "(2)");
-    assert.ok(held.parentNode.classList.contains("suggestion"));
-    assert.equal(held.parentNode, offers[at].parentNode, "each pair shares a row");
-    assert.ok(held.title.includes("2 others"), held.title);
+  fixAllPage.parts.preview.fire("click", { target: shown[0] });
+  const suggestions = suggestionsOf(fixAllPage.parts.popover);
+  const fixAllButtons = fixAllButtonsOf(fixAllPage.parts.popover);
+  assert.ok(suggestions.length > 0);
+  assert.equal(fixAllButtons.length, suggestions.length);
+  for (const [at, button] of fixAllButtons.entries()) {
+    assert.equal(button.type, "button");
+    assert.equal(button.textContent, "(2)");
+    assert.ok(button.parentNode.classList.contains("suggestion"));
+    assert.equal(button.parentNode, suggestions[at].parentNode, "each pair shares a row");
+    assert.ok(button.title.includes("2 others"), button.title);
   }
-  const [once, leave] = ignoreOf(sweeping.parts.popover);
-  assert.equal(leave.textContent, "Ignore all (2)");
-  assert.ok(leave.title.length > 0);
-  assert.ok(once.title.length > 0);
+  const [ignoreOne, ignoreAll] = ignoreOf(fixAllPage.parts.popover);
+  assert.equal(ignoreAll.textContent, "Ignore all (2)");
+  assert.ok(ignoreAll.title.length > 0);
+  assert.ok(ignoreOne.title.length > 0);
 });
 
-check("the correct-all option rewrites every occurrence at once", () => {
-  const fix = offersOf(sweeping.parts.popover)[0].textContent;
-  sweepersOf(sweeping.parts.popover)[0].fire("click");
-  assert.equal(sweeping.parts.popover.showing, false);
-  const written = sweeping.box.tokens(sweeping.parts.source.value).map((hit) => hit.word);
-  assert.deepEqual(written, sweeping.box.tokens(`${fix} ${fix} ${fix}`).map((hit) => hit.word));
-  assert.equal(marked(sweeping.parts.preview).length, 0);
-});
-
-check("a lone misspelling gets no correct-all option and a plain Ignore all", () => {
-  const alone = stage(false);
-  const shown = marked(alone.parts.preview);
-  assert.equal(shown.length, 1);
-  alone.parts.preview.fire("click", { target: shown[0] });
-  assert.ok(offersOf(alone.parts.popover).length > 0);
-  assert.equal(sweepersOf(alone.parts.popover).length, 0);
-  assert.equal(ignoreOf(alone.parts.popover)[1].textContent, "Ignore all");
-});
-
-check("an occurrence ignored by hand is left out of the sweep", () => {
-  const sparing = stage(false);
-  sparing.parts.source.value = `${misspelled} ${misspelled} ${misspelled}\n`;
-  sparing.box.render();
-  ignoreOneOccurrence(sparing, 1);
-  const shown = marked(sparing.parts.preview);
-  assert.equal(shown.length, 2);
-  sparing.parts.preview.fire("click", { target: shown[0] });
-  assert.equal(sweepersOf(sparing.parts.popover)[0].textContent, "(1)");
-  assert.ok(sweepersOf(sparing.parts.popover)[0].title.includes("1 other"), "singular title");
-  const fix = offersOf(sparing.parts.popover)[0].textContent;
-  sweepersOf(sparing.parts.popover)[0].fire("click");
-  const written = sparing.box.tokens(sparing.parts.source.value).map((hit) => hit.word);
+check("the fix-all option rewrites every occurrence at once", () => {
+  const suggestion = suggestionsOf(fixAllPage.parts.popover)[0].textContent;
+  fixAllButtonsOf(fixAllPage.parts.popover)[0].fire("click");
+  assert.equal(fixAllPage.parts.popover.showing, false);
+  const written = fixAllPage.box.tokens(fixAllPage.parts.source.value).map((hit) => hit.word);
   assert.deepEqual(
     written,
-    sparing.box.tokens(`${fix} ${misspelled} ${fix}`).map((hit) => hit.word),
-    "the excused occurrence keeps its spelling",
+    fixAllPage.box.tokens(`${suggestion} ${suggestion} ${suggestion}`).map((hit) => hit.word),
   );
-  assert.equal(marked(sparing.parts.preview).length, 0, "and stays excused renumbered");
+  assert.equal(marked(fixAllPage.parts.preview).length, 0);
 });
 
-const dressed = storage();
-const graded = stage(false, dressed);
-
-check("a grade choice is written down when the toggle moves", () => {
-  assert.equal(graded.parts.grade.getAttribute("aria-pressed"), "true", "opens in Senior");
-  graded.parts.grade.fire("click");
-  assert.equal(dressed.held.get(CHOSEN), "junior");
-  graded.parts.grade.fire("click");
-  assert.equal(dressed.held.get(CHOSEN), "senior");
+check("a lone misspelling gets no fix-all option and a plain Ignore all", () => {
+  const lonePage = loadPage(false);
+  const shown = marked(lonePage.parts.preview);
+  assert.equal(shown.length, 1);
+  lonePage.parts.preview.fire("click", { target: shown[0] });
+  assert.ok(suggestionsOf(lonePage.parts.popover).length > 0);
+  assert.equal(fixAllButtonsOf(lonePage.parts.popover).length, 0);
+  assert.equal(ignoreOf(lonePage.parts.popover)[1].textContent, "Ignore all");
 });
 
-check("a page opened again over the same storage starts in the grade it left", () => {
-  const again = stage(false, dressed);
-  assert.equal(again.parts.grade.getAttribute("aria-pressed"), "true");
-  assert.equal(again.parts.preview.classList.contains("senior"), true);
+check("fix all skips an occurrence the user ignored", () => {
+  const fixAllSkipPage = loadPage(false);
+  fixAllSkipPage.parts.source.value = `${misspelled} ${misspelled} ${misspelled}\n`;
+  fixAllSkipPage.box.render();
+  ignoreOneOccurrence(fixAllSkipPage, 1);
+  const shown = marked(fixAllSkipPage.parts.preview);
+  assert.equal(shown.length, 2);
+  fixAllSkipPage.parts.preview.fire("click", { target: shown[0] });
+  assert.equal(fixAllButtonsOf(fixAllSkipPage.parts.popover)[0].textContent, "(1)");
+  assert.ok(
+    fixAllButtonsOf(fixAllSkipPage.parts.popover)[0].title.includes("1 other"),
+    "singular title",
+  );
+  const suggestion = suggestionsOf(fixAllSkipPage.parts.popover)[0].textContent;
+  fixAllButtonsOf(fixAllSkipPage.parts.popover)[0].fire("click");
+  const written = fixAllSkipPage.box
+    .tokens(fixAllSkipPage.parts.source.value)
+    .map((hit) => hit.word);
+  assert.deepEqual(
+    written,
+    fixAllSkipPage.box.tokens(`${suggestion} ${misspelled} ${suggestion}`).map((hit) => hit.word),
+    "the ignored occurrence keeps its spelling",
+  );
+  assert.equal(
+    marked(fixAllSkipPage.parts.preview).length,
+    0,
+    "and stays ignored after renumbering",
+  );
+});
+
+const gradeStorage = storage();
+const gradePage = loadPage(false, gradeStorage);
+
+check("a grade choice is saved to storage when the toggle is clicked", () => {
+  assert.equal(gradePage.parts.grade.getAttribute("aria-pressed"), "true", "opens in Senior");
+  gradePage.parts.grade.fire("click");
+  assert.equal(gradeStorage.held.get(GRADE_STORAGE_KEY), "junior");
+  gradePage.parts.grade.fire("click");
+  assert.equal(gradeStorage.held.get(GRADE_STORAGE_KEY), "senior");
+});
+
+check("a reloaded page restores the grade from storage", () => {
+  const reloadedPage = loadPage(false, gradeStorage);
+  assert.equal(reloadedPage.parts.grade.getAttribute("aria-pressed"), "true");
+  assert.equal(reloadedPage.parts.preview.classList.contains("senior"), true);
 });
 
 check("an origin whose storage throws still switches grade for the session", () => {
-  const sessional = stage(false, sealed);
-  assert.equal(sessional.parts.grade.getAttribute("aria-pressed"), "true");
-  sessional.parts.grade.fire("click");
-  assert.equal(sessional.parts.preview.classList.contains("senior"), false);
+  const noStoragePage = loadPage(false, throwingStorage);
+  assert.equal(noStoragePage.parts.grade.getAttribute("aria-pressed"), "true");
+  noStoragePage.parts.grade.fire("click");
+  assert.equal(noStoragePage.parts.preview.classList.contains("senior"), false);
 });
 
-const typed = stage(false);
-const RESTING = typed.parts.preview.html;
+const typed = loadPage(false);
+const HTML_BEFORE_TYPING = typed.parts.preview.html;
 typed.parts.source.value = `# typed\n\n${misspelled}\n`;
 typed.parts.source.fire("input", { target: typed.parts.source });
 
 check("typing does not re-render before the debounce has elapsed", () => {
-  assert.equal(typed.parts.preview.html, RESTING);
+  assert.equal(typed.parts.preview.html, HTML_BEFORE_TYPING);
 });
 
 setTimeout(() => {
-  check("the debounced render lands once it has", () => {
-    assert.notEqual(typed.parts.preview.html, RESTING);
+  check("the debounced render runs once it has", () => {
+    assert.notEqual(typed.parts.preview.html, HTML_BEFORE_TYPING);
     assert.ok(typed.parts.preview.html.includes("typed"));
     assert.deepEqual(
       marked(typed.parts.preview).map((span) => span.dataset.w),
