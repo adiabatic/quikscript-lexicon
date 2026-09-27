@@ -2,33 +2,33 @@
 /** @typedef {{start: Position, end: Position}} Span */
 /** @typedef {{range: Span, newText: string}} Edit */
 /** @typedef {{changes: Record<string, Edit[]>}} Change */
-/** @typedef {{command: string, arguments: unknown[]}} Order */
-/** @typedef {{fix: string, gloss: string, edit: Change}} Offer */
-/** @typedef {"occurrence" | "directory" | "project" | "user"} Tier */
-/** @typedef {{occurrence: Order, directory: Order | null, project: Order | null, user: Order}} Ignore */
-/** @typedef {{word: string, occurrence: number, range: Span, spans: Span[], fixes: Offer[], ignore: Ignore}} Fixed */
-/** @typedef {{uri: string, flags: Fixed[]}} Held */
-/** @typedef {{kind: "word", flag: number, word: string, occurrence: number, others: number, line: number, character: number}} Named */
-/** @typedef {{kind: "none"}} Blank */
-/** @typedef {{kind: "offer", flag: number, at: number, fix: string, gloss: string, others: number}} Offered */
-/** @typedef {{kind: "ignore", flag: number, tier: Tier, label: string}} Told */
-/** @typedef {Named | Blank | Offered | Told} Row */
-/** @typedef {{type: "fix", flag: number, at: number, sweep: boolean}} Chosen */
-/** @typedef {{type: "ignore", flag: number, tier: Tier}} Excused */
-/** @typedef {{type: "reveal", flag: number}} Sought */
-/** @typedef {{type: "typed", flag: number, fix: string, sweep: boolean}} Typed */
-/** @typedef {Chosen | Excused | Sought | Typed} Message */
-/** @typedef {{edit: Change} | {order: Order} | {range: Span} | null} Answer */
+/** @typedef {{command: string, arguments: unknown[]}} Command */
+/** @typedef {{fix: string, gloss: string, edit: Change}} Suggestion */
+/** @typedef {"occurrence" | "directory" | "project" | "user"} IgnoreScope */
+/** @typedef {{occurrence: Command, directory: Command | null, project: Command | null, user: Command}} Ignore */
+/** @typedef {{word: string, occurrence: number, range: Span, spans: Span[], fixes: Suggestion[], ignore: Ignore}} Flag */
+/** @typedef {{uri: string, flags: Flag[]}} DocumentFlags */
+/** @typedef {{kind: "word", flag: number, word: string, occurrence: number, others: number, line: number, character: number}} WordRow */
+/** @typedef {{kind: "none"}} NoSuggestionsRow */
+/** @typedef {{kind: "suggestion", flag: number, at: number, fix: string, gloss: string, others: number}} SuggestionRow */
+/** @typedef {{kind: "ignore", flag: number, scope: IgnoreScope, label: string}} IgnoreRow */
+/** @typedef {WordRow | NoSuggestionsRow | SuggestionRow | IgnoreRow} Row */
+/** @typedef {{type: "fix", flag: number, at: number, all: boolean}} FixMessage */
+/** @typedef {{type: "ignore", flag: number, scope: IgnoreScope}} IgnoreMessage */
+/** @typedef {{type: "reveal", flag: number}} RevealMessage */
+/** @typedef {{type: "typed", flag: number, fix: string, all: boolean}} TypedFixMessage */
+/** @typedef {FixMessage | IgnoreMessage | RevealMessage | TypedFixMessage} Message */
+/** @typedef {{edit: Change} | {command: Command} | {range: Span} | null} Resolution */
 /** @typedef {{rows: Row[], note: string}} State */
-/** @typedef {{label: string, detail: string}} Form */
-/** @typedef {{latin: string, items: Form[]}} Written */
-/** @typedef {{kind: "phrase", fix: string}} Phrased */
-/** @typedef {{kind: "form", fix: string, gloss: string}} Formed */
-/** @typedef {{kind: "missing", latin: string}} Missing */
-/** @typedef {Phrased | Formed | Missing} Shown */
+/** @typedef {{label: string, detail: string}} LookupItem */
+/** @typedef {{latin: string, items: LookupItem[]}} LookupResult */
+/** @typedef {{kind: "phrase", fix: string}} PhraseRow */
+/** @typedef {{kind: "form", fix: string, gloss: string}} FormRow */
+/** @typedef {{kind: "missing", latin: string}} MissingRow */
+/** @typedef {PhraseRow | FormRow | MissingRow} LookupRow */
 
-/** @type {[Tier, string][]} */
-const TIERS = [
+/** @type {[IgnoreScope, string][]} */
+const IGNORE_SCOPES = [
   ["occurrence", "Ignore this occurrence"],
   ["directory", "Ignore in this directory"],
   ["project", "Ignore in this project"],
@@ -36,69 +36,69 @@ const TIERS = [
 ];
 
 /**
- * @param {Fixed[]} flags
+ * @param {Flag[]} flags
  * @returns {Row[]}
  */
 function rows(flags) {
   /** @type {Row[]} */
   const out = [];
-  for (const [flag, held] of flags.entries()) {
-    const { line, character } = held.range.start;
-    const others = held.spans.length - 1;
-    const { word, occurrence } = held;
-    out.push({ kind: "word", flag, word, occurrence, others, line, character });
-    if (held.fixes.length === 0) out.push({ kind: "none" });
-    for (const [at, offer] of held.fixes.entries()) {
-      out.push({ kind: "offer", flag, at, fix: offer.fix, gloss: offer.gloss, others });
+  for (const [index, flag] of flags.entries()) {
+    const { line, character } = flag.range.start;
+    const others = flag.spans.length - 1;
+    const { word, occurrence } = flag;
+    out.push({ kind: "word", flag: index, word, occurrence, others, line, character });
+    if (flag.fixes.length === 0) out.push({ kind: "none" });
+    for (const [at, { fix, gloss }] of flag.fixes.entries()) {
+      out.push({ kind: "suggestion", flag: index, at, fix, gloss, others });
     }
-    for (const [tier, label] of TIERS) {
-      if (held.ignore[tier]) out.push({ kind: "ignore", flag, tier, label });
+    for (const [scope, label] of IGNORE_SCOPES) {
+      if (flag.ignore[scope]) out.push({ kind: "ignore", flag: index, scope, label });
     }
   }
   return out;
 }
 
 /**
- * @param {Held} held
- * @param {Fixed} flag
+ * @param {DocumentFlags} documentFlags
+ * @param {Flag} flag
  * @param {string} fix
- * @param {boolean} sweep
- * @returns {Answer}
+ * @param {boolean} all
+ * @returns {Resolution}
  */
-function rewritten(held, flag, fix, sweep) {
-  const spans = sweep ? flag.spans : [flag.range];
+function fixEdit(documentFlags, flag, fix, all) {
+  const spans = all ? flag.spans : [flag.range];
   const changes = spans.map((range) => ({ range, newText: fix }));
-  return { edit: { changes: { [held.uri]: changes } } };
+  return { edit: { changes: { [documentFlags.uri]: changes } } };
 }
 
 /**
- * @param {Held} held
+ * @param {DocumentFlags} documentFlags
  * @param {Message} message
- * @returns {Answer}
+ * @returns {Resolution}
  */
-function resolved(held, message) {
-  const flag = held.flags[message.flag];
+function resolveMessage(documentFlags, message) {
+  const flag = documentFlags.flags[message.flag];
   if (!flag) return null;
   if (message.type === "reveal") return { range: flag.range };
   if (message.type === "ignore") {
-    const order = flag.ignore[message.tier];
-    return order ? { order } : null;
+    const command = flag.ignore[message.scope];
+    return command ? { command } : null;
   }
   if (message.type === "typed") {
-    return message.fix ? rewritten(held, flag, message.fix, message.sweep) : null;
+    return message.fix ? fixEdit(documentFlags, flag, message.fix, message.all) : null;
   }
-  const offer = flag.fixes[message.at];
-  if (!offer) return null;
-  if (!message.sweep) return { edit: offer.edit };
-  return rewritten(held, flag, offer.fix, true);
+  const suggestion = flag.fixes[message.at];
+  if (!suggestion) return null;
+  if (!message.all) return { edit: suggestion.edit };
+  return fixEdit(documentFlags, flag, suggestion.fix, true);
 }
 
 /**
- * @param {Written[]} words
- * @returns {Shown[]}
+ * @param {LookupResult[]} words
+ * @returns {LookupRow[]}
  */
-function shown(words) {
-  /** @type {Shown[]} */
+function lookupRows(words) {
+  /** @type {LookupRow[]} */
   const out = [];
   if (words.length > 1 && words.every((word) => word.items.length > 0)) {
     out.push({ kind: "phrase", fix: words.map((word) => word.items[0].label).join(" ") });
@@ -138,4 +138,4 @@ function shell({ csp, styles, script }) {
   ].join("\n");
 }
 
-module.exports = { resolved, rows, shell, shown };
+module.exports = { lookupRows, resolveMessage, rows, shell };

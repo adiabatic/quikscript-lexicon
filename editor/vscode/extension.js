@@ -2,7 +2,7 @@ const path = require("node:path");
 const { existsSync } = require("node:fs");
 const { Range, Uri, WorkspaceEdit, commands, env, languages, window, workspace } = require("vscode");
 const { LanguageClient, TransportKind } = require("vscode-languageclient/node");
-const { resolved, rows, shell, shown } = require("./lib/panel.js");
+const { lookupRows, resolveMessage, rows, shell } = require("./lib/panel.js");
 
 const SECTION = "quikscript";
 const BUNDLED = ["dist", "quikscript-lsp"];
@@ -14,30 +14,31 @@ const MEDIA = "media";
 const STYLES = ["quikscript-webview.css", "panel.css"];
 const SCRIPT = "panel.js";
 const LANGUAGES = ["markdown", "plaintext"];
-const SHUT = "Open a Markdown or plain text file.";
-const STILL = "The language server is not running.";
-const CLEAN = "Nothing flagged.";
+const NO_DOCUMENT_NOTE = "Open a Markdown or plain text file.";
+const SERVER_NOT_RUNNING_NOTE = "The language server is not running.";
+const REQUEST_FAILED_NOTE = "The request to the language server failed.";
+const NOTHING_FLAGGED_NOTE = "Nothing flagged.";
 
 /** @typedef {import("./lib/panel.js").Change} Change */
-/** @typedef {import("./lib/panel.js").Fixed} Fixed */
+/** @typedef {import("./lib/panel.js").Flag} Flag */
+/** @typedef {import("./lib/panel.js").LookupResult} LookupResult */
 /** @typedef {import("./lib/panel.js").Span} Span */
 /** @typedef {import("./lib/panel.js").State} State */
-/** @typedef {import("./lib/panel.js").Written} Written */
 
 /** @type {LanguageClient | undefined} */
 let client;
 /** @type {import("vscode").WebviewView | undefined} */
 let view;
-/** @type {import("./lib/panel.js").Held} */
-let held = { uri: "", flags: [] };
+/** @type {import("./lib/panel.js").DocumentFlags} */
+let lastFixes = { uri: "", flags: [] };
 /** @type {State} */
-let told = { rows: [], note: SHUT };
+let lastState = { rows: [], note: NO_DOCUMENT_NOTE };
 
 /**
  * @param {string} root
  * @returns {string | null}
  */
-function located(root) {
+function serverPath(root) {
   const configured = workspace.getConfiguration(SECTION).get("serverPath");
   if (typeof configured === "string" && configured) return configured;
   for (const parts of [BUNDLED, BESIDE]) {
@@ -48,7 +49,7 @@ function located(root) {
 }
 
 /** @returns {import("vscode").TextDocument | null} */
-function subject() {
+function activeDocument() {
   const editor = window.activeTextEditor;
   if (!editor) return null;
   const { document } = editor;
@@ -58,7 +59,7 @@ function subject() {
 
 /** @param {State} next */
 function post(next) {
-  told = next;
+  lastState = next;
   if (view) view.webview.postMessage({ type: "state", state: next });
 }
 
@@ -66,33 +67,35 @@ function post(next) {
  * @param {number} id
  * @param {string} text
  */
-async function written(id, text) {
-  /** @type {{rows: import("./lib/panel.js").Shown[], note: string}} */
-  let answer = { rows: [], note: STILL };
+async function lookUp(id, text) {
+  /** @type {{rows: import("./lib/panel.js").LookupRow[], note: string}} */
+  let result = { rows: [], note: SERVER_NOT_RUNNING_NOTE };
   if (client && client.isRunning()) {
     try {
-      const words = /** @type {{words: Written[]}} */ (
+      const response = /** @type {{words: LookupResult[]}} */ (
         await client.sendRequest(SPELLINGS, { text })
       );
-      answer = { rows: shown(words.words), note: "" };
-    } catch {}
+      result = { rows: lookupRows(response.words), note: "" };
+    } catch {
+      result = { rows: [], note: REQUEST_FAILED_NOTE };
+    }
   }
-  if (view) view.webview.postMessage({ type: "written", id, ...answer });
+  if (view) view.webview.postMessage({ type: "lookupResult", id, ...result });
 }
 
 async function refresh() {
-  const document = subject();
-  if (!document) return post({ rows: [], note: SHUT });
-  if (!client || !client.isRunning()) return post({ rows: [], note: STILL });
+  const document = activeDocument();
+  if (!document) return post({ rows: [], note: NO_DOCUMENT_NOTE });
+  if (!client || !client.isRunning()) return post({ rows: [], note: SERVER_NOT_RUNNING_NOTE });
   const uri = client.code2ProtocolConverter.asUri(document.uri);
   try {
-    const answer = /** @type {{flags: Fixed[]}} */ (
+    const response = /** @type {{flags: Flag[]}} */ (
       await client.sendRequest(FIXES, { textDocument: { uri } })
     );
-    held = { uri, flags: answer.flags };
-    post({ rows: rows(answer.flags), note: CLEAN });
+    lastFixes = { uri, flags: response.flags };
+    post({ rows: rows(response.flags), note: NOTHING_FLAGGED_NOTE });
   } catch {
-    post({ rows: [], note: STILL });
+    post({ rows: [], note: REQUEST_FAILED_NOTE });
   }
 }
 
@@ -100,33 +103,34 @@ async function refresh() {
  * @param {Span} span
  * @returns {import("vscode").Range}
  */
-function ranged(span) {
+function toRange(span) {
   return new Range(span.start.line, span.start.character, span.end.line, span.end.character);
 }
 
 /** @param {Change} change */
-async function applied(change) {
+async function applyChange(change) {
   const edit = new WorkspaceEdit();
   for (const [uri, edits] of Object.entries(change.changes)) {
-    for (const one of edits) edit.replace(Uri.parse(uri), ranged(one.range), one.newText);
+    for (const one of edits) edit.replace(Uri.parse(uri), toRange(one.range), one.newText);
   }
   await workspace.applyEdit(edit);
 }
 
 /** @param {any} message */
 async function handle(message) {
-  if (message.type === "ready") return post(told);
+  if (message.type === "ready") return post(lastState);
   if (message.type === "copy") return env.clipboard.writeText(String(message.text));
-  if (message.type === "write") return written(Number(message.id), String(message.text));
-  const answer = resolved(held, message);
-  if (!answer) return;
-  if ("edit" in answer) return applied(answer.edit);
-  if ("order" in answer) {
-    await commands.executeCommand(answer.order.command, ...answer.order.arguments);
+  if (message.type === "lookup") return lookUp(Number(message.id), String(message.text));
+  const resolution = resolveMessage(lastFixes, message);
+  if (!resolution) return;
+  if ("edit" in resolution) return applyChange(resolution.edit);
+  if ("command" in resolution) {
+    const { command } = resolution;
+    await commands.executeCommand(command.command, ...command.arguments);
     return;
   }
-  const shown = await workspace.openTextDocument(Uri.parse(held.uri));
-  await window.showTextDocument(shown, { selection: ranged(answer.range) });
+  const document = await workspace.openTextDocument(Uri.parse(lastFixes.uri));
+  await window.showTextDocument(document, { selection: toRange(resolution.range) });
 }
 
 /**
@@ -170,16 +174,16 @@ async function activate(context) {
     window.registerWebviewViewProvider(VIEW, provider(context)),
     window.onDidChangeActiveTextEditor(() => refresh()),
     languages.onDidChangeDiagnostics((event) => {
-      const document = subject();
+      const document = activeDocument();
       if (!document) return;
       const uri = document.uri.toString();
       if (event.uris.some((one) => one.toString() === uri)) refresh();
     }),
   );
-  const entry = located(context.extensionPath);
+  const entry = serverPath(context.extensionPath);
   if (!entry) {
     window.showErrorMessage(
-      "Quikscript: no language server found. Run `make bundle`, or set quikscript.serverPath.",
+      "Quikscript: no language server found. Run `make vsix`, or set quikscript.serverPath.",
     );
     await refresh();
     return;

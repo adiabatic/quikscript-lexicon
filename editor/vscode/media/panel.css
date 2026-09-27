@@ -65,7 +65,7 @@ button:focus-visible {
   white-space: nowrap;
 }
 
-.word .at {
+.word .position {
   margin-inline-start: auto;
   color: var(--vscode-descriptionForeground);
   font-size: var(--vscode-font-size);
@@ -73,11 +73,11 @@ button:focus-visible {
   white-space: nowrap;
 }
 
-.offer {
+.suggestion {
   display: flex;
 }
 
-.offer button {
+.suggestion button {
   inline-size: auto;
 }
 
@@ -99,14 +99,14 @@ button:focus-visible {
   line-height: 1.4;
 }
 
-.all {
+.fix-all {
   color: var(--vscode-descriptionForeground);
   font-size: var(--vscode-font-size);
   line-height: 33px;
 }
 
-.all:hover,
-.all:focus-visible {
+.fix-all:hover,
+.fix-all:focus-visible {
   color: var(--vscode-foreground);
 }
 
@@ -129,7 +129,7 @@ button:focus-visible {
   color: var(--vscode-foreground);
 }
 
-.writer {
+.lookup-form {
   margin: 0;
 }
 
@@ -138,13 +138,13 @@ button:focus-visible {
   margin-block-end: 11px;
 }
 
-section .writer {
+section .lookup-form {
   margin-block-start: 11px;
   padding-block-start: 11px;
   border-block-start: 1px solid var(--vscode-widget-border, var(--vscode-panel-border));
 }
 
-.latin {
+.latin-input {
   display: block;
   inline-size: 100%;
   min-block-size: 28px;
@@ -156,24 +156,24 @@ section .writer {
   font: inherit;
 }
 
-.latin::placeholder {
+.latin-input::placeholder {
   color: var(--vscode-input-placeholderForeground);
 }
 
-.latin:focus {
+.latin-input:focus {
   outline: 1px solid var(--vscode-focusBorder);
   outline-offset: -1px;
 }
 
-.written {
+.lookup-results {
   overflow: hidden;
 }
 
-.written:not(:empty) {
+.lookup-results:not(:empty) {
   margin-block-start: 6px;
 }
 
-.quiet {
+.note {
   margin: 0;
   color: var(--vscode-descriptionForeground);
   font-size: var(--vscode-font-size);
