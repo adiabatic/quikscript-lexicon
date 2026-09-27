@@ -6,7 +6,7 @@ export interface Token {
   end: number;
 }
 
-export interface Advice {
+export interface SuggestContext {
   active: Set<string>;
   freq: Map<string, number>;
   groups: readonly string[];
@@ -18,7 +18,7 @@ export interface Advice {
 export declare function tokens(text: string): Token[];
 export declare function accepts(active: Set<string>, word: string): boolean;
 export declare function distance(a: string, b: string, cap: number): number;
-export declare function suggest(word: string, ctx: Advice): string[];
+export declare function suggest(word: string, ctx: SuggestContext): string[];
 export declare function replaceOccurrence(
   source: string,
   word: string,

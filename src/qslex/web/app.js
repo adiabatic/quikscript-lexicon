@@ -1,27 +1,27 @@
 const source = document.getElementById("source");
 const preview = document.getElementById("preview");
 const grade = document.getElementById("grade");
-const fixer = document.getElementById("fixer");
-const copier = document.getElementById("copy");
-const undoer = document.getElementById("undo");
-const excused = document.getElementById("ignored");
+const popover = document.getElementById("popover");
+const copyButton = document.getElementById("copy");
+const undoButton = document.getElementById("undo");
+const unignoreButton = document.getElementById("ignored");
 
 const DELAY = 150;
-const HELD = 1500;
+const COPY_LABEL_MS = 1500;
 const GAP = 4;
 const EDGE = 8;
 const ANCHOR = "--qs-miss";
-const ANCHORING = typeof CSS !== "undefined" && CSS.supports("anchor-name: --qs");
-const RESTING = copier.textContent;
+const SUPPORTS_ANCHOR = typeof CSS !== "undefined" && CSS.supports("anchor-name: --qs");
+const COPY_LABEL = copyButton.textContent;
 const EMPTY = "No suggestions";
-const DONE = "Copied";
-const BY_HAND = "Press ⌘C";
+const COPIED_LABEL = "Copied";
+const MANUAL_COPY_LABEL = "Press ⌘C";
 const IGNORE_ONE = "Ignore one";
 const IGNORE_ALL = "Ignore all";
 const IGNORE_ONE_TITLE = "Ignore this occurrence alone";
-const IGNORE_ALL_TITLE = "Ignore this spelling everywhere, now and in future sessions";
-const KEPT = "qs-desk.ignored";
-const CHOSEN = "qs-desk.senior";
+const IGNORE_ALL_TITLE = "Ignore this spelling everywhere in this browser";
+const IGNORED_STORAGE_KEY = "qs-desk.ignored";
+const GRADE_STORAGE_KEY = "qs-desk.senior";
 const SENIOR_GRADE = "senior";
 const JUNIOR_GRADE = "junior";
 const APPLE = /Mac|iPhone|iPad|iPod/.test(
@@ -37,27 +37,27 @@ for (const line of QS.words.split("\n")) {
 
 const ACCEPTED = new Set(counts.keys());
 
-function remembered() {
+function loadIgnored() {
   try {
-    const held = JSON.parse(localStorage.getItem(KEPT) || "[]");
-    return Array.isArray(held) ? held.filter((word) => typeof word === "string") : [];
+    const stored = JSON.parse(localStorage.getItem(IGNORED_STORAGE_KEY) || "[]");
+    return Array.isArray(stored) ? stored.filter((word) => typeof word === "string") : [];
   } catch {
     return [];
   }
 }
 
-const ignored = new Set(remembered());
-const overlooked = new Set();
+const ignored = new Set(loadIgnored());
+const ignoredOccurrences = new Set();
 const misses = new Map();
 const corrections = [];
 
-function spot(word, occurrence) {
+function occurrenceKey(word, occurrence) {
   return `${word}\t${occurrence}`;
 }
 
-function recalled() {
+function loadSeniorPreference() {
   try {
-    return localStorage.getItem(CHOSEN) !== JUNIOR_GRADE;
+    return localStorage.getItem(GRADE_STORAGE_KEY) !== JUNIOR_GRADE;
   } catch {
     return true;
   }
@@ -67,14 +67,14 @@ function isSenior() {
   return grade.getAttribute("aria-pressed") === "true";
 }
 
-function paint(senior) {
+function setGrade(senior) {
   grade.setAttribute("aria-pressed", String(senior));
   grade.textContent = senior ? "Senior" : "Junior";
 }
 
-function keep() {
+function saveGrade() {
   try {
-    localStorage.setItem(CHOSEN, isSenior() ? SENIOR_GRADE : JUNIOR_GRADE);
+    localStorage.setItem(GRADE_STORAGE_KEY, isSenior() ? SENIOR_GRADE : JUNIOR_GRADE);
   } catch {}
 }
 
@@ -82,7 +82,7 @@ let pending = 0;
 let restore = 0;
 let anchor = null;
 
-function advice() {
+function suggestContext() {
   return {
     active: ACCEPTED,
     freq: counts,
@@ -93,10 +93,14 @@ function advice() {
 }
 
 function skipped(node) {
-  for (let held = node.parentNode; held && held !== preview; held = held.parentNode) {
-    if (held.nodeType !== Node.ELEMENT_NODE) continue;
-    if (held.tagName === "PRE" || held.tagName === "CODE") return true;
-    if (held.hasAttribute("popover")) return true;
+  for (
+    let ancestor = node.parentNode;
+    ancestor && ancestor !== preview;
+    ancestor = ancestor.parentNode
+  ) {
+    if (ancestor.nodeType !== Node.ELEMENT_NODE) continue;
+    if (ancestor.tagName === "PRE" || ancestor.tagName === "CODE") return true;
+    if (ancestor.hasAttribute("popover")) return true;
   }
   return false;
 }
@@ -121,7 +125,7 @@ function wrap(text, flagged) {
   text.replaceWith(pieces);
 }
 
-function mark() {
+function markMisspellings() {
   misses.clear();
   const walker = document.createTreeWalker(preview, NodeFilter.SHOW_TEXT);
   const texts = [];
@@ -137,11 +141,11 @@ function mark() {
       const occurrence = seen.get(hit.word) || 0;
       seen.set(hit.word, occurrence + 1);
       if (quoted || ignored.has(hit.word)) continue;
-      if (overlooked.has(spot(hit.word, occurrence))) continue;
+      if (ignoredOccurrences.has(occurrenceKey(hit.word, occurrence))) continue;
       if (!accepts(ACCEPTED, hit.word)) {
         flagged.push([hit, occurrence]);
-        const held = misses.get(hit.word);
-        if (held) held.push(occurrence);
+        const occurrences = misses.get(hit.word);
+        if (occurrences) occurrences.push(occurrence);
         else misses.set(hit.word, [occurrence]);
       }
     }
@@ -153,38 +157,38 @@ function render() {
   clearTimeout(pending);
   dismiss();
   preview.innerHTML = marked.parse(stripFrontMatter(source.value));
-  mark();
+  markMisspellings();
 }
 
-function tally() {
-  const held = ignored.size + overlooked.size;
-  excused.hidden = held === 0;
-  excused.textContent = `Unignore ${held}`;
+function updateUnignoreButton() {
+  const ignoredCount = ignored.size + ignoredOccurrences.size;
+  unignoreButton.hidden = ignoredCount === 0;
+  unignoreButton.textContent = `Unignore ${ignoredCount}`;
 }
 
 function store() {
   try {
-    localStorage.setItem(KEPT, JSON.stringify([...ignored]));
+    localStorage.setItem(IGNORED_STORAGE_KEY, JSON.stringify([...ignored]));
   } catch {}
 }
 
-function revise() {
+function saveAndRender() {
   store();
-  tally();
+  updateUnignoreButton();
   render();
 }
 
-function excuse(word) {
+function ignoreEverywhere(word) {
   ignored.add(word);
-  for (const key of overlooked) {
-    if (key.startsWith(`${word}\t`)) overlooked.delete(key);
+  for (const key of ignoredOccurrences) {
+    if (key.startsWith(`${word}\t`)) ignoredOccurrences.delete(key);
   }
-  revise();
+  saveAndRender();
 }
 
-function overlook(word, occurrence) {
-  overlooked.add(spot(word, occurrence));
-  tally();
+function ignoreOnce(word, occurrence) {
+  ignoredOccurrences.add(occurrenceKey(word, occurrence));
+  updateUnignoreButton();
   render();
 }
 
@@ -194,32 +198,32 @@ function schedule() {
 }
 
 function dismiss() {
-  if (fixer.matches(":popover-open")) fixer.hidePopover();
+  if (popover.matches(":popover-open")) popover.hidePopover();
 }
 
-function pin(span) {
+function placePopover(span) {
   const box = span.getBoundingClientRect();
-  const own = fixer.getBoundingClientRect();
+  const own = popover.getBoundingClientRect();
   const rightmost = window.innerWidth - own.width - EDGE;
   const lowest = window.innerHeight - own.height - EDGE;
   const under = box.bottom + GAP;
   const over = box.top - own.height - GAP;
-  fixer.style.left = `${Math.max(EDGE, Math.min(box.left, rightmost))}px`;
-  fixer.style.top = `${under <= lowest ? under : Math.max(EDGE, Math.min(over, lowest))}px`;
+  popover.style.left = `${Math.max(EDGE, Math.min(box.left, rightmost))}px`;
+  popover.style.top = `${under <= lowest ? under : Math.max(EDGE, Math.min(over, lowest))}px`;
 }
 
-function renumber(word, swept) {
+function renumber(word, replaced) {
   const lead = `${word}\t`;
   const kept = [];
-  for (const key of overlooked) {
+  for (const key of ignoredOccurrences) {
     if (key.startsWith(lead)) kept.push(Number(key.slice(lead.length)));
   }
   if (kept.length === 0) return;
-  const dropped = [...new Set(swept)].sort((one, other) => one - other);
-  for (const index of kept) overlooked.delete(spot(word, index));
+  const dropped = [...new Set(replaced)].sort((one, other) => one - other);
+  for (const index of kept) ignoredOccurrences.delete(occurrenceKey(word, index));
   for (const index of kept) {
     const below = dropped.filter((occurrence) => occurrence < index).length;
-    overlooked.add(spot(word, index - below));
+    ignoredOccurrences.add(occurrenceKey(word, index - below));
   }
 }
 
@@ -229,12 +233,12 @@ function snapshot() {
     start: source.selectionStart,
     end: source.selectionEnd,
     direction: source.selectionDirection,
-    overlooked: [...overlooked],
+    ignoredOccurrences: [...ignoredOccurrences],
   };
 }
 
 function updateUndo() {
-  undoer.disabled = corrections.length === 0;
+  undoButton.disabled = corrections.length === 0;
 }
 
 function correct(value, word, occurrences) {
@@ -260,10 +264,10 @@ function undo() {
   const previous = corrections.pop();
   if (!previous) return;
   source.value = previous.value;
-  overlooked.clear();
-  for (const key of previous.overlooked) overlooked.add(key);
+  ignoredOccurrences.clear();
+  for (const key of previous.ignoredOccurrences) ignoredOccurrences.add(key);
   updateUndo();
-  tally();
+  updateUnignoreButton();
   render();
   source.focus();
   if (Number.isInteger(previous.start) && Number.isInteger(previous.end)) {
@@ -271,85 +275,85 @@ function undo() {
   }
 }
 
-function propose(span) {
+function showSuggestions(span) {
   const word = span.dataset.w;
   const occurrence = Number(span.dataset.occ);
   const everywhere = misses.get(word) || [occurrence];
   const others = everywhere.length - 1;
   const rest = others === 1 ? "the 1 other" : `the ${others} others`;
-  const offers = suggest(word, advice());
+  const suggestions = suggest(word, suggestContext());
 
-  fixer.replaceChildren();
+  popover.replaceChildren();
   const heading = document.createElement("div");
   heading.className = "word";
   heading.textContent = word;
-  fixer.append(heading);
-  if (offers.length === 0) {
+  popover.append(heading);
+  if (suggestions.length === 0) {
     const none = document.createElement("p");
     none.className = "none";
     none.textContent = EMPTY;
-    fixer.append(none);
+    popover.append(none);
   }
-  for (const fix of offers) {
+  for (const fix of suggestions) {
     const row = document.createElement("div");
-    row.className = "offer";
+    row.className = "suggestion";
     const button = document.createElement("button");
     button.type = "button";
     button.textContent = fix;
     button.addEventListener("click", () => choose(word, occurrence, fix));
     row.append(button);
     if (others > 0) {
-      const all = document.createElement("button");
-      all.type = "button";
-      all.className = "all";
-      all.textContent = `(${others})`;
-      all.title = `Correct this misspelling and ${rest} written the same way`;
-      all.addEventListener("click", () => chooseAll(word, everywhere, fix));
-      row.append(all);
+      const fixAllButton = document.createElement("button");
+      fixAllButton.type = "button";
+      fixAllButton.className = "fix-all";
+      fixAllButton.textContent = `(${others})`;
+      fixAllButton.title = `Correct this misspelling and ${rest} written the same way`;
+      fixAllButton.addEventListener("click", () => chooseAll(word, everywhere, fix));
+      row.append(fixAllButton);
     }
-    fixer.append(row);
+    popover.append(row);
   }
-  const once = document.createElement("button");
-  once.type = "button";
-  once.className = "ignore";
-  once.textContent = IGNORE_ONE;
-  once.title = IGNORE_ONE_TITLE;
-  once.addEventListener("click", () => overlook(word, occurrence));
-  fixer.append(once);
-  const leave = document.createElement("button");
-  leave.type = "button";
-  leave.className = "ignore";
-  leave.textContent = others > 0 ? `${IGNORE_ALL} (${others})` : IGNORE_ALL;
-  leave.title = IGNORE_ALL_TITLE;
-  leave.addEventListener("click", () => excuse(word));
-  fixer.append(leave);
+  const ignoreOneButton = document.createElement("button");
+  ignoreOneButton.type = "button";
+  ignoreOneButton.className = "ignore";
+  ignoreOneButton.textContent = IGNORE_ONE;
+  ignoreOneButton.title = IGNORE_ONE_TITLE;
+  ignoreOneButton.addEventListener("click", () => ignoreOnce(word, occurrence));
+  popover.append(ignoreOneButton);
+  const ignoreAllButton = document.createElement("button");
+  ignoreAllButton.type = "button";
+  ignoreAllButton.className = "ignore";
+  ignoreAllButton.textContent = others > 0 ? `${IGNORE_ALL} (${others})` : IGNORE_ALL;
+  ignoreAllButton.title = IGNORE_ALL_TITLE;
+  ignoreAllButton.addEventListener("click", () => ignoreEverywhere(word));
+  popover.append(ignoreAllButton);
 
-  if (ANCHORING) {
+  if (SUPPORTS_ANCHOR) {
     if (anchor) anchor.style.removeProperty("anchor-name");
     anchor = span;
     span.style.setProperty("anchor-name", ANCHOR);
   }
-  if (!fixer.matches(":popover-open")) fixer.showPopover();
-  if (!ANCHORING) pin(span);
+  if (!popover.matches(":popover-open")) popover.showPopover();
+  if (!SUPPORTS_ANCHOR) placePopover(span);
 }
 
-function flip(text) {
-  copier.textContent = text;
+function flashCopyLabel(text) {
+  copyButton.textContent = text;
   clearTimeout(restore);
   restore = setTimeout(() => {
-    copier.textContent = RESTING;
-  }, HELD);
+    copyButton.textContent = COPY_LABEL;
+  }, COPY_LABEL_MS);
 }
 
-function byHand() {
+function selectForManualCopy() {
   source.focus();
   source.select();
-  flip(BY_HAND);
+  flashCopyLabel(MANUAL_COPY_LABEL);
 }
 
-function regrade() {
+function applyGrade() {
   preview.classList.toggle("senior", isSenior());
-  fixer.classList.toggle("senior", isSenior());
+  popover.classList.toggle("senior", isSenior());
 }
 
 source.addEventListener("input", () => {
@@ -358,7 +362,7 @@ source.addEventListener("input", () => {
   schedule();
 });
 
-undoer.addEventListener("click", undo);
+undoButton.addEventListener("click", undo);
 
 document.addEventListener("keydown", (event) => {
   const modified = APPLE ? event.metaKey : event.ctrlKey;
@@ -376,38 +380,40 @@ document.addEventListener("keydown", (event) => {
 });
 
 grade.addEventListener("click", () => {
-  paint(!isSenior());
-  keep();
-  regrade();
+  setGrade(!isSenior());
+  saveGrade();
+  applyGrade();
 });
 
 preview.addEventListener("click", (event) => {
   const span = event.target.closest?.(".miss");
   if (span) {
     event.preventDefault();
-    propose(span);
+    showSuggestions(span);
   }
 });
 
-excused.addEventListener("click", () => {
+unignoreButton.addEventListener("click", () => {
   ignored.clear();
-  overlooked.clear();
-  revise();
+  ignoredOccurrences.clear();
+  saveAndRender();
 });
 
-copier.addEventListener("click", () => {
+copyButton.addEventListener("click", () => {
   if (!navigator.clipboard) {
-    byHand();
+    selectForManualCopy();
     return;
   }
-  navigator.clipboard.writeText(source.value).then(() => flip(DONE), byHand);
+  navigator.clipboard
+    .writeText(source.value)
+    .then(() => flashCopyLabel(COPIED_LABEL), selectForManualCopy);
 });
 
 marked.use({ gfm: true });
-if (ANCHORING) fixer.classList.add("anchored");
-undoer.title = `Undo last correction (${APPLE ? "⌘Z" : "Ctrl+Z"})`;
-paint(recalled());
-regrade();
-tally();
+if (SUPPORTS_ANCHOR) popover.classList.add("anchored");
+undoButton.title = `Undo last correction (${APPLE ? "⌘Z" : "Ctrl+Z"})`;
+setGrade(loadSeniorPreference());
+applyGrade();
+updateUnignoreButton();
 updateUndo();
 render();

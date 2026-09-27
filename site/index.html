@@ -283,7 +283,7 @@ main {
   cursor: pointer;
 }
 
-#fixer {
+#popover {
   position: fixed;
   inset: auto;
   margin: 0;
@@ -302,18 +302,18 @@ main {
   line-height: 33px;
 }
 
-#fixer.senior {
+#popover.senior {
   font-family: var(--senior);
 }
 
-#fixer.anchored {
+#popover.anchored {
   position-anchor: --qs-miss;
   position-area: block-end span-inline-end;
   position-try-fallbacks: flip-block, flip-inline, flip-block flip-inline;
   margin-block-start: 4px;
 }
 
-#fixer .word {
+#popover .word {
   margin-bottom: 11px;
   padding-bottom: 11px;
   border-bottom: 1px solid var(--rule);
@@ -324,7 +324,7 @@ main {
   white-space: nowrap;
 }
 
-#fixer button {
+#popover button {
   display: block;
   width: 100%;
   padding: 0 11px;
@@ -338,40 +338,40 @@ main {
   cursor: pointer;
 }
 
-#fixer button:hover,
-#fixer button:focus-visible {
+#popover button:hover,
+#popover button:focus-visible {
   background: var(--chrome);
 }
 
-#fixer .offer {
+#popover .suggestion {
   display: flex;
 }
 
-#fixer .offer button {
+#popover .suggestion button {
   width: auto;
 }
 
-#fixer .offer button:first-child {
+#popover .suggestion button:first-child {
   flex: 1;
 }
 
-#fixer .all {
+#popover .fix-all {
   color: var(--quiet);
 }
 
-#fixer .all:hover,
-#fixer .all:focus-visible {
+#popover .fix-all:hover,
+#popover .fix-all:focus-visible {
   color: var(--ink);
 }
 
-#fixer .none {
+#popover .none {
   margin: 0;
   font-size: 11px;
   line-height: 1.4;
   color: var(--quiet);
 }
 
-#fixer .ignore {
+#popover .ignore {
   margin-top: 11px;
   padding: 11px 11px 0;
   border-top: 1px solid var(--rule);
@@ -379,14 +379,14 @@ main {
   color: var(--quiet);
 }
 
-#fixer .ignore + .ignore {
+#popover .ignore + .ignore {
   margin-top: 0;
   padding-top: 0;
   border-top: 0;
 }
 
-#fixer .ignore:hover,
-#fixer .ignore:focus-visible {
+#popover .ignore:hover,
+#popover .ignore:focus-visible {
   background: none;
   color: var(--ink);
 }
@@ -428,7 +428,7 @@ Write Markdown on the left and read it on the right. A Quikscript word the lexic
 </textarea>
 <div id="preview" lang="en-Qaas" aria-label="Rendered preview"></div>
 </main>
-<div id="fixer" popover="auto" lang="en-Qaas"></div>
+<div id="popover" popover="auto" lang="en-Qaas"></div>
 <script>/**
  * marked v18.0.7 - a markdown parser
  * Copyright (c) 2018-2026, MarkedJS. (MIT License)
@@ -516,15 +516,15 @@ const INVISIBLE = /[\p{Cf}\uFE00-\uFE0F]/u;
 const HYPHEN = "-";
 const NAMER = "·";
 const SPACE = " ";
-const OFFERS = 10;
-const DISTANT = 3;
+const MAX_SUGGESTIONS = 10;
+const MAX_DISTANCE = 3;
 const FRONT_MATTER = /^---\r?\n(?:[\s\S]*?\r?\n)?---[ \t]*\r?\n?/;
 
 function stripFrontMatter(text) {
   return text.replace(FRONT_MATTER, "");
 }
 
-function named(text, at) {
+function afterNamerDot(text, at) {
   let back = at - 1;
   while (back >= 0 && INVISIBLE.test(text[back])) back -= 1;
   return text[back] === NAMER;
@@ -535,7 +535,7 @@ function tokens(text) {
   TOKEN.lastIndex = 0;
   for (let match = TOKEN.exec(text); match !== null; match = TOKEN.exec(text)) {
     const word = match[0].split(INVISIBLE).join("");
-    if (word.length === 1 && named(text, match.index)) continue;
+    if (word.length === 1 && afterNamerDot(text, match.index)) continue;
     found.push({ word, start: match.index, end: TOKEN.lastIndex });
   }
   return found;
@@ -547,7 +547,7 @@ function accepts(active, word) {
   return word.split(HYPHEN).every((piece) => piece === "" || active.has(piece));
 }
 
-function offered(active, candidate) {
+function allPiecesAccepted(active, candidate) {
   return candidate.split(SPACE).every((piece) => accepts(active, piece));
 }
 
@@ -563,7 +563,7 @@ function ranked(candidates, score) {
     .map((entry) => entry.candidate);
 }
 
-function bridged(word, rep) {
+function repSubstitutions(word, rep) {
   const out = [];
   for (const [written, meant] of rep) {
     for (let at = word.indexOf(written); at >= 0; at = word.indexOf(written, at + 1)) {
@@ -573,7 +573,7 @@ function bridged(word, rep) {
   return out;
 }
 
-function confused(word, groups) {
+function confusionSwaps(word, groups) {
   const out = [];
   for (const group of groups) {
     for (let i = 0; i < word.length; i += 1) {
@@ -586,7 +586,7 @@ function confused(word, groups) {
   return out;
 }
 
-function nearby(word, letters) {
+function singleEdits(word, letters) {
   const out = [];
   for (let i = 0; i < word.length; i += 1) {
     out.push(word.slice(0, i) + word.slice(i + 1));
@@ -630,7 +630,7 @@ function distance(a, b, cap) {
   return previous1[b.length];
 }
 
-function distant(word, active, cap) {
+function withinDistance(word, active, cap) {
   const out = [];
   for (const candidate of active) {
     if (candidate === word) continue;
@@ -640,7 +640,7 @@ function distant(word, active, cap) {
   return out;
 }
 
-function halves(word) {
+function splits(word) {
   const out = [];
   for (let i = 1; i < word.length; i += 1) {
     out.push([word.slice(0, i), word.slice(i)]);
@@ -651,43 +651,43 @@ function halves(word) {
 function suggest(word, ctx) {
   const active = ctx.active;
   const counts = ctx.freq;
-  const limit = ctx.limit || OFFERS;
+  const limit = ctx.limit || MAX_SUGGESTIONS;
   const out = [];
   const seen = new Set([word]);
   const take = (candidates) => {
     for (const candidate of candidates) {
       if (out.length >= limit) return;
-      if (seen.has(candidate) || !offered(active, candidate)) continue;
+      if (seen.has(candidate) || !allPiecesAccepted(active, candidate)) continue;
       seen.add(candidate);
       out.push(candidate);
     }
   };
 
-  take(bridged(word, ctx.rep));
+  take(repSubstitutions(word, ctx.rep));
   take(
     ranked(
-      confused(word, ctx.groups).filter((candidate) => offered(active, candidate)),
+      confusionSwaps(word, ctx.groups).filter((candidate) => allPiecesAccepted(active, candidate)),
       (candidate) => frequency(counts, candidate),
     ),
   );
   take(
     ranked(
-      nearby(word, ctx.letters).filter((candidate) => offered(active, candidate)),
+      singleEdits(word, ctx.letters).filter((candidate) => allPiecesAccepted(active, candidate)),
       (candidate) => frequency(counts, candidate),
     ),
   );
-  const far = distant(word, active, DISTANT);
-  for (let edits = 1; edits <= DISTANT; edits += 1) {
+  const matches = withinDistance(word, active, MAX_DISTANCE);
+  for (let edits = 1; edits <= MAX_DISTANCE; edits += 1) {
     take(
       ranked(
-        far.filter((hit) => hit.edits === edits).map((hit) => hit.candidate),
+        matches.filter((hit) => hit.edits === edits).map((hit) => hit.candidate),
         (candidate) => frequency(counts, candidate),
       ),
     );
   }
   take(
     ranked(
-      halves(word).filter((pair) => accepts(active, pair[0]) && accepts(active, pair[1])),
+      splits(word).filter((pair) => accepts(active, pair[0]) && accepts(active, pair[1])),
       (pair) => Math.min(frequency(counts, pair[0]), frequency(counts, pair[1])),
     ).map((pair) => pair.join(SPACE)),
   );
@@ -731,27 +731,27 @@ if (typeof module !== "undefined") {
 <script>const source = document.getElementById("source");
 const preview = document.getElementById("preview");
 const grade = document.getElementById("grade");
-const fixer = document.getElementById("fixer");
-const copier = document.getElementById("copy");
-const undoer = document.getElementById("undo");
-const excused = document.getElementById("ignored");
+const popover = document.getElementById("popover");
+const copyButton = document.getElementById("copy");
+const undoButton = document.getElementById("undo");
+const unignoreButton = document.getElementById("ignored");
 
 const DELAY = 150;
-const HELD = 1500;
+const COPY_LABEL_MS = 1500;
 const GAP = 4;
 const EDGE = 8;
 const ANCHOR = "--qs-miss";
-const ANCHORING = typeof CSS !== "undefined" && CSS.supports("anchor-name: --qs");
-const RESTING = copier.textContent;
+const SUPPORTS_ANCHOR = typeof CSS !== "undefined" && CSS.supports("anchor-name: --qs");
+const COPY_LABEL = copyButton.textContent;
 const EMPTY = "No suggestions";
-const DONE = "Copied";
-const BY_HAND = "Press ⌘C";
+const COPIED_LABEL = "Copied";
+const MANUAL_COPY_LABEL = "Press ⌘C";
 const IGNORE_ONE = "Ignore one";
 const IGNORE_ALL = "Ignore all";
 const IGNORE_ONE_TITLE = "Ignore this occurrence alone";
-const IGNORE_ALL_TITLE = "Ignore this spelling everywhere, now and in future sessions";
-const KEPT = "qs-desk.ignored";
-const CHOSEN = "qs-desk.senior";
+const IGNORE_ALL_TITLE = "Ignore this spelling everywhere in this browser";
+const IGNORED_STORAGE_KEY = "qs-desk.ignored";
+const GRADE_STORAGE_KEY = "qs-desk.senior";
 const SENIOR_GRADE = "senior";
 const JUNIOR_GRADE = "junior";
 const APPLE = /Mac|iPhone|iPad|iPod/.test(
@@ -767,27 +767,27 @@ for (const line of QS.words.split("\n")) {
 
 const ACCEPTED = new Set(counts.keys());
 
-function remembered() {
+function loadIgnored() {
   try {
-    const held = JSON.parse(localStorage.getItem(KEPT) || "[]");
-    return Array.isArray(held) ? held.filter((word) => typeof word === "string") : [];
+    const stored = JSON.parse(localStorage.getItem(IGNORED_STORAGE_KEY) || "[]");
+    return Array.isArray(stored) ? stored.filter((word) => typeof word === "string") : [];
   } catch {
     return [];
   }
 }
 
-const ignored = new Set(remembered());
-const overlooked = new Set();
+const ignored = new Set(loadIgnored());
+const ignoredOccurrences = new Set();
 const misses = new Map();
 const corrections = [];
 
-function spot(word, occurrence) {
+function occurrenceKey(word, occurrence) {
   return `${word}\t${occurrence}`;
 }
 
-function recalled() {
+function loadSeniorPreference() {
   try {
-    return localStorage.getItem(CHOSEN) !== JUNIOR_GRADE;
+    return localStorage.getItem(GRADE_STORAGE_KEY) !== JUNIOR_GRADE;
   } catch {
     return true;
   }
@@ -797,14 +797,14 @@ function isSenior() {
   return grade.getAttribute("aria-pressed") === "true";
 }
 
-function paint(senior) {
+function setGrade(senior) {
   grade.setAttribute("aria-pressed", String(senior));
   grade.textContent = senior ? "Senior" : "Junior";
 }
 
-function keep() {
+function saveGrade() {
   try {
-    localStorage.setItem(CHOSEN, isSenior() ? SENIOR_GRADE : JUNIOR_GRADE);
+    localStorage.setItem(GRADE_STORAGE_KEY, isSenior() ? SENIOR_GRADE : JUNIOR_GRADE);
   } catch {}
 }
 
@@ -812,7 +812,7 @@ let pending = 0;
 let restore = 0;
 let anchor = null;
 
-function advice() {
+function suggestContext() {
   return {
     active: ACCEPTED,
     freq: counts,
@@ -823,10 +823,14 @@ function advice() {
 }
 
 function skipped(node) {
-  for (let held = node.parentNode; held && held !== preview; held = held.parentNode) {
-    if (held.nodeType !== Node.ELEMENT_NODE) continue;
-    if (held.tagName === "PRE" || held.tagName === "CODE") return true;
-    if (held.hasAttribute("popover")) return true;
+  for (
+    let ancestor = node.parentNode;
+    ancestor && ancestor !== preview;
+    ancestor = ancestor.parentNode
+  ) {
+    if (ancestor.nodeType !== Node.ELEMENT_NODE) continue;
+    if (ancestor.tagName === "PRE" || ancestor.tagName === "CODE") return true;
+    if (ancestor.hasAttribute("popover")) return true;
   }
   return false;
 }
@@ -851,7 +855,7 @@ function wrap(text, flagged) {
   text.replaceWith(pieces);
 }
 
-function mark() {
+function markMisspellings() {
   misses.clear();
   const walker = document.createTreeWalker(preview, NodeFilter.SHOW_TEXT);
   const texts = [];
@@ -867,11 +871,11 @@ function mark() {
       const occurrence = seen.get(hit.word) || 0;
       seen.set(hit.word, occurrence + 1);
       if (quoted || ignored.has(hit.word)) continue;
-      if (overlooked.has(spot(hit.word, occurrence))) continue;
+      if (ignoredOccurrences.has(occurrenceKey(hit.word, occurrence))) continue;
       if (!accepts(ACCEPTED, hit.word)) {
         flagged.push([hit, occurrence]);
-        const held = misses.get(hit.word);
-        if (held) held.push(occurrence);
+        const occurrences = misses.get(hit.word);
+        if (occurrences) occurrences.push(occurrence);
         else misses.set(hit.word, [occurrence]);
       }
     }
@@ -883,38 +887,38 @@ function render() {
   clearTimeout(pending);
   dismiss();
   preview.innerHTML = marked.parse(stripFrontMatter(source.value));
-  mark();
+  markMisspellings();
 }
 
-function tally() {
-  const held = ignored.size + overlooked.size;
-  excused.hidden = held === 0;
-  excused.textContent = `Unignore ${held}`;
+function updateUnignoreButton() {
+  const ignoredCount = ignored.size + ignoredOccurrences.size;
+  unignoreButton.hidden = ignoredCount === 0;
+  unignoreButton.textContent = `Unignore ${ignoredCount}`;
 }
 
 function store() {
   try {
-    localStorage.setItem(KEPT, JSON.stringify([...ignored]));
+    localStorage.setItem(IGNORED_STORAGE_KEY, JSON.stringify([...ignored]));
   } catch {}
 }
 
-function revise() {
+function saveAndRender() {
   store();
-  tally();
+  updateUnignoreButton();
   render();
 }
 
-function excuse(word) {
+function ignoreEverywhere(word) {
   ignored.add(word);
-  for (const key of overlooked) {
-    if (key.startsWith(`${word}\t`)) overlooked.delete(key);
+  for (const key of ignoredOccurrences) {
+    if (key.startsWith(`${word}\t`)) ignoredOccurrences.delete(key);
   }
-  revise();
+  saveAndRender();
 }
 
-function overlook(word, occurrence) {
-  overlooked.add(spot(word, occurrence));
-  tally();
+function ignoreOnce(word, occurrence) {
+  ignoredOccurrences.add(occurrenceKey(word, occurrence));
+  updateUnignoreButton();
   render();
 }
 
@@ -924,32 +928,32 @@ function schedule() {
 }
 
 function dismiss() {
-  if (fixer.matches(":popover-open")) fixer.hidePopover();
+  if (popover.matches(":popover-open")) popover.hidePopover();
 }
 
-function pin(span) {
+function placePopover(span) {
   const box = span.getBoundingClientRect();
-  const own = fixer.getBoundingClientRect();
+  const own = popover.getBoundingClientRect();
   const rightmost = window.innerWidth - own.width - EDGE;
   const lowest = window.innerHeight - own.height - EDGE;
   const under = box.bottom + GAP;
   const over = box.top - own.height - GAP;
-  fixer.style.left = `${Math.max(EDGE, Math.min(box.left, rightmost))}px`;
-  fixer.style.top = `${under <= lowest ? under : Math.max(EDGE, Math.min(over, lowest))}px`;
+  popover.style.left = `${Math.max(EDGE, Math.min(box.left, rightmost))}px`;
+  popover.style.top = `${under <= lowest ? under : Math.max(EDGE, Math.min(over, lowest))}px`;
 }
 
-function renumber(word, swept) {
+function renumber(word, replaced) {
   const lead = `${word}\t`;
   const kept = [];
-  for (const key of overlooked) {
+  for (const key of ignoredOccurrences) {
     if (key.startsWith(lead)) kept.push(Number(key.slice(lead.length)));
   }
   if (kept.length === 0) return;
-  const dropped = [...new Set(swept)].sort((one, other) => one - other);
-  for (const index of kept) overlooked.delete(spot(word, index));
+  const dropped = [...new Set(replaced)].sort((one, other) => one - other);
+  for (const index of kept) ignoredOccurrences.delete(occurrenceKey(word, index));
   for (const index of kept) {
     const below = dropped.filter((occurrence) => occurrence < index).length;
-    overlooked.add(spot(word, index - below));
+    ignoredOccurrences.add(occurrenceKey(word, index - below));
   }
 }
 
@@ -959,12 +963,12 @@ function snapshot() {
     start: source.selectionStart,
     end: source.selectionEnd,
     direction: source.selectionDirection,
-    overlooked: [...overlooked],
+    ignoredOccurrences: [...ignoredOccurrences],
   };
 }
 
 function updateUndo() {
-  undoer.disabled = corrections.length === 0;
+  undoButton.disabled = corrections.length === 0;
 }
 
 function correct(value, word, occurrences) {
@@ -990,10 +994,10 @@ function undo() {
   const previous = corrections.pop();
   if (!previous) return;
   source.value = previous.value;
-  overlooked.clear();
-  for (const key of previous.overlooked) overlooked.add(key);
+  ignoredOccurrences.clear();
+  for (const key of previous.ignoredOccurrences) ignoredOccurrences.add(key);
   updateUndo();
-  tally();
+  updateUnignoreButton();
   render();
   source.focus();
   if (Number.isInteger(previous.start) && Number.isInteger(previous.end)) {
@@ -1001,85 +1005,85 @@ function undo() {
   }
 }
 
-function propose(span) {
+function showSuggestions(span) {
   const word = span.dataset.w;
   const occurrence = Number(span.dataset.occ);
   const everywhere = misses.get(word) || [occurrence];
   const others = everywhere.length - 1;
   const rest = others === 1 ? "the 1 other" : `the ${others} others`;
-  const offers = suggest(word, advice());
+  const suggestions = suggest(word, suggestContext());
 
-  fixer.replaceChildren();
+  popover.replaceChildren();
   const heading = document.createElement("div");
   heading.className = "word";
   heading.textContent = word;
-  fixer.append(heading);
-  if (offers.length === 0) {
+  popover.append(heading);
+  if (suggestions.length === 0) {
     const none = document.createElement("p");
     none.className = "none";
     none.textContent = EMPTY;
-    fixer.append(none);
+    popover.append(none);
   }
-  for (const fix of offers) {
+  for (const fix of suggestions) {
     const row = document.createElement("div");
-    row.className = "offer";
+    row.className = "suggestion";
     const button = document.createElement("button");
     button.type = "button";
     button.textContent = fix;
     button.addEventListener("click", () => choose(word, occurrence, fix));
     row.append(button);
     if (others > 0) {
-      const all = document.createElement("button");
-      all.type = "button";
-      all.className = "all";
-      all.textContent = `(${others})`;
-      all.title = `Correct this misspelling and ${rest} written the same way`;
-      all.addEventListener("click", () => chooseAll(word, everywhere, fix));
-      row.append(all);
+      const fixAllButton = document.createElement("button");
+      fixAllButton.type = "button";
+      fixAllButton.className = "fix-all";
+      fixAllButton.textContent = `(${others})`;
+      fixAllButton.title = `Correct this misspelling and ${rest} written the same way`;
+      fixAllButton.addEventListener("click", () => chooseAll(word, everywhere, fix));
+      row.append(fixAllButton);
     }
-    fixer.append(row);
+    popover.append(row);
   }
-  const once = document.createElement("button");
-  once.type = "button";
-  once.className = "ignore";
-  once.textContent = IGNORE_ONE;
-  once.title = IGNORE_ONE_TITLE;
-  once.addEventListener("click", () => overlook(word, occurrence));
-  fixer.append(once);
-  const leave = document.createElement("button");
-  leave.type = "button";
-  leave.className = "ignore";
-  leave.textContent = others > 0 ? `${IGNORE_ALL} (${others})` : IGNORE_ALL;
-  leave.title = IGNORE_ALL_TITLE;
-  leave.addEventListener("click", () => excuse(word));
-  fixer.append(leave);
+  const ignoreOneButton = document.createElement("button");
+  ignoreOneButton.type = "button";
+  ignoreOneButton.className = "ignore";
+  ignoreOneButton.textContent = IGNORE_ONE;
+  ignoreOneButton.title = IGNORE_ONE_TITLE;
+  ignoreOneButton.addEventListener("click", () => ignoreOnce(word, occurrence));
+  popover.append(ignoreOneButton);
+  const ignoreAllButton = document.createElement("button");
+  ignoreAllButton.type = "button";
+  ignoreAllButton.className = "ignore";
+  ignoreAllButton.textContent = others > 0 ? `${IGNORE_ALL} (${others})` : IGNORE_ALL;
+  ignoreAllButton.title = IGNORE_ALL_TITLE;
+  ignoreAllButton.addEventListener("click", () => ignoreEverywhere(word));
+  popover.append(ignoreAllButton);
 
-  if (ANCHORING) {
+  if (SUPPORTS_ANCHOR) {
     if (anchor) anchor.style.removeProperty("anchor-name");
     anchor = span;
     span.style.setProperty("anchor-name", ANCHOR);
   }
-  if (!fixer.matches(":popover-open")) fixer.showPopover();
-  if (!ANCHORING) pin(span);
+  if (!popover.matches(":popover-open")) popover.showPopover();
+  if (!SUPPORTS_ANCHOR) placePopover(span);
 }
 
-function flip(text) {
-  copier.textContent = text;
+function flashCopyLabel(text) {
+  copyButton.textContent = text;
   clearTimeout(restore);
   restore = setTimeout(() => {
-    copier.textContent = RESTING;
-  }, HELD);
+    copyButton.textContent = COPY_LABEL;
+  }, COPY_LABEL_MS);
 }
 
-function byHand() {
+function selectForManualCopy() {
   source.focus();
   source.select();
-  flip(BY_HAND);
+  flashCopyLabel(MANUAL_COPY_LABEL);
 }
 
-function regrade() {
+function applyGrade() {
   preview.classList.toggle("senior", isSenior());
-  fixer.classList.toggle("senior", isSenior());
+  popover.classList.toggle("senior", isSenior());
 }
 
 source.addEventListener("input", () => {
@@ -1088,7 +1092,7 @@ source.addEventListener("input", () => {
   schedule();
 });
 
-undoer.addEventListener("click", undo);
+undoButton.addEventListener("click", undo);
 
 document.addEventListener("keydown", (event) => {
   const modified = APPLE ? event.metaKey : event.ctrlKey;
@@ -1106,39 +1110,41 @@ document.addEventListener("keydown", (event) => {
 });
 
 grade.addEventListener("click", () => {
-  paint(!isSenior());
-  keep();
-  regrade();
+  setGrade(!isSenior());
+  saveGrade();
+  applyGrade();
 });
 
 preview.addEventListener("click", (event) => {
   const span = event.target.closest?.(".miss");
   if (span) {
     event.preventDefault();
-    propose(span);
+    showSuggestions(span);
   }
 });
 
-excused.addEventListener("click", () => {
+unignoreButton.addEventListener("click", () => {
   ignored.clear();
-  overlooked.clear();
-  revise();
+  ignoredOccurrences.clear();
+  saveAndRender();
 });
 
-copier.addEventListener("click", () => {
+copyButton.addEventListener("click", () => {
   if (!navigator.clipboard) {
-    byHand();
+    selectForManualCopy();
     return;
   }
-  navigator.clipboard.writeText(source.value).then(() => flip(DONE), byHand);
+  navigator.clipboard
+    .writeText(source.value)
+    .then(() => flashCopyLabel(COPIED_LABEL), selectForManualCopy);
 });
 
 marked.use({ gfm: true });
-if (ANCHORING) fixer.classList.add("anchored");
-undoer.title = `Undo last correction (${APPLE ? "⌘Z" : "Ctrl+Z"})`;
-paint(recalled());
-regrade();
-tally();
+if (SUPPORTS_ANCHOR) popover.classList.add("anchored");
+undoButton.title = `Undo last correction (${APPLE ? "⌘Z" : "Ctrl+Z"})`;
+setGrade(loadSeniorPreference());
+applyGrade();
+updateUnignoreButton();
 updateUndo();
 render();
 </script>

@@ -259,7 +259,7 @@ main {
   cursor: pointer;
 }
 
-#fixer {
+#popover {
   position: fixed;
   inset: auto;
   margin: 0;
@@ -278,18 +278,18 @@ main {
   line-height: 33px;
 }
 
-#fixer.senior {
+#popover.senior {
   font-family: var(--senior);
 }
 
-#fixer.anchored {
+#popover.anchored {
   position-anchor: --qs-miss;
   position-area: block-end span-inline-end;
   position-try-fallbacks: flip-block, flip-inline, flip-block flip-inline;
   margin-block-start: 4px;
 }
 
-#fixer .word {
+#popover .word {
   margin-bottom: 11px;
   padding-bottom: 11px;
   border-bottom: 1px solid var(--rule);
@@ -300,7 +300,7 @@ main {
   white-space: nowrap;
 }
 
-#fixer button {
+#popover button {
   display: block;
   width: 100%;
   padding: 0 11px;
@@ -314,40 +314,40 @@ main {
   cursor: pointer;
 }
 
-#fixer button:hover,
-#fixer button:focus-visible {
+#popover button:hover,
+#popover button:focus-visible {
   background: var(--chrome);
 }
 
-#fixer .offer {
+#popover .suggestion {
   display: flex;
 }
 
-#fixer .offer button {
+#popover .suggestion button {
   width: auto;
 }
 
-#fixer .offer button:first-child {
+#popover .suggestion button:first-child {
   flex: 1;
 }
 
-#fixer .all {
+#popover .fix-all {
   color: var(--quiet);
 }
 
-#fixer .all:hover,
-#fixer .all:focus-visible {
+#popover .fix-all:hover,
+#popover .fix-all:focus-visible {
   color: var(--ink);
 }
 
-#fixer .none {
+#popover .none {
   margin: 0;
   font-size: 11px;
   line-height: 1.4;
   color: var(--quiet);
 }
 
-#fixer .ignore {
+#popover .ignore {
   margin-top: 11px;
   padding: 11px 11px 0;
   border-top: 1px solid var(--rule);
@@ -355,14 +355,14 @@ main {
   color: var(--quiet);
 }
 
-#fixer .ignore + .ignore {
+#popover .ignore + .ignore {
   margin-top: 0;
   padding-top: 0;
   border-top: 0;
 }
 
-#fixer .ignore:hover,
-#fixer .ignore:focus-visible {
+#popover .ignore:hover,
+#popover .ignore:focus-visible {
   background: none;
   color: var(--ink);
 }

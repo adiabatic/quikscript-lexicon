@@ -32,7 +32,7 @@ for (const line of QS.words.split("\n")) {
 const UNION = [...counts.keys()];
 const ACCEPTED = new Set(UNION);
 
-const advice = (extra) =>
+const suggestContext = (extra) =>
   Object.assign(
     {
       active: ACCEPTED,
@@ -259,13 +259,13 @@ check("an X-letter word spelled out is bridged back by the rep table first", () 
   assert.ok(X_LETTERED.length > 0, "some X-letter word has an unlisted spelled-out form");
   const { spelled, spelled_out } = X_LETTERED[0];
   assert.equal(accepts(ACCEPTED, spelled_out), false);
-  const offers = suggest(spelled_out, advice());
+  const offers = suggest(spelled_out, suggestContext());
   assert.equal(offers[0], spelled, `${show(offers[0])} != ${show(spelled)}`);
 });
 
 check("the rep table bridges the other way too", () => {
   const { spelled, spelled_out } = X_LETTERED[0];
-  const offers = suggest(spelled, advice());
+  const offers = suggest(spelled, suggestContext());
   assert.ok(!accepts(ACCEPTED, spelled_out));
   assert.ok(!offers.includes(spelled_out), "an unlisted spelling is never offered");
   const listed = QS.rep
@@ -307,7 +307,7 @@ check("a wrong vowel is fixed ahead of every other kind of edit", () => {
   assert.equal(accepts(ACCEPTED, MISVOWELED), false, show(MISVOWELED));
   assert.equal(accepts(ACCEPTED, WHATS), true, show(WHATS));
   assert.equal(freq(WHATS), 0, "a corpus bump that counts it needs a new specimen");
-  const offers = suggest(MISVOWELED, advice());
+  const offers = suggest(MISVOWELED, suggestContext());
   const at = offers.indexOf(WHATS);
   assert.ok(at >= 0, `${show(WHATS)} not in ${offers.map(show).join(" | ")}`);
   for (const offer of offers.slice(0, at)) {
@@ -334,7 +334,7 @@ check("the sample opens with exactly one word the lexicon does not carry", () =>
 });
 
 check("the sample's misspelling is an edit away from the word it was made from", () => {
-  const offers = suggest(WRONG[0], advice());
+  const offers = suggest(WRONG[0], suggestContext());
   assert.ok(offers.length > 0);
   assert.ok(offers.length <= 10);
   const meant = SAMPLE_WORDS[0];
@@ -342,7 +342,7 @@ check("the sample's misspelling is an edit away from the word it was made from",
 });
 
 check("edit-distance offers come commonest first within their tier", () => {
-  const offers = suggest(WRONG[0], advice());
+  const offers = suggest(WRONG[0], suggestContext());
   const single = offers.filter((offer) => !offer.includes(" "));
   const bridged = QS.rep.some(([written]) => WRONG[0].includes(written));
   assert.equal(bridged, false);
@@ -379,7 +379,7 @@ const GIBBERISH = A.repeat(10);
 
 check("a typo two edits away is still offered the word it came from", () => {
   assert.equal(ACCEPTED.has(TWO_AWAY), false, show(TWO_AWAY));
-  const offers = suggest(TWO_AWAY, advice());
+  const offers = suggest(TWO_AWAY, suggestContext());
   assert.ok(
     offers.includes(LONGISH),
     `${show(LONGISH)} not in ${offers.map(show).join(" | ")}`,
@@ -389,7 +389,7 @@ check("a typo two edits away is still offered the word it came from", () => {
 check("a typo three edits away is still offered the word it came from", () => {
   assert.equal(ACCEPTED.has(THREE_AWAY), false, show(THREE_AWAY));
   assert.equal(distance(THREE_AWAY, LONGISH, 3), 3);
-  const offers = suggest(THREE_AWAY, advice());
+  const offers = suggest(THREE_AWAY, suggestContext());
   assert.ok(
     offers.includes(LONGISH),
     `${show(LONGISH)} not in ${offers.map(show).join(" | ")}`,
@@ -397,7 +397,7 @@ check("a typo three edits away is still offered the word it came from", () => {
 });
 
 check("a two-edit offer outranks a commoner offer three edits out", () => {
-  const offers = suggest(TWO_AWAY, advice()).filter((offer) => !offer.includes(" "));
+  const offers = suggest(TWO_AWAY, suggestContext()).filter((offer) => !offer.includes(" "));
   const edits = offers.map((offer) => distance(TWO_AWAY, offer, 3));
   const near = edits.indexOf(2);
   const far = edits.indexOf(3);
@@ -412,13 +412,13 @@ check("a two-edit offer outranks a commoner offer three edits out", () => {
 
 check("a typo nothing is within three edits of is offered nothing", () => {
   assert.equal(ACCEPTED.has(GIBBERISH), false, show(GIBBERISH));
-  assert.deepEqual(suggest(GIBBERISH, advice()), []);
+  assert.deepEqual(suggest(GIBBERISH, suggestContext()), []);
 });
 
 check("every offer is a spelling the accepted set takes, and never the word itself", () => {
   const sampled = [WRONG[0], CONTRACTION, ...UNION.slice(0, 40)];
   for (const word of sampled) {
-    const ctx = advice();
+    const ctx = suggestContext();
     const offers = suggest(word, ctx);
     assert.ok(offers.length <= 10);
     assert.equal(new Set(offers).size, offers.length, show(word));
@@ -446,7 +446,7 @@ check("a run-together pair of words is offered split", () => {
   assert.ok(RUN_ON, "some pair of common words runs together into an unlisted string");
   const { left, right, joined } = RUN_ON;
   assert.equal(accepts(ACCEPTED, joined), false);
-  const offers = suggest(joined, advice({ limit: 200 }));
+  const offers = suggest(joined, suggestContext({ limit: 200 }));
   const split = offers.filter((offer) => offer.includes(" "));
   assert.ok(split.length > 0, show(joined));
   assert.ok(
@@ -462,14 +462,14 @@ check("a run-together pair of words is offered split", () => {
 
 check("splits are ranked on the rarer half, commonest first", () => {
   const { joined } = RUN_ON;
-  const split = suggest(joined, advice({ limit: 200 })).filter((offer) => offer.includes(" "));
+  const split = suggest(joined, suggestContext({ limit: 200 })).filter((offer) => offer.includes(" "));
   const scores = split.map((offer) => Math.min(...offer.split(" ").map(freq)));
   assert.deepEqual(scores, [...scores].sort((one, other) => other - one), scores.join(","));
 });
 
 check("splits are ranked after every single-word offer", () => {
   const { joined } = RUN_ON;
-  const offers = suggest(joined, advice({ limit: 200 }));
+  const offers = suggest(joined, suggestContext({ limit: 200 }));
   const first = offers.findIndex((offer) => offer.includes(" "));
   if (first >= 0) {
     assert.ok(offers.slice(first).every((offer) => offer.includes(" ")));
