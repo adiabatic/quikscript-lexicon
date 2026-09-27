@@ -167,7 +167,7 @@ Apart from the points above, the code is a direct port. It differs from `latin2s
 - **Heteronyms**: read/read by tense; lead and live by part of speech; use as noun or verb; that as demonstrative, conjunction or relative. It also tests that against, which no tag can decide, is written as its ⬌-joined alternatives.
 - **Clitics**: devoiced, sibilant and voiced possessives; dropped and kept apostrophes; solid n't; the voicing of a constructed plural; and the contraction layer’s stems, clitics, and the cases where it does not contract.
 - **The Manual’s specimen passages**, all 674 words. The test runs the transliterator over each passage’s Latin and compares the output with the Manual’s spelling. Senior passages use the defaults (X-letters and contractions on) and Junior passages use `--junior`.
-  - Each word is compared according to its `verdict` column in `manual-passages.tsv`. `absent` rows are skipped. A `differs` row accepts either the Manual’s spelling or the row’s `ours` spelling. Every other row must match the Manual’s spelling.
+  - Each word is compared according to its `outcome` column in `manual-passages.tsv`. `absent` rows are skipped. A `differs` row accepts either the Manual’s spelling or the row’s `ours` spelling. Every other row must match the Manual’s spelling.
   - `REPLAY_PINS` gives the expected output for five words that the transliterator cannot write as the Manual does:
     - 'twas: `manual-passages.tsv` cannot record the leading apostrophe.
     - little: the phrase “a little” matches first, so the word-level contraction layer never sees little.

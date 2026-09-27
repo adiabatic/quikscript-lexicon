@@ -80,7 +80,7 @@ def load_added_words(path: Path | None = None) -> tuple[AddedWord, ...]:
             raise ValueError(f"{source}:{lineno}: unknown letter names {unknown}")
         if not authority:
             raise ValueError(
-                f"{source}:{lineno}: a word the corpus does not carry needs a source "
+                f"{source}:{lineno}: a word the corpus does not contain needs a source "
                 f"saying where it comes from"
             )
         if not note:

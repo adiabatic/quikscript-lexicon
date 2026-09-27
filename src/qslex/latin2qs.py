@@ -293,7 +293,7 @@ class Transliterator:
 
     def __init__(self, lexicon: Path | None = None) -> None:
         lexicon = lexicon if lexicon is not None else repo_root() / "lexicon"
-        master = json.loads((lexicon / LEXICON_JSON).read_text(encoding="utf-8"))
+        lexicon_json = json.loads((lexicon / LEXICON_JSON).read_text(encoding="utf-8"))
         penn = load_penn()
         self.rows_of: dict[str, Rows] = converter(
             (
@@ -304,17 +304,17 @@ class Transliterator:
                     entry.get("qs_junior", ""),
                     entry.get("qs_x", ""),
                 )
-                for group in master["entries"].values()
+                for group in lexicon_json["entries"].values()
                 for entry in group
             ),
             penn,
         )
-        phrases = master["phrases"]
+        phrases = lexicon_json["phrases"]
 
         self.contraction_words: dict[tuple[str, str], str] = {}
         self.contraction_end: dict[str, str] = dict(CONTRACTION_END)
         for entry in load_contractions():
-            if not entry.written:
+            if not entry.transliterated:
                 continue
             spelling = _contraction_qs(entry.contraction)
             if entry.kind == "clitic":

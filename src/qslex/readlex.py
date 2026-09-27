@@ -82,8 +82,8 @@ def load_rows(path: Path | None = None, verify: bool = True) -> tuple[Row, ...]:
         if actual != CORPUS_SHA256:
             raise CorpusError(
                 f"{path} has SHA-256 {actual}, expected {CORPUS_SHA256} "
-                f"({CORPUS_URL} @ {CORPUS_COMMIT[:7]}). Every corpus invariant in "
-                f"validate.py is pinned to that snapshot; bump both together."
+                f"({CORPUS_URL} @ {CORPUS_COMMIT[:7]}). The expected counts in "
+                f"validate.py are for that snapshot; update both together."
             )
 
     source = str(path)

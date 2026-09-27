@@ -21,7 +21,7 @@ COLUMNS = ("senior", "junior", "x")
 CONTRACTION = "contraction"
 
 
-class ProjectionError(RuntimeError):
+class CheckerDataError(RuntimeError):
     pass
 
 
@@ -53,7 +53,7 @@ class Lexicon:
 def artifact(name: str, root: Path) -> str:
     path = root / ARTIFACTS / name
     if not path.is_file():
-        raise ProjectionError(f"{path} not found; run `make artifacts` first")
+        raise CheckerDataError(f"{path} not found; run `make artifacts` first")
     return path.read_text(encoding="utf-8")
 
 
@@ -62,7 +62,7 @@ def load_records(root: Path) -> tuple[Record, ...]:
 
     This reads the committed JSON rather than respelling the corpus, so the page and the payload are built from the same lexicon as the committed hunspell files. When the lexicon changes, the page and the payload no longer match a rebuild, and `make check` fails.
     """
-    master = json.loads(artifact(LEXICON_JSON, root))
+    lexicon_json = json.loads(artifact(LEXICON_JSON, root))
     return tuple(
         Record(
             latin=entry["Latn"],
@@ -72,7 +72,7 @@ def load_records(root: Path) -> tuple[Record, ...]:
             x_letter=entry.get("qs_x", ""),
             frequency=entry["freq"],
         )
-        for group in master["entries"].values()
+        for group in lexicon_json["entries"].values()
         for entry in group
     )
 
@@ -97,10 +97,10 @@ def contracted(
             if not entry.pos or record.pos == entry.pos
         ]
         if not matched:
-            raise ProjectionError(
+            raise CheckerDataError(
                 f"the contraction for {entry.word!r} ({entry.pos or 'any pos'}) "
-                f"matches no row of {LEXICON_JSON}, so the projection would carry a "
-                f"spelling with no word to take a frequency from"
+                f"matches no row of {LEXICON_JSON}, so the checker data would "
+                f"include a spelling with no word to take a frequency from"
             )
         written = render_qs(parse(entry.contraction))
         out.extend((written, record) for record in matched)
@@ -116,20 +116,22 @@ def derive(records: Iterable[Record], contractions: Iterable[Contraction]) -> Le
     """
     rows = tuple(records)
     matched = contracted(contractions, rows)
-    carried = frozenset(spellings((written, "", "") for written, _ in matched))
+    contracted_spellings = frozenset(
+        spellings((written, "", "") for written, _ in matched)
+    )
 
     frequency: dict[str, int] = {}
     for row in rows:
         for word in spellings((row.columns(),)):
             frequency[word] = max(frequency.get(word, 0), row.frequency)
     for written, row in matched:
-        if written in carried:
+        if written in contracted_spellings:
             frequency[written] = max(frequency.get(written, 0), row.frequency)
 
     listed = spellings(row.columns() for row in rows)
     return Lexicon(
         listed=listed,
-        union=tuple(sorted(frozenset(listed) | carried)),
+        union=tuple(sorted(frozenset(listed) | contracted_spellings)),
         frequency=frequency,
     )
 
@@ -144,12 +146,12 @@ def crosscheck(lexicon: Lexicon, root: Path) -> None:
     lines = artifact(HUNSPELL_DIC, root).splitlines()
     count, words = lines[0], tuple(lines[1:])
     if count != str(len(words)):
-        raise ProjectionError(
+        raise CheckerDataError(
             f"{HUNSPELL_DIC} counts {count} entries and lists {len(words)}"
         )
     if words != lexicon.listed:
-        raise ProjectionError(
-            f"the projection’s {len(lexicon.listed)} listed spellings are not the "
+        raise CheckerDataError(
+            f"the checker data’s {len(lexicon.listed)} listed spellings are not the "
             f"{len(words)} {HUNSPELL_DIC} lists; run `make artifacts`"
         )
 
@@ -159,12 +161,12 @@ def crosscheck(lexicon: Lexicon, root: Path) -> None:
         if line.startswith("TRY ")
     ]
     if len(written) != 1:
-        raise ProjectionError(
-            f"{HUNSPELL_AFF} declares {len(written)} TRY lines, wanted 1"
+        raise CheckerDataError(
+            f"{HUNSPELL_AFF} has {len(written)} TRY lines, expected 1"
         )
     if written[0] != by_frequency(lexicon.listed):
-        raise ProjectionError(
-            f"the projection’s letter order is not {HUNSPELL_AFF}’s TRY order"
+        raise CheckerDataError(
+            f"the checker data’s letter order is not {HUNSPELL_AFF}’s TRY order"
         )
 
 

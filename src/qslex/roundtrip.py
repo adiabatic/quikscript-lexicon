@@ -85,7 +85,7 @@ def phonemes_of(mapping: Mapping) -> dict[str, tuple[str, ...]]:
         if table.setdefault(name, phoneme) != phoneme:
             raise ValueError(
                 f"·{name} is written for both {table[name][0]!r} and {phoneme[0]!r}, "
-                f"which no documented merge joins"
+                f"which no entry in MERGES joins"
             )
     for name, phonemes in X_LETTERS.items():
         table[name] = phonemes

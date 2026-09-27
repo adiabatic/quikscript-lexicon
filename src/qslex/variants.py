@@ -5,7 +5,7 @@ from dataclasses import dataclass
 from pathlib import Path
 
 from qslex.readlex import Row
-from qslex.tables import Declares, rows_of
+from qslex.tables import HasWordList, rows_of
 
 TAGS_FILE = "var-tags.tsv"
 TAGS_HEADER = ["tag", "canonical", "policy", "rows", "words", "note"]
@@ -16,7 +16,7 @@ DOCUMENTED = frozenset({"RRP", "TrapBath", "GenAm", "GenAus"})
 
 
 @dataclass(frozen=True)
-class VarTag(Declares):
+class VarTag(HasWordList):
     tag: str
     canonical: str
     policy: str
@@ -52,10 +52,10 @@ def load_var_tags(path: Path | None = None) -> Tags:
         entry = VarTag(tag, canonical, policy, count, words, note)
         if tag in known:
             raise ValueError(f"{source}:{lineno}: duplicate row for {tag!r}")
-        if tag not in DOCUMENTED and not entry.declared_words:
+        if tag not in DOCUMENTED and not entry.listed_words:
             raise ValueError(
                 f"{source}:{lineno}: {tag!r} is not one of upstream’s documented "
-                f"tags {sorted(DOCUMENTED)}, so it must declare the words it covers"
+                f"tags {sorted(DOCUMENTED)}, so it must list the words it covers"
             )
         if not note:
             raise ValueError(f"{source}:{lineno}: every tag needs a note")
@@ -82,8 +82,8 @@ def kept(tags: Tags, tag: str) -> bool:
     entry = tags.get(tag)
     if entry is None:
         raise ValueError(
-            f"{TAGS_FILE} has no policy for the variant tag {tag!r}; the corpus has "
-            f"grown a tag nobody has ruled on"
+            f"{TAGS_FILE} has no policy for the variant tag {tag!r}, which appears "
+            f"in the corpus"
         )
     return entry.kept
 

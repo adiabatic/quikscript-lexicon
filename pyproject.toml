@@ -1,7 +1,7 @@
 [project]
 name = "qslex"
 version = "0.1.0"
-description = "IPA-to-Quikscript segment mapping and tokenizer for the Quikscript lexicon"
+description = "Quikscript lexicon build, validator and transliterator"
 authors = [
     { name = "Nathan Galt", email = "adiabatic@users.noreply.github.com" }
 ]

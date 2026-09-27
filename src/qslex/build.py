@@ -87,7 +87,7 @@ class Entry:
 
 
 @dataclass(frozen=True)
-class Coverage:
+class BuildSummary:
     """Counts printed after a build.
 
     They are informational. `qslex.readlex` checks the corpus row count when it loads the corpus, and qslex.validate checks the kept rows and the junior rows. Nothing checks the X-letter row count or the number of added words. `report` does the counting, so a build that prints nothing (`--check`) counts nothing.
@@ -293,7 +293,7 @@ def artifacts(
 
 def build(
     path: Path | None = None, verify: bool = True
-) -> tuple[dict[str, str], Coverage]:
+) -> tuple[dict[str, str], BuildSummary]:
     """The corpus rows the row policy keeps, followed by the added words.
 
     The added words go after the corpus rows rather than among them. The lexicon JSON’s headwords then stay in corpus order, an upstream update diffs cleanly, and the added headwords are together at the end.
@@ -302,7 +302,7 @@ def build(
     rows = load_rows(path, verify=verify)
     added = added_rows(load_added_words())
     entries = convert(select(load_var_tags(), rows) + added, mapping)
-    return artifacts(entries, mapping, len(added)), Coverage(
+    return artifacts(entries, mapping, len(added)), BuildSummary(
         len(rows), len(added), entries
     )
 
@@ -321,14 +321,14 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--no-verify-digest", action="store_true")
     args = parser.parse_args(argv)
 
-    built, coverage = build(args.readlex, verify=not args.no_verify_digest)
+    built, summary = build(args.readlex, verify=not args.no_verify_digest)
     if not args.check:
         args.out.mkdir(parents=True, exist_ok=True)
         for name, text in built.items():
             (args.out / name).write_text(text, encoding="utf-8", newline="\n")
             print(f"wrote {args.out / name}")
         print()
-        print(coverage.report())
+        print(summary.report())
         return 0
 
     stale: list[str] = []

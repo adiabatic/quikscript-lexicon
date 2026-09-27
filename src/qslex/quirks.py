@@ -4,7 +4,7 @@ import re
 from dataclasses import dataclass
 from pathlib import Path
 
-from qslex.tables import Declares, rows_of
+from qslex.tables import HasWordList, rows_of
 
 QUIRKS_FILE = "ipa-quirks.tsv"
 QUIRKS_HEADER = ["scope", "match", "replacement", "words", "note"]
@@ -12,7 +12,7 @@ SCOPES = {"row", "sub", "regex"}
 
 
 @dataclass(frozen=True)
-class QuirkRule(Declares):
+class QuirkRule(HasWordList):
     scope: str
     match: str
     replacement: str
@@ -28,8 +28,8 @@ def load_quirks(path: Path | None = None) -> tuple[QuirkRule, ...]:
             raise ValueError(f"{source}:{lineno}: unknown scope {rule.scope!r}")
         if not rule.match:
             raise ValueError(f"{source}:{lineno}: empty match")
-        if not rule.declared_words:
-            raise ValueError(f"{source}:{lineno}: no words declared")
+        if not rule.listed_words:
+            raise ValueError(f"{source}:{lineno}: no words listed")
         if rule.scope == "regex":
             try:
                 re.compile(rule.match)

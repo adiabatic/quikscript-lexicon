@@ -210,12 +210,12 @@ def test_junior_repeating_senior_is_rejected(tmp_path: Path) -> None:
         load_word_signs(signs_file(tmp_path, extra))
 
 
-def test_an_unreachable_part_of_speech_row_is_rejected(tmp_path: Path) -> None:
+def test_a_part_of_speech_row_after_a_general_row_is_rejected(tmp_path: Path) -> None:
     extra = [
         ["also", "", "standard", "·Awe·Low·See", "", "", "common-words", ""],
         ["also", "AV0", "standard", "·Awe·Low", "", "", "common-words", ""],
     ]
-    with pytest.raises(ValueError, match="can never be reached"):
+    with pytest.raises(ValueError, match="already has a general row"):
         load_word_signs(signs_file(tmp_path, extra))
 
 
@@ -253,8 +253,8 @@ def test_doing_is_carried_under_the_terminal_ing_anchor() -> None:
 def test_done_is_carried_under_the_no_how_anchor() -> None:
     done = [entry for entry in CONTRACTIONS if entry.word == "done"]
     assert [(e.contraction, e.authority) for e in done] == [("·Day·No", "no-how")]
-    assert not done[0].written
-    assert all(e.written for e in CONTRACTIONS if e.word != "done")
+    assert not done[0].transliterated
+    assert all(e.transliterated for e in CONTRACTIONS if e.word != "done")
     assert senior("done", "VDN") == "·Day·Utter·No"
 
 

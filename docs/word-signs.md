@@ -12,7 +12,7 @@ Authority links go to the [AMS Manual transcription][manual]. Every letter-name 
   - done ·Day·No comes from the [No-how][no-how] passage, which writes it at the word’s second occurrence after spelling it out at the first. This source is running text, not a rule, so the checker accepts the form and the transliterator does not write it.
 
   The `authority` column names each row’s source. Columns: `word`, `pos`, `kind`, `contraction`, `authority`, `note`.
-- `src/qslex/words.py`: the loaders and the substitution. The loaders reject, among other things, an unknown tier, an `authority` that is not one of this table’s Manual anchors, a Junior spelling identical to the Senior one, a part-of-speech row for a word that already has a row for every part of speech, and a missing core sign.
+- `src/qslex/words.py`: the loaders and the substitution. The loaders reject, among other things, an unknown tier, an `authority` that is not one of this table’s Manual anchors, a Junior spelling identical to the Senior one, a part-of-speech row that follows a general row (one with an empty `pos`) for the same word, and a missing core sign.
 - `src/qslex/letters.py`: the letter-name parsing and rendering functions, shared with the rules.
 - `src/qslex/elements.py`: pairs an entry’s words and separators with the runs of its spelling. The rules use the same function, so the two layers always agree on where a boundary is.
 

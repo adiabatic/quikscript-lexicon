@@ -82,7 +82,7 @@ def load_penn(path: Path | None = None) -> dict[str, TagMap]:
         if entry.penn not in PENN_TAGS:
             raise ValueError(
                 f"{source}:{lineno}: {entry.penn!r} is not a Penn tag "
-                f"this table carries (have {sorted(PENN_TAGS)})"
+                f"this table uses (have {sorted(PENN_TAGS)})"
             )
         if not entry.note:
             raise ValueError(f"{source}:{lineno}: every mapping needs a note")
@@ -134,7 +134,7 @@ def _collect(
         previous = spellings.setdefault(senior, forms)
         if previous != forms:
             raise ConverterError(
-                f"{senior!r} carries two different junior/x-letter forms, "
+                f"{senior!r} has two different junior/x-letter forms, "
                 f"{previous} and {forms}, so the alternatives cannot be lined up"
             )
     return spellings
@@ -161,7 +161,7 @@ def converter(
             if mapped is None:
                 if len({e[1] for e in group}) > 1:
                     raise ConverterError(
-                        f"{latin!r} is spelled more than one way and carries the C5 tag "
+                        f"{latin!r} is spelled more than one way and has the C5 tag "
                         f"{pos!r}, which {PENN_FILE} has no Penn equivalent for"
                     )
                 continue

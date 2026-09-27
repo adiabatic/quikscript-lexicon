@@ -6,19 +6,19 @@ from pathlib import Path
 import pytest
 
 from qslex.build import HUNSPELL_AFF, HUNSPELL_DIC
-from qslex.desk import build as build_page
-from qslex.hunspell import X_LETTERS, by_frequency
-from qslex.payload import PAYLOAD, build, main
-from qslex.projection import (
+from qslex.checker_data import (
     COLUMNS,
     CONTRACTION,
-    ProjectionError,
+    CheckerDataError,
     artifact,
     contracted,
     crosscheck,
     load_records,
     payload,
 )
+from qslex.desk import build as build_page
+from qslex.hunspell import X_LETTERS, by_frequency
+from qslex.payload import PAYLOAD, build, main
 from qslex.readlex import repo_root
 from qslex.words import Contraction
 
@@ -213,13 +213,13 @@ def test_a_spaced_spelling_reaches_neither_map() -> None:
 
 def test_a_word_set_the_dictionary_does_not_list_is_refused() -> None:
     doctored = dataclasses.replace(LEXICON, listed=LEXICON.listed[:-1])
-    with pytest.raises(ProjectionError, match="make artifacts"):
+    with pytest.raises(CheckerDataError, match="make artifacts"):
         crosscheck(doctored, ROOT)
 
 
 def test_a_contraction_matching_no_lexicon_row_is_refused() -> None:
     stray = Contraction("qwertyuiop", "", "word", "·Key", "senior-contractions", "")
-    with pytest.raises(ProjectionError, match="matches no row"):
+    with pytest.raises(CheckerDataError, match="matches no row"):
         contracted((stray,), RECORDS)
 
 

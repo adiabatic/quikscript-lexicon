@@ -439,13 +439,13 @@ def test_the_specimen_passages_replay(passage: str, t: Transliterator) -> None:
     chunks = t.transliterate(text, options).strip().split(" ")
     assert len(chunks) == len(rows)
     for row, chunk in zip(rows, chunks, strict=True):
-        if row.verdict == "absent":
+        if row.outcome == "absent":
             continue
         got = chunk.replace("·", "")
         pin = REPLAY_PINS.get((row.passage, row.index))
         if pin is not None:
             allowed = {render_qs(parse(pin)).replace("·", "")}
-        elif row.verdict == "differs":
+        elif row.outcome == "differs":
             allowed = {
                 render_qs(parse(row.spelling)).replace("·", ""),
                 render_qs(parse(row.ours)).replace("·", ""),

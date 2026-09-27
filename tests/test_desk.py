@@ -7,6 +7,15 @@ from pathlib import Path
 import pytest
 
 from qslex.build import HUNSPELL_AFF, HUNSPELL_DIC
+from qslex.checker_data import (
+    artifact,
+    confusions,
+    contracted,
+    load_records,
+    payload,
+    replacements,
+    word_list,
+)
 from qslex.desk import (
     CORE,
     MARKED_JS,
@@ -25,22 +34,13 @@ from qslex.desk import (
 )
 from qslex.hunspell import X_LETTERS, by_frequency
 from qslex.letters import parse, render_qs
-from qslex.projection import (
-    artifact,
-    confusions,
-    contracted,
-    load_records,
-    payload,
-    replacements,
-    word_list,
-)
 from qslex.readlex import repo_root
 from qslex.words import load_contractions
 
 ROOT = repo_root()
 RECORDS = load_records(ROOT)
-BUILT, COVERAGE = build()
-LEXICON = COVERAGE.lexicon
+BUILT, SUMMARY = build()
+LEXICON = SUMMARY.lexicon
 
 CONTRACTIONS = load_contractions()
 MATCHED = contracted(CONTRACTIONS, RECORDS)
@@ -208,7 +208,7 @@ def test_a_missing_asset_is_refused(tmp_path: Path) -> None:
 
 
 def test_a_chunk_that_could_close_its_own_script_is_refused() -> None:
-    with pytest.raises(PageError, match="truncate"):
+    with pytest.raises(PageError, match="end the script element early"):
         substitute("__QS_APP__", {"__QS_APP__": "if (a </SCRIPT> b) {}"})
 
 

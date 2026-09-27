@@ -79,7 +79,7 @@ def load_examples(path: Path | None = None) -> tuple[Example, ...]:
         if example.source != "manual" and not example.note:
             raise ValueError(
                 f"{source}:{lineno}: a {example.source} spelling needs a note "
-                f"saying how it was reached"
+                f"saying how it was derived"
             )
         if example.column == "x-letter" and example.rule != X_LETTER_RULE:
             raise ValueError(

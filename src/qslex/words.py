@@ -17,7 +17,7 @@ CONTRACTIONS_HEADER = ["word", "pos", "kind", "contraction", "authority", "note"
 KINDS = {"word", "clitic"}
 CONTRACTION_AUTHORITIES = {"senior-contractions", "terminal-ing", "no-how"}
 # Rows whose only source is a specimen passage, not a list or rule in the Manual. The spell checkers accept these forms, but the transliterator does not write them.
-TOLERATED_AUTHORITIES = frozenset({"no-how"})
+ACCEPT_ONLY_AUTHORITIES = frozenset({"no-how"})
 
 # The core eight, which the Manual says Junior writers should use too, in the order the Manual lists them.
 CORE_EIGHT = ("the", "of", "and", "to", "it", "is", "for", "be")
@@ -45,9 +45,9 @@ class Contraction:
     note: str
 
     @property
-    def written(self) -> bool:
+    def transliterated(self) -> bool:
         """Whether the transliterator writes this form. The spell checkers accept every row either way."""
-        return self.authority not in TOLERATED_AUTHORITIES
+        return self.authority not in ACCEPT_ONLY_AUTHORITIES
 
 
 Signs = dict[tuple[str, str], Sign]
@@ -98,8 +98,8 @@ def load_word_signs(path: Path | None = None) -> Signs:
             raise ValueError(f"{source}:{lineno}: duplicate row for {key}")
         if sign.pos and (sign.word, "") in known:
             raise ValueError(
-                f"{source}:{lineno}: {sign.word!r} already has a row for every "
-                f"part of speech, so a {sign.pos} row can never be reached"
+                f"{source}:{lineno}: {sign.word!r} already has a general row; add "
+                f"part-of-speech rows only for words without one"
             )
         known[key] = sign
     missing = [word for word in CORE_EIGHT if (word, "") not in known]

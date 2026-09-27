@@ -174,14 +174,14 @@ def test_overrides_reject_ipa_without_token(tmp_path: Path) -> None:
 
 def test_quirks_reject_missing_words(tmp_path: Path) -> None:
     path = write_tsv(tmp_path / "q.tsv", QUIRKS_HEADER, [["sub", "a", "b", "", "n"]])
-    with pytest.raises(ValueError, match="no words declared"):
+    with pytest.raises(ValueError, match="no words listed"):
         load_quirks(path)
 
 
 def test_overrides_reject_missing_words(tmp_path: Path) -> None:
     mapping = load_mapping(mapping_file(tmp_path, GOOD_ROWS))
     rows = [["ˈkɪə", "ɪə", "stressed", "", "a", ""]]
-    with pytest.raises(ValueError, match="no words declared"):
+    with pytest.raises(ValueError, match="no words listed"):
         load_overrides(mapping, overrides_file(tmp_path, rows))
 
 
@@ -352,7 +352,7 @@ def test_good_var_tags_load(tmp_path: Path) -> None:
     tags = load_var_tags(tags_file(tmp_path, GOOD_TAGS))
     assert kept(tags, "RRPVar")
     assert not kept(tags, "GenAm")
-    assert tags["RRPVar"].declared_words == ("again",)
+    assert tags["RRPVar"].listed_words == ("again",)
     assert tags["RRP"].rows == 3
 
 
@@ -381,7 +381,7 @@ def test_var_tags_reject_a_duplicate_row(tmp_path: Path) -> None:
 
 def test_an_undocumented_tag_must_declare_the_words_it_covers(tmp_path: Path) -> None:
     rows = [*GOOD_TAGS, ["SSB", "SSB", "drop", "1", "", "n"]]
-    with pytest.raises(ValueError, match="must declare the words it covers"):
+    with pytest.raises(ValueError, match="must list the words it covers"):
         load_var_tags(tags_file(tmp_path, rows))
 
 

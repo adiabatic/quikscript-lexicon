@@ -15,9 +15,9 @@ from collections.abc import Iterable, Mapping
 from dataclasses import dataclass
 from pathlib import Path
 
-from qslex.projection import (
+from qslex.checker_data import (
+    CheckerDataError,
     Lexicon,
-    ProjectionError,
     Record,
     crosscheck,
     derive,
@@ -69,7 +69,7 @@ SAMPLE_WORDS = (("hello", "ITJ"), ("world", "NN1"), ("quick", "AJ0"), ("script",
 SAMPLE_HEADING = "# Quikscript Desk"
 SAMPLE_PROSE = (
     "Write Markdown on the left and read it on the right. A Quikscript word the "
-    "lexicon does not carry gets a dotted red underline; click an underlined word "
+    "lexicon does not list gets a dotted red underline; click an underlined word "
     "for the spellings it is nearest to."
 )
 
@@ -77,12 +77,12 @@ CLOSING_SCRIPT = "</script"
 PLACEHOLDER = re.compile(r"__QS_[A-Z_]+__")
 
 
-class PageError(ProjectionError):
+class PageError(CheckerDataError):
     pass
 
 
 @dataclass(frozen=True)
-class Coverage:
+class PageSummary:
     """Counts printed after a build.
 
     They are informational. tests/test_desk.py checks the spelling counts. Nothing checks the page size.
@@ -117,8 +117,8 @@ def asset(name: Path, root: Path) -> bytes:
     if actual != SHA256[name]:
         raise PageError(
             f"{path} has SHA-256 {actual}, expected {SHA256[name]}. The digest is "
-            f"pinned in src/qslex/desk.py and in that directory’s README; "
-            f"bump both together."
+            f"pinned in src/qslex/desk.py and in that directory’s README. "
+            f"Update the digest in both places together."
         )
     return data
 
@@ -159,7 +159,10 @@ def substitute(text: str, chunks: Mapping[str, str]) -> str:
     """
     for token, chunk in chunks.items():
         if CLOSING_SCRIPT in chunk.lower():
-            raise PageError(f"{token} carries a {CLOSING_SCRIPT}, which would truncate")
+            raise PageError(
+                f"{token} contains {CLOSING_SCRIPT}, which would end the script "
+                f"element early"
+            )
         if token not in text:
             raise PageError(f"{token} is not in the template")
         text = text.replace(token, chunk)
@@ -169,7 +172,7 @@ def substitute(text: str, chunks: Mapping[str, str]) -> str:
     return text
 
 
-def build(root: Path | None = None) -> tuple[str, Coverage]:
+def build(root: Path | None = None) -> tuple[str, PageSummary]:
     root = root if root is not None else repo_root()
     records = load_records(root)
     lexicon = derive(records, load_contractions())
@@ -193,7 +196,7 @@ def build(root: Path | None = None) -> tuple[str, Coverage]:
             "__QS_APP__": (WEB / APP).read_text(encoding="utf-8"),
         },
     )
-    return page, Coverage(lexicon, len(page.encode("utf-8")))
+    return page, PageSummary(lexicon, len(page.encode("utf-8")))
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -208,13 +211,13 @@ def main(argv: list[str] | None = None) -> int:
     )
     args = parser.parse_args(argv)
 
-    page, coverage = build()
+    page, summary = build()
     if not args.check:
         args.out.parent.mkdir(parents=True, exist_ok=True)
         args.out.write_text(page, encoding="utf-8", newline="\n")
         print(f"wrote {args.out}")
         print()
-        print(coverage.report())
+        print(summary.report())
         return 0
 
     stale = ""

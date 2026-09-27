@@ -19,18 +19,18 @@ def passages_file(tmp_path: Path, rows: list[list[str]]) -> Path:
 
 
 def loaded(tmp_path: Path, rows: list[list[str]]) -> tuple[str, ...]:
-    return tuple(word.verdict for word in load_passages(passages_file(tmp_path, rows)))
+    return tuple(word.outcome for word in load_passages(passages_file(tmp_path, rows)))
 
 
 def test_a_junior_passage_cannot_use_a_senior_verdict(tmp_path: Path) -> None:
     rows = [*GOOD_ROWS[:2], ["bo-peep", "0", "little", "·Low", "senior", "", ""]]
-    with pytest.raises(ValueError, match="cannot have verdict"):
+    with pytest.raises(ValueError, match="cannot have outcome"):
         loaded(tmp_path, rows)
 
 
 def test_a_senior_passage_cannot_use_the_junior_column(tmp_path: Path) -> None:
     rows = [["no-how", "0", "if", "·It·Fee", "junior", "", ""]]
-    with pytest.raises(ValueError, match="cannot have verdict"):
+    with pytest.raises(ValueError, match="cannot have outcome"):
         loaded(tmp_path, rows)
 
 

@@ -215,23 +215,23 @@ def passages(
         collections.Counter
     )
     for word in load_passages():
-        tally[word.passage][word.verdict] += 1
+        tally[word.passage][word.outcome] += 1
         columns = by_word.get(word.latin, {})
         produced = {v for column in word.columns for v in columns.get(column, ())}
         where = f"{word.passage} word {word.index} ({word.latin!r})"
-        if word.verdict == "contraction":
+        if word.outcome == "contraction":
             if word.spelling not in contracted.get(word.latin, set()):
                 failures.append(
                     f"{where} is the contraction {word.spelling}, "
                     f"which contractions.tsv does not carry"
                 )
-        elif word.verdict == "absent":
+        elif word.outcome == "absent":
             if columns:
                 failures.append(
                     f"{where} is recorded as absent from ReadLex, which now spells it "
                     f"{sorted(produced)}"
                 )
-        elif word.verdict == "differs":
+        elif word.outcome == "differs":
             if not columns:
                 failures.append(f"{where} differs from a word ReadLex no longer has")
             elif word.spelling in produced:
@@ -246,10 +246,10 @@ def passages(
                         f"{where} pins {word.ours} against the Manual’s "
                         f"{word.spelling}, but the lexicon now spells {ours}"
                     )
-        elif word.spelling not in columns.get(word.verdict, set()):
+        elif word.spelling not in columns.get(word.outcome, set()):
             failures.append(
-                f"{where}: the Manual writes {word.spelling}, the {word.verdict} "
-                f"column has {sorted(columns.get(word.verdict, set()))}"
+                f"{where}: the Manual writes {word.spelling}, the {word.outcome} "
+                f"column has {sorted(columns.get(word.outcome, set()))}"
             )
 
     print("\nManual specimen passages, word by word:")
@@ -559,7 +559,7 @@ def main(argv: list[str] | None = None) -> int:
         )
         if actual != entry.rows:
             failures.append(f"tag {tag!r} covers {actual} rows, expected {entry.rows}")
-        declared = set(entry.declared_words)
+        declared = set(entry.listed_words)
         if not declared:
             continue
         undeclared = sorted(var_words[tag] - declared)
@@ -597,7 +597,7 @@ def main(argv: list[str] | None = None) -> int:
         if not hits:
             failures.append(f"quirk rule {quirk.match!r} matched nothing")
             continue
-        declared = set(quirk.declared_words)
+        declared = set(quirk.listed_words)
         undeclared = sorted(hits - declared)
         unseen = sorted(declared - hits)
         if undeclared:
@@ -620,7 +620,7 @@ def main(argv: list[str] | None = None) -> int:
         )
         if not hits:
             failures.append(f"override {override.ipa!r} was never consulted")
-        undeclared = sorted(hits - set(override.declared_words))
+        undeclared = sorted(hits - set(override.listed_words))
         if undeclared:
             failures.append(
                 f"override {override.ipa!r} touches undeclared words: {undeclared}"

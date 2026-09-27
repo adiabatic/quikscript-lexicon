@@ -10,7 +10,7 @@ import json
 import sys
 from pathlib import Path
 
-from qslex.projection import (
+from qslex.checker_data import (
     Lexicon,
     checker,
     crosscheck,

@@ -4,7 +4,7 @@ from dataclasses import dataclass
 from pathlib import Path
 
 from qslex.mapping import Mapping
-from qslex.tables import Declares, rows_of
+from qslex.tables import HasWordList, rows_of
 
 OVERRIDES_FILE = "ipa-overrides.tsv"
 OVERRIDES_HEADER = [
@@ -18,7 +18,7 @@ OVERRIDES_HEADER = [
 
 
 @dataclass(frozen=True)
-class Override(Declares):
+class Override(HasWordList):
     ipa: str
     token: str
     condition: str
@@ -51,8 +51,8 @@ def load_overrides(mapping: Mapping, path: Path | None = None) -> Overrides:
             raise ValueError(
                 f"{source}:{lineno}: {rule.ipa!r} does not contain {rule.token!r}"
             )
-        if not rule.declared_words:
-            raise ValueError(f"{source}:{lineno}: no words declared")
+        if not rule.listed_words:
+            raise ValueError(f"{source}:{lineno}: no words listed")
         rules.append(rule)
 
     by_ipa: Overrides = {}

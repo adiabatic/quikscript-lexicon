@@ -42,11 +42,11 @@ def rows_of(
             yield lineno, source, row
 
 
-class Declares:
+class HasWordList:
     """A table row whose `words` column lists, comma-separated, the words the row applies to."""
 
     words: str
 
     @property
-    def declared_words(self) -> tuple[str, ...]:
+    def listed_words(self) -> tuple[str, ...]:
         return tuple(w.strip() for w in self.words.split(",") if w.strip())
