@@ -4,41 +4,58 @@
 
 ```sh
 make artifacts     # rewrite lexicon/
-make preview       # rewrite the client's generated stylesheets
+make site          # rewrite site/index.html
+make payload       # rewrite editor/server/payload.json
+make preview       # rewrite the VS Code client's generated stylesheets
 ```
 
-What keeps a stale `lexicon/` from being committed, and what a corpus bump involves, are in [`docs/pipeline.md`](docs/pipeline.md#regenerating).
+[`docs/pipeline.md`](docs/pipeline.md#regenerating) explains how `make check` catches an out-of-date `lexicon/`, and what a corpus bump involves.
 
-## Proofs
+## Checks
 
 ```sh
-make check         # lint, types, tests, validator, and artifact freshness
+make check         # lint, type checks, tests, the validator, and a rebuild compared with every committed artifact
 ```
 
-The validator verifies the corpus SHA-256 first, so a corpus bump is always a deliberate, reviewable change; it then makes one pass over the corpus and holds two row sets to account — the segment mapping over every row upstream ships, the spellings over the rows the lexicon spells. What it demands of each layer is stated by that layer’s own spec — [`docs/ipa-to-qs.md`](docs/ipa-to-qs.md), [Read’s orthographic rules](docs/orthographic-rules.md#what-the-validator-checks), [the word signs](docs/word-signs.md#what-the-validator-checks), and [`docs/validation.md`](docs/validation.md) for the specimen passages, the round trip and the Manual’s own lint — and why the pass splits at all, with what that costs, is in [`docs/pipeline.md`](docs/pipeline.md#where-the-validator-runs-and-why-it-splits).
+`make check` also runs the editor code’s `tsc --noEmit` and `node --test` suites through `tests/test_server.py`. That file skips them when `node` or `npm` is not on PATH.
+
+The validator first verifies the corpus’s SHA-256, so replacing the file fails the build until the recorded SHA-256 is updated to match. It then makes one pass over the corpus and checks two different sets of rows. The segment mapping is checked against every row upstream ships, and the spellings against the rows the lexicon spells. Each layer’s spec says what the validator checks for it:
+
+- [`docs/ipa-to-qs.md`](docs/ipa-to-qs.md) for the segment mapping
+- [Read’s orthographic rules](docs/orthographic-rules.md#what-the-validator-checks)
+- [the word signs](docs/word-signs.md#what-the-validator-checks)
+- [`docs/validation.md`](docs/validation.md) for the specimen passages, the round trip and the lint checks based on the Manual’s conventions
+
+[`docs/pipeline.md`](docs/pipeline.md#where-the-validator-runs-and-why-it-splits) explains why the pass checks two sets of rows, and what that split gives up.
 
 ## The language server
 
-`editor/server/` is the `quikscript-lsp` server and `editor/vscode/` is a VS Code client for it. Neither is compiled, so trying them from a checkout takes an install and nothing else:
+`editor/server/` is the `quikscript-lsp` server and `editor/vscode/` is a VS Code client for it. Neither is compiled, so to try them from a checkout you only need to install their dependencies:
 
 ```sh
-cd editor/vscode && npm ci     # `make check` does this for you
+cd editor/server && npm ci && cd ../vscode && npm ci   # `make check` runs both installs for you
 code --extensionDevelopmentPath="$PWD" ../..
 ```
 
-That opens an Extension Development Host with the repo as its workspace folder, and the client launches `editor/server/server.js` over stdio; edits to the server take effect on the next reload. `make bundle` writes the single-file `editor/server/dist/quikscript-lsp` the protocol suite proves and BBEdit will launch, which the client prefers when one is bundled beside it.
+That opens an Extension Development Host with the repository as its workspace folder. The client launches `editor/server/server.js` over stdio, and edits to the server take effect when you reload the window. If `editor/vscode/dist/quikscript-lsp` exists, the client launches that bundle instead, and edits to the server sources have no effect until you delete it. `make vsix` writes that file. A `quikscript.serverPath` setting takes precedence over both.
 
-To install into a normal VS Code rather than a development host, `make install-vsix` bundles the server into the extension, packages `dist/quikscript-vscode-<version>.vsix`, which carries its own server and so needs no checkout on the other end, and installs it over whatever copy is already there:
+`make bundle` writes the server as a single file, `editor/server/dist/quikscript-lsp`, which any LSP client, such as BBEdit, can launch with `--stdio`. The VS Code client does not look for this file. Set `quikscript.serverPath` to use it.
+
+To install into a normal VS Code instead of a development host, run `make install-vsix`. It bundles the server into the extension, packages `dist/quikscript-vscode-<version>.vsix`, and installs it over any copy that is already installed. The package contains its own server, so it does not need a checkout.
 
 ```sh
 make install-vsix
 ```
 
-It names the `.vsix` after the version in `editor/vscode/package.json`; reload any open window to pick the new build up. `make vsix` alone stops at the package, for handing the file to someone else:
+The `.vsix` is named after the version in `editor/vscode/package.json`. Reload any open window to load the new build. `make vsix` stops after packaging, for when you want to give the file to someone else:
 
 ```sh
 make vsix
 code --install-extension dist/quikscript-vscode-0.1.0.vsix
 ```
 
-Two things otherwise read as breakage. Quikscript is Private Use Area text, so every spelling renders as a box until a Quikscript font is installed and `editor.fontFamily` points at it — the vendored `data/abbots-morton-spaceport/*.woff2` decompress to installable fonts with `woff2_decompress`, which names its CFF output `.ttf` where macOS wants `.otf`. That setting does not reach the Quick Fix menu or the Problems panel, which VS Code paints in the workbench UI font, so the fixes read as boxes there however the font is installed — the diagnostic message names them instead, which the squiggle hover and the `F8` peek both paint in `editor.fontFamily`, and the Quikscript panel beside Problems shows and applies them in a bundled face that needs no setting at all. And Latin-to-Quikscript completions stay off until `quikscript.completions` is set to `onDemand` or `auto`.
+Three behaviors can look like bugs:
+
+- Quikscript is Private Use Area text, so every spelling displays as a box until a Quikscript font is installed and `editor.fontFamily` names it. `woff2_decompress` turns the vendored `data/abbots-morton-spaceport/*.woff2` files into installable fonts. It names its CFF output `.ttf`, but macOS expects `.otf`.
+- `editor.fontFamily` does not apply to the Quick Fix menu or the Problems panel, which VS Code draws in the workbench UI font. The fixes show as boxes there, whatever font is installed. The diagnostic message lists them instead, and the squiggle hover and the `F8` peek draw that message in `editor.fontFamily`. The Quikscript panel beside Problems also shows and applies the fixes, in a bundled font that needs no setting.
+- Latin-to-Quikscript completions are off until `quikscript.completions` is set to `onDemand` or `auto`.

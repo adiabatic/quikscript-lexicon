@@ -1,27 +1,33 @@
 # The lexicon
 
-Generated. Do not edit anything here by hand — `make artifacts` rewrites all of it, and `make check` fails if what is committed differs from a fresh build. The spec is [`docs/pipeline.md`](../docs/pipeline.md).
+Every file here except this README is generated. Do not edit them by hand: `make artifacts` rewrites them, and `make check` fails if a committed file differs from a fresh build. The spec is [`docs/pipeline.md`](../docs/pipeline.md).
 
-What the files are is the spec’s [Artifacts](../docs/pipeline.md#artifacts) table; the shape of each is under [Artifact shapes](../docs/pipeline.md#artifact-shapes). No document restates how many rows each carries: `meta.counts` in the master is the live figure for the counts it holds, and `make check` byte-compares every file against a fresh build for the rest.
+The spec’s [Artifacts](../docs/pipeline.md#artifacts) table says what each file is, and [Artifact shapes](../docs/pipeline.md#artifact-shapes) describes the format of each. No document states how many rows each file has. `meta.counts` in the lexicon JSON has the counts it records, and `make check` compares every file with a fresh build.
 
-`quikscript-lexicon.json` is the master, and the only JSON here. Five keys: `entries` is the lexicon itself, and `letters`, `c5_to_penn` and `phrases` are the small tables a projection needs, so that this one file regenerates every other — including the transliterator’s Latin → spellings dictionary, which is [rebuilt rather than shipped](../docs/pipeline.md#the-converter-shape). `meta` records the corpus commit it came from and the counts it holds. The other four files are here because they are formats this one is not: a spreadsheet reads the TSV, hunspell reads the `.dic`.
+`quikscript-lexicon.json` is the source JSON, and the only JSON file here. It has five keys:
 
-`en-Qaas.dic` and `en-Qaas.aff` are the pair a spell checker wants: `hunspell -i utf-8 -d lexicon/en-Qaas` checks Quikscript text against every unspaced spelling the three columns ship. The `-i` matters — without it hunspell reads the input in the locale’s encoding, and under a non-UTF-8 one it skips every Quikscript line without a word of complaint.
+- `entries` is the lexicon itself.
+- `letters`, `c5_to_penn` and `phrases` are the small tables needed to generate the other files from this one. That includes the transliterator’s Latin-to-spellings table, which is [rebuilt at startup rather than shipped](../docs/pipeline.md#the-converter-shape).
+- `meta` records the schema version, the corpus repository, commit and SHA-256 the file was built from, the PUA block, and the counts.
+
+The other four files are for tools that do not read JSON. A spreadsheet reads the TSV, a tokenizer reads `qs_converter_phrases.txt`, and hunspell reads the `.dic` and `.aff`.
+
+`en-Qaas.dic` and `en-Qaas.aff` are a hunspell dictionary. `hunspell -i utf-8 -d lexicon/en-Qaas` checks Quikscript text against every unspaced spelling in the three spelling columns. The `-i utf-8` is required: without it hunspell reads the input in the locale’s encoding, and under a non-UTF-8 locale it silently skips every Quikscript line.
 
 ## Reading it
 
-Quikscript is written in the Private Use Area, U+E650–U+E67E, one codepoint per letter — so without a Quikscript font every QS column renders as blank boxes. The master’s `letters` key names each codepoint; [`docs/conformance.md`](../docs/conformance.md) covers the encoding and how to tag the text.
+Quikscript is written in the Private Use Area, U+E650–U+E67E, one codepoint per letter. Without a Quikscript font, every QS column renders as boxes. The `letters` key in the lexicon JSON maps each codepoint to its letter name, class and IPA. [`docs/conformance.md`](../docs/conformance.md) covers the encoding and how to tag the text.
 
-Three spelling columns, and two of them are sparse:
+There are three spelling columns, and two of them are sparse:
 
-- **`qs`** — Senior, the default: Read’s §III conventions plus the Manual’s standard word spellings.
-- **`qs_junior`** — present only where the Junior spelling genuinely differs, which is a handful of rows: the word-level cases, and the n't words, whose linking vowel the senior column elides and the junior column keeps ([`docs/orthographic-rules.md`](../docs/orthographic-rules.md#decisions)). The Manual’s own affix conventions are how Quikscript is spelled in both grades, so no other rule-driven spelling diverges.
-- **`qs_x`** — the ·Excite/·Exam X-letter form, built on `qs`, present only where it differs. Stored rather than derived, because the surrounding letters change too: expect is ·It·Key·See·Pea·Et·Key·Tea in `qs` and ·Et·Excite·Pea·Et·Key·Tea here.
+- **`qs`** is Senior, the default: Read’s §III conventions plus the Manual’s standard word spellings.
+- **`qs_junior`** is present only where the Junior spelling differs, which is a small number of rows. These are the word-level cases and the n't words, whose linking vowel the senior column elides and the junior column keeps ([`docs/orthographic-rules.md`](../docs/orthographic-rules.md#decisions)). The Manual’s affix conventions apply in both grades, so no other rule-driven spelling differs.
+- **`qs_x`** is the ·Excite/·Exam X-letter form, built on `qs` and present only where it differs. It is stored rather than derived, because the letters around the X-letter change too: expect is ·It·Key·See·Pea·Et·Key·Tea in `qs` and ·Et·Excite·Pea·Et·Key·Tea in `qs_x`.
 
 An absent JSON key and an empty TSV cell both mean “same as `qs`”.
 
 ## Provenance and license
 
-Derived from [Shavian-info/readlex](https://github.com/Shavian-info/readlex) at commit `8343343`, MIT, © 2024 Shavian-info ([full provenance](../data/readlex/README.md)). This repository is MIT too — see [`LICENSE.md`](../LICENSE.md).
+Derived from [Shavian-info/readlex](https://github.com/Shavian-info/readlex) at commit `8343343`, MIT, © 2024 Shavian-info ([full provenance](../data/readlex/README.md)). This repository is also MIT-licensed; see [`LICENSE.md`](../LICENSE.md).
 
-Some entries are not from that corpus — today quikscript and quickscript, each as a proper noun, an adjective and a possessive — because a Quikscript lexicon with no entry for its own alphabet is a gap a reader finds at once. They are declared in [`src/qslex/data/added-words.tsv`](../src/qslex/data/added-words.tsv) and spelled by the same rules as everything else; `meta.counts.added` in the master is how many there are, and [`docs/pipeline.md`](../docs/pipeline.md#words-the-corpus-lacks) says where each field came from.
+Some entries are not from that corpus. They are listed in [`src/qslex/data/added-words.tsv`](../src/qslex/data/added-words.tsv) and spelled by the same rules as every other entry. `meta.counts.added` in the lexicon JSON is how many there are, and [`docs/pipeline.md`](../docs/pipeline.md#words-the-corpus-lacks) says where each field came from. They include quikscript and quickscript, each as a proper noun, an adjective and a possessive, so that the lexicon has an entry for the name of its own alphabet.

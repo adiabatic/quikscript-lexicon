@@ -41,7 +41,7 @@ line-length = 88
 
 [tool.ruff.lint]
 select = ["E", "F", "I", "UP", "B", "SIM"]
-# Prose is not hard-wrapped; the formatter still holds code to line-length.
+# Prose is not hard-wrapped. The formatter still wraps code at line-length.
 ignore = ["E501"]
 
 [tool.ruff.lint.isort]
