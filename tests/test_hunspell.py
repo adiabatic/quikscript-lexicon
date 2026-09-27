@@ -47,20 +47,20 @@ def mutate(word: str) -> str:
     )
 
 
-def pair_form_of_an_x_letter_word() -> tuple[str, str]:
+def unlisted_pair_form_and_its_x_letter_word() -> tuple[str, str]:
     for word in WORDS:
         for x_letter, pair in X_LETTERS:
             if x_letter in word and word.replace(x_letter, pair) not in LISTED:
                 return word.replace(x_letter, pair), word
-    raise AssertionError("no X-letter spelling whose pair form is free")
+    raise AssertionError("no X-letter spelling whose pair form is unlisted")
 
 
-def x_letter_form_of_a_pair_word() -> tuple[str, str]:
+def unlisted_x_letter_form_and_its_pair_word() -> tuple[str, str]:
     for word in WORDS:
         for x_letter, pair in X_LETTERS:
             if pair in word and word.replace(pair, x_letter) not in LISTED:
                 return word.replace(pair, x_letter), word
-    raise AssertionError("no pair spelling whose X-letter form is free")
+    raise AssertionError("no pair spelling whose X-letter form is unlisted")
 
 
 def check(base: Path, text: str, *flags: str) -> list[str]:
@@ -190,7 +190,7 @@ def test_hunspell_flags_a_mutated_entry_and_suggests_the_original(
 def test_hunspell_suggests_the_x_letter_first_where_the_pair_is_spelled_out(
     installed: Path,
 ) -> None:
-    spelled_out, substituted = pair_form_of_an_x_letter_word()
+    spelled_out, substituted = unlisted_pair_form_and_its_x_letter_word()
     reported = check(installed, spelled_out + "\n", "-a")[1:]
     assert suggested(reported[0])[:1] == [substituted]
 
@@ -199,7 +199,7 @@ def test_hunspell_suggests_the_x_letter_first_where_the_pair_is_spelled_out(
 def test_hunspell_suggests_the_pair_first_where_no_x_letter_is_allowed(
     installed: Path,
 ) -> None:
-    substituted, spelled_out = x_letter_form_of_a_pair_word()
+    substituted, spelled_out = unlisted_x_letter_form_and_its_pair_word()
     reported = check(installed, substituted + "\n", "-a")[1:]
     assert suggested(reported[0])[:1] == [spelled_out]
 

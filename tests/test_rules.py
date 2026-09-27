@@ -98,14 +98,16 @@ def test_es_ed_leaves_voicing_alone_because_readlex_already_has_it() -> None:
     assert senior("tipped", "VVD") == "·Tea·It·Pea·Tea"
 
 
-def test_ing_omits_its_vowel_in_an_affix_but_not_in_a_root() -> None:
+def test_ing_omits_its_vowel_in_an_affix_except_after_y_and_keeps_it_in_a_root() -> (
+    None
+):
     assert senior("calling", "AJ0") == "·Key·Awe·Low·-ing"
     assert senior("wing", "NN1") == "·Way·It·-ing"
     assert senior("bringing", "VVG") == "·Bay·Roe·It·-ing·-ing"
     assert senior("carrying", "NN1") == "·Key·At·Roe·It·It·-ing"
 
 
-def test_ing_omits_its_vowel_after_a_prefix() -> None:
+def test_ing_omits_its_vowel_after_a_prefix_and_before_s_or_ness() -> None:
     assert senior("beings", "NN2") == "·Bay·Eat·-ing·Zoo"
     assert senior("undoing", "NN1") == "·Utter·No·Day·Ooze·-ing"
     assert senior("willingness", "NN1") == "·Way·It·Low·-ing·No·Et·See"

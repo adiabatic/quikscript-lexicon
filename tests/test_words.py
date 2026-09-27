@@ -289,7 +289,9 @@ def test_apply_signs_does_not_change_an_unaligned_spelling() -> None:
     assert consulted == ()
 
 
-def test_apply_signs_leaves_hyphens_spelled_as_spaces_unchanged() -> None:
+def test_apply_signs_does_not_change_a_spelling_with_spaces_where_the_latin_has_hyphens() -> (
+    None
+):
     letters = parse("·At·Zoo ·It ·Way·Utter·Roe")
     out, _, applied, consulted = apply_signs("as-it-were", "AV0", letters, SIGNS)
     assert out == letters

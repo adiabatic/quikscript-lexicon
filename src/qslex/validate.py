@@ -645,8 +645,8 @@ def main(argv: list[str] | None = None) -> int:
     )
     if unexpected:
         failures.append(
-            f"{len(unexpected)} rows have a stressed EAR count that differs from the "
-            f"Shavian column and no row in shavian-divergences.tsv"
+            f"{len(unexpected)} rows have a stressed EAR count that differs from the Shavian "
+            f"column’s 𐑽 count and no row in shavian-divergences.tsv"
         )
     unhit = sorted(set(divergences) - divergence_hits)
     if unhit:

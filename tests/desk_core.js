@@ -154,7 +154,7 @@ check("an angled parenthesis splits a run", () => {
   );
 });
 
-check("a hyphen that follows a letter is part of that letter's token", () => {
+check("a token includes the hyphens after a letter and any letters that follow them", () => {
   assert.deepEqual(
     tokens(`${A}-${B}`).map((hit) => hit.word),
     [A + "-" + B],
