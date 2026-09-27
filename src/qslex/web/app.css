@@ -84,7 +84,7 @@ h1 {
 }
 
 #undo,
-#ignored,
+#unignore,
 #grade {
   min-width: 4.5em;
   padding: 0.25rem 0.75rem;
@@ -98,8 +98,8 @@ h1 {
 
 #undo:hover,
 #undo:focus-visible,
-#ignored:hover,
-#ignored:focus-visible,
+#unignore:hover,
+#unignore:focus-visible,
 #grade:hover,
 #grade:focus-visible {
   background: var(--chrome);

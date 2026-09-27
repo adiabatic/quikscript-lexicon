@@ -108,7 +108,7 @@ h1 {
 }
 
 #undo,
-#ignored,
+#unignore,
 #grade {
   min-width: 4.5em;
   padding: 0.25rem 0.75rem;
@@ -122,8 +122,8 @@ h1 {
 
 #undo:hover,
 #undo:focus-visible,
-#ignored:hover,
-#ignored:focus-visible,
+#unignore:hover,
+#unignore:focus-visible,
 #grade:hover,
 #grade:focus-visible {
   background: var(--chrome);
@@ -415,7 +415,7 @@ main {
 <h1>Quikscript Desk</h1>
 <div id="controls">
 <button type="button" id="undo" disabled>Undo</button>
-<button type="button" id="ignored" hidden></button>
+<button type="button" id="unignore" hidden></button>
 <button type="button" id="grade" aria-pressed="true">Senior</button>
 </div>
 </header>
@@ -734,7 +734,7 @@ const grade = document.getElementById("grade");
 const popover = document.getElementById("popover");
 const copyButton = document.getElementById("copy");
 const undoButton = document.getElementById("undo");
-const unignoreButton = document.getElementById("ignored");
+const unignoreButton = document.getElementById("unignore");
 
 const DELAY = 150;
 const COPY_LABEL_MS = 1500;
@@ -896,14 +896,14 @@ function updateUnignoreButton() {
   unignoreButton.textContent = `Unignore ${ignoredCount}`;
 }
 
-function store() {
+function saveIgnoredWords() {
   try {
     localStorage.setItem(IGNORED_STORAGE_KEY, JSON.stringify([...ignored]));
   } catch {}
 }
 
 function saveAndRender() {
-  store();
+  saveIgnoredWords();
   updateUnignoreButton();
   render();
 }
@@ -944,14 +944,14 @@ function placePopover(span) {
 
 function renumber(word, replaced) {
   const lead = `${word}\t`;
-  const kept = [];
+  const ignoredIndexes = [];
   for (const key of ignoredOccurrences) {
-    if (key.startsWith(lead)) kept.push(Number(key.slice(lead.length)));
+    if (key.startsWith(lead)) ignoredIndexes.push(Number(key.slice(lead.length)));
   }
-  if (kept.length === 0) return;
+  if (ignoredIndexes.length === 0) return;
   const dropped = [...new Set(replaced)].sort((one, other) => one - other);
-  for (const index of kept) ignoredOccurrences.delete(occurrenceKey(word, index));
-  for (const index of kept) {
+  for (const index of ignoredIndexes) ignoredOccurrences.delete(occurrenceKey(word, index));
+  for (const index of ignoredIndexes) {
     const below = dropped.filter((occurrence) => occurrence < index).length;
     ignoredOccurrences.add(occurrenceKey(word, index - below));
   }

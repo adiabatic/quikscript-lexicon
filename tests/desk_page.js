@@ -28,13 +28,13 @@ const SAMPLE = unescape(
 );
 
 function classes() {
-  const held = new Set();
+  const names = new Set();
   return {
-    held,
-    add: (name) => held.add(name),
-    remove: (name) => held.delete(name),
-    contains: (name) => held.has(name),
-    toggle: (name, on) => (on ? held.add(name) : held.delete(name)),
+    names,
+    add: (name) => names.add(name),
+    remove: (name) => names.delete(name),
+    contains: (name) => names.has(name),
+    toggle: (name, on) => (on ? names.add(name) : names.delete(name)),
   };
 }
 
@@ -91,12 +91,12 @@ class Element extends Fragment {
   }
 
   get className() {
-    return [...this.classList.held].join(" ");
+    return [...this.classList.names].join(" ");
   }
 
   set className(value) {
-    this.classList.held.clear();
-    for (const name of value.split(" ")) if (name) this.classList.held.add(name);
+    this.classList.names.clear();
+    for (const name of value.split(" ")) if (name) this.classList.names.add(name);
   }
 
   replaceChildren() {
@@ -134,8 +134,8 @@ class Element extends Fragment {
   }
 
   closest(selector) {
-    for (let held = this; held; held = held.parentNode) {
-      if (held.nodeType === 1 && held.matches(selector)) return held;
+    for (let node = this; node; node = node.parentNode) {
+      if (node.nodeType === 1 && node.matches(selector)) return node;
     }
     return null;
   }
@@ -211,11 +211,11 @@ const IGNORED_STORAGE_KEY = "qs-desk.ignored";
 const GRADE_STORAGE_KEY = "qs-desk.senior";
 
 function storage() {
-  const held = new Map();
+  const items = new Map();
   return {
-    held,
-    getItem: (key) => (held.has(key) ? held.get(key) : null),
-    setItem: (key, value) => held.set(key, String(value)),
+    items,
+    getItem: (key) => (items.has(key) ? items.get(key) : null),
+    setItem: (key, value) => items.set(key, String(value)),
   };
 }
 
@@ -236,7 +236,7 @@ function loadPage(supports, pageStorage, platform = "MacIntel") {
     popover: new Element("div"),
     copy: new Element("button"),
     undo: new Element("button"),
-    ignored: new Element("button"),
+    unignore: new Element("button"),
   };
   parts.source.value = SAMPLE;
   parts.copy.textContent = "Copy source";
@@ -343,7 +343,7 @@ const buttonsOf = (element) =>
   element.childNodes.flatMap((node) =>
     node.tagName === "BUTTON"
       ? [node]
-      : (node.childNodes || []).filter((held) => held.tagName === "BUTTON"),
+      : (node.childNodes || []).filter((child) => child.tagName === "BUTTON"),
   );
 const suggestionsOf = (element) =>
   buttonsOf(element).filter(
@@ -396,14 +396,14 @@ check("choosing a suggestion edits the source, closes the popover and re-renders
 });
 
 check("Command-Z undoes a correction on Apple devices", () => {
-  const held = loadPage(false);
-  const shown = marked(held.parts.preview);
-  held.parts.preview.fire("click", { target: shown[0] });
-  suggestionsOf(held.parts.popover)[0].fire("click");
-  assert.equal(held.parts.undo.disabled, false);
-  assert.equal(held.parts.undo.title, "Undo last correction (⌘Z)");
+  const loadedPage = loadPage(false);
+  const shown = marked(loadedPage.parts.preview);
+  loadedPage.parts.preview.fire("click", { target: shown[0] });
+  suggestionsOf(loadedPage.parts.popover)[0].fire("click");
+  assert.equal(loadedPage.parts.undo.disabled, false);
+  assert.equal(loadedPage.parts.undo.title, "Undo last correction (⌘Z)");
   let prevented = false;
-  held.box.document.fire("keydown", {
+  loadedPage.box.document.fire("keydown", {
     key: "z",
     metaKey: true,
     ctrlKey: false,
@@ -414,22 +414,22 @@ check("Command-Z undoes a correction on Apple devices", () => {
     },
   });
   assert.equal(prevented, true);
-  assert.equal(held.parts.source.value, SAMPLE);
-  assert.equal(held.parts.undo.disabled, true);
-  assert.equal(marked(held.parts.preview).length, 1);
-  assert.equal(held.parts.source.focused, true);
+  assert.equal(loadedPage.parts.source.value, SAMPLE);
+  assert.equal(loadedPage.parts.undo.disabled, true);
+  assert.equal(marked(loadedPage.parts.preview).length, 1);
+  assert.equal(loadedPage.parts.source.focused, true);
 });
 
 check("Ctrl-Z and the Undo button undo corrections on other devices", () => {
-  const held = loadPage(false, undefined, "Win32");
+  const loadedPage = loadPage(false, undefined, "Win32");
   const correctOnce = () => {
-    const shown = marked(held.parts.preview);
-    held.parts.preview.fire("click", { target: shown[0] });
-    suggestionsOf(held.parts.popover)[0].fire("click");
+    const shown = marked(loadedPage.parts.preview);
+    loadedPage.parts.preview.fire("click", { target: shown[0] });
+    suggestionsOf(loadedPage.parts.popover)[0].fire("click");
   };
   correctOnce();
-  assert.equal(held.parts.undo.title, "Undo last correction (Ctrl+Z)");
-  held.box.document.fire("keydown", {
+  assert.equal(loadedPage.parts.undo.title, "Undo last correction (Ctrl+Z)");
+  loadedPage.box.document.fire("keydown", {
     key: "z",
     metaKey: false,
     ctrlKey: true,
@@ -437,37 +437,37 @@ check("Ctrl-Z and the Undo button undo corrections on other devices", () => {
     shiftKey: false,
     preventDefault() {},
   });
-  assert.equal(held.parts.source.value, SAMPLE);
+  assert.equal(loadedPage.parts.source.value, SAMPLE);
   correctOnce();
-  held.parts.undo.fire("click");
-  assert.equal(held.parts.source.value, SAMPLE);
+  loadedPage.parts.undo.fire("click");
+  assert.equal(loadedPage.parts.source.value, SAMPLE);
 });
 
 check("the correction history holds more than fifty changes", () => {
-  const held = loadPage(false, undefined, "Win32");
+  const loadedPage = loadPage(false, undefined, "Win32");
   const count = 60;
-  const shown = marked(held.parts.preview);
-  held.parts.preview.fire("click", { target: shown[0] });
-  const suggestion = suggestionsOf(held.parts.popover)[0].textContent;
-  held.parts.source.value = Array(count).fill(misspelled).join(" ");
-  held.box.render();
-  for (let at = 0; at < count; at += 1) held.box.choose(misspelled, 0, suggestion);
-  for (let at = 0; at < count; at += 1) held.parts.undo.fire("click");
-  assert.equal(held.parts.source.value, Array(count).fill(misspelled).join(" "));
-  assert.equal(held.parts.undo.disabled, true);
+  const shown = marked(loadedPage.parts.preview);
+  loadedPage.parts.preview.fire("click", { target: shown[0] });
+  const suggestion = suggestionsOf(loadedPage.parts.popover)[0].textContent;
+  loadedPage.parts.source.value = Array(count).fill(misspelled).join(" ");
+  loadedPage.box.render();
+  for (let at = 0; at < count; at += 1) loadedPage.box.choose(misspelled, 0, suggestion);
+  for (let at = 0; at < count; at += 1) loadedPage.parts.undo.fire("click");
+  assert.equal(loadedPage.parts.source.value, Array(count).fill(misspelled).join(" "));
+  assert.equal(loadedPage.parts.undo.disabled, true);
 });
 
 check("typing starts a fresh correction history", () => {
-  const held = loadPage(false);
-  const shown = marked(held.parts.preview);
-  held.parts.preview.fire("click", { target: shown[0] });
-  suggestionsOf(held.parts.popover)[0].fire("click");
-  assert.equal(held.parts.undo.disabled, false);
-  held.parts.source.value += " typed";
-  held.parts.source.fire("input", { target: held.parts.source });
-  assert.equal(held.parts.undo.disabled, true);
+  const loadedPage = loadPage(false);
+  const shown = marked(loadedPage.parts.preview);
+  loadedPage.parts.preview.fire("click", { target: shown[0] });
+  suggestionsOf(loadedPage.parts.popover)[0].fire("click");
+  assert.equal(loadedPage.parts.undo.disabled, false);
+  loadedPage.parts.source.value += " typed";
+  loadedPage.parts.source.fire("input", { target: loadedPage.parts.source });
+  assert.equal(loadedPage.parts.undo.disabled, true);
   let prevented = false;
-  held.box.document.fire("keydown", {
+  loadedPage.box.document.fire("keydown", {
     key: "z",
     metaKey: true,
     ctrlKey: false,
@@ -571,19 +571,19 @@ check("only one span has the anchor name at a time", () => {
 
 const ignoreStorage = storage();
 const ignoreAllPage = loadPage(false, ignoreStorage);
-const flagged = (held) => marked(held.parts.preview).map((span) => span.dataset.w);
+const flagged = (loadedPage) => marked(loadedPage.parts.preview).map((span) => span.dataset.w);
 
-function ignoreTheMisspelling(held) {
-  const shown = marked(held.parts.preview);
-  held.parts.preview.fire("click", { target: shown[0] });
-  ignoreOf(held.parts.popover)[1].fire("click");
+function ignoreTheMisspelling(loadedPage) {
+  const shown = marked(loadedPage.parts.preview);
+  loadedPage.parts.preview.fire("click", { target: shown[0] });
+  ignoreOf(loadedPage.parts.popover)[1].fire("click");
 }
 
 check("the unignore button is hidden until something has been ignored", () => {
-  assert.equal(ignoreAllPage.parts.ignored.hidden, true);
+  assert.equal(ignoreAllPage.parts.unignore.hidden, true);
   assert.deepEqual(flagged(ignoreAllPage), [misspelled]);
   assert.equal(
-    ignoreStorage.held.has(IGNORED_STORAGE_KEY),
+    ignoreStorage.items.has(IGNORED_STORAGE_KEY),
     false,
     "nothing is saved before a word is ignored",
   );
@@ -593,22 +593,22 @@ check("ignoring a word removes its underline and saves the word to storage", () 
   ignoreTheMisspelling(ignoreAllPage);
   assert.equal(ignoreAllPage.parts.popover.showing, false, "the popover closes");
   assert.deepEqual(flagged(ignoreAllPage), []);
-  assert.equal(ignoreAllPage.parts.ignored.hidden, false);
-  assert.equal(ignoreAllPage.parts.ignored.textContent, "Unignore 1");
-  assert.deepEqual(JSON.parse(ignoreStorage.held.get(IGNORED_STORAGE_KEY)), [misspelled]);
+  assert.equal(ignoreAllPage.parts.unignore.hidden, false);
+  assert.equal(ignoreAllPage.parts.unignore.textContent, "Unignore 1");
+  assert.deepEqual(JSON.parse(ignoreStorage.items.get(IGNORED_STORAGE_KEY)), [misspelled]);
 });
 
 check("a reloaded page restores ignored words from storage", () => {
   const reloadedPage = loadPage(false, ignoreStorage);
   assert.deepEqual(flagged(reloadedPage), []);
-  assert.equal(reloadedPage.parts.ignored.hidden, false);
-  assert.equal(reloadedPage.parts.ignored.textContent, "Unignore 1");
+  assert.equal(reloadedPage.parts.unignore.hidden, false);
+  assert.equal(reloadedPage.parts.unignore.textContent, "Unignore 1");
 });
 
 check("the unignore button clears the list and the storage and restores the underline", () => {
-  ignoreAllPage.parts.ignored.fire("click");
-  assert.equal(ignoreAllPage.parts.ignored.hidden, true);
-  assert.deepEqual(JSON.parse(ignoreStorage.held.get(IGNORED_STORAGE_KEY)), []);
+  ignoreAllPage.parts.unignore.fire("click");
+  assert.equal(ignoreAllPage.parts.unignore.hidden, true);
+  assert.deepEqual(JSON.parse(ignoreStorage.items.get(IGNORED_STORAGE_KEY)), []);
   assert.deepEqual(flagged(ignoreAllPage), [misspelled]);
   assert.deepEqual(flagged(loadPage(false, ignoreStorage)), [misspelled]);
 });
@@ -618,16 +618,16 @@ check("an origin whose storage throws still ignores for the session", () => {
   assert.deepEqual(flagged(noStoragePage), [misspelled]);
   ignoreTheMisspelling(noStoragePage);
   assert.deepEqual(flagged(noStoragePage), []);
-  assert.equal(noStoragePage.parts.ignored.textContent, "Unignore 1");
+  assert.equal(noStoragePage.parts.unignore.textContent, "Unignore 1");
 });
 
 const occurrenceStorage = storage();
 const occurrencePage = loadPage(false, occurrenceStorage);
 
-function ignoreOneOccurrence(held, at) {
-  const shown = marked(held.parts.preview);
-  held.parts.preview.fire("click", { target: shown[at] });
-  ignoreOf(held.parts.popover)[0].fire("click");
+function ignoreOneOccurrence(loadedPage, at) {
+  const shown = marked(loadedPage.parts.preview);
+  loadedPage.parts.preview.fire("click", { target: shown[at] });
+  ignoreOf(loadedPage.parts.popover)[0].fire("click");
 }
 
 check("ignoring one occurrence leaves the other underlined and saves nothing to storage", () => {
@@ -638,18 +638,18 @@ check("ignoring one occurrence leaves the other underlined and saves nothing to 
   const shown = marked(occurrencePage.parts.preview);
   assert.equal(shown.length, 1);
   assert.equal(shown[0].dataset.occ, "1", "the second occurrence is the one still flagged");
-  assert.equal(occurrencePage.parts.ignored.hidden, false);
-  assert.equal(occurrencePage.parts.ignored.textContent, "Unignore 1");
+  assert.equal(occurrencePage.parts.unignore.hidden, false);
+  assert.equal(occurrencePage.parts.unignore.textContent, "Unignore 1");
   assert.equal(
-    occurrenceStorage.held.has(IGNORED_STORAGE_KEY),
+    occurrenceStorage.items.has(IGNORED_STORAGE_KEY),
     false,
     "an occurrence ignore is session-only",
   );
 });
 
 check("the button clears occurrence ignores too", () => {
-  occurrencePage.parts.ignored.fire("click");
-  assert.equal(occurrencePage.parts.ignored.hidden, true);
+  occurrencePage.parts.unignore.fire("click");
+  assert.equal(occurrencePage.parts.unignore.hidden, true);
   assert.equal(marked(occurrencePage.parts.preview).length, 2);
 });
 
@@ -657,8 +657,8 @@ check("ignoring the word everywhere replaces its occurrence ignores", () => {
   ignoreOneOccurrence(occurrencePage, 0);
   ignoreTheMisspelling(occurrencePage);
   assert.deepEqual(flagged(occurrencePage), []);
-  assert.equal(occurrencePage.parts.ignored.textContent, "Unignore 1");
-  assert.deepEqual(JSON.parse(occurrenceStorage.held.get(IGNORED_STORAGE_KEY)), [misspelled]);
+  assert.equal(occurrencePage.parts.unignore.textContent, "Unignore 1");
+  assert.deepEqual(JSON.parse(occurrenceStorage.items.get(IGNORED_STORAGE_KEY)), [misspelled]);
 });
 
 const fixAllPage = loadPage(false);
@@ -744,9 +744,9 @@ const gradePage = loadPage(false, gradeStorage);
 check("a grade choice is saved to storage when the toggle is clicked", () => {
   assert.equal(gradePage.parts.grade.getAttribute("aria-pressed"), "true", "opens in Senior");
   gradePage.parts.grade.fire("click");
-  assert.equal(gradeStorage.held.get(GRADE_STORAGE_KEY), "junior");
+  assert.equal(gradeStorage.items.get(GRADE_STORAGE_KEY), "junior");
   gradePage.parts.grade.fire("click");
-  assert.equal(gradeStorage.held.get(GRADE_STORAGE_KEY), "senior");
+  assert.equal(gradeStorage.items.get(GRADE_STORAGE_KEY), "senior");
 });
 
 check("a reloaded page restores the grade from storage", () => {

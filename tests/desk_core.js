@@ -154,7 +154,7 @@ check("an angled parenthesis splits a run", () => {
   );
 });
 
-check("hyphens bind into the run they follow a letter in", () => {
+check("a hyphen that follows a letter is part of that letter's token", () => {
   assert.deepEqual(
     tokens(`${A}-${B}`).map((hit) => hit.word),
     [A + "-" + B],
@@ -263,7 +263,7 @@ check("a spelled-out X-letter word gets its REP-table form as the first suggesti
   assert.equal(suggestions[0], spelled, `${show(suggestions[0])} != ${show(spelled)}`);
 });
 
-check("the REP table maps the other way too", () => {
+check("the REP table also maps letter pairs to X-letters, and an unlisted spelling is never suggested", () => {
   const { spelled, spelled_out } = X_LETTERED[0];
   const suggestions = suggest(spelled, suggestContext());
   assert.ok(!accepts(ACCEPTED, spelled_out));
@@ -306,7 +306,7 @@ check("the confusion group is the fifteen vowels", () => {
 check("a one-vowel swap is suggested before edit-distance suggestions", () => {
   assert.equal(accepts(ACCEPTED, MISVOWELED), false, show(MISVOWELED));
   assert.equal(accepts(ACCEPTED, WHATS), true, show(WHATS));
-  assert.equal(freq(WHATS), 0, "a corpus bump that counts it needs a new specimen");
+  assert.equal(freq(WHATS), 0, "the corpus gives this word no count; if an update gives it one, pick another word");
   const suggestions = suggest(MISVOWELED, suggestContext());
   const at = suggestions.indexOf(WHATS);
   assert.ok(at >= 0, `${show(WHATS)} not in ${suggestions.map(show).join(" | ")}`);
