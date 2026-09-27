@@ -109,12 +109,12 @@ function lookupSpellings(text, spellingsByLatin) {
   /** @type {{latin: string, items: Item[]}[]} */
   const out = [];
   for (const [run] of text.matchAll(RUN)) {
-    if (out.length >= MAX_LOOKUP_WORDS) break;
     if (!LETTER.test(run)) continue;
     const key = run.toLowerCase().replace(CURLY, "'").replace(TRAILING, "");
     const senses = spellingsByLatin.get(key);
     const pieces = senses || !key.includes(HYPHEN) ? [key] : key.split(HYPHEN);
     for (const piece of pieces) {
+      if (out.length >= MAX_LOOKUP_WORDS) return out;
       if (!LETTER.test(piece)) continue;
       const matches = spellingsByLatin.get(piece);
       out.push({ latin: piece, items: matches ? items(matches) : [] });

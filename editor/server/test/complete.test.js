@@ -106,3 +106,8 @@ test("an unlisted hyphenation is written piece by piece", () => {
     ],
   );
 });
+
+test("a 25-piece unlisted hyphenation returns only 20 words", () => {
+  const found = lookupSpellings(Array(25).fill("read").join("-"), SPELLINGS_BY_LATIN);
+  assert.equal(found.length, 20);
+});
