@@ -616,6 +616,30 @@ test("a misspelling's diagnostic lists its suggestions", async () => {
   assert.deepEqual(second.params.diagnostics, []);
 });
 
+test("a code action request whose only is the empty kind gets the quick fixes", async () => {
+  const uri = "file:///draft/empty-kind.txt";
+  const word = misspelled(READ_EAT);
+  const client = new Client(target);
+  await client.request("initialize", {
+    processId: process.pid,
+    rootUri: null,
+    capabilities: {},
+  });
+  client.notify("initialized", {});
+  client.notify("textDocument/didOpen", {
+    textDocument: { uri, languageId: "plaintext", version: 1, text: `${word}\n` },
+  });
+  const first = await client.published();
+
+  const asked = await client.request("textDocument/codeAction", {
+    textDocument: { uri },
+    range: first.params.diagnostics[0].range,
+    context: { diagnostics: [], only: [""] },
+  });
+  assert.ok(Array.isArray(asked.result));
+  assert.equal(asked.result[0].title, core.suggest(word, suggestContext())[0]);
+});
+
 test("hover names the word and completions replace the latin", async () => {
   const uri = "file:///draft/lookup.txt";
   const client = new Client(target);

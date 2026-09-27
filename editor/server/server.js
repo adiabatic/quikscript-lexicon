@@ -461,7 +461,10 @@ connection.onCompletion(({ textDocument, position: place, context }) => {
 
 connection.onCodeAction(({ textDocument, range, context }) => {
   const only = context.only;
-  if (only && !only.some((kind) => kind === "quickfix" || "quickfix".startsWith(kind + "."))) {
+  if (
+    only &&
+    !only.some((kind) => kind === "" || kind === "quickfix" || "quickfix".startsWith(kind + "."))
+  ) {
     return null;
   }
   const result = checkDocument(textDocument.uri);
