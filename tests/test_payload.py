@@ -111,7 +111,7 @@ def test_the_replacement_table_is_the_affix_files_own() -> None:
 
 
 def test_the_confusion_group_is_the_vowels() -> None:
-    """Pinned to the codepoint block, not re-derived from the names the builder uses."""
+    """Compared with the codepoint block directly, rather than derived from the letter names as the builder does."""
     assert DATA["confusions"] == ["".join(map(chr, range(0xE670, 0xE67F)))]
 
 

@@ -39,9 +39,9 @@ def test_the_shipped_table_loads_and_every_row_declares_its_provenance() -> None
 
 
 def test_the_rules_produce_every_spelling_the_table_declares() -> None:
-    """The fixture the build never reads, held to the build’s own machinery.
+    """The build spells added words with the rules and never reads their `qs` column, so this test checks that column against the rules.
 
-    The validator holds the shipped table to this too; here it is held for a caller who runs only the test suite.
+    The validator runs the same check. This copy covers a run of the test suite alone.
     """
     for entry in ADDED:
         result = spell(context_of(entry.word, entry.row), TABLES)
@@ -57,7 +57,7 @@ def test_no_added_word_duplicates_a_word_the_corpus_already_carries() -> None:
 def test_both_spellings_of_the_name_share_one_quikscript_spelling() -> None:
     """quikscript and quickscript are one word under two Latin spellings.
 
-    The possessive is that spelling plus ·See, devoiced after the voiceless ·Tea, which is what a row of its own buys: with no plural row, nothing else in the lexicon carries that string.
+    The possessive is that spelling plus ·See, devoiced after the voiceless ·Tea. It needs its own row. There is no plural row, so no other entry in the lexicon has that spelling.
     """
     by_word = {entry.word: entry.qs for entry in ADDED}
     base = by_word["quikscript"]
@@ -74,12 +74,12 @@ def test_the_added_words_reach_the_master_and_the_flat_projection() -> None:
 
 
 def test_the_master_counts_the_added_words_separately() -> None:
-    """meta.source names the corpus, and the corpus no longer accounts for every row."""
+    """`meta.source` names the ReadLex repository and commit, and ReadLex is no longer the source of every entry."""
     assert MASTER["meta"]["counts"]["added"] == len(ADDED)
 
 
 def test_the_possessives_are_listed_as_phrases() -> None:
-    """A single word with an apostrophe never composes, so a tokenizer must match it whole — the same reason upstream’s guy's, lloyd's and parkinson's are listed."""
+    """A single word with an apostrophe never composes, so a tokenizer must match it whole. Upstream’s guy's, lloyd's and parkinson's are listed for the same reason."""
     listed = set(BUILT[PHRASES_TXT].split())
     assert {"quikscript's", "quickscript's"} <= listed
 
@@ -121,7 +121,7 @@ def test_the_same_word_under_two_tags_is_allowed(tmp_path: Path) -> None:
 
 
 def test_an_added_row_wears_no_variant_tag(tmp_path: Path) -> None:
-    """It belongs to no accent, and an empty tag is one the row policy raises on, so it cannot drift into the corpus accounting unnoticed."""
+    """An added row belongs to no accent, so its `var` tag is empty. `variants.kept` raises on an empty tag. An added row that reached the row policy would therefore raise an error instead of being counted in the per-tag row counts in var-tags.tsv."""
     entry = load_added_words(added_file(tmp_path, [GOOD]))[0]
     assert entry.row.var == ""
     assert entry.row.headword == "quikscript_NP0_𐑒𐑢𐑦𐑒𐑕𐑒𐑮𐑦𐑐𐑑"

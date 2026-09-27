@@ -138,9 +138,9 @@ def test_the_master_declares_what_it_holds() -> None:
 
 
 def test_the_master_carries_the_converter_shape_it_no_longer_ships() -> None:
-    """The proof that dropping qs_converter.json lost nothing.
+    """Tests that dropping qs_converter.json lost nothing.
 
-    Rebuilt from the master’s own entries and its own tag map — no other file read — and held to what the build derives from the entries in memory.
+    The converter table is rebuilt from the lexicon JSON’s own entries and `c5_to_penn` map, reading no other file. It must equal the converter table built from the in-memory entries and c5-to-penn.tsv.
     """
     rebuilt = converter(
         (

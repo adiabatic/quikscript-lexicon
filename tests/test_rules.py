@@ -468,7 +468,7 @@ def test_rule_ids_are_unique() -> None:
 
 
 def test_senior_only_names_only_terminals() -> None:
-    """The junior column declines a SENIOR_ONLY rewrite in `_stack`’s terminal branch alone, so a word rule or a misspelled id in the set would be a silent no-op rather than an error."""
+    """`_stack` keeps the junior letters unchanged for a `SENIOR_ONLY` rule only in its terminal branch, so a word rule or a misspelled id in the set would have no effect and raise no error."""
     assert {terminal.id for terminal in TERMINAL_RULES} >= SENIOR_ONLY
 
 

@@ -421,7 +421,7 @@ def test_a_pseudo_tag_gains_no_closing_tag(t: Transliterator) -> None:
 
 # --- the Manual’s specimen passages -------------------------------------------
 
-# Rows the replay cannot reproduce, each for a reason the layers own: the fixture cannot record a leading apostrophe, a phrase match hides a word from the word-level contraction layer, Read contracts beyond his own list, a tolerated contraction is accepted but never written, and the row policy keeps both RRPVar pronunciations of against.
+# Expected output for passage words the transliterator cannot write as the Manual does. no-how 38: done is a tolerated contraction, which the checker accepts but the transliterator never writes. parental-advice 11: the phrase “a little” matches first, so the word-level contraction layer never sees little. gown-shop 24: Read writes whatever as the what-sign plus ever, a contraction his own list does not have. marys-lamb 30: manual-passages.tsv cannot record the leading apostrophe of 'twas. marys-lamb 32: the row policy keeps both RRPVar pronunciations of against, so the output joins both spellings with ⬌.
 REPLAY_PINS = {
     ("no-how", 38): "·Day·Utter·No",
     ("parental-advice", 11): "·Low·It·Tea·Low",

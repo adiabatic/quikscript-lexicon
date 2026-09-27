@@ -90,13 +90,13 @@ def test_the_replacement_table_is_the_affix_files_own() -> None:
 
 
 def test_the_confusion_group_is_the_vowels() -> None:
-    """Pinned to the codepoint block, not re-derived from the names the builder uses."""
+    """Compared with the codepoint block directly, rather than derived from the letter names as the builder does."""
     assert confusions() == ("".join(map(chr, range(0xE670, 0xE67F))),)
     assert json.loads(payload(LEXICON))["confusions"] == list(confusions())
 
 
 def test_both_forms_of_a_divergent_row_are_accepted() -> None:
-    """The toggle swaps the face alone, so neither grade narrows the word set."""
+    """The grade toggle switches only the font face, so both grades accept the same word set."""
     accepted = frozenset(LEXICON.union)
     assert {row.latin for row in DIVERGENT} == {
         "always",
@@ -131,9 +131,9 @@ def test_the_page_carries_the_dictionary_and_the_senior_contractions() -> None:
 
 
 def test_the_contractions_the_dictionary_already_lists_widen_nothing() -> None:
-    """Six of the 75 are spellings the columns carry anyway, for six reasons.
+    """Six of the 75 contractions are spellings the dictionary already lists.
 
-    be and that are Manual word signs the senior column already writes, cannot is spelled as the list spells it, and do, think and she collide with an unrelated entry each — the ordinals nd/rd and th, and the interjection sh. Set arithmetic gets all six right; a count of rows would not.
+    be and that are Manual word signs that the senior column already writes. cannot has the same spelling in the list and in its own row. do, think and she share a spelling with unrelated entries: the ordinals nd and rd, the ordinal th, and the interjection sh. The test compares sets of spellings rather than counting rows, because some of these spellings belong to more than one row. do has the spelling of both nd and rd, and be has two rows (VBI and VBB).
     """
     assert len(CONTRACTED & frozenset(LEXICON.listed)) == 6
     assert len(LEXICON.union) - len(LEXICON.listed) == 69
@@ -285,9 +285,9 @@ def test_check_fails_on_a_page_that_has_been_edited(
 
 @pytest.fixture(scope="module")
 def written(tmp_path_factory: pytest.TempPathFactory) -> Path:
-    """This module’s own build, on disk where node can read it.
+    """This module’s own build, written to disk for node to read.
 
-    A fresh build rather than the committed `site/index.html`, so that the page’s JavaScript is held to what the builder emits now: whether what is committed matches that is `--check`’s question, and the tests above already ask it. It also keeps a test run from depending on `make site` having been run, or from leaving anything behind in the tree.
+    The node tests use a fresh build rather than the committed `site/index.html`, so they test the page as the builder writes it now. `python -m qslex.desk --check`, which `make check` runs, checks that the committed file matches a fresh build. The tests above test that option. A fresh build also means a test run does not depend on `make site` and leaves nothing in the tree.
     """
     out = tmp_path_factory.mktemp(SITE) / PAGE
     out.write_text(BUILT, encoding="utf-8", newline="\n")
@@ -295,9 +295,9 @@ def written(tmp_path_factory: pytest.TempPathFactory) -> Path:
 
 
 def under_node(script: str, *arguments: Path) -> str:
-    """A JavaScript test file run to the end, with everything it said on failure.
+    """Runs a JavaScript test file and fails with its output if it exits non-zero.
 
-    node exits non-zero on the first failed assertion and each file logs the checks that had passed before it, so the report pytest prints is the same one the file prints when it is run by hand.
+    node exits non-zero on the first failed assertion. Each file logs the checks that passed before the failure, so pytest prints the same report the file prints when run by hand.
     """
     assert NODE is not None
     finished = subprocess.run(
