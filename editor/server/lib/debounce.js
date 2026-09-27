@@ -23,7 +23,7 @@ function debouncer(delay, run) {
       pending.delete(key);
     },
     clear() {
-      for (const held of pending.values()) clearTimeout(held);
+      for (const timer of pending.values()) clearTimeout(timer);
       pending.clear();
     },
   };

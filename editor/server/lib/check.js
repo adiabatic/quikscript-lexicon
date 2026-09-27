@@ -6,7 +6,7 @@ const MARKDOWN = "markdown";
 const INFORMATION = /** @type {const} */ (3);
 const SOURCE = "quikscript";
 const UNKNOWN = "unknown-word";
-const CAP = 500;
+const MAX_DIAGNOSTICS = 500;
 
 /** @typedef {{line: number, character: number}} Position */
 /** @typedef {{start: Position, end: Position}} Span */
@@ -90,7 +90,7 @@ function flagged(
   const seen = new Map();
   let at = 0;
   for (const hit of tokens(text)) {
-    if (out.length >= CAP) break;
+    if (out.length >= MAX_DIAGNOSTICS) break;
     const occurrence = seen.get(hit.word) || 0;
     seen.set(hit.word, occurrence + 1);
     while (at < skipped.length && skipped[at].end <= hit.start) at += 1;
@@ -119,4 +119,4 @@ function diagnostics(text, hits) {
   }));
 }
 
-module.exports = { CAP, diagnostics, flagged, lineStarts, occurrenceKey, offsetAt, position };
+module.exports = { MAX_DIAGNOSTICS, diagnostics, flagged, lineStarts, occurrenceKey, offsetAt, position };

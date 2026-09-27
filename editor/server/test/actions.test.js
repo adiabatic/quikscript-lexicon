@@ -10,7 +10,7 @@ const {
   PROJECT,
   USER,
   actions,
-  adviser,
+  cachedSuggester,
 } = require("../lib/actions.js");
 
 const WORDS = lexicon(data);
@@ -55,7 +55,7 @@ test("each offer becomes a materialized quickfix, the first preferred", () => {
     title: `${GOOD} — and the 2 others written the same way`,
     kind: "quickfix",
     edit: {
-      changes: { [URI]: everywhere.map((held) => ({ range: held, newText: GOOD })) },
+      changes: { [URI]: everywhere.map((span) => ({ range: span, newText: GOOD })) },
     },
   });
   assert.equal("isPreferred" in out[2], false);
@@ -120,7 +120,7 @@ test("the ignore tiers ride as fully spelled-out commands", () => {
 });
 
 test("suggestions are computed once per word and served from the cache", () => {
-  const offered = adviser(WORDS);
+  const offered = cachedSuggester(WORDS);
   const first = offered(BAD);
   assert.equal(offered(BAD), first);
   assert.deepEqual(

@@ -1,5 +1,5 @@
 const { tokens } = require("../../../src/qslex/web/core.js");
-const { CONTRACTION, FACE_OF, JUNIOR, SENIOR, X, faced, label } = require("./lookup.js");
+const { COLUMN_LABEL, CONTRACTION, JUNIOR, SENIOR, X, label, spellingIn } = require("./lookup.js");
 
 const HYPHEN = "-";
 const SPACE = " ";
@@ -7,7 +7,7 @@ const GAP = "  ";
 const FENCE = "```";
 const TAG = "plaintext";
 /** @type {Record<string, string>} */
-const NAMED_FACE = { ...FACE_OF, [CONTRACTION]: "Senior contraction" };
+const GLOSS_COLUMN_LABEL = { ...COLUMN_LABEL, [CONTRACTION]: "Senior contraction" };
 
 /** @typedef {import("./lookup.js").Reading} Reading */
 /** @typedef {import("./lookup.js").Writing} Writing */
@@ -46,14 +46,14 @@ function section(word, latin, entries, write) {
         if (row.senior && row.senior !== word) written.add(row.senior);
         continue;
       }
-      if (faced(row, entry.column) !== word) continue;
+      if (spellingIn(row, entry.column) !== word) continue;
       let siblings = columns.get(entry.column);
       if (!siblings) {
         siblings = new Map();
         columns.set(entry.column, siblings);
       }
       for (const other of [SENIOR, JUNIOR, X]) {
-        const form = faced(row, other);
+        const form = spellingIn(row, other);
         if (other === entry.column || !form || form === word) continue;
         const forms = siblings.get(other);
         if (forms) forms.add(form);
@@ -64,10 +64,12 @@ function section(word, latin, entries, write) {
   const lines = [`**${latin}** — ${labels.join(", ")}`];
   for (const [column, siblings] of columns) {
     if (siblings.size === 0) continue;
-    lines.push(`${FACE_OF[column]} form:`);
+    lines.push(`${COLUMN_LABEL[column]} form:`);
     lines.push(
       fenced(
-        [...siblings].map((pair) => `${FACE_OF[pair[0]]}: ${[...pair[1]].sort().join(", ")}`),
+        [...siblings].map(
+          (pair) => `${COLUMN_LABEL[pair[0]]}: ${[...pair[1]].sort().join(", ")}`,
+        ),
       ),
     );
   }
@@ -93,12 +95,12 @@ function sections(word, entries, write) {
   /** @type {Map<string, Reading[]>} */
   const grouped = new Map();
   for (const entry of entries) {
-    const held = grouped.get(entry.latin);
-    if (held) held.push(entry);
+    const group = grouped.get(entry.latin);
+    if (group) group.push(entry);
     else grouped.set(entry.latin, [entry]);
   }
-  const told = [...grouped].map((pair) => section(word, pair[0], pair[1], write));
-  return [fenced([word]), ...told].join("\n\n");
+  const latinSections = [...grouped].map((pair) => section(word, pair[0], pair[1], write));
+  return [fenced([word]), ...latinSections].join("\n\n");
 }
 
 /**
@@ -107,15 +109,15 @@ function sections(word, entries, write) {
  * @param {Map<string, Writing[]>} write
  * @returns {string | null}
  */
-function described(word, read, write) {
+function hoverMarkdown(word, read, write) {
   const entries = read.get(word);
   if (entries) return sections(word, entries, write);
   if (!word.includes(HYPHEN)) return null;
   /** @type {string[]} */
   const found = [];
   for (const piece of word.split(HYPHEN)) {
-    const held = read.get(piece);
-    if (held) found.push(sections(piece, held, write));
+    const matches = read.get(piece);
+    if (matches) found.push(sections(piece, matches, write));
   }
   return found.length > 0 ? found.join("\n\n") : null;
 }
@@ -128,29 +130,30 @@ function named(entries) {
   /** @type {Map<string, Reading[]>} */
   const grouped = new Map();
   for (const entry of entries) {
-    const held = grouped.get(entry.latin);
-    if (held) held.push(entry);
+    const group = grouped.get(entry.latin);
+    if (group) group.push(entry);
     else grouped.set(entry.latin, [entry]);
   }
   /** @type {string[]} */
-  const told = [];
-  for (const [latin, held] of grouped) {
+  const glosses = [];
+  for (const [latin, group] of grouped) {
     /** @type {string[]} */
     const labels = [];
     /** @type {string[]} */
-    const faces = [];
-    for (const entry of held) {
+    const columnLabels = [];
+    for (const entry of group) {
       const tag = label(entry.pos);
       if (!labels.includes(tag)) labels.push(tag);
       if (entry.column === SENIOR) continue;
-      const face = NAMED_FACE[entry.column];
-      if (face && !faces.includes(face)) faces.push(face);
+      const columnLabel = GLOSS_COLUMN_LABEL[entry.column];
+      if (columnLabel && !columnLabels.includes(columnLabel)) columnLabels.push(columnLabel);
     }
-    const apart = held.every((entry) => entry.column !== SENIOR);
-    const aside = apart && faces.length > 0 ? ` (${faces.join(", ")})` : "";
-    told.push(`${latin} — ${labels.join(", ")}${aside}`);
+    const noSeniorEntry = group.every((entry) => entry.column !== SENIOR);
+    const columnSuffix =
+      noSeniorEntry && columnLabels.length > 0 ? ` (${columnLabels.join(", ")})` : "";
+    glosses.push(`${latin} — ${labels.join(", ")}${columnSuffix}`);
   }
-  return told.join("; ");
+  return glosses.join("; ");
 }
 
 /**
@@ -158,7 +161,7 @@ function named(entries) {
  * @param {Map<string, Reading[]>} read
  * @returns {string | null}
  */
-function latins(word, read) {
+function latinWordsFor(word, read) {
   const entries = read.get(word);
   if (!entries) return null;
   /** @type {string[]} */
@@ -174,15 +177,15 @@ function latins(word, read) {
  * @param {Map<string, Reading[]>} read
  * @returns {string}
  */
-function pieced(word, read) {
+function glossFromPieces(word, read) {
   /** @type {string[]} */
   const parts = [];
   for (const part of word.split(SPACE)) {
     /** @type {string[]} */
     const cut = [];
     for (const piece of part.split(HYPHEN)) {
-      const held = latins(piece, read);
-      if (held) cut.push(held);
+      const latinWords = latinWordsFor(piece, read);
+      if (latinWords) cut.push(latinWords);
     }
     if (cut.length > 0) parts.push(cut.join(HYPHEN));
   }
@@ -196,16 +199,16 @@ function pieced(word, read) {
  */
 function glossed(word, read) {
   const entries = read.get(word);
-  return entries ? named(entries) : pieced(word, read);
+  return entries ? named(entries) : glossFromPieces(word, read);
 }
 
 /**
- * @param {string[]} offers
+ * @param {string[]} suggestions
  * @param {Map<string, Reading[]>} read
  * @returns {string[]}
  */
-function listed(offers, read) {
-  return offers.map((fix) => {
+function listed(suggestions, read) {
+  return suggestions.map((fix) => {
     const gloss = glossed(fix, read);
     return gloss ? `${fix}${GAP}${gloss}` : fix;
   });
@@ -218,19 +221,19 @@ function listed(offers, read) {
  * @param {Map<string, Writing[]>} write
  * @returns {{value: string, start: number, end: number} | null}
  */
-function hovered(text, offset, read, write) {
-  let behind = null;
+function hoverAt(text, offset, read, write) {
+  let token = null;
   for (const hit of tokens(text)) {
     if (hit.start > offset) break;
     if (offset < hit.end) {
-      behind = hit;
+      token = hit;
       break;
     }
-    if (offset === hit.end) behind = hit;
+    if (offset === hit.end) token = hit;
   }
-  if (!behind) return null;
-  const value = described(behind.word, read, write);
-  return value ? { value, start: behind.start, end: behind.end } : null;
+  if (!token) return null;
+  const value = hoverMarkdown(token.word, read, write);
+  return value ? { value, start: token.start, end: token.end } : null;
 }
 
-module.exports = { described, glossed, hovered, listed };
+module.exports = { glossed, hoverAt, hoverMarkdown, listed };

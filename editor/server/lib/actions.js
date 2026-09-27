@@ -6,7 +6,7 @@ const DIRECTORY = "quikscript.ignore.directory";
 const PROJECT = "quikscript.ignore.project";
 const USER = "quikscript.ignore.user";
 const COMMANDS = [OCCURRENCE, DIRECTORY, PROJECT, USER];
-const HOARD = 4096;
+const SUGGESTION_CACHE_LIMIT = 4096;
 
 /** @typedef {import("./check.js").Span} Span */
 /** @typedef {{range: Span, newText: string}} Edit */
@@ -15,27 +15,27 @@ const HOARD = 4096;
 /** @typedef {{word: string, occurrence: number, range: Span}} Flag */
 
 /**
- * @param {import("./lexicon.js").Lexicon} held
+ * @param {import("./lexicon.js").Lexicon} lexicon
  * @returns {(word: string) => string[]}
  */
-function adviser(held) {
+function cachedSuggester(lexicon) {
   /** @type {Map<string, string[]>} */
   const cached = new Map();
-  const advice = {
-    active: held.active,
-    freq: held.counts,
-    groups: held.groups,
-    letters: held.letters,
-    rep: held.rep,
+  const suggestContext = {
+    active: lexicon.active,
+    freq: lexicon.counts,
+    groups: lexicon.groups,
+    letters: lexicon.letters,
+    rep: lexicon.rep,
   };
   return (word) => {
-    let offers = cached.get(word);
-    if (offers === undefined) {
-      if (cached.size >= HOARD) cached.clear();
-      offers = suggest(word, advice);
-      cached.set(word, offers);
+    let suggestions = cached.get(word);
+    if (suggestions === undefined) {
+      if (cached.size >= SUGGESTION_CACHE_LIMIT) cached.clear();
+      suggestions = suggest(word, suggestContext);
+      cached.set(word, suggestions);
     }
-    return offers;
+    return suggestions;
   };
 }
 
@@ -45,7 +45,7 @@ function adviser(held) {
  * @param {unknown[]} args
  * @returns {Action}
  */
-function told(title, command, args) {
+function commandAction(title, command, args) {
   return { title, kind: QUICKFIX, command: { title, command, arguments: args } };
 }
 
@@ -53,16 +53,16 @@ function told(title, command, args) {
  * @param {string} uri
  * @param {Flag} flag
  * @param {Span[]} everywhere
- * @param {string[]} offers
+ * @param {string[]} suggestions
  * @param {{directory: boolean, project: boolean}} scopes
  * @returns {Action[]}
  */
-function actions(uri, flag, everywhere, offers, scopes) {
+function actions(uri, flag, everywhere, suggestions, scopes) {
   /** @type {Action[]} */
   const out = [];
   const others = everywhere.length - 1;
   const rest = others === 1 ? "the 1 other" : `the ${others} others`;
-  for (const [at, fix] of offers.entries()) {
+  for (const [at, fix] of suggestions.entries()) {
     /** @type {Action} */
     const one = {
       title: fix,
@@ -82,16 +82,18 @@ function actions(uri, flag, everywhere, offers, scopes) {
     }
   }
   out.push(
-    told("Ignore this occurrence", OCCURRENCE, [
+    commandAction("Ignore this occurrence", OCCURRENCE, [
       { uri, word: flag.word, occurrence: flag.occurrence },
     ]),
   );
   if (scopes.directory) {
-    out.push(told("Ignore in this directory", DIRECTORY, [{ uri, word: flag.word }]));
+    out.push(commandAction("Ignore in this directory", DIRECTORY, [{ uri, word: flag.word }]));
   }
-  if (scopes.project) out.push(told("Ignore in this project", PROJECT, [{ uri, word: flag.word }]));
-  out.push(told("Ignore everywhere", USER, [{ word: flag.word }]));
+  if (scopes.project) {
+    out.push(commandAction("Ignore in this project", PROJECT, [{ uri, word: flag.word }]));
+  }
+  out.push(commandAction("Ignore everywhere", USER, [{ word: flag.word }]));
   return out;
 }
 
-module.exports = { COMMANDS, DIRECTORY, OCCURRENCE, PROJECT, USER, actions, adviser };
+module.exports = { COMMANDS, DIRECTORY, OCCURRENCE, PROJECT, USER, actions, cachedSuggester };

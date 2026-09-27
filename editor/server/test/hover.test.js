@@ -3,7 +3,7 @@ const { test } = require("node:test");
 const data = require("../payload.json");
 const { lexicon } = require("../lib/lexicon.js");
 const { readings, writings } = require("../lib/lookup.js");
-const { described, glossed, hovered, listed } = require("../lib/hover.js");
+const { glossed, hoverAt, hoverMarkdown, listed } = require("../lib/hover.js");
 const { accepts, suggest } = require("../../../src/qslex/web/core.js");
 
 const READ = readings(data);
@@ -69,7 +69,7 @@ function misspelled(seed) {
   throw new Error("every extension of the seed is spelled");
 }
 
-function advice() {
+function suggestContext() {
   return {
     active: WORDS.active,
     freq: WORDS.counts,
@@ -86,12 +86,12 @@ const READ_TOLD =
   "**reed** — singular noun";
 
 test("a spelling names every word it writes", () => {
-  assert.equal(described(READ_EAT, READ, WRITE), READ_TOLD);
+  assert.equal(hoverMarkdown(READ_EAT, READ, WRITE), READ_TOLD);
 });
 
 test("a heteronym's other face reads apart", () => {
   assert.equal(
-    described(READ_ET, READ, WRITE),
+    hoverMarkdown(READ_ET, READ, WRITE),
     `${fence(READ_ET)}\n\n` +
       "**read** — past-tense verb, past participle\n\n" +
       "**red** — adjective, singular noun",
@@ -100,12 +100,12 @@ test("a heteronym's other face reads apart", () => {
 
 test("a junior form and its senior name each other", () => {
   assert.equal(
-    described(COULDNT_JUNIOR, READ, WRITE),
+    hoverMarkdown(COULDNT_JUNIOR, READ, WRITE),
     `${fence(COULDNT_JUNIOR)}\n\n**couldn't** — modal verb + not  \n` +
       `Junior form:  \n${fence(`Senior: ${COULDNT}`)}`,
   );
   assert.equal(
-    described(COULDNT, READ, WRITE),
+    hoverMarkdown(COULDNT, READ, WRITE),
     `${fence(COULDNT)}\n\n**couldn't** — modal verb + not  \n` +
       `Senior form:  \n${fence(`Junior: ${COULDNT_JUNIOR}`)}`,
   );
@@ -113,12 +113,12 @@ test("a junior form and its senior name each other", () => {
 
 test("an x-letter form and its senior name each other", () => {
   assert.equal(
-    described(EXPECT_X, READ, WRITE),
+    hoverMarkdown(EXPECT_X, READ, WRITE),
     `${fence(EXPECT_X)}\n\n**expect** — verb, infinitive  \n` +
       `X-letter form:  \n${fence(`Senior: ${EXPECT}`)}`,
   );
   assert.equal(
-    described(EXPECT, READ, WRITE),
+    hoverMarkdown(EXPECT, READ, WRITE),
     `${fence(EXPECT)}\n\n**expect** — verb, infinitive  \n` +
       `Senior form:  \n${fence(`X-letter: ${EXPECT_X}`)}`,
   );
@@ -126,43 +126,43 @@ test("an x-letter form and its senior name each other", () => {
 
 test("a §III contraction is read out and written out", () => {
   assert.equal(
-    described(PERHAPS, READ, WRITE),
+    hoverMarkdown(PERHAPS, READ, WRITE),
     `${fence(PERHAPS)}\n\n**perhaps** — adverb  \n` +
       `Senior contraction — written out:  \n${fence(PERHAPS_OUT)}`,
   );
 });
 
 test("a hyphenated compound falls back to the pieces it knows", () => {
-  const both = described(`${READ_EAT}-${READ_ET}`, READ, WRITE);
+  const both = hoverMarkdown(`${READ_EAT}-${READ_ET}`, READ, WRITE);
   assert.ok(both);
   assert.ok(both.includes("past-tense verb"));
   assert.ok(both.includes(READ_TOLD));
-  assert.equal(described(`${BAD}-${READ_EAT}`, READ, WRITE), READ_TOLD);
-  assert.equal(described(`${BAD}-${BAD}`, READ, WRITE), null);
+  assert.equal(hoverMarkdown(`${BAD}-${READ_EAT}`, READ, WRITE), READ_TOLD);
+  assert.equal(hoverMarkdown(`${BAD}-${BAD}`, READ, WRITE), null);
 });
 
 test("an unknown spelling stays silent", () => {
-  assert.equal(described(BAD, READ, WRITE), null);
+  assert.equal(hoverMarkdown(BAD, READ, WRITE), null);
 });
 
 test("the hover attaches to the token at or just behind the position", () => {
   const text = `on ${READ_EAT}\n`;
   for (const offset of [3, 4, 6]) {
-    assert.deepEqual(hovered(text, offset, READ, WRITE), {
+    assert.deepEqual(hoverAt(text, offset, READ, WRITE), {
       value: READ_TOLD,
       start: 3,
       end: 6,
     });
   }
-  assert.equal(hovered(text, 1, READ, WRITE), null);
-  assert.equal(hovered(text, 7, READ, WRITE), null);
+  assert.equal(hoverAt(text, 1, READ, WRITE), null);
+  assert.equal(hoverAt(text, 7, READ, WRITE), null);
 });
 
 test("no spelling in a hover renders outside a fence", () => {
   const spellings = data.words.split("\n").map((line) => line.split("\t", 1)[0]);
   let seen = 0;
   for (let at = 0; at < spellings.length; at += 97) {
-    const told = described(spellings[at], READ, WRITE);
+    const told = hoverMarkdown(spellings[at], READ, WRITE);
     if (!told) continue;
     seen += 1;
     assert.ok(!spelled(sifted(told, false).join("\n")), `unfenced spelling in ${spellings[at]}`);
@@ -171,7 +171,7 @@ test("no spelling in a hover renders outside a fence", () => {
 });
 
 test("the fixes are listed in Desk's order, each glossed", () => {
-  const offers = suggest(misspelled(READ_EAT), advice());
+  const offers = suggest(misspelled(READ_EAT), suggestContext());
   assert.ok(offers.length > 0);
   const lines = listed(offers, READ);
   assert.equal(lines.length, offers.length);

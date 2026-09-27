@@ -2,7 +2,7 @@ const assert = require("node:assert/strict");
 const { test } = require("node:test");
 const data = require("../payload.json");
 const { writings } = require("../lib/lookup.js");
-const { completions, worded, written } = require("../lib/complete.js");
+const { completions, latinWordAt, lookupSpellings } = require("../lib/complete.js");
 
 const WRITE = writings(data);
 const READ_EAT = "\uE668\uE671\uE653";
@@ -82,22 +82,22 @@ test("a listed compound keeps its whole range", () => {
 test("no word, no answer", () => {
   assert.equal(completions("zzqqxx", 6, WRITE), null);
   assert.equal(completions("a  b", 2, WRITE), null);
-  assert.equal(worded("  ", 1), null);
-  assert.equal(worded("''", 1), null);
+  assert.equal(latinWordAt("  ", 1), null);
+  assert.equal(latinWordAt("''", 1), null);
 });
 
 test("a latin phrase is written word by word, with the unknown left empty", () => {
-  assert.deepEqual(written("Read, dogs' zzxq", WRITE), [
+  assert.deepEqual(lookupSpellings("Read, dogs' zzxq", WRITE), [
     { latin: "read", items: READ_ITEMS },
-    { latin: "dogs", items: written("dogs", WRITE)[0].items },
+    { latin: "dogs", items: lookupSpellings("dogs", WRITE)[0].items },
     { latin: "zzxq", items: [] },
   ]);
-  assert.ok(written("dogs", WRITE)[0].items.length > 0);
-  assert.deepEqual(written("  , - ''", WRITE), []);
+  assert.ok(lookupSpellings("dogs", WRITE)[0].items.length > 0);
+  assert.deepEqual(lookupSpellings("  , - ''", WRITE), []);
 });
 
 test("an unlisted hyphenation is written piece by piece", () => {
-  const found = written("read-zzxq", WRITE);
+  const found = lookupSpellings("read-zzxq", WRITE);
   assert.deepEqual(
     found.map((word) => [word.latin, word.items.length > 0]),
     [

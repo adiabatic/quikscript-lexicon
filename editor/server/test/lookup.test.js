@@ -1,7 +1,7 @@
 const assert = require("node:assert/strict");
 const { test } = require("node:test");
 const data = require("../payload.json");
-const { faced, label, readings, writings } = require("../lib/lookup.js");
+const { spellingIn, label, readings, writings } = require("../lib/lookup.js");
 
 const READ = readings(data);
 const WRITE = writings(data);
@@ -12,8 +12,8 @@ test("the readings key every union spelling and the writings every latin", () =>
 });
 
 test("a reading names its row and the column the spelling sits in", () => {
-  const held = READ.get("\uE668\uE671\uE653");
-  assert.deepEqual(held, [
+  const entries = READ.get("\uE668\uE671\uE653");
+  assert.deepEqual(entries, [
     { latin: "read", pos: "NN1", column: "senior" },
     { latin: "read", pos: "VVB", column: "senior" },
     { latin: "read", pos: "VVI", column: "senior" },
@@ -33,9 +33,9 @@ test("a writing carries its tag, frequency, and three columns", () => {
       x: "",
     },
   ]);
-  assert.equal(faced(rows[0], "senior"), rows[0].senior);
-  assert.equal(faced(rows[0], "junior"), rows[0].junior);
-  assert.equal(faced(rows[0], "x"), "");
+  assert.equal(spellingIn(rows[0], "senior"), rows[0].senior);
+  assert.equal(spellingIn(rows[0], "junior"), rows[0].junior);
+  assert.equal(spellingIn(rows[0], "x"), "");
 });
 
 test("labels name the obvious tags and pass the rest through raw", () => {

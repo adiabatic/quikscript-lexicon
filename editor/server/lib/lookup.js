@@ -7,7 +7,7 @@ const JUNIOR = "junior";
 const X = "x";
 const CONTRACTION = "contraction";
 /** @type {Record<string, string>} */
-const FACE_OF = { [SENIOR]: "Senior", [JUNIOR]: "Junior", [X]: "X-letter" };
+const COLUMN_LABEL = { [SENIOR]: "Senior", [JUNIOR]: "Junior", [X]: "X-letter" };
 
 const NAMED = {
   AJ0: "adjective",
@@ -85,7 +85,7 @@ function label(pos) {
  * @param {string} column
  * @returns {string}
  */
-function faced(row, column) {
+function spellingIn(row, column) {
   if (column === SENIOR) return row.senior;
   if (column === JUNIOR) return row.junior;
   return row.x;
@@ -102,8 +102,8 @@ function readings(data) {
     if (!line) continue;
     const [spelling, latin, pos, column] = line.split("\t");
     const entry = { latin, pos, column };
-    const held = out.get(spelling);
-    if (held) held.push(entry);
+    const entries = out.get(spelling);
+    if (entries) entries.push(entry);
     else out.set(spelling, [entry]);
   }
   return out;
@@ -120,21 +120,21 @@ function writings(data) {
     if (!line) continue;
     const [latin, pos, frequency, senior, junior, x] = line.split("\t");
     const row = { pos, frequency: Number(frequency), senior, junior, x };
-    const held = out.get(latin);
-    if (held) held.push(row);
+    const rows = out.get(latin);
+    if (rows) rows.push(row);
     else out.set(latin, [row]);
   }
   return out;
 }
 
 module.exports = {
+  COLUMN_LABEL,
   CONTRACTION,
-  FACE_OF,
   JUNIOR,
   SENIOR,
   X,
-  faced,
   label,
   readings,
+  spellingIn,
   writings,
 };

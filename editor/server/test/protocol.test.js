@@ -49,7 +49,7 @@ function misspelled(seed) {
   throw new Error("every extension of the seed is spelled");
 }
 
-function advice() {
+function suggestContext() {
   return {
     active: WORDS.active,
     freq: WORDS.counts,
@@ -105,9 +105,9 @@ class Client {
     for (;;) {
       const seam = this.leftover.indexOf("\r\n\r\n");
       if (seam < 0) return;
-      const held = this.leftover.subarray(0, seam).toString("ascii");
-      const counted = held.match(/Content-Length: (\d+)/i);
-      assert.ok(counted, `framing headers carry a length: ${held}`);
+      const headers = this.leftover.subarray(0, seam).toString("ascii");
+      const counted = headers.match(/Content-Length: (\d+)/i);
+      assert.ok(counted, `framing headers carry a length: ${headers}`);
       const length = Number(counted[1]);
       if (this.leftover.length < seam + 4 + length) return;
       const body = this.leftover.subarray(seam + 4, seam + 4 + length);
@@ -246,8 +246,8 @@ test("the bundled server checks a markdown document end to end", async () => {
   const first = await client.published();
   assert.equal(first.params.uri, uri);
   assert.equal(first.params.version, 1);
-  for (const held of first.params.diagnostics) {
-    assert.ok(!("codeActions" in held));
+  for (const diagnostic of first.params.diagnostics) {
+    assert.ok(!("codeActions" in diagnostic));
   }
   assert.deepEqual(first.params.diagnostics, [
     {
@@ -369,10 +369,10 @@ test("quick fixes speak Desk's order and each ignore tier holds its scope", asyn
 
   const first = await client.published();
   assert.equal(first.params.uri, uri);
-  const held = first.params.diagnostics;
-  assert.deepEqual(said(held), [A, A, B, C, D].map(complaint));
+  const diagnostics = first.params.diagnostics;
+  assert.deepEqual(said(diagnostics), [A, A, B, C, D].map(complaint));
 
-  const offers = core.suggest(A, advice());
+  const offers = core.suggest(A, suggestContext());
   assert.ok(offers.length > 0);
   const expected = offers
     .flatMap((fix) => [fix, `${fix} — and the 1 other written the same way`])
@@ -382,8 +382,8 @@ test("quick fixes speak Desk's order and each ignore tier holds its scope", asyn
       "Ignore in this project",
       "Ignore everywhere",
     ]);
-  assert.deepEqual(titled(held[0].codeActions), expected);
-  for (const action of held[0].codeActions) {
+  assert.deepEqual(titled(diagnostics[0].codeActions), expected);
+  for (const action of diagnostics[0].codeActions) {
     if (action.edit) {
       assert.ok(!("documentChanges" in action.edit));
       assert.deepEqual(Object.keys(action.edit.changes), [uri]);
@@ -391,21 +391,21 @@ test("quick fixes speak Desk's order and each ignore tier holds its scope", asyn
       assert.ok(action.command);
     }
   }
-  assert.equal(held[0].codeActions[0].isPreferred, true);
-  const keyed = held[1].codeActions.find(
+  assert.equal(diagnostics[0].codeActions[0].isPreferred, true);
+  const keyed = diagnostics[1].codeActions.find(
     (/** @type {any} */ action) => action.title === "Ignore this occurrence",
   );
   assert.deepEqual(keyed.command.arguments, [{ uri, word: A, occurrence: 1 }]);
 
   const asked = await client.request("textDocument/codeAction", {
     textDocument: { uri },
-    range: held[0].range,
+    range: diagnostics[0].range,
     context: { diagnostics: [] },
   });
   assert.deepEqual(titled(asked.result), expected);
   assert.equal(asked.result[0].isPreferred, true);
   assert.deepEqual(asked.result[0].edit.changes, {
-    [uri]: [{ range: held[0].range, newText: offers[0] }],
+    [uri]: [{ range: diagnostics[0].range, newText: offers[0] }],
   });
   for (const action of asked.result) {
     if (action.edit) assert.ok(!("documentChanges" in action.edit));
@@ -420,7 +420,7 @@ test("quick fixes speak Desk's order and each ignore tier holds its scope", asyn
   assert.deepEqual(titled(pointed.result), expected);
   const refused = await client.request("textDocument/codeAction", {
     textDocument: { uri },
-    range: held[0].range,
+    range: diagnostics[0].range,
     context: { diagnostics: [], only: ["source.fixAll"] },
   });
   assert.equal(refused.result, null);
@@ -432,7 +432,7 @@ test("quick fixes speak Desk's order and each ignore tier holds its scope", asyn
   const second = await client.published();
   assert.equal(second.params.uri, uri);
   assert.deepEqual(said(second.params.diagnostics), [A, B, C, D].map(complaint));
-  assert.deepEqual(second.params.diagnostics[0].range, held[1].range);
+  assert.deepEqual(second.params.diagnostics[0].range, diagnostics[1].range);
   const trimmed = await client.request("textDocument/codeAction", {
     textDocument: { uri },
     range: second.params.diagnostics[0].range,
@@ -597,7 +597,7 @@ test("a misspelling's diagnostic names the fixes it is offered", async () => {
   });
   const first = await client.published();
 
-  const offers = core.suggest(word, advice());
+  const offers = core.suggest(word, suggestContext());
   assert.ok(offers.length > 0);
   /** @type {string[]} */
   const lines = first.params.diagnostics[0].message.split("\n");
@@ -859,8 +859,8 @@ test("quikscript/fixes hands each flag its fixes, glosses, edits and ignores", a
     textDocument: { uri, languageId: "plaintext", version: 1, text: `${A} ${A} ${B}\n` },
   });
   const first = await client.published();
-  const held = first.params.diagnostics;
-  assert.deepEqual(said(held), [A, A, B].map(complaint));
+  const diagnostics = first.params.diagnostics;
+  assert.deepEqual(said(diagnostics), [A, A, B].map(complaint));
 
   const answered = await client.request("quikscript/fixes", { textDocument: { uri } });
   /** @type {any[]} */
@@ -868,21 +868,21 @@ test("quikscript/fixes hands each flag its fixes, glosses, edits and ignores", a
   assert.deepEqual(
     flags.map((flag) => [flag.word, flag.occurrence, flag.range]),
     [
-      [A, 0, held[0].range],
-      [A, 1, held[1].range],
-      [B, 0, held[2].range],
+      [A, 0, diagnostics[0].range],
+      [A, 1, diagnostics[1].range],
+      [B, 0, diagnostics[2].range],
     ],
   );
-  assert.deepEqual(flags[0].spans, [held[0].range, held[1].range]);
-  assert.deepEqual(flags[1].spans, [held[0].range, held[1].range]);
-  assert.deepEqual(flags[2].spans, [held[2].range]);
+  assert.deepEqual(flags[0].spans, [diagnostics[0].range, diagnostics[1].range]);
+  assert.deepEqual(flags[1].spans, [diagnostics[0].range, diagnostics[1].range]);
+  assert.deepEqual(flags[2].spans, [diagnostics[2].range]);
 
   const read = readings(data);
   let glosses = 0;
   for (const flag of flags) {
     /** @type {any[]} */
     const fixes = flag.fixes;
-    const offers = core.suggest(flag.word, advice());
+    const offers = core.suggest(flag.word, suggestContext());
     assert.ok(offers.length > 0);
     assert.deepEqual(fixes.map((one) => one.fix), offers);
     for (const one of fixes) {
@@ -921,8 +921,8 @@ test("quikscript/fixes hands each flag its fixes, glosses, edits and ignores", a
   assert.deepEqual(
     rest.map((flag) => [flag.word, flag.occurrence, flag.range]),
     [
-      [A, 1, held[1].range],
-      [B, 0, held[2].range],
+      [A, 1, diagnostics[1].range],
+      [B, 0, diagnostics[2].range],
     ],
   );
 

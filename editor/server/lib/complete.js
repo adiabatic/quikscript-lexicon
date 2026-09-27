@@ -1,4 +1,4 @@
-const { FACE_OF, JUNIOR, SENIOR, X, faced, label } = require("./lookup.js");
+const { COLUMN_LABEL, JUNIOR, SENIOR, X, label, spellingIn } = require("./lookup.js");
 
 const LETTER = /[A-Za-z]/;
 const WORDY = /[A-Za-z'’-]/;
@@ -6,7 +6,7 @@ const CURLY = /’/g;
 const TRAILING = /'+$/;
 const HYPHEN = "-";
 const RUN = /[A-Za-z'’-]+/g;
-const MOST = 20;
+const MAX_LOOKUP_WORDS = 20;
 
 /** @typedef {import("./lookup.js").Writing} Writing */
 /** @typedef {{label: string, detail: string, sortText: string}} Item */
@@ -16,7 +16,7 @@ const MOST = 20;
  * @param {number} offset
  * @returns {{word: string, start: number, end: number} | null}
  */
-function worded(text, offset) {
+function latinWordAt(text, offset) {
   let start = Math.min(Math.max(offset, 0), text.length);
   let end = start;
   while (start > 0 && WORDY.test(text[start - 1])) start -= 1;
@@ -31,23 +31,23 @@ function worded(text, offset) {
  * @returns {Item[]}
  */
 function items(senses) {
-  /** @type {Map<string, {labels: string[], frequency: number, faces: Set<string>}>} */
+  /** @type {Map<string, {labels: string[], frequency: number, columns: Set<string>}>} */
   const merged = new Map();
   for (const sense of senses) {
-    for (const face of [SENIOR, JUNIOR, X]) {
-      const form = faced(sense, face);
+    for (const column of [SENIOR, JUNIOR, X]) {
+      const form = spellingIn(sense, column);
       if (!form) continue;
       const named = label(sense.pos);
-      const held = merged.get(form);
-      if (held) {
-        if (!held.labels.includes(named)) held.labels.push(named);
-        held.frequency = Math.max(held.frequency, sense.frequency);
-        held.faces.add(face);
+      const entry = merged.get(form);
+      if (entry) {
+        if (!entry.labels.includes(named)) entry.labels.push(named);
+        entry.frequency = Math.max(entry.frequency, sense.frequency);
+        entry.columns.add(column);
       } else {
         merged.set(form, {
           labels: [named],
           frequency: sense.frequency,
-          faces: new Set([face]),
+          columns: new Set([column]),
         });
       }
     }
@@ -55,15 +55,15 @@ function items(senses) {
   const ranked = [...merged].sort(
     ([oneForm, one], [otherForm, other]) =>
       other.frequency - one.frequency ||
-      Number(!one.faces.has(SENIOR)) - Number(!other.faces.has(SENIOR)) ||
+      Number(!one.columns.has(SENIOR)) - Number(!other.columns.has(SENIOR)) ||
       (oneForm < otherForm ? -1 : 1),
   );
-  return ranked.map(([form, held], at) => ({
+  return ranked.map(([form, entry], at) => ({
     label: form,
-    detail: held.faces.has(SENIOR)
-      ? held.labels.join(", ")
-      : `${held.labels.join(", ")} — ${[...held.faces]
-          .map((face) => FACE_OF[face])
+    detail: entry.columns.has(SENIOR)
+      ? entry.labels.join(", ")
+      : `${entry.labels.join(", ")} — ${[...entry.columns]
+          .map((column) => COLUMN_LABEL[column])
           .join(", ")} form`,
     sortText: String(at).padStart(4, "0"),
   }));
@@ -76,10 +76,10 @@ function items(senses) {
  * @returns {{word: string, start: number, end: number, items: Item[]} | null}
  */
 function completions(text, offset, write) {
-  const held = worded(text, offset);
-  if (!held) return null;
-  let { start, end } = held;
-  let key = held.word.toLowerCase().replace(CURLY, "'");
+  const latinWord = latinWordAt(text, offset);
+  if (!latinWord) return null;
+  let { start, end } = latinWord;
+  let key = latinWord.word.toLowerCase().replace(CURLY, "'");
   let senses = write.get(key);
   if (!senses) {
     const trimmed = key.replace(TRAILING, "");
@@ -105,22 +105,22 @@ function completions(text, offset, write) {
  * @param {Map<string, Writing[]>} write
  * @returns {{latin: string, items: Item[]}[]}
  */
-function written(text, write) {
+function lookupSpellings(text, write) {
   /** @type {{latin: string, items: Item[]}[]} */
   const out = [];
   for (const [run] of text.matchAll(RUN)) {
-    if (out.length >= MOST) break;
+    if (out.length >= MAX_LOOKUP_WORDS) break;
     if (!LETTER.test(run)) continue;
     const key = run.toLowerCase().replace(CURLY, "'").replace(TRAILING, "");
     const senses = write.get(key);
     const pieces = senses || !key.includes(HYPHEN) ? [key] : key.split(HYPHEN);
     for (const piece of pieces) {
       if (!LETTER.test(piece)) continue;
-      const held = write.get(piece);
-      out.push({ latin: piece, items: held ? items(held) : [] });
+      const matches = write.get(piece);
+      out.push({ latin: piece, items: matches ? items(matches) : [] });
     }
   }
   return out;
 }
 
-module.exports = { completions, worded, written };
+module.exports = { completions, latinWordAt, lookupSpellings };

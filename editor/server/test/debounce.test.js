@@ -6,10 +6,10 @@ test("rapid schedules coalesce into one run", (t) => {
   t.mock.timers.enable({ apis: ["setTimeout"] });
   /** @type {string[]} */
   const ran = [];
-  const held = debouncer(200, (key) => ran.push(key));
-  held.schedule("a");
+  const pending = debouncer(200, (key) => ran.push(key));
+  pending.schedule("a");
   t.mock.timers.tick(100);
-  held.schedule("a");
+  pending.schedule("a");
   t.mock.timers.tick(199);
   assert.deepEqual(ran, []);
   t.mock.timers.tick(1);
@@ -20,10 +20,10 @@ test("documents debounce independently", (t) => {
   t.mock.timers.enable({ apis: ["setTimeout"] });
   /** @type {string[]} */
   const ran = [];
-  const held = debouncer(200, (key) => ran.push(key));
-  held.schedule("a");
+  const pending = debouncer(200, (key) => ran.push(key));
+  pending.schedule("a");
   t.mock.timers.tick(100);
-  held.schedule("b");
+  pending.schedule("b");
   t.mock.timers.tick(100);
   assert.deepEqual(ran, ["a"]);
   t.mock.timers.tick(100);
@@ -34,10 +34,10 @@ test("a canceled document never runs", (t) => {
   t.mock.timers.enable({ apis: ["setTimeout"] });
   /** @type {string[]} */
   const ran = [];
-  const held = debouncer(200, (key) => ran.push(key));
-  held.schedule("a");
-  held.schedule("b");
-  held.cancel("a");
+  const pending = debouncer(200, (key) => ran.push(key));
+  pending.schedule("a");
+  pending.schedule("b");
+  pending.cancel("a");
   t.mock.timers.tick(400);
   assert.deepEqual(ran, ["b"]);
 });
@@ -46,13 +46,13 @@ test("clear drops everything pending", (t) => {
   t.mock.timers.enable({ apis: ["setTimeout"] });
   /** @type {string[]} */
   const ran = [];
-  const held = debouncer(200, (key) => ran.push(key));
-  held.schedule("a");
-  held.schedule("b");
-  held.clear();
+  const pending = debouncer(200, (key) => ran.push(key));
+  pending.schedule("a");
+  pending.schedule("b");
+  pending.clear();
   t.mock.timers.tick(400);
   assert.deepEqual(ran, []);
-  held.schedule("c");
+  pending.schedule("c");
   t.mock.timers.tick(200);
   assert.deepEqual(ran, ["c"]);
 });

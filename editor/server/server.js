@@ -10,7 +10,7 @@ const data = require("./payload.json");
 const { tokens } = require("../../src/qslex/web/core.js");
 const { lexicon } = require("./lib/lexicon.js");
 const {
-  CAP,
+  MAX_DIAGNOSTICS,
   diagnostics,
   flagged,
   lineStarts,
@@ -26,7 +26,7 @@ const {
   PROJECT,
   USER,
   actions,
-  adviser,
+  cachedSuggester,
 } = require("./lib/actions.js");
 const {
   ancestorIgnorePaths,
@@ -36,25 +36,25 @@ const {
 } = require("./lib/ignores.js");
 const { skipRanges } = require("./lib/markdown.js");
 const { readings, writings } = require("./lib/lookup.js");
-const { glossed, hovered, listed } = require("./lib/hover.js");
-const { completions, written } = require("./lib/complete.js");
+const { glossed, hoverAt, listed } = require("./lib/hover.js");
+const { completions, lookupSpellings } = require("./lib/complete.js");
 
 const DELAY = 200;
-const BUDGET = 10000;
-const PATIENCE = 500;
+const MAX_ACTION_WORK = 10000;
+const TIME_LIMIT_MS = 500;
 const MODES = ["off", "onDemand", "auto"];
 const MARKDOWN = "markdown";
-const ASKED = 200;
+const MAX_LOOKUP_TEXT = 200;
 
 /** @typedef {import("./lib/check.js").Span} Span */
 /** @typedef {import("./lib/actions.js").Edit} Edit */
 /** @typedef {{command: string, arguments: unknown[]}} Order */
-/** @typedef {{fix: string, gloss: string, edit: {changes: Record<string, Edit[]>}}} Offer */
-/** @typedef {{word: string, occurrence: number, range: Span, spans: Span[], fixes: Offer[], ignore: {occurrence: Order, directory: Order | null, project: Order | null, user: Order}}} Fixed */
+/** @typedef {{fix: string, gloss: string, edit: {changes: Record<string, Edit[]>}}} Suggestion */
+/** @typedef {{word: string, occurrence: number, range: Span, spans: Span[], fixes: Suggestion[], ignore: {occurrence: Order, directory: Order | null, project: Order | null, user: Order}}} Fixed */
 
 const connection = createConnection();
 const words = lexicon(data);
-const offered = adviser(words);
+const suggestionsFor = cachedSuggester(words);
 const files = ignoreFileCache();
 const userFile = userIgnorePath(process.env);
 /** @type {Map<string, {text: string, languageId: string, version: number}>} */
@@ -63,9 +63,9 @@ const documents = new Map();
 const ignoredOccurrences = new Map();
 /** @type {string[]} */
 let roots = [];
-let inlined = false;
-let completing = MODES[0];
-let pulls = false;
+let inlineCodeActions = false;
+let completionMode = MODES[0];
+let canPullConfiguration = false;
 /** @type {Map<string, import("./lib/lookup.js").Reading[]> | null} */
 let read = null;
 /** @type {Map<string, import("./lib/lookup.js").Writing[]> | null} */
@@ -87,15 +87,15 @@ function writer() {
  * @param {string} fallback
  * @returns {string}
  */
-function moded(value, fallback) {
+function parseCompletionMode(value, fallback) {
   return typeof value === "string" && MODES.includes(value) ? value : fallback;
 }
 
-function fetched() {
+function pullConfiguration() {
   connection.workspace
     .getConfiguration({ section: "quikscript" })
-    .then((held) => {
-      completing = moded(held?.completions, completing);
+    .then((settings) => {
+      completionMode = parseCompletionMode(settings?.completions, completionMode);
     })
     .catch(() => {});
 }
@@ -140,45 +140,45 @@ function ignoredWordsFor(uri) {
 
 /** @param {string} uri */
 function ignoredOccurrencesFor(uri) {
-  let held = ignoredOccurrences.get(uri);
-  if (!held) {
-    held = new Set();
-    ignoredOccurrences.set(uri, held);
+  let keys = ignoredOccurrences.get(uri);
+  if (!keys) {
+    keys = new Set();
+    ignoredOccurrences.set(uri, keys);
   }
-  return held;
+  return keys;
 }
 
 /** @param {string} word */
-function spelled(word) {
+function isSingleToken(word) {
   const runs = tokens(word);
   return runs.length === 1 && runs[0].start === 0 && runs[0].end === word.length;
 }
 
 /** @param {string} uri */
-function checked(uri) {
-  const held = documents.get(uri);
-  if (!held) return null;
+function checkDocument(uri) {
+  const doc = documents.get(uri);
+  if (!doc) return null;
   const hits = flagged(
-    held.text,
-    held.languageId,
+    doc.text,
+    doc.languageId,
     words.active,
     ignoredWordsFor(uri),
     ignoredOccurrencesFor(uri),
   );
-  const found = diagnostics(held.text, hits);
+  const found = diagnostics(doc.text, hits);
   const flags = hits.map((hit, at) => ({
     word: hit.word,
     occurrence: hit.occurrence,
     range: found[at].range,
   }));
-  return { held, found, flags };
+  return { doc, found, flags };
 }
 
 /**
  * @param {import("./lib/actions.js").Flag[]} flags
  * @returns {Map<string, import("./lib/check.js").Span[]>}
  */
-function spanned(flags) {
+function rangesByWord(flags) {
   /** @type {Map<string, import("./lib/check.js").Span[]>} */
   const everywhere = new Map();
   for (const flag of flags) {
@@ -195,18 +195,24 @@ function spanned(flags) {
  * @param {Map<string, import("./lib/check.js").Span[]>} everywhere
  * @returns {import("./lib/actions.js").Action[][]}
  */
-function crafted(uri, flags, everywhere) {
+function buildCodeActions(uri, flags, everywhere) {
   const scopes = ignoreScopesFor(uri);
   const started = Date.now();
   /** @type {import("./lib/actions.js").Action[][]} */
   const out = [];
-  let spent = 0;
+  let work = 0;
   for (const flag of flags) {
-    if (spent >= BUDGET || Date.now() - started >= PATIENCE) break;
-    const built = actions(uri, flag, everywhere.get(flag.word) || [], offered(flag.word), scopes);
+    if (work >= MAX_ACTION_WORK || Date.now() - started >= TIME_LIMIT_MS) break;
+    const built = actions(
+      uri,
+      flag,
+      everywhere.get(flag.word) || [],
+      suggestionsFor(flag.word),
+      scopes,
+    );
     out.push(built);
     for (const action of built) {
-      spent += 1 + (action.edit ? action.edit.changes[uri].length : 0);
+      work += 1 + (action.edit ? action.edit.changes[uri].length : 0);
     }
   }
   return out;
@@ -218,15 +224,15 @@ function crafted(uri, flags, everywhere) {
  * @param {Map<string, Span[]>} everywhere
  * @returns {Fixed[]}
  */
-function gathered(uri, flags, everywhere) {
+function buildFixList(uri, flags, everywhere) {
   const scopes = ignoreScopesFor(uri);
   const started = Date.now();
   /** @type {Fixed[]} */
   const out = [];
-  let spent = 0;
+  let work = 0;
   for (const flag of flags) {
-    if (spent >= BUDGET || Date.now() - started >= PATIENCE) break;
-    const fixes = offered(flag.word).map((fix) => ({
+    if (work >= MAX_ACTION_WORK || Date.now() - started >= TIME_LIMIT_MS) break;
+    const fixes = suggestionsFor(flag.word).map((fix) => ({
       fix,
       gloss: glossed(fix, reader()),
       edit: { changes: { [uri]: [{ range: flag.range, newText: fix }] } },
@@ -251,7 +257,7 @@ function gathered(uri, flags, everywhere) {
         user: { command: USER, arguments: [{ word: flag.word }] },
       },
     });
-    spent += 1 + fixes.length;
+    work += 1 + fixes.length;
   }
   return out;
 }
@@ -261,39 +267,41 @@ function gathered(uri, flags, everywhere) {
  * @param {import("./lib/actions.js").Flag[]} flags
  * @returns {number}
  */
-function detailed(found, flags) {
+function appendSuggestionsToMessages(found, flags) {
   const started = Date.now();
-  let told = 0;
+  let lookedUpCount = 0;
   for (const [at, flag] of flags.entries()) {
-    if (Date.now() - started >= PATIENCE) break;
-    const lines = listed(offered(flag.word), reader());
+    if (Date.now() - started >= TIME_LIMIT_MS) break;
+    const lines = listed(suggestionsFor(flag.word), reader());
     if (lines.length > 0) found[at].message = [found[at].message, ...lines].join("\n");
-    told += 1;
+    lookedUpCount += 1;
   }
-  return told;
+  return lookedUpCount;
 }
 
 /** @param {string} uri */
 function publish(uri) {
-  const result = checked(uri);
+  const result = checkDocument(uri);
   if (!result) return;
-  const { held, found, flags } = result;
-  if (flags.length >= CAP) {
-    connection.console.log(`quikscript-lsp: diagnostics capped at ${CAP} for ${uri}`);
+  const { doc, found, flags } = result;
+  if (flags.length >= MAX_DIAGNOSTICS) {
+    connection.console.log(`quikscript-lsp: diagnostics capped at ${MAX_DIAGNOSTICS} for ${uri}`);
   }
-  const told = detailed(found, flags);
-  if (told < flags.length) {
-    connection.console.log(`quikscript-lsp: fixes named in ${told} of ${flags.length} messages for ${uri}`);
+  const lookedUpCount = appendSuggestionsToMessages(found, flags);
+  if (lookedUpCount < flags.length) {
+    connection.console.log(
+      `quikscript-lsp: suggestions looked up for ${lookedUpCount} of ${flags.length} messages before the time limit for ${uri}`,
+    );
   }
-  if (inlined) {
-    const lists = crafted(uri, flags, spanned(flags));
+  if (inlineCodeActions) {
+    const lists = buildCodeActions(uri, flags, rangesByWord(flags));
     for (const [at, built] of lists.entries()) found[at].codeActions = built;
     if (lists.length < flags.length) {
       connection.console.log(`quikscript-lsp: inline code actions truncated for ${uri}`);
     }
   }
   connection
-    .sendDiagnostics({ uri, version: held.version, diagnostics: found })
+    .sendDiagnostics({ uri, version: doc.version, diagnostics: found })
     .catch(() => {
       process.stderr.write(`quikscript-lsp: failed to publish diagnostics for ${uri}\n`);
     });
@@ -319,19 +327,19 @@ function touches(one, other) {
 
 connection.onInitialize((params) => {
   const folders = params.workspaceFolders || [];
-  roots = folders.map((folder) => localPath(folder.uri)).filter((held) => held !== null);
+  roots = folders.map((folder) => localPath(folder.uri)).filter((root) => root !== null);
   if (roots.length === 0 && params.rootUri) {
     const root = localPath(params.rootUri);
     if (root) roots = [root];
   }
   roots.sort((one, other) => other.length - one.length);
   const published = /** @type {any} */ (params.capabilities.textDocument?.publishDiagnostics);
-  inlined = Boolean(published && published.codeActionsInline);
+  inlineCodeActions = Boolean(published && published.codeActionsInline);
   const options = /** @type {{completions?: unknown} | undefined} */ (
     params.initializationOptions
   );
-  completing = moded(options?.completions, completing);
-  pulls = Boolean(params.capabilities.workspace?.configuration);
+  completionMode = parseCompletionMode(options?.completions, completionMode);
+  canPullConfiguration = Boolean(params.capabilities.workspace?.configuration);
   return {
     capabilities: {
       textDocumentSync: { openClose: true, change: TextDocumentSyncKind.Full },
@@ -346,18 +354,18 @@ connection.onInitialize((params) => {
 
 connection.onInitialized(() => {
   connection.console.log(`quikscript-lsp: ${words.active.size} spellings loaded`);
-  if (pulls) fetched();
+  if (canPullConfiguration) pullConfiguration();
 });
 
 connection.onDidChangeConfiguration((change) => {
-  if (pulls) {
-    fetched();
+  if (canPullConfiguration) {
+    pullConfiguration();
     return;
   }
   const pushed = /** @type {{quikscript?: {completions?: unknown}} | undefined} */ (
     change.settings
   );
-  completing = moded(pushed?.quikscript?.completions, completing);
+  completionMode = parseCompletionMode(pushed?.quikscript?.completions, completionMode);
 });
 
 connection.onDidOpenTextDocument(({ textDocument }) => {
@@ -372,24 +380,24 @@ connection.onDidOpenTextDocument(({ textDocument }) => {
 let warned = false;
 
 connection.onDidChangeTextDocument(({ textDocument, contentChanges }) => {
-  const held = documents.get(textDocument.uri);
-  if (!held) return;
+  const doc = documents.get(textDocument.uri);
+  if (!doc) return;
   let whole = false;
   for (const change of contentChanges) {
     if ("range" in change) continue;
-    held.text = change.text;
+    doc.text = change.text;
     whole = true;
   }
   if (!whole) {
     if (!warned) {
       warned = true;
       connection.console.warn(
-        "quikscript-lsp: ignoring ranged changes; only full-document sync is spoken",
+        "quikscript-lsp: ignoring ranged changes; this server supports only full-document sync",
       );
     }
     return;
   }
-  held.version = textDocument.version;
+  doc.version = textDocument.version;
   pending.schedule(textDocument.uri);
 });
 
@@ -403,10 +411,10 @@ connection.onDidCloseTextDocument(({ textDocument }) => {
 });
 
 connection.onHover(({ textDocument, position: place }) => {
-  const held = documents.get(textDocument.uri);
-  if (!held) return null;
-  const starts = lineStarts(held.text);
-  const found = hovered(held.text, offsetAt(starts, held.text, place), reader(), writer());
+  const doc = documents.get(textDocument.uri);
+  if (!doc) return null;
+  const starts = lineStarts(doc.text);
+  const found = hoverAt(doc.text, offsetAt(starts, doc.text, place), reader(), writer());
   if (!found) return null;
   return {
     contents: { kind: "markdown", value: found.value },
@@ -415,21 +423,21 @@ connection.onHover(({ textDocument, position: place }) => {
 });
 
 connection.onCompletion(({ textDocument, position: place, context }) => {
-  if (completing === "off") return null;
+  if (completionMode === "off") return null;
   if (
-    completing === "onDemand" &&
+    completionMode === "onDemand" &&
     context &&
     context.triggerKind !== CompletionTriggerKind.Invoked
   ) {
     return null;
   }
-  const held = documents.get(textDocument.uri);
-  if (!held) return null;
-  const starts = lineStarts(held.text);
-  const found = completions(held.text, offsetAt(starts, held.text, place), writer());
+  const doc = documents.get(textDocument.uri);
+  if (!doc) return null;
+  const starts = lineStarts(doc.text);
+  const found = completions(doc.text, offsetAt(starts, doc.text, place), writer());
   if (!found) return null;
-  if (held.languageId.toLowerCase() === MARKDOWN) {
-    for (const span of skipRanges(held.text)) {
+  if (doc.languageId.toLowerCase() === MARKDOWN) {
+    for (const span of skipRanges(doc.text)) {
       if (span.start >= found.end) break;
       if (found.start < span.end) return null;
     }
@@ -451,20 +459,20 @@ connection.onCodeAction(({ textDocument, range, context }) => {
   if (only && !only.some((kind) => kind === "quickfix" || "quickfix".startsWith(kind + "."))) {
     return null;
   }
-  const result = checked(textDocument.uri);
+  const result = checkDocument(textDocument.uri);
   if (!result) return null;
   const { flags } = result;
   const chosen = flags.filter((flag) => touches(flag.range, range));
-  return crafted(textDocument.uri, chosen, spanned(flags)).flat();
+  return buildCodeActions(textDocument.uri, chosen, rangesByWord(flags)).flat();
 });
 
 connection.onRequest(
   "quikscript/fixes",
   (/** @type {{textDocument: {uri: string}}} */ { textDocument }) => {
-    const result = checked(textDocument.uri);
+    const result = checkDocument(textDocument.uri);
     if (!result) return { flags: [] };
     const { flags } = result;
-    const built = gathered(textDocument.uri, flags, spanned(flags));
+    const built = buildFixList(textDocument.uri, flags, rangesByWord(flags));
     if (built.length < flags.length) {
       connection.console.log(`quikscript-lsp: fix list truncated for ${textDocument.uri}`);
     }
@@ -473,8 +481,8 @@ connection.onRequest(
 );
 
 connection.onRequest("quikscript/writings", (/** @type {{text?: unknown}} */ asked) => {
-  const text = typeof asked?.text === "string" ? asked.text.slice(0, ASKED) : "";
-  return { words: written(text, writer()) };
+  const text = typeof asked?.text === "string" ? asked.text.slice(0, MAX_LOOKUP_TEXT) : "";
+  return { words: lookupSpellings(text, writer()) };
 });
 
 connection.onExecuteCommand(({ command, arguments: args }) => {
@@ -482,7 +490,7 @@ connection.onExecuteCommand(({ command, arguments: args }) => {
     (args && args[0]) || {}
   );
   const uri = typeof asked.uri === "string" && documents.has(asked.uri) ? asked.uri : null;
-  const word = typeof asked.word === "string" && spelled(asked.word) ? asked.word : null;
+  const word = typeof asked.word === "string" && isSingleToken(asked.word) ? asked.word : null;
   const count =
     typeof asked.occurrence === "number" &&
     Number.isInteger(asked.occurrence) &&
@@ -504,7 +512,7 @@ connection.onExecuteCommand(({ command, arguments: args }) => {
   } else {
     return null;
   }
-  for (const held of documents.keys()) publish(held);
+  for (const documentUri of documents.keys()) publish(documentUri);
   return null;
 });
 
