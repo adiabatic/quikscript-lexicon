@@ -9,8 +9,8 @@ const TAG = "plaintext";
 /** @type {Record<string, string>} */
 const GLOSS_COLUMN_LABEL = { ...COLUMN_LABEL, [CONTRACTION]: "Senior contraction" };
 
-/** @typedef {import("./lookup.js").Reading} Reading */
-/** @typedef {import("./lookup.js").Writing} Writing */
+/** @typedef {import("./lookup.js").LatinEntry} LatinEntry */
+/** @typedef {import("./lookup.js").SpellingEntry} SpellingEntry */
 
 /**
  * @param {string[]} lines
@@ -23,18 +23,18 @@ function fenced(lines) {
 /**
  * @param {string} word
  * @param {string} latin
- * @param {Reading[]} entries
- * @param {Map<string, Writing[]>} write
+ * @param {LatinEntry[]} entries
+ * @param {Map<string, SpellingEntry[]>} spellingsByLatin
  * @returns {string}
  */
-function section(word, latin, entries, write) {
+function section(word, latin, entries, spellingsByLatin) {
   /** @type {string[]} */
   const labels = [];
   for (const entry of entries) {
     const named = label(entry.pos);
     if (!labels.includes(named)) labels.push(named);
   }
-  const rows = write.get(latin) || [];
+  const rows = spellingsByLatin.get(latin) || [];
   /** @type {Map<string, Map<string, Set<string>>>} */
   const columns = new Map();
   /** @type {Set<string>} */
@@ -87,47 +87,49 @@ function section(word, latin, entries, write) {
 
 /**
  * @param {string} word
- * @param {Reading[]} entries
- * @param {Map<string, Writing[]>} write
+ * @param {LatinEntry[]} entries
+ * @param {Map<string, SpellingEntry[]>} spellingsByLatin
  * @returns {string}
  */
-function sections(word, entries, write) {
-  /** @type {Map<string, Reading[]>} */
+function sections(word, entries, spellingsByLatin) {
+  /** @type {Map<string, LatinEntry[]>} */
   const grouped = new Map();
   for (const entry of entries) {
     const group = grouped.get(entry.latin);
     if (group) group.push(entry);
     else grouped.set(entry.latin, [entry]);
   }
-  const latinSections = [...grouped].map((pair) => section(word, pair[0], pair[1], write));
+  const latinSections = [...grouped].map((pair) =>
+    section(word, pair[0], pair[1], spellingsByLatin),
+  );
   return [fenced([word]), ...latinSections].join("\n\n");
 }
 
 /**
  * @param {string} word
- * @param {Map<string, Reading[]>} read
- * @param {Map<string, Writing[]>} write
+ * @param {Map<string, LatinEntry[]>} latinBySpelling
+ * @param {Map<string, SpellingEntry[]>} spellingsByLatin
  * @returns {string | null}
  */
-function hoverMarkdown(word, read, write) {
-  const entries = read.get(word);
-  if (entries) return sections(word, entries, write);
+function hoverMarkdown(word, latinBySpelling, spellingsByLatin) {
+  const entries = latinBySpelling.get(word);
+  if (entries) return sections(word, entries, spellingsByLatin);
   if (!word.includes(HYPHEN)) return null;
   /** @type {string[]} */
   const found = [];
   for (const piece of word.split(HYPHEN)) {
-    const matches = read.get(piece);
-    if (matches) found.push(sections(piece, matches, write));
+    const matches = latinBySpelling.get(piece);
+    if (matches) found.push(sections(piece, matches, spellingsByLatin));
   }
   return found.length > 0 ? found.join("\n\n") : null;
 }
 
 /**
- * @param {Reading[]} entries
+ * @param {LatinEntry[]} entries
  * @returns {string}
  */
 function named(entries) {
-  /** @type {Map<string, Reading[]>} */
+  /** @type {Map<string, LatinEntry[]>} */
   const grouped = new Map();
   for (const entry of entries) {
     const group = grouped.get(entry.latin);
@@ -158,11 +160,11 @@ function named(entries) {
 
 /**
  * @param {string} word
- * @param {Map<string, Reading[]>} read
+ * @param {Map<string, LatinEntry[]>} latinBySpelling
  * @returns {string | null}
  */
-function latinWordsFor(word, read) {
-  const entries = read.get(word);
+function latinWordsFor(word, latinBySpelling) {
+  const entries = latinBySpelling.get(word);
   if (!entries) return null;
   /** @type {string[]} */
   const out = [];
@@ -174,17 +176,17 @@ function latinWordsFor(word, read) {
 
 /**
  * @param {string} word
- * @param {Map<string, Reading[]>} read
+ * @param {Map<string, LatinEntry[]>} latinBySpelling
  * @returns {string}
  */
-function glossFromPieces(word, read) {
+function glossFromPieces(word, latinBySpelling) {
   /** @type {string[]} */
   const parts = [];
   for (const part of word.split(SPACE)) {
     /** @type {string[]} */
     const cut = [];
     for (const piece of part.split(HYPHEN)) {
-      const latinWords = latinWordsFor(piece, read);
+      const latinWords = latinWordsFor(piece, latinBySpelling);
       if (latinWords) cut.push(latinWords);
     }
     if (cut.length > 0) parts.push(cut.join(HYPHEN));
@@ -194,22 +196,22 @@ function glossFromPieces(word, read) {
 
 /**
  * @param {string} word
- * @param {Map<string, Reading[]>} read
+ * @param {Map<string, LatinEntry[]>} latinBySpelling
  * @returns {string}
  */
-function glossed(word, read) {
-  const entries = read.get(word);
-  return entries ? named(entries) : glossFromPieces(word, read);
+function glossed(word, latinBySpelling) {
+  const entries = latinBySpelling.get(word);
+  return entries ? named(entries) : glossFromPieces(word, latinBySpelling);
 }
 
 /**
  * @param {string[]} suggestions
- * @param {Map<string, Reading[]>} read
+ * @param {Map<string, LatinEntry[]>} latinBySpelling
  * @returns {string[]}
  */
-function listed(suggestions, read) {
+function listed(suggestions, latinBySpelling) {
   return suggestions.map((fix) => {
-    const gloss = glossed(fix, read);
+    const gloss = glossed(fix, latinBySpelling);
     return gloss ? `${fix}${GAP}${gloss}` : fix;
   });
 }
@@ -217,11 +219,11 @@ function listed(suggestions, read) {
 /**
  * @param {string} text
  * @param {number} offset
- * @param {Map<string, Reading[]>} read
- * @param {Map<string, Writing[]>} write
+ * @param {Map<string, LatinEntry[]>} latinBySpelling
+ * @param {Map<string, SpellingEntry[]>} spellingsByLatin
  * @returns {{value: string, start: number, end: number} | null}
  */
-function hoverAt(text, offset, read, write) {
+function hoverAt(text, offset, latinBySpelling, spellingsByLatin) {
   let token = null;
   for (const hit of tokens(text)) {
     if (hit.start > offset) break;
@@ -232,7 +234,7 @@ function hoverAt(text, offset, read, write) {
     if (offset === hit.end) token = hit;
   }
   if (!token) return null;
-  const value = hoverMarkdown(token.word, read, write);
+  const value = hoverMarkdown(token.word, latinBySpelling, spellingsByLatin);
   return value ? { value, start: token.start, end: token.end } : null;
 }
 

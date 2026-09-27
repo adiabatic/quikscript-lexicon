@@ -212,10 +212,12 @@ def checker(lexicon: Lexicon) -> dict[str, object]:
     }
 
 
-def readings(records: Iterable[Record], contractions: Iterable[Contraction]) -> str:
-    """The spelling-to-Latin map (`readings`), one entry per line, used for hover.
+def latin_by_spelling(
+    records: Iterable[Record], contractions: Iterable[Contraction]
+) -> str:
+    """The spelling-to-Latin map (`latin_by_spelling`), one entry per line, used for hover.
 
-    Each line has a spelling, the row’s Latin word, its part-of-speech tag, and the column the spelling is in: `senior`, `junior`, `x`, or `contraction` for the §III forms that are in no column. The row’s other columns are not repeated here. A consumer looks the Latin word up in `writings` to find them. Spaced spellings are left out for the reason `spellings` drops them: no tokenizer ever passes one to a checker. As a result, the set of spellings in this map is exactly `union`.
+    Each line has a spelling, the row’s Latin word, its part-of-speech tag, and the column the spelling is in: `senior`, `junior`, `x`, or `contraction` for the §III forms that are in no column. The row’s other columns are not repeated here. A consumer looks the Latin word up in `spellings_by_latin` to find them. Spaced spellings are left out for the reason `spellings` drops them: no tokenizer ever passes one to a checker. As a result, the set of spellings in this map is exactly `union`.
     """
     rows = tuple(records)
     found: set[tuple[str, str, str, str]] = set()
@@ -233,8 +235,8 @@ def readings(records: Iterable[Record], contractions: Iterable[Contraction]) -> 
     return "\n".join("\t".join(entry) for entry in ordered)
 
 
-def writings(records: Iterable[Record]) -> str:
-    """The Latin-to-spellings map (`writings`), one row per line, used for completions and the Latin lookup box.
+def spellings_by_latin(records: Iterable[Record]) -> str:
+    """The Latin-to-spellings map (`spellings_by_latin`), one row per line, used for completions and the Latin lookup box.
 
     Each line has the lowercased Latin word, the part-of-speech tag, the frequency, and the three columns as the lexicon JSON has them, with junior and X-letter filled in only where they differ from senior. Heteronyms stay separate rows, so `read` keeps its two spellings apart by tag and `lead` keeps both of its nouns. Spaced spellings are blanked for the reason `spellings` drops them: a completion inserts one token, never a phrase the tokenizer would split apart again.
     """

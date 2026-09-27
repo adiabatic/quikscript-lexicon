@@ -9,7 +9,7 @@ const BUNDLED = ["dist", "quikscript-lsp"];
 const BESIDE = ["..", "server", "server.js"];
 const VIEW = "quikscript.fixes";
 const FIXES = "quikscript/fixes";
-const WRITINGS = "quikscript/writings";
+const SPELLINGS = "quikscript/spellings";
 const MEDIA = "media";
 const STYLES = ["quikscript-webview.css", "panel.css"];
 const SCRIPT = "panel.js";
@@ -72,7 +72,7 @@ async function written(id, text) {
   if (client && client.isRunning()) {
     try {
       const words = /** @type {{words: Written[]}} */ (
-        await client.sendRequest(WRITINGS, { text })
+        await client.sendRequest(SPELLINGS, { text })
       );
       answer = { rows: shown(words.words), note: "" };
     } catch {}

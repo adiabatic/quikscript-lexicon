@@ -8,7 +8,7 @@ const HYPHEN = "-";
 const RUN = /[A-Za-z'’-]+/g;
 const MAX_LOOKUP_WORDS = 20;
 
-/** @typedef {import("./lookup.js").Writing} Writing */
+/** @typedef {import("./lookup.js").SpellingEntry} SpellingEntry */
 /** @typedef {{label: string, detail: string, sortText: string}} Item */
 
 /**
@@ -27,7 +27,7 @@ function latinWordAt(text, offset) {
 }
 
 /**
- * @param {Writing[]} senses
+ * @param {SpellingEntry[]} senses
  * @returns {Item[]}
  */
 function items(senses) {
@@ -72,21 +72,21 @@ function items(senses) {
 /**
  * @param {string} text
  * @param {number} offset
- * @param {Map<string, Writing[]>} write
+ * @param {Map<string, SpellingEntry[]>} spellingsByLatin
  * @returns {{word: string, start: number, end: number, items: Item[]} | null}
  */
-function completions(text, offset, write) {
+function completions(text, offset, spellingsByLatin) {
   const latinWord = latinWordAt(text, offset);
   if (!latinWord) return null;
   let { start, end } = latinWord;
   let key = latinWord.word.toLowerCase().replace(CURLY, "'");
-  let senses = write.get(key);
+  let senses = spellingsByLatin.get(key);
   if (!senses) {
     const trimmed = key.replace(TRAILING, "");
     if (trimmed && LETTER.test(trimmed)) {
       end -= key.length - trimmed.length;
       key = trimmed;
-      senses = write.get(key);
+      senses = spellingsByLatin.get(key);
     }
   }
   while (!senses) {
@@ -94,7 +94,7 @@ function completions(text, offset, write) {
     if (cut < 0) break;
     start += cut + 1;
     key = key.slice(cut + 1);
-    if (key && LETTER.test(key)) senses = write.get(key);
+    if (key && LETTER.test(key)) senses = spellingsByLatin.get(key);
   }
   if (!senses || offset < start || offset > end) return null;
   return { word: text.slice(start, end), start, end, items: items(senses) };
@@ -102,21 +102,21 @@ function completions(text, offset, write) {
 
 /**
  * @param {string} text
- * @param {Map<string, Writing[]>} write
+ * @param {Map<string, SpellingEntry[]>} spellingsByLatin
  * @returns {{latin: string, items: Item[]}[]}
  */
-function lookupSpellings(text, write) {
+function lookupSpellings(text, spellingsByLatin) {
   /** @type {{latin: string, items: Item[]}[]} */
   const out = [];
   for (const [run] of text.matchAll(RUN)) {
     if (out.length >= MAX_LOOKUP_WORDS) break;
     if (!LETTER.test(run)) continue;
     const key = run.toLowerCase().replace(CURLY, "'").replace(TRAILING, "");
-    const senses = write.get(key);
+    const senses = spellingsByLatin.get(key);
     const pieces = senses || !key.includes(HYPHEN) ? [key] : key.split(HYPHEN);
     for (const piece of pieces) {
       if (!LETTER.test(piece)) continue;
-      const matches = write.get(piece);
+      const matches = spellingsByLatin.get(piece);
       out.push({ latin: piece, items: matches ? items(matches) : [] });
     }
   }

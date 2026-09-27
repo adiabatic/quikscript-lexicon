@@ -1,6 +1,6 @@
-/** @typedef {{readings: string, writings: string}} Maps */
-/** @typedef {{latin: string, pos: string, column: string}} Reading */
-/** @typedef {{pos: string, frequency: number, senior: string, junior: string, x: string}} Writing */
+/** @typedef {{latin_by_spelling: string, spellings_by_latin: string}} LookupMaps */
+/** @typedef {{latin: string, pos: string, column: string}} LatinEntry */
+/** @typedef {{pos: string, frequency: number, senior: string, junior: string, x: string}} SpellingEntry */
 
 const SENIOR = "senior";
 const JUNIOR = "junior";
@@ -81,7 +81,7 @@ function label(pos) {
 }
 
 /**
- * @param {Writing} row
+ * @param {SpellingEntry} row
  * @param {string} column
  * @returns {string}
  */
@@ -92,13 +92,13 @@ function spellingIn(row, column) {
 }
 
 /**
- * @param {Maps} data
- * @returns {Map<string, Reading[]>}
+ * @param {LookupMaps} data
+ * @returns {Map<string, LatinEntry[]>}
  */
-function readings(data) {
-  /** @type {Map<string, Reading[]>} */
+function parseLatinBySpelling(data) {
+  /** @type {Map<string, LatinEntry[]>} */
   const out = new Map();
-  for (const line of data.readings.split("\n")) {
+  for (const line of data.latin_by_spelling.split("\n")) {
     if (!line) continue;
     const [spelling, latin, pos, column] = line.split("\t");
     const entry = { latin, pos, column };
@@ -110,13 +110,13 @@ function readings(data) {
 }
 
 /**
- * @param {Maps} data
- * @returns {Map<string, Writing[]>}
+ * @param {LookupMaps} data
+ * @returns {Map<string, SpellingEntry[]>}
  */
-function writings(data) {
-  /** @type {Map<string, Writing[]>} */
+function parseSpellingsByLatin(data) {
+  /** @type {Map<string, SpellingEntry[]>} */
   const out = new Map();
-  for (const line of data.writings.split("\n")) {
+  for (const line of data.spellings_by_latin.split("\n")) {
     if (!line) continue;
     const [latin, pos, frequency, senior, junior, x] = line.split("\t");
     const row = { pos, frequency: Number(frequency), senior, junior, x };
@@ -134,7 +134,7 @@ module.exports = {
   SENIOR,
   X,
   label,
-  readings,
+  parseLatinBySpelling,
+  parseSpellingsByLatin,
   spellingIn,
-  writings,
 };

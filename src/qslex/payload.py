@@ -1,6 +1,6 @@
 """Builds the editor server’s data file, editor/server/payload.json, from the lexicon.
 
-The file is generated and never edited by hand. It contains the JSON object the Desk page inlines (the word set with its frequencies, the TRY letter order, the REP table and the confusion groups) plus two lookup maps that only the language server reads. `readings` maps each accepted Quikscript spelling to the Latin word, tag and column of each entry with that spelling. `writings` maps each lowercased Latin word to its entries’ tags, frequencies and spelling columns. `make check` runs `python -m qslex.payload --check`, which fails whenever the committed file differs from a rebuild.
+The file is generated and never edited by hand. It contains the JSON object the Desk page inlines (the word set with its frequencies, the TRY letter order, the REP table and the confusion groups) plus two lookup maps that only the language server reads. `latin_by_spelling` maps each accepted Quikscript spelling to the Latin word, tag and column of each entry with that spelling. `spellings_by_latin` maps each lowercased Latin word to its entries’ tags, frequencies and spelling columns. `make check` runs `python -m qslex.payload --check`, which fails whenever the committed file differs from a rebuild.
 """
 
 from __future__ import annotations
@@ -15,9 +15,9 @@ from qslex.projection import (
     checker,
     crosscheck,
     derive,
+    latin_by_spelling,
     load_records,
-    readings,
-    writings,
+    spellings_by_latin,
 )
 from qslex.readlex import repo_root
 from qslex.words import load_contractions
@@ -35,8 +35,8 @@ def build(root: Path | None = None) -> tuple[str, Lexicon]:
     lexicon = derive(records, contractions)
     crosscheck(lexicon, root)
     data = checker(lexicon)
-    data["readings"] = readings(records, contractions)
-    data["writings"] = writings(records)
+    data["latin_by_spelling"] = latin_by_spelling(records, contractions)
+    data["spellings_by_latin"] = spellings_by_latin(records)
     return json.dumps(data, ensure_ascii=False, sort_keys=True) + "\n", lexicon
 
 

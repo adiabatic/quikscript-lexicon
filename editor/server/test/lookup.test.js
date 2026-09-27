@@ -1,18 +1,23 @@
 const assert = require("node:assert/strict");
 const { test } = require("node:test");
 const data = require("../payload.json");
-const { spellingIn, label, readings, writings } = require("../lib/lookup.js");
+const {
+  label,
+  parseLatinBySpelling,
+  parseSpellingsByLatin,
+  spellingIn,
+} = require("../lib/lookup.js");
 
-const READ = readings(data);
-const WRITE = writings(data);
+const LATIN_BY_SPELLING = parseLatinBySpelling(data);
+const SPELLINGS_BY_LATIN = parseSpellingsByLatin(data);
 
-test("the readings key every union spelling and the writings every latin", () => {
-  assert.equal(READ.size, data.words.split("\n").length);
-  assert.equal(WRITE.size, 77561);
+test("latinBySpelling has one key per union spelling and spellingsByLatin one per latin word", () => {
+  assert.equal(LATIN_BY_SPELLING.size, data.words.split("\n").length);
+  assert.equal(SPELLINGS_BY_LATIN.size, 77561);
 });
 
-test("a reading names its row and the column the spelling sits in", () => {
-  const entries = READ.get("\uE668\uE671\uE653");
+test("a latin entry lists its row and the column the spelling is in", () => {
+  const entries = LATIN_BY_SPELLING.get("\uE668\uE671\uE653");
   assert.deepEqual(entries, [
     { latin: "read", pos: "NN1", column: "senior" },
     { latin: "read", pos: "VVB", column: "senior" },
@@ -22,8 +27,8 @@ test("a reading names its row and the column the spelling sits in", () => {
   ]);
 });
 
-test("a writing carries its tag, frequency, and three columns", () => {
-  const rows = WRITE.get("couldn't");
+test("a spelling entry has its tag, frequency and three columns", () => {
+  const rows = SPELLINGS_BY_LATIN.get("couldn't");
   assert.deepEqual(rows, [
     {
       pos: "VM0+XX0",

@@ -15,7 +15,7 @@ const { pathToFileURL } = require("node:url");
 const { bundle } = require("../bundle.js");
 const data = require("../payload.json");
 const { lexicon } = require("../lib/lexicon.js");
-const { readings } = require("../lib/lookup.js");
+const { parseLatinBySpelling } = require("../lib/lookup.js");
 const { glossed } = require("../lib/hover.js");
 const core = require("../../../src/qslex/web/core.js");
 
@@ -688,8 +688,8 @@ test("hover names the word and completions replace the latin", async () => {
   });
   assert.equal(walled.result, null);
 
-  const spelled = await client.request("quikscript/writings", { text: "Read zzxq" });
-  assert.deepEqual(spelled.result, {
+  const spellings = await client.request("quikscript/spellings", { text: "Read zzxq" });
+  assert.deepEqual(spellings.result, {
     words: [
       {
         latin: "read",
@@ -701,7 +701,7 @@ test("hover names the word and completions replace the latin", async () => {
       { latin: "zzxq", items: [] },
     ],
   });
-  const blank = await client.request("quikscript/writings", {});
+  const blank = await client.request("quikscript/spellings", {});
   assert.deepEqual(blank.result, { words: [] });
 
   const bye = await client.request("shutdown", null);
@@ -877,7 +877,7 @@ test("quikscript/fixes hands each flag its fixes, glosses, edits and ignores", a
   assert.deepEqual(flags[1].spans, [diagnostics[0].range, diagnostics[1].range]);
   assert.deepEqual(flags[2].spans, [diagnostics[2].range]);
 
-  const read = readings(data);
+  const latinBySpelling = parseLatinBySpelling(data);
   let glosses = 0;
   for (const flag of flags) {
     /** @type {any[]} */
@@ -886,7 +886,7 @@ test("quikscript/fixes hands each flag its fixes, glosses, edits and ignores", a
     assert.ok(offers.length > 0);
     assert.deepEqual(fixes.map((one) => one.fix), offers);
     for (const one of fixes) {
-      assert.equal(one.gloss, glossed(one.fix, read));
+      assert.equal(one.gloss, glossed(one.fix, latinBySpelling));
       if (one.gloss) glosses += 1;
       assert.deepEqual(one.edit, {
         changes: { [uri]: [{ range: flag.range, newText: one.fix }] },

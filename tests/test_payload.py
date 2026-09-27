@@ -38,8 +38,8 @@ RECORDS = load_records(ROOT)
 WRITTEN, LEXICON = build()
 DATA = json.loads(WRITTEN)
 LINES = DATA["words"].split("\n")
-READS = DATA["readings"].split("\n")
-WRITES = DATA["writings"].split("\n")
+LATIN_BY_SPELLING_LINES = DATA["latin_by_spelling"].split("\n")
+SPELLINGS_BY_LATIN_LINES = DATA["spellings_by_latin"].split("\n")
 
 
 def directive(name: str, keyword: str) -> str:
@@ -59,7 +59,9 @@ def test_the_file_is_the_desk_pages_object_grown_by_the_lookup_maps() -> None:
     inlined = payload(LEXICON)
     assert inlined in page
     assert json.loads(inlined) == {
-        key: held for key, held in DATA.items() if key not in ("readings", "writings")
+        key: value
+        for key, value in DATA.items()
+        if key not in ("latin_by_spelling", "spellings_by_latin")
     }
     assert WRITTEN.endswith("\n")
     assert "\n" not in WRITTEN.removesuffix("\n")
@@ -68,11 +70,11 @@ def test_the_file_is_the_desk_pages_object_grown_by_the_lookup_maps() -> None:
 def test_the_payload_carries_its_data_as_one_json_object() -> None:
     assert sorted(DATA) == [
         "confusions",
-        "readings",
+        "latin_by_spelling",
         "rep",
+        "spellings_by_latin",
         "try_order",
         "words",
-        "writings",
     ]
 
 
@@ -115,37 +117,41 @@ def test_the_confusion_group_is_the_vowels() -> None:
     assert DATA["confusions"] == ["".join(map(chr, range(0xE670, 0xE67F)))]
 
 
-def test_the_readings_key_exactly_the_union() -> None:
-    assert len(READS) == 110258
-    assert {line.split("\t")[0] for line in READS} == frozenset(LEXICON.union)
+def test_latin_by_spelling_has_exactly_the_union_as_its_keys() -> None:
+    assert len(LATIN_BY_SPELLING_LINES) == 110258
+    assert {line.split("\t")[0] for line in LATIN_BY_SPELLING_LINES} == frozenset(
+        LEXICON.union
+    )
 
 
-def test_a_reading_names_its_row_and_the_column_the_spelling_sits_in() -> None:
-    for line in READS:
+def test_a_latin_by_spelling_line_has_a_latin_word_tag_and_column() -> None:
+    for line in LATIN_BY_SPELLING_LINES:
         spelling, latin, pos, column = line.split("\t")
         assert spelling and latin and pos
         assert column in (*COLUMNS, CONTRACTION)
 
 
-def test_the_reading_columns_count_the_masters_divergences() -> None:
-    counted = collections.Counter(line.split("\t")[3] for line in READS)
+def test_latin_by_spelling_has_the_expected_line_count_for_each_column() -> None:
+    counted = collections.Counter(
+        line.split("\t")[3] for line in LATIN_BY_SPELLING_LINES
+    )
     assert counted == {"senior": 107751, "x": 2326, "contraction": 154, "junior": 27}
 
 
-def test_every_reading_joins_the_writings_on_latin_and_tag() -> None:
-    tagged = {tuple(line.split("\t")[:2]) for line in WRITES}
-    for line in READS:
+def test_every_latin_and_tag_in_latin_by_spelling_is_in_spellings_by_latin() -> None:
+    tagged = {tuple(line.split("\t")[:2]) for line in SPELLINGS_BY_LATIN_LINES}
+    for line in LATIN_BY_SPELLING_LINES:
         _, latin, pos, _ = line.split("\t")
         assert (latin, pos) in tagged
 
 
-def test_the_writings_carry_every_row_that_spells_a_token() -> None:
-    assert len(WRITES) == 107755
-    assert len({line.split("\t")[0] for line in WRITES}) == 77561
+def test_spellings_by_latin_lists_every_row_that_spells_a_token() -> None:
+    assert len(SPELLINGS_BY_LATIN_LINES) == 107755
+    assert len({line.split("\t")[0] for line in SPELLINGS_BY_LATIN_LINES}) == 77561
 
 
-def test_a_writing_is_lowercased_and_fully_fielded() -> None:
-    for line in WRITES:
+def test_a_spellings_by_latin_line_is_lowercased_with_every_required_field() -> None:
+    for line in SPELLINGS_BY_LATIN_LINES:
         latin, pos, frequency, qs, _, _ = line.split("\t")
         assert latin == latin.lower()
         assert pos
@@ -154,7 +160,11 @@ def test_a_writing_is_lowercased_and_fully_fielded() -> None:
 
 
 def test_read_keeps_its_heteronyms_apart_by_tag() -> None:
-    rows = [line.split("\t") for line in WRITES if line.startswith("read\t")]
+    rows = [
+        line.split("\t")
+        for line in SPELLINGS_BY_LATIN_LINES
+        if line.startswith("read\t")
+    ]
     assert [(pos, qs) for _, pos, _, qs, _, _ in rows] == [
         ("NN1", ROE + EAT + DAY),
         ("VVB", ROE + EAT + DAY),
@@ -165,7 +175,11 @@ def test_read_keeps_its_heteronyms_apart_by_tag() -> None:
 
 
 def test_lead_keeps_its_two_nouns_side_by_side() -> None:
-    rows = [line.split("\t") for line in WRITES if line.startswith("lead\tNN1\t")]
+    rows = [
+        line.split("\t")
+        for line in SPELLINGS_BY_LATIN_LINES
+        if line.startswith("lead\tNN1\t")
+    ]
     assert [(frequency, qs) for _, _, frequency, qs, _, _ in rows] == [
         ("5049", LOW + EAT + DAY),
         ("5049", LOW + ET + DAY),
@@ -173,7 +187,9 @@ def test_lead_keeps_its_two_nouns_side_by_side() -> None:
 
 
 def test_a_diverging_row_carries_its_junior_column() -> None:
-    (line,) = [line for line in WRITES if line.startswith("couldn't\t")]
+    (line,) = [
+        line for line in SPELLINGS_BY_LATIN_LINES if line.startswith("couldn't\t")
+    ]
     assert line.split("\t") == [
         "couldn't",
         "VM0+XX0",
@@ -183,12 +199,16 @@ def test_a_diverging_row_carries_its_junior_column() -> None:
         "",
     ]
     junior = KEY + FOOT + DAY + UTTER + NO + TEA
-    assert f"{junior}\tcouldn't\tVM0+XX0\tjunior" in READS
+    assert f"{junior}\tcouldn't\tVM0+XX0\tjunior" in LATIN_BY_SPELLING_LINES
 
 
 def test_a_spaced_spelling_reaches_neither_map() -> None:
-    assert not any(" " in line.split("\t")[0] for line in READS)
-    assert not any(" " in field for line in WRITES for field in line.split("\t")[3:])
+    assert not any(" " in line.split("\t")[0] for line in LATIN_BY_SPELLING_LINES)
+    assert not any(
+        " " in field
+        for line in SPELLINGS_BY_LATIN_LINES
+        for field in line.split("\t")[3:]
+    )
 
 
 def test_a_word_set_the_dictionary_does_not_list_is_refused() -> None:

@@ -26,8 +26,8 @@ The files below are listed in the order a word passes through the pipeline.
 - `src/qslex/projection.py` — computes the data every spelling checker uses: the set of accepted spellings with their frequencies, and the suggestion tables. It also compares the word set and the TRY letter order with the hunspell `.dic` and `.aff` in `lexicon/`.
 - `src/qslex/desk.py` — generates the Quikscript Desk page, `site/index.html`. The page is one self-contained file: the checker data, the vendored fonts and the vendored Markdown parser are all inlined.
 - `src/qslex/payload.py` — writes the same checker data to `editor/server/payload.json` for the `quikscript-lsp` language server. It adds two lookup maps that only the server uses:
-  - `readings` maps each accepted Quikscript spelling to the Latin word, tag and column of each entry with that spelling. Hover, the diagnostic messages and `quikscript/fixes` use it to show the Latin word a spelling stands for.
-  - `writings` maps each lowercased Latin word to its entries’ tags, frequencies and spelling columns. Completions and `quikscript/writings` use it, and hover uses it to show an entry’s spellings in the other columns.
+  - `latin_by_spelling` maps each accepted Quikscript spelling to the Latin word, tag and column of each entry with that spelling. Hover, the diagnostic messages and `quikscript/fixes` use it to show the Latin word a spelling stands for.
+  - `spellings_by_latin` maps each lowercased Latin word to its entries’ tags, frequencies and spelling columns. Completions and `quikscript/spellings` use it, and hover uses it to show an entry’s spellings in the other columns.
 
   The file is committed, and `make check` fails if it differs from a fresh build.
 - `src/qslex/preview.py` — writes the two stylesheets that let the VS Code client show Quikscript. Each inlines the vendored Sans Senior fonts as data URIs, as the Desk page does. The `@font-face` rules have a `unicode-range` of U+E650–E67E, the Quikscript letters in the Private Use Area, so Latin text keeps the reader’s font. Both files are committed, and `make check` fails if either differs from a fresh build.
@@ -39,14 +39,14 @@ The files below are listed in the order a word passes through the pipeline.
   - hover, which shows the Latin word for a Quikscript token;
   - Latin→Quikscript completions, controlled by `quikscript.completions` (`off`, `onDemand` or `auto`; `off` by default). The server reads the setting from `initializationOptions` and from a `workspace/configuration` request;
   - `quikscript/fixes`, which returns each flagged word’s suggestions, their Latin glosses, their edits and the word’s ignore commands in one response, for a client that can show and apply them;
-  - `quikscript/writings`, which returns the Quikscript spellings of a Latin word.
+  - `quikscript/spellings`, which returns the Quikscript spellings of each Latin word in a text.
 
   VS Code draws the Quick Fix menu and the Problems panel in the workbench UI font, so Quikscript cannot be read there. The server works around this in two places that VS Code draws in `editor.fontFamily`. Hover puts each spelling in a fenced code block, the only part of a hover drawn in that font. Each diagnostic’s message lists the fixes and the Latin word each one spells, because the squiggle hover and the `F8` peek show the message in that font.
 
   The server reads `payload.json`, which `src/qslex/payload.py` generates. `make bundle` writes the server as a single file to `editor/server/dist/quikscript-lsp`. The protocol tests bundle their own copy into a scratch directory under `tmp/` and run it over stdio, so every `make check` tests a freshly bundled server. `make vsix` bundles another copy into the VS Code extension.
 - `editor/vscode/` — the VS Code client for that server. It is plain JavaScript, type-checked by `tsc --noEmit` against the VS Code API’s declarations. It launches the server over stdio for Markdown and plain text files, and contributes the `quikscript.completions` and `quikscript.serverPath` settings.
   - It adds a Fixes view to a Quikscript panel beside Problems. The view is a webview built from `quikscript/fixes`. It lists the active document’s flagged words, with each suggestion as a button in the vendored Senior font beside its Latin gloss. A fix is applied through `workspace.applyEdit`, and an ignore through the server’s commands.
-  - A Latin box at the top of the view and one in each flagged word’s section send the typed word to `quikscript/writings`. The top box copies the spelling that is clicked, and a section’s box applies it.
+  - A Latin box at the top of the view and one in each flagged word’s section send the typed word to `quikscript/spellings`. The top box copies the spelling that is clicked, and a section’s box applies it.
   - The view model is `lib/panel.js`, tested by `node --test`. The webview’s own script is `media/panel.js`.
   - The extension uses the server named by `quikscript.serverPath` if it is set, then `dist/quikscript-lsp` inside the extension if there is one, then `editor/server/server.js` in the checkout. `make vsix` writes `dist/quikscript-lsp` and packages it, so an installed extension has its own server.
   - It contributes the generated `media/quikscript-preview.css` as a `markdown.previewStyles` entry, and the Fixes panel loads the generated `media/quikscript-webview.css`.

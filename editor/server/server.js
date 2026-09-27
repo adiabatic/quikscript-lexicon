@@ -35,7 +35,7 @@ const {
   userIgnorePath,
 } = require("./lib/ignores.js");
 const { skipRanges } = require("./lib/markdown.js");
-const { readings, writings } = require("./lib/lookup.js");
+const { parseLatinBySpelling, parseSpellingsByLatin } = require("./lib/lookup.js");
 const { glossed, hoverAt, listed } = require("./lib/hover.js");
 const { completions, lookupSpellings } = require("./lib/complete.js");
 
@@ -66,20 +66,20 @@ let roots = [];
 let inlineCodeActions = false;
 let completionMode = MODES[0];
 let canPullConfiguration = false;
-/** @type {Map<string, import("./lib/lookup.js").Reading[]> | null} */
-let read = null;
-/** @type {Map<string, import("./lib/lookup.js").Writing[]> | null} */
-let write = null;
+/** @type {Map<string, import("./lib/lookup.js").LatinEntry[]> | null} */
+let latinBySpelling = null;
+/** @type {Map<string, import("./lib/lookup.js").SpellingEntry[]> | null} */
+let spellingsByLatin = null;
 const pending = debouncer(DELAY, publish);
 
-function reader() {
-  if (!read) read = readings(data);
-  return read;
+function getLatinBySpelling() {
+  if (!latinBySpelling) latinBySpelling = parseLatinBySpelling(data);
+  return latinBySpelling;
 }
 
-function writer() {
-  if (!write) write = writings(data);
-  return write;
+function getSpellingsByLatin() {
+  if (!spellingsByLatin) spellingsByLatin = parseSpellingsByLatin(data);
+  return spellingsByLatin;
 }
 
 /**
@@ -234,7 +234,7 @@ function buildFixList(uri, flags, everywhere) {
     if (work >= MAX_ACTION_WORK || Date.now() - started >= TIME_LIMIT_MS) break;
     const fixes = suggestionsFor(flag.word).map((fix) => ({
       fix,
-      gloss: glossed(fix, reader()),
+      gloss: glossed(fix, getLatinBySpelling()),
       edit: { changes: { [uri]: [{ range: flag.range, newText: fix }] } },
     }));
     out.push({
@@ -272,7 +272,7 @@ function appendSuggestionsToMessages(found, flags) {
   let lookedUpCount = 0;
   for (const [at, flag] of flags.entries()) {
     if (Date.now() - started >= TIME_LIMIT_MS) break;
-    const lines = listed(suggestionsFor(flag.word), reader());
+    const lines = listed(suggestionsFor(flag.word), getLatinBySpelling());
     if (lines.length > 0) found[at].message = [found[at].message, ...lines].join("\n");
     lookedUpCount += 1;
   }
@@ -414,7 +414,12 @@ connection.onHover(({ textDocument, position: place }) => {
   const doc = documents.get(textDocument.uri);
   if (!doc) return null;
   const starts = lineStarts(doc.text);
-  const found = hoverAt(doc.text, offsetAt(starts, doc.text, place), reader(), writer());
+  const found = hoverAt(
+    doc.text,
+    offsetAt(starts, doc.text, place),
+    getLatinBySpelling(),
+    getSpellingsByLatin(),
+  );
   if (!found) return null;
   return {
     contents: { kind: "markdown", value: found.value },
@@ -434,7 +439,7 @@ connection.onCompletion(({ textDocument, position: place, context }) => {
   const doc = documents.get(textDocument.uri);
   if (!doc) return null;
   const starts = lineStarts(doc.text);
-  const found = completions(doc.text, offsetAt(starts, doc.text, place), writer());
+  const found = completions(doc.text, offsetAt(starts, doc.text, place), getSpellingsByLatin());
   if (!found) return null;
   if (doc.languageId.toLowerCase() === MARKDOWN) {
     for (const span of skipRanges(doc.text)) {
@@ -480,9 +485,9 @@ connection.onRequest(
   },
 );
 
-connection.onRequest("quikscript/writings", (/** @type {{text?: unknown}} */ asked) => {
+connection.onRequest("quikscript/spellings", (/** @type {{text?: unknown}} */ asked) => {
   const text = typeof asked?.text === "string" ? asked.text.slice(0, MAX_LOOKUP_TEXT) : "";
-  return { words: lookupSpellings(text, writer()) };
+  return { words: lookupSpellings(text, getSpellingsByLatin()) };
 });
 
 connection.onExecuteCommand(({ command, arguments: args }) => {
