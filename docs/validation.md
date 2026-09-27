@@ -20,7 +20,7 @@ Page numbers below are the Manual’s own. Anchors are those of the AMS transcri
 - `src/qslex/data/manual-spellings.tsv`: every spelling the Manual writes out and every example word it names, each with the rule it illustrates. Specified in [`docs/orthographic-rules.md`](orthographic-rules.md). Loaded by `src/qslex/manual.py`.
 - `src/qslex/data/manual-passages.tsv`: the Manual’s eleven specimen passages, one row per word, each with an outcome. Loaded by `src/qslex/passages.py`.
 - `src/qslex/roundtrip.py`: the reverse of the segment mapping, and the table of differences a spelling may have from the IPA it came from.
-- `src/qslex/lint.py` and `src/qslex/data/lint-pragmas.tsv`: the lint checks re-derived from the Manual’s rule sections, and the table of pragmas. A pragma is a row that exempts one word from one lint check because of a known defect tracked in another issue.
+- `src/qslex/lint.py` and `src/qslex/data/lint-exemptions.tsv`: the lint checks re-derived from the Manual’s rule sections, and the table of exemptions. Each row of the table exempts one word from one lint check because of a known defect tracked in another issue.
 - `src/qslex/data/added-words.tsv`: every entry the lexicon has that ReadLex does not, each with the spelling the rules must produce for it. Specified in [`docs/pipeline.md`](pipeline.md#words-the-corpus-lacks). Loaded by `src/qslex/added.py`.
 - `src/qslex/build.py`: prints a summary of counts when it writes `lexicon/`.
 
@@ -88,11 +88,11 @@ So every check that was kept is conditioned on the Latin. The lint runs seven ch
 | `initial-ex-et`                    | [§II][section-2]           | an initial ex- takes ·Et before the X-letter, “easier than ·It”                                   |
 | `x-letter-only-with-x`             | [§II][section-2]           | “but only where Orthodox spells these sounds with X”, and “only one ·Excite in Xerxes”            |
 
-All seven checks find zero rows over every corpus row the lexicon spells. They also find zero over the [added words](pipeline.md#words-the-corpus-lacks), which are linted in a separate pass where no pragma applies. `src/qslex/data/lint-pragmas.tsv` has no rows. Zero is the expected result when a rule that works is re-derived independently.
+All seven checks find zero rows over every corpus row the lexicon spells. They also find zero over the [added words](pipeline.md#words-the-corpus-lacks), which are linted in a separate pass where no exemption applies. `src/qslex/data/lint-exemptions.tsv` has no rows. Zero is the expected result when a rule that works is re-derived independently.
 
-The last check with a nonzero result was `initial-ex-et`, on 36 rows under 28 headwords, all with the same defect. `rules.py::substitute_x` was the last rule still applied to the whole entry rather than to each element. So an ex- that began a word but not the entry (cross-examine, pre-exist, corn-exchange, and the phrase for example) got the X-letter but not the ·Et the Manual asks for. The 28 pragmas that recorded the defect were removed with the fix ([#11](https://github.com/adiabatic/quikscript-lexicon/issues/11)). They had to be, because the validator fails on a pragma that exempts nothing.
+The last check with a nonzero result was `initial-ex-et`, on 36 rows under 28 headwords, all with the same defect. `rules.py::substitute_x` was the last rule still applied to the whole entry rather than to each element. So an ex- that began a word but not the entry (cross-examine, pre-exist, corn-exchange, and the phrase for example) got the X-letter but not the ·Et the Manual asks for. The 28 exemptions that recorded the defect were removed with the fix ([#11](https://github.com/adiabatic/quikscript-lexicon/issues/11)). They had to be, because the validator fails on an exemption that matches nothing.
 
-Each pragma has a `reason`, and `known-defect` is the only reason the loader accepts. Each row must point at a defect recorded elsewhere and say in its note what the defect is. This keeps the table from becoming a list of bare exceptions. Because the validator fails on any pragma that exempts nothing, a fix must also remove its pragma.
+Each exemption has a `reason`, and `known-defect` is the only reason the loader accepts. Each row must point at a defect recorded elsewhere and say in its note what the defect is. This keeps the table from becoming a list of bare exceptions. Because the validator fails on any exemption that matches nothing, a fix must also remove its exemption.
 
 ### Checks moved to the X-letter table
 
@@ -145,7 +145,7 @@ Three places where the rules fell short of what Read states were found by hand a
 The rows in `src/qslex/data/added-words.tsv` do not come from ReadLex, so the validator checks them more strictly than corpus rows, in a separate pass after the corpus pass. Each added row must:
 
 - produce the spelling its row records;
-- pass every lint check, with no pragma;
+- pass every lint check, with no exemption;
 - read back to its own IPA using only the allowed differences in `roundtrip.EDITS`;
 - not be rewritten by any word sign.
 

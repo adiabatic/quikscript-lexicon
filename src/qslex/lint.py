@@ -11,10 +11,10 @@ from qslex.rules import AL, ALLY, ENT, ING_TAILS, X_LETTERS, Tables
 from qslex.tables import rows_of
 from qslex.tokenizer import marked
 
-PRAGMAS_FILE = "lint-pragmas.tsv"
-PRAGMAS_HEADER = ["check", "word", "reason", "note"]
+EXEMPTIONS_FILE = "lint-exemptions.tsv"
+EXEMPTIONS_HEADER = ["check", "word", "reason", "note"]
 
-# The only reason `load_pragmas` accepts. A pragma may exempt a word from a check only because of a known defect tracked in another issue.
+# The only reason `load_exemptions` accepts. A row may exempt a word from a check only because of a known defect tracked in another issue.
 DEFECT = "known-defect"
 
 REDUCIBLE = frozenset({"It", "Utter"})
@@ -220,7 +220,7 @@ CHECKS: tuple[Check, ...] = (
     ),
     Check(
         "terminal-men-keeps-a-vowel",
-        "-men is the one ending that keeps its vowel",
+        "-men keeps its vowel",
         men_keeps_a_vowel,
     ),
     Check(
@@ -238,13 +238,13 @@ CHECKS: tuple[Check, ...] = (
 CHECK_IDS = tuple(check.id for check in CHECKS)
 
 
-def load_pragmas(path: Path | None = None) -> dict[tuple[str, str], str]:
-    """The pragmas in `lint-pragmas.tsv`, as (check, word) mapped to the reason.
+def load_exemptions(path: Path | None = None) -> dict[tuple[str, str], str]:
+    """The rows of `lint-exemptions.tsv`, as (check, word) mapped to the reason.
 
-    A pragma exempts one word from one lint check because of a known defect tracked in another issue. Every row must give the reason `known-defect` and a note that describes the defect, so the table cannot become a list of unexplained exceptions.
+    Each row exempts one word from one lint check because of a known defect tracked in another issue. Every row must give the reason `known-defect` and a note that describes the defect, so the table cannot become a list of unexplained exceptions.
     """
-    pragmas: dict[tuple[str, str], str] = {}
-    for lineno, source, row in rows_of(path, PRAGMAS_FILE, PRAGMAS_HEADER):
+    exemptions: dict[tuple[str, str], str] = {}
+    for lineno, source, row in rows_of(path, EXEMPTIONS_FILE, EXEMPTIONS_HEADER):
         check, word, reason, note = row
         if check not in CHECK_IDS:
             raise ValueError(f"{source}:{lineno}: {check!r} is not a check")
@@ -257,10 +257,10 @@ def load_pragmas(path: Path | None = None) -> dict[tuple[str, str], str]:
                 f"{source}:{lineno}: a known defect needs a note saying what it is"
             )
         key = (check, word)
-        if key in pragmas:
-            raise ValueError(f"{source}:{lineno}: duplicate pragma for {key}")
-        pragmas[key] = reason
-    return pragmas
+        if key in exemptions:
+            raise ValueError(f"{source}:{lineno}: duplicate exemption for {key}")
+        exemptions[key] = reason
+    return exemptions
 
 
 def sites(word: str, spelling: str, x_letter: str, ipa: str) -> tuple[Site, ...]:

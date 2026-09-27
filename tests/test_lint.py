@@ -5,9 +5,9 @@ import pytest
 from qslex.lint import (
     CHECK_IDS,
     CHECKS,
-    PRAGMAS_HEADER,
+    EXEMPTIONS_HEADER,
     lint,
-    load_pragmas,
+    load_exemptions,
     sites,
 )
 from qslex.rules import NO_TABLES
@@ -19,8 +19,8 @@ def broken(word: str, spelling: str, ipa: str, x_letter: str = "") -> set[str]:
     return {check for check, _, _ in lint(word, spelling, x_letter, ipa, NO_TABLES)}
 
 
-def pragma_file(tmp_path: Path, rows: list[list[str]]) -> Path:
-    return write_tsv(tmp_path / "p.tsv", PRAGMAS_HEADER, rows)
+def exemption_file(tmp_path: Path, rows: list[list[str]]) -> Path:
+    return write_tsv(tmp_path / "e.tsv", EXEMPTIONS_HEADER, rows)
 
 
 def test_every_check_says_what_the_manual_requires() -> None:
@@ -29,7 +29,7 @@ def test_every_check_says_what_the_manual_requires() -> None:
 
 
 def test_the_shipped_table_excuses_nothing() -> None:
-    assert load_pragmas() == {}
+    assert load_exemptions() == {}
 
 
 def test_an_element_is_cut_where_the_spelling_and_the_latin_agree() -> None:
@@ -128,16 +128,16 @@ def test_no_more_x_letters_than_the_latin_has_x() -> None:
 def test_a_pragma_needs_a_known_reason(tmp_path: Path) -> None:
     rows = [["initial-ex-et", "pre-exist", "because-i-said-so", ""]]
     with pytest.raises(ValueError, match="reason must be 'known-defect'"):
-        load_pragmas(pragma_file(tmp_path, rows))
+        load_exemptions(exemption_file(tmp_path, rows))
 
 
 def test_a_pragma_for_an_unknown_check_is_rejected(tmp_path: Path) -> None:
     rows = [["no-such-check", "pre-exist", "stressed", ""]]
     with pytest.raises(ValueError, match="is not a check"):
-        load_pragmas(pragma_file(tmp_path, rows))
+        load_exemptions(exemption_file(tmp_path, rows))
 
 
 def test_a_known_defect_must_say_what_it_is(tmp_path: Path) -> None:
     rows = [["initial-ex-et", "pre-exist", "known-defect", ""]]
     with pytest.raises(ValueError, match="needs a note"):
-        load_pragmas(pragma_file(tmp_path, rows))
+        load_exemptions(exemption_file(tmp_path, rows))

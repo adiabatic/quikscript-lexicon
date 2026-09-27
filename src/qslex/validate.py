@@ -9,7 +9,7 @@ from pathlib import Path
 
 from qslex.added import AddedWord, load_added_words
 from qslex.divergences import load_divergences
-from qslex.lint import CHECKS, lint, load_pragmas
+from qslex.lint import CHECKS, lint, load_exemptions
 from qslex.manual import SIGN_ANCHORS, load_examples
 from qslex.mapping import Mapping, load_mapping
 from qslex.overrides import Overrides, load_overrides
@@ -223,7 +223,7 @@ def passages(
             if word.spelling not in contracted.get(word.latin, set()):
                 failures.append(
                     f"{where} is the contraction {word.spelling}, "
-                    f"which contractions.tsv does not carry"
+                    f"which contractions.tsv does not list"
                 )
         elif word.outcome == "absent":
             if columns:
@@ -243,7 +243,7 @@ def passages(
                 ours = " / ".join(sorted(columns.get(word.columns[0], set())))
                 if ours != word.ours:
                     failures.append(
-                        f"{where} pins {word.ours} against the Manual’s "
+                        f"{where} records {word.ours} against the Manual’s "
                         f"{word.spelling}, but the lexicon now spells {ours}"
                     )
         elif word.spelling not in columns.get(word.outcome, set()):
@@ -272,7 +272,7 @@ def added(
 ) -> list[str]:
     """Check the added words, which the corpus lacks, more strictly than the corpus rows.
 
-    This runs apart from the corpus pass in `main` for two reasons. The expected counts cover corpus rows only, so any change to them after an upstream update comes from ReadLex. And a row we wrote ourselves should need no pragma. A corpus row may break a lint check if `lint-pragmas.tsv` exempts it. An added row must produce the spelling in its `qs` column and pass every lint check. It must read back to its IPA using only the differences in `roundtrip.EDITS`, and no word sign may rewrite it. Added rows get no per-row tolerances, because the differences in that table apply to every word. For example, a -ted, -ing or -tion ending drops its schwa whether or not the row came from the corpus.
+    This runs apart from the corpus pass in `main` for two reasons. The expected counts cover corpus rows only, so any change to them after an upstream update comes from ReadLex. And a row we wrote ourselves should need no exemption. A corpus row may break a lint check if `lint-exemptions.tsv` exempts it. An added row must produce the spelling in its `qs` column and pass every lint check. It must read back to its IPA using only the differences in `roundtrip.EDITS`, and no word sign may rewrite it. Added rows get no per-row tolerances, because the differences in that table apply to every word. For example, a -ted, -ing or -tion ending drops its schwa whether or not the row came from the corpus.
 
     The check that the word is not in ReadLex matters most over time. If ReadLex ever adds the word, the validator fails and names it, so the lexicon cannot ship a second spelling of it.
     """
@@ -296,8 +296,7 @@ def added(
             )
         if result.senior != entry.qs:
             failures.append(
-                f"{where} declares {entry.qs}, but the rules now spell it "
-                f"{result.senior}"
+                f"{where} lists {entry.qs}, but the rules now spell it {result.senior}"
             )
         if result.signed:
             failures.append(
@@ -323,8 +322,8 @@ def added(
 
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(
-        description="Tokenize every ReadLex IPA string against the mapping, and hold "
-        "the rows the lexicon spells to the Manual"
+        description="Tokenize every ReadLex IPA string against the mapping, and check "
+        "the rows the lexicon spells against the Manual"
     )
     parser.add_argument("readlex", nargs="?", type=Path, default=None)
     parser.add_argument("--no-verify-digest", action="store_true")
@@ -337,7 +336,7 @@ def main(argv: list[str] | None = None) -> int:
     divergences = load_divergences()
     tables = load_tables()
     contractions = load_contractions()
-    pragmas = load_pragmas()
+    exemptions = load_exemptions()
     examples = load_examples()
     added_words = load_added_words()
     try:
@@ -349,26 +348,26 @@ def main(argv: list[str] | None = None) -> int:
         return 1
 
     failures: list[str] = []
-    residue: list[str] = []
+    unmapped: list[str] = []
     token_counts: collections.Counter[tuple[str, str]] = collections.Counter()
     quirk_hits: dict[int, set[str]] = collections.defaultdict(set)
     override_hits: dict[str, set[str]] = collections.defaultdict(set)
     divergence_hits: set[tuple[str, str]] = set()
     iea_audit: dict[str, set[str]] = {"stressed": set(), "unstressed": set()}
-    oracle = {"agree": 0, "disagree": 0, "silent": 0}
+    shavian_ear_counts = {"agree": 0, "disagree": 0, "both_zero": 0}
     unexpected: list[str] = []
 
     rule_changes: collections.Counter[str] = collections.Counter()
-    rule_claims: collections.Counter[str] = collections.Counter()
+    rule_matches: collections.Counter[str] = collections.Counter()
     rule_word_hits: set[tuple[str, str]] = set()
     x_decision_hits: set[str] = set()
     sign_changes: collections.Counter[str] = collections.Counter()
     sign_hits: set[tuple[str, str]] = set()
     junior_rows = 0
-    junior_drift: list[str] = []
+    junior_mismatches: list[str] = []
     lint_hits: collections.Counter[str] = collections.Counter()
     lint_examples: dict[str, list[str]] = collections.defaultdict(list)
-    lint_excused: set[tuple[str, str]] = set()
+    lint_exempted: set[tuple[str, str]] = set()
     roundtrip: collections.Counter[tuple[str, str]] = collections.Counter()
     roundtrip_identical = 0
     roundtrip_skipped = 0
@@ -416,7 +415,7 @@ def main(argv: list[str] | None = None) -> int:
         try:
             tokens = tokenize(ipa, mapping, overrides)
         except TokenizeError as error:
-            residue.append(f"{row.word!r}: {error}")
+            unmapped.append(f"{row.word!r}: {error}")
             continue
 
         rule = overrides.get(ipa)
@@ -445,7 +444,7 @@ def main(argv: list[str] | None = None) -> int:
                 part = inner.latin
                 for terminal in TERMINAL_RULES:
                     if matches_ending(terminal, inner):
-                        rule_claims[terminal.id] += 1
+                        rule_matches[terminal.id] += 1
                 if undecided_ing(part, vvg) and not tables.has_decision(
                     "terminal-ing", part
                 ):
@@ -462,10 +461,11 @@ def main(argv: list[str] | None = None) -> int:
                 if why:
                     undecided[f"x-letter/{why}"].add(part)
             x_decision_hits.update(latin for latin, _ in result.x_decisions)
-            for latin, shipped in result.x_decisions:
-                if not tables.x_decisions[latin].x_letter and substitutable(shipped):
+            for latin, spelling in result.x_decisions:
+                if not tables.x_decisions[latin].x_letter and substitutable(spelling):
                     unsubstituted.append(
-                        f"{latin!r} is ruled to take no X-letter but ships {shipped}"
+                        f"{latin!r} has an x-decisions.tsv row with no X-letter, "
+                        f"but is spelled {spelling}"
                     )
             if result.x_letter and "x" not in word:
                 stray_x_letters.append(f"{word!r} has no x but got {result.x_letter}")
@@ -480,8 +480,8 @@ def main(argv: list[str] | None = None) -> int:
             for check_id, part, complaint in lint(
                 word, result.senior, result.x_letter, ipa, tables
             ):
-                if (check_id, word) in pragmas:
-                    lint_excused.add((check_id, word))
+                if (check_id, word) in exemptions:
+                    lint_exempted.add((check_id, word))
                     continue
                 lint_hits[check_id] += 1
                 if len(lint_examples[check_id]) < 5:
@@ -513,18 +513,18 @@ def main(argv: list[str] | None = None) -> int:
                 bare = spell(context, unsigned)
                 plain = bare.junior or bare.senior
                 if result.junior != plain:
-                    junior_drift.append(
-                        f"{word!r} [{row.pos}] declares Junior {result.junior}, but "
-                        f"the sign left unapplied and terminal-nt unfired give {plain}"
+                    junior_mismatches.append(
+                        f"{word!r} [{row.pos}] lists Junior {result.junior}, but "
+                        f"without word signs or terminal-nt it is spelled {plain}"
                     )
 
-        claimed = row.shavian.count(EAR)
+        shavian_ears = row.shavian.count(EAR)
         produced = stressed_rhotic_ears(ipa, tokens)
-        if claimed or produced:
-            if claimed == produced:
-                oracle["agree"] += 1
+        if shavian_ears or produced:
+            if shavian_ears == produced:
+                shavian_ear_counts["agree"] += 1
             else:
-                oracle["disagree"] += 1
+                shavian_ear_counts["disagree"] += 1
                 key = (row.word, ipa)
                 if key in divergences:
                     divergence_hits.add(key)
@@ -537,17 +537,17 @@ def main(argv: list[str] | None = None) -> int:
                 else:
                     unexpected.append(
                         f"{row.word!r} {ipa!r}: mapping writes {produced} stressed "
-                        f"EAR, Shavian {row.shavian!r} writes {claimed}"
+                        f"EAR, Shavian {row.shavian!r} writes {shavian_ears}"
                     )
         elif any(t.ipa == "ɪə" for t in tokens):
-            oracle["silent"] += 1
+            shavian_ear_counts["both_zero"] += 1
 
     print(f"rows tokenized: {len(rows)} (expected {CORPUS_ROWS})")
-    print(f"unmapped residue: {len(residue)}")
-    for line in residue[:20]:
+    print(f"unmapped IPA: {len(unmapped)}")
+    for line in unmapped[:20]:
         print(f"  {line}")
-    if residue:
-        failures.append(f"{len(residue)} rows with unmapped residue")
+    if unmapped:
+        failures.append(f"{len(unmapped)} rows with unmapped IPA")
 
     print("\nvariant tags:")
     for tag, entry in sorted(var_tags.items(), key=lambda kv: -kv[1].rows):
@@ -559,20 +559,20 @@ def main(argv: list[str] | None = None) -> int:
         )
         if actual != entry.rows:
             failures.append(f"tag {tag!r} covers {actual} rows, expected {entry.rows}")
-        declared = set(entry.listed_words)
-        if not declared:
+        listed = set(entry.listed_words)
+        if not listed:
             continue
-        undeclared = sorted(var_words[tag] - declared)
-        unseen = sorted(declared - var_words[tag])
-        if undeclared:
-            failures.append(f"tag {tag!r} touches undeclared words: {undeclared}")
-            print(f"    UNDECLARED: {', '.join(undeclared)}")
+        unlisted = sorted(var_words[tag] - listed)
+        unseen = sorted(listed - var_words[tag])
+        if unlisted:
+            failures.append(f"tag {tag!r} touches unlisted words: {unlisted}")
+            print(f"    UNLISTED: {', '.join(unlisted)}")
         if unseen:
-            failures.append(f"tag {tag!r} declares words it no longer covers: {unseen}")
-            print(f"    DECLARED BUT UNMATCHED: {', '.join(unseen)}")
-    unruled = sorted(set(var_rows) - set(var_tags))
-    if unruled:
-        failures.append(f"variant tags with no row policy: {unruled}")
+            failures.append(f"tag {tag!r} lists words it no longer covers: {unseen}")
+            print(f"    LISTED BUT UNMATCHED: {', '.join(unseen)}")
+    tags_without_policy = sorted(set(var_rows) - set(var_tags))
+    if tags_without_policy:
+        failures.append(f"variant tags with no row policy: {tags_without_policy}")
     spelled_rows = sum(entry.rows for entry in var_tags.values() if entry.kept)
     print(f"  rows the lexicon spells: {rrp_rows} (expected {spelled_rows})")
     print(
@@ -597,19 +597,19 @@ def main(argv: list[str] | None = None) -> int:
         if not hits:
             failures.append(f"quirk rule {quirk.match!r} matched nothing")
             continue
-        declared = set(quirk.listed_words)
-        undeclared = sorted(hits - declared)
-        unseen = sorted(declared - hits)
-        if undeclared:
+        listed = set(quirk.listed_words)
+        unlisted = sorted(hits - listed)
+        unseen = sorted(listed - hits)
+        if unlisted:
             failures.append(
-                f"quirk rule {quirk.match!r} touches undeclared words: {undeclared}"
+                f"quirk rule {quirk.match!r} touches unlisted words: {unlisted}"
             )
-            print(f"    UNDECLARED: {', '.join(undeclared)}")
+            print(f"    UNLISTED: {', '.join(unlisted)}")
         if unseen:
             failures.append(
-                f"quirk rule {quirk.match!r} declares unmatched words: {unseen}"
+                f"quirk rule {quirk.match!r} lists unmatched words: {unseen}"
             )
-            print(f"    DECLARED BUT UNMATCHED: {', '.join(unseen)}")
+            print(f"    LISTED BUT UNMATCHED: {', '.join(unseen)}")
 
     print("\nstress overrides:")
     for override in sorted(overrides.values(), key=lambda r: (r.words, r.ipa)):
@@ -620,10 +620,10 @@ def main(argv: list[str] | None = None) -> int:
         )
         if not hits:
             failures.append(f"override {override.ipa!r} was never consulted")
-        undeclared = sorted(hits - set(override.listed_words))
-        if undeclared:
+        unlisted = sorted(hits - set(override.listed_words))
+        if unlisted:
             failures.append(
-                f"override {override.ipa!r} touches undeclared words: {undeclared}"
+                f"override {override.ipa!r} touches unlisted words: {unlisted}"
             )
         mechanical = letters(tokenize(override.ipa, mapping))
         overridden = letters(tokenize(override.ipa, mapping, overrides))
@@ -634,12 +634,15 @@ def main(argv: list[str] | None = None) -> int:
             )
 
     print("\nstressed EAR vs the ReadLex Shavian column (𐑽 count per row):")
-    print(f"  agree: {oracle['agree']}")
-    print(f"  disagree, expected (Manual overrules Shavian): {len(divergence_hits)}")
+    print(f"  agree: {shavian_ear_counts['agree']}")
+    print(f"  disagree, listed in shavian-divergences.tsv: {len(divergence_hits)}")
     print(f"  disagree, UNEXPECTED: {len(unexpected)}")
     for line in unexpected[:20]:
         print(f"    {line}")
-    print(f"  Shavian silent (non-rhotic ɪə, always 𐑾): {oracle['silent']}")
+    print(
+        f"  both zero (every ɪə unstressed or not before R): "
+        f"{shavian_ear_counts['both_zero']}"
+    )
     if unexpected:
         failures.append(
             f"{len(unexpected)} ɪə decisions contradict Shavian unexpectedly"
@@ -703,31 +706,38 @@ def main(argv: list[str] | None = None) -> int:
     print("\northographic rules, rows rewritten:")
     for orthographic in RULES:
         changed = rule_changes.get(orthographic.id, 0)
-        pinned = EXPECTED_RULE_CHANGES.get(orthographic.id)
-        drift = "" if pinned is None or changed == pinned else f" MISMATCH ({pinned})"
+        expected_count = EXPECTED_RULE_CHANGES.get(orthographic.id)
+        mismatch = (
+            ""
+            if expected_count is None or changed == expected_count
+            else f" MISMATCH ({expected_count})"
+        )
         if isinstance(orthographic, Terminal):
-            claimed = rule_claims.get(orthographic.id, 0)
-            print(f"  {orthographic.id:22} {changed:6} of {claimed:6} claimed{drift}")
-            if not claimed:
+            matched = rule_matches.get(orthographic.id, 0)
+            print(
+                f"  {orthographic.id:22} {changed:6} of {matched:6} matched{mismatch}"
+            )
+            if not matched:
                 failures.append(
-                    f"terminal {orthographic.id} claims no word in the corpus"
+                    f"terminal {orthographic.id} matches no word in the corpus"
                 )
         else:
-            print(f"  {orthographic.id:22} {changed:6}{drift}")
-        if pinned is not None and changed != pinned:
+            print(f"  {orthographic.id:22} {changed:6}{mismatch}")
+        if expected_count is not None and changed != expected_count:
             failures.append(
-                f"rule {orthographic.id} rewrote {changed} rows, expected {pinned}"
+                f"rule {orthographic.id} rewrote {changed} rows, "
+                f"expected {expected_count}"
             )
-    unpinned = [rule for rule in RULE_IDS if rule not in EXPECTED_RULE_CHANGES]
-    if unpinned:
-        failures.append(f"rules with no pinned rewrite count: {unpinned}")
+    missing_expected = [rule for rule in RULE_IDS if rule not in EXPECTED_RULE_CHANGES]
+    if missing_expected:
+        failures.append(f"rules with no expected rewrite count: {missing_expected}")
     orphaned = [rule for rule in EXPECTED_RULE_CHANGES if rule not in RULE_IDS]
     if orphaned:
         failures.append(
-            f"pinned rewrite counts for rules that no longer exist: {orphaned}"
+            f"expected rewrite counts for rules that no longer exist: {orphaned}"
         )
 
-    print("\nundecided residue (must be ruled on in rule-words.tsv / x-decisions.tsv):")
+    print("\nundecided words (need a row in rule-words.tsv or x-decisions.tsv):")
     for label in sorted(undecided):
         words = sorted(undecided[label])
         print(f"  {label}: {len(words)}")
@@ -737,56 +747,64 @@ def main(argv: list[str] | None = None) -> int:
     if not undecided:
         print("  none")
 
-    print("\nrule-word rulings:")
+    print("\nrule-words.tsv rows used:")
     for key in sorted(tables.words):
         if key not in rule_word_hits:
-            failures.append(f"rule-word ruling {key} was never exercised")
-    print(f"  {len(tables.words)} rulings, {len(rule_word_hits)} exercised")
+            failures.append(f"rule-words.tsv row {key} was never used")
+    print(f"  {len(tables.words)} rows, {len(rule_word_hits)} used")
 
-    print("\nx-letter rulings:")
+    print("\nx-decisions.tsv rows used:")
     unused_x_decisions = sorted(set(tables.x_decisions) - x_decision_hits)
-    print(f"  {len(tables.x_decisions)} rulings, {len(x_decision_hits)} exercised")
+    print(f"  {len(tables.x_decisions)} rows, {len(x_decision_hits)} used")
     if unused_x_decisions:
-        failures.append(f"x-letter rulings never exercised: {unused_x_decisions}")
+        failures.append(f"x-decisions.tsv rows never used: {unused_x_decisions}")
     print(f"  x-letters on words with no x: {len(stray_x_letters)}")
     for line in stray_x_letters[:10]:
         print(f"    {line}")
     if stray_x_letters:
         failures.append(f"{len(stray_x_letters)} x-letters on words without an x")
-    print(f"  rulings that leave a pair unsubstituted: {len(unsubstituted)}")
+    print(
+        f"  words with no X-letter in x-decisions.tsv that keep a pair: "
+        f"{len(unsubstituted)}"
+    )
     for line in unsubstituted[:10]:
         print(f"    {line}")
     if unsubstituted:
         failures.append(
-            f"{len(unsubstituted)} rulings leave a substitutable pair in the word"
+            f"{len(unsubstituted)} words with no X-letter in x-decisions.tsv keep a "
+            f"substitutable pair"
         )
 
     print("\nword signs and standard outlines, rows rewritten:")
     for key in sorted(tables.signs):
         if key not in sign_hits:
-            failures.append(f"word-sign row {key} was never reached by a corpus row")
+            failures.append(f"word-sign row {key} was never used for a corpus row")
     for word in sorted(set(EXPECTED_SIGN_CHANGES) | set(sign_changes)):
         changed = sign_changes.get(word, 0)
-        pinned = EXPECTED_SIGN_CHANGES.get(word)
-        drift = "" if pinned is None or changed == pinned else f" MISMATCH ({pinned})"
-        print(f"  {word:12} {changed:4}{drift}")
-        if pinned is None:
-            failures.append(f"{word!r} rewrites {changed} rows with no pinned count")
-        elif changed != pinned:
+        expected_count = EXPECTED_SIGN_CHANGES.get(word)
+        mismatch = (
+            ""
+            if expected_count is None or changed == expected_count
+            else f" MISMATCH ({expected_count})"
+        )
+        print(f"  {word:12} {changed:4}{mismatch}")
+        if expected_count is None:
+            failures.append(f"{word!r} rewrites {changed} rows with no expected count")
+        elif changed != expected_count:
             failures.append(
-                f"word sign {word!r} rewrote {changed} rows, expected {pinned}"
+                f"word sign {word!r} rewrote {changed} rows, expected {expected_count}"
             )
     corroborated = {e.word for e in examples if e.rule in SIGN_ANCHORS}
     uncorroborated = sorted(set(sign_changes) - corroborated)
     print(f"  rewriting words with no Manual fixture: {uncorroborated or 'none'}")
     if uncorroborated:
         failures.append(
-            f"these words rewrite rows but no manual-spellings.tsv row holds their "
-            f"spelling to the Manual: {uncorroborated}"
+            f"these words rewrite rows but no manual-spellings.tsv row checks their "
+            f"spelling against the Manual: {uncorroborated}"
         )
     busy = {key for key in tables.signs if key[0] in sign_changes}
     print(
-        f"  {len(tables.signs)} rows, {len(sign_hits)} reached, "
+        f"  {len(tables.signs)} rows, {len(sign_hits)} used, "
         f"{len(tables.signs) - len(busy)} that rewrite nothing"
     )
     for word, spelling in sorted(core_signs.items()):
@@ -798,16 +816,17 @@ def main(argv: list[str] | None = None) -> int:
         failures.append(f"{len(core_misses)} rows spell a core word sign in full")
 
     print(f"\nJunior divergences: {junior_rows} (want {EXPECTED_JUNIOR_DIVERGENCES})")
-    for line in junior_drift[:10]:
+    for line in junior_mismatches[:10]:
         print(f"    {line}")
     if junior_rows != EXPECTED_JUNIOR_DIVERGENCES:
         failures.append(
-            f"{junior_rows} rows carry a Junior spelling, "
+            f"{junior_rows} rows have a Junior spelling, "
             f"expected {EXPECTED_JUNIOR_DIVERGENCES}"
         )
-    if junior_drift:
+    if junior_mismatches:
         failures.append(
-            f"{len(junior_drift)} Junior spellings are not simply the unsigned spelling"
+            f"{len(junior_mismatches)} Junior spellings differ from the spelling "
+            f"without word signs or terminal-nt"
         )
 
     print(
@@ -858,8 +877,8 @@ def main(argv: list[str] | None = None) -> int:
     print("\nthe Manual’s own lint, re-derived and run over every spelled row:")
     for check in CHECKS:
         broken = lint_hits.get(check.id, 0)
-        excused = sum(1 for key in pragmas if key[0] == check.id)
-        print(f"  {check.id:34} {broken:5} broken, {excused:3} pragma’d")
+        exempted = sum(1 for key in exemptions if key[0] == check.id)
+        print(f"  {check.id:34} {broken:5} broken, {exempted:3} exempted")
         for line in lint_examples[check.id]:
             print(f"      {line}")
         if broken:
@@ -867,10 +886,10 @@ def main(argv: list[str] | None = None) -> int:
                 f"lint {check.id} is broken by {broken} rows, and the Manual requires "
                 f"that {check.requires}"
             )
-    stale = sorted(set(pragmas) - lint_excused)
-    print(f"  pragmas never needed: {stale or 'none'}")
+    stale = sorted(set(exemptions) - lint_exempted)
+    print(f"  exemptions never used: {stale or 'none'}")
     if stale:
-        failures.append(f"lint pragmas that excuse nothing: {stale}")
+        failures.append(f"lint exemptions that match nothing: {stale}")
 
     print("\nround trip, every spelling read back to a phoneme string:")
     print(f"  identical to the IPA it came from: {roundtrip_identical}")
@@ -881,7 +900,7 @@ def main(argv: list[str] | None = None) -> int:
     if unreadable:
         failures.append(
             f"{len(unreadable)} spellings cannot be read back to their own IPA by any "
-            f"licensed difference"
+            f"allowed difference"
         )
     if roundtrip_identical != EXPECTED_ROUNDTRIP_IDENTICAL:
         failures.append(
@@ -895,15 +914,16 @@ def main(argv: list[str] | None = None) -> int:
         )
     for edit in sorted(set(EXPECTED_ROUNDTRIP_EDITS) | set(roundtrip)):
         found = roundtrip.get(edit, 0)
-        pinned = EXPECTED_ROUNDTRIP_EDITS.get(edit)
-        drift = "" if found == pinned else f" MISMATCH ({pinned})"
+        expected_count = EXPECTED_ROUNDTRIP_EDITS.get(edit)
+        mismatch = "" if found == expected_count else f" MISMATCH ({expected_count})"
         shape = f"{edit[0] or '-':4} -> {edit[1] or '-':4}"
-        print(f"  {shape} {found:7}{drift}  {EDITS[edit]}")
-        if pinned is None:
-            failures.append(f"round-trip difference {edit} has no pinned count")
-        elif found != pinned:
+        print(f"  {shape} {found:7}{mismatch}  {EDITS[edit]}")
+        if expected_count is None:
+            failures.append(f"round-trip difference {edit} has no expected count")
+        elif found != expected_count:
             failures.append(
-                f"round-trip difference {edit} occurs {found} times, expected {pinned}"
+                f"round-trip difference {edit} occurs {found} times, "
+                f"expected {expected_count}"
             )
 
     failures.extend(added(added_words, rows, mapping, quirk_rules, overrides, tables))
@@ -914,7 +934,7 @@ def main(argv: list[str] | None = None) -> int:
         for failure in failures:
             print(f"  - {failure}")
         return 1
-    print("\nOK: total coverage, all invariants hold")
+    print("\nOK: every check passed")
     return 0
 
 

@@ -11,7 +11,7 @@ from qslex.letters import (
     render_qs,
     unknown_names,
 )
-from qslex.lint import CHECKS, Check, Site, lint, load_pragmas
+from qslex.lint import CHECKS, Check, Site, lint, load_exemptions
 from qslex.manual import Example, load_examples
 from qslex.mapping import MapEntry, Mapping, load_mapping
 from qslex.overrides import Override, Overrides, load_overrides
@@ -97,10 +97,10 @@ __all__ = [
     "load_contractions",
     "load_divergences",
     "load_examples",
+    "load_exemptions",
     "load_mapping",
     "load_overrides",
     "load_passages",
-    "load_pragmas",
     "load_quirks",
     "load_rows",
     "load_rule_words",

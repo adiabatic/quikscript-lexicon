@@ -28,7 +28,7 @@ make check
 
 The validator tokenizes every IPA string in the corpus. It fails if any of these is true:
 
-- Some IPA matches no mapping token (the `unmapped residue` count is not zero).
+- Some IPA matches no mapping token (the `unmapped IPA` count is not zero).
 - A mapping row is never used.
 - A quirk rule matches nothing, touches a word it does not list, or lists a word it no longer touches.
 - A stress override is never used, touches a word it does not list, or changes nothing.
