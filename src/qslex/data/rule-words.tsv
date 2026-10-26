@@ -32,9 +32,9 @@ terminal-ess-est	harvest	skip	not-the-terminal	the -est is the root
 terminal-ess-est	honest	skip	not-the-terminal	the -est is the root
 terminal-ess-est	immodest	skip	not-the-terminal	modest with a prefix
 terminal-ess-est	interest	skip	not-the-terminal	the -est is the root
-terminal-ess-est	mattress	apply	orthographic	no -ess morpheme, but Read keys this terminal to the Orthodox spelling, so it is written ·Et·See like fortress and burgess; ReadLex’s ·It in spring-mattress is what asks for the ruling
+terminal-ess-est	mattress	apply	orthographic	no -ess morpheme, but Read keys this terminal to the Orthodox spelling, so it is written ·Et·See like fortress and burgess; ReadLex’s ·It in spring-mattress is why this row is needed
 terminal-ess-est	modest	skip	not-the-terminal	an adjective in its own right, not a superlative
-terminal-ess-est	nighest	apply	superlative	a genuine superlative that ReadLex tags AV0/PRP, never AJS — the reason this rule is not gated on the AJS tag
+terminal-ess-est	nighest	apply	superlative	a genuine superlative that ReadLex tags AV0/PRP, never AJS — the reason this rule is not restricted to the AJS tag
 terminal-ess-est	overmodest	skip	not-the-terminal	modest with a prefix
 terminal-ess-est	rainforest	skip	not-the-terminal	forest in a compound
 terminal-ess-est	reforest	skip	not-the-terminal	forest with a prefix
@@ -425,7 +425,7 @@ terminal-y	specie	apply	orthographic	no -y or -ee morpheme, but Read keys this t
 terminal-y	species	apply	orthographic	no -y or -ee morpheme, but Read keys this terminal to the Orthodox spelling, as -ess is keyed at burgess and mattress
 terminal-y	spondee	apply	loan	a loanword whose terminal is no compound element and carries no stress, so ·It
 terminal-y	spondees	apply	loan	as spondee
-terminal-y	squeegee	skip	readlex-stress-defect	every other -ee verb in ReadLex with a syllable before the terminal is final-stressed (agree, decree, disagree, foresee, fricassee, guarantee, oversee, referee, unsee); ˈskwiːdʒiː is the outlier, and squeegeed and squeegeeing carry the same mark where no terminal reaches it, so its ·Eat stands
+terminal-y	squeegee	skip	readlex-stress-defect	every other -ee verb in ReadLex with a syllable before the terminal is final-stressed (agree, decree, disagree, foresee, fricassee, guarantee, oversee, referee, unsee); ˈskwiːdʒiː is the outlier, and squeegeed and squeegeeing have the same stress mark where no terminal reaches it, so its ·Eat stands
 terminal-y	squeegees	skip	readlex-stress-defect	as squeegee
 terminal-y	stelae	apply	latin-plural	the Latin -ae plural of stela; the terminal is unstressed, so ·It
 terminal-y	subspecies	apply	orthographic	as species

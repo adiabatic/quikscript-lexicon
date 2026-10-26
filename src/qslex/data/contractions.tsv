@@ -2,7 +2,7 @@ word	pos	kind	contraction	authority	note
 also		word	·Awe·Low·See	senior-contractions	
 are		word	·Roe	senior-contractions	
 as		word	·At	senior-contractions	
-be		word	·Bay	senior-contractions	also one of the core eight, so the senior column already carries it
+be		word	·Bay	senior-contractions	also one of the core eight, so the senior column already has it
 being		word	·Bay·-ing	senior-contractions	the root contraction, which the affix -ing rule alone would not reach
 been		word	·Bay·No	senior-contractions	
 because		word	·Bay·Key·Zoo	senior-contractions	
@@ -21,7 +21,7 @@ did		word	·Day·Day	senior-contractions
 don't		word	·Day·No·Tea	senior-contractions	written solid, no apostrophe
 didn't		word	·Day·Day·No·Tea	senior-contractions	written solid, no apostrophe
 doing		word	·Day·-ing	terminal-ing	the terminal -ing section prints ·Day·-ing = doing among its Root Contractions plus Affix, where this list stops at do, did, don't and didn't; the anchor is that section rather than the list, and doing is the only form it adds
-done		word	·Day·No	no-how	the No-how passage on p.24 writes done ·Day·No at its second occurrence, §III’s do-sign ·Day plus the -en terminal, having spelled it ·Day·Utter·No in full at the first; the list stops at do, did, don't and didn't, so the anchor is the passage, tolerated as Read’s own Senior writing rather than a listed contraction
+done		word	·Day·No	no-how	the No-how passage on p.24 writes done ·Day·No at its second occurrence, §III’s do-sign ·Day plus the -en terminal, having spelled it ·Day·Utter·No in full at the first; the list stops at do, did, don't and didn't, so the anchor is the passage rather than the list; the spell checkers accept ·Day·No as Read’s own Senior writing, and the transliterator does not write it
 ever		word	·Et·Vie	senior-contractions	
 every		word	·Et·Vie·It	senior-contractions	
 from		word	·Fee·May	senior-contractions	
@@ -54,9 +54,9 @@ should		word	·She·Day	senior-contractions
 she		word	·She	senior-contractions	
 so		word	·See	senior-contractions	
 than		word	·They·No	senior-contractions	
-that	AJ0	word	·They·Tea	senior-contractions	not when demonstrative; the senior column already carries this, because the Common words list states it too
-that	AV0	word	·They·Tea	senior-contractions	not when demonstrative; the senior column already carries this, because the Common words list states it too
-that	CJT	word	·They·Tea	senior-contractions	not when demonstrative; the senior column already carries this, because the Common words list states it too
+that	AJ0	word	·They·Tea	senior-contractions	not when demonstrative; the senior column already has this, because the Common words list states it too
+that	AV0	word	·They·Tea	senior-contractions	not when demonstrative; the senior column already has this, because the Common words list states it too
+that	CJT	word	·They·Tea	senior-contractions	not when demonstrative; the senior column already has this, because the Common words list states it too
 these		word	·They·Zoo	senior-contractions	
 think		word	·Thaw	senior-contractions	
 thinking		word	·Thaw·-ing	senior-contractions	the root contraction, which the affix -ing rule alone would not reach
