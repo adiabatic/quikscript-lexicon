@@ -11,19 +11,19 @@ from qslex.rules import AL, ALLY, ENT, ING_TAILS, X_LETTERS, Tables
 from qslex.tables import rows_of
 from qslex.tokenizer import marked
 
-PRAGMAS_FILE = "lint-pragmas.tsv"
-PRAGMAS_HEADER = ["check", "word", "reason", "note"]
+EXEMPTIONS_FILE = "lint-exemptions.tsv"
+EXEMPTIONS_HEADER = ["check", "word", "reason", "note"]
 
-# The one reason a word is allowed to break a check: a defect recorded against another issue, not a license. Any other reason is a bare exception, which is what this table exists to prevent.
+# The only reason `load_exemptions` accepts. A row may exempt a word from a check only because of a known defect tracked in another issue.
 DEFECT = "known-defect"
 
 REDUCIBLE = frozenset({"It", "Utter"})
 VOWEL_CHARS = frozenset("ɪieæaɑɒɔʊuʌəɜːƏIÆⱭ")
 
-# “While L needs no preceding vowel in Spaniel, one is clearly needed wherever -al follows on a vowel-sound” — so ·Ye counts here as the vowel it stands in for.
+# The Manual says “While L needs no preceding vowel in Spaniel = ·See·Pea·At·No·Ye·Low, one is clearly needed wherever -al follows on a vowel-sound”. ·Ye counts here as the vowel it stands in for.
 VOWELS_BEFORE_L = VOWELS | {"Ye"}
 
-# The Manual’s own trigger for each check, as an Orthodox ending. Latin-gating is the whole difference between a check that re-derives a rule and one that re-reports the corpus: ·Et·No·Tea is only wrong where Orthodox spells -ent, and ReadLex’s own /e/ elsewhere is not this project’s business. A check whose rule keys on the same ending takes that rule’s own pattern — `rules.ENT`, `rules.AL`, and `rules.ALLY`, which claims -able and -ally before -al does. The two written out here are the ones that differ, because -men is the exception the -land rule carves out.
+# Each check runs only where the Orthodox spelling has the ending the Manual’s rule names. Without that condition a check would report ReadLex’s IPA wherever it differs from the rule. For example, ·Et·No·Tea is wrong only where the Orthodox spelling ends in -ent. The lint does not check ReadLex’s /e/ anywhere else. A check whose rule matches the same ending uses that rule’s pattern: `rules.ENT`, `rules.AL` and `rules.ALLY`. `rules.ALLY` matches -able and -ally, so the -al check skips those words, as the terminal rules do by trying `rules.ALLY` before `rules.AL`. The two patterns below differ from `rules.LAND` because -men is the exception to the -land rule and has its own check.
 LAND = re.compile(r"(?<=.)(land|ment|man)(s)?$")
 MEN = re.compile(r"(?<=.)men$")
 
@@ -55,7 +55,7 @@ class Site:
     def reducible_ending(self) -> bool:
         """Whether the last vowel ReadLex wrote for this element is a schwa.
 
-        Every rule these checks re-derive is conditioned on an *unstressed* vowel, and the only vowel ReadLex writes that is unstressed by definition is ə. ɪ and ʌ are syllable nuclei as often as not — distil, fulfil, until — so reading them as reducible is what turns a rule into a false alarm.
+        Every rule these checks re-derive applies to an *unstressed* vowel. ə is the only vowel ReadLex writes that is always unstressed. ɪ and ʌ are often full vowels (distil, fulfil, until), so treating them as reducible would make the checks report false positives.
         """
         vowels = [c for c in self.ipa if c in VOWEL_CHARS]
         return bool(vowels) and vowels[-1] in {"ə", "Ə"}
@@ -68,12 +68,14 @@ class Check:
     test: Callable[[Site, Tables], str]
 
 
-def _tail(site: Site, *shape: str) -> bool:
-    return site.spelled[-len(shape) :] == shape
+def _tail(site: Site, *ending_letters: str) -> bool:
+    return site.spelled[-len(ending_letters) :] == ending_letters
 
 
-def _before(spelled: tuple[str, ...], shape: tuple[str, ...]) -> str:
-    return spelled[-len(shape) - 1] if len(spelled) > len(shape) else ""
+def _before(spelled: tuple[str, ...], ending_letters: tuple[str, ...]) -> str:
+    return (
+        spelled[-len(ending_letters) - 1] if len(spelled) > len(ending_letters) else ""
+    )
 
 
 def _ing_affix(latin: str) -> str:
@@ -83,35 +85,37 @@ def _ing_affix(latin: str) -> str:
     return ""
 
 
-ING_SHAPES = {
-    "ing": ("Oolong",),
-    "ings": ("Oolong", "Zoo"),
-    "ingly": ("Oolong", "Low", "It"),
-    "ingness": ("Oolong", "No", "Et", "See"),
+ING_ENDING_LETTERS = {
+    "ing": ("-ing",),
+    "ings": ("-ing", "Zoo"),
+    "ingly": ("-ing", "Low", "It"),
+    "ingness": ("-ing", "No", "Et", "See"),
 }
 
 
 def ing_vowel_omitted(site: Site, tables: Tables) -> str:
     """“Provided it is an affix and not a root, omit vowel-i.” (terminal-ing)
 
-    “Spell -ing in full after roots ending in -y: ·Key·At·Roe·It·It·Oolong = carrying.” A root ending in -i is the same case — taxi, ski — and is skipped with it.
+    “Spell -ing in full after roots ending in -y: ·Key·At·Roe·It·It·-ing = carrying.” The check also skips roots ending in -i (taxi, ski), which are the same case.
     """
     affix = _ing_affix(site.latin)
     stem = site.latin[: site.latin.rindex("ing")] if affix else ""
     if not affix or stem.endswith(("y", "i")):
         return ""
-    if tables.ruled("terminal-ing", site.latin):
+    if tables.has_decision("terminal-ing", site.latin):
         return ""
-    shape = ING_SHAPES[affix]
-    if not _tail(site, *shape):
+    ending_letters = ING_ENDING_LETTERS[affix]
+    if not _tail(site, *ending_letters):
         return ""
-    return "·It before the -ing" if _before(site.spelled, shape) == "It" else ""
+    return (
+        "·It before the -ing" if _before(site.spelled, ending_letters) == "It" else ""
+    )
 
 
 def al_vowel_omitted(site: Site, tables: Tables) -> str:
     """“omit any unstressed vowel sound between L and the preceding consonant”
 
-    Entry-final elements only: “Where another syllable is added, the vowel sound before this L must be clearly pronounced and spelt” — and a following element adds a syllable exactly as a suffix does. (terminal-al-el-le-il)
+    Runs only on an entry’s last element. The Manual says “Where another syllable is added, the vowel sound before this L must be clearly pronounced and spelt”, and a following element adds a syllable as a suffix does. (terminal-al-el-le-il)
     """
     if not site.last or not AL.search(site.latin) or ALLY.search(site.latin):
         return ""
@@ -128,14 +132,16 @@ def al_vowel_omitted(site: Site, tables: Tables) -> str:
 
 
 def ent_ance_utter(site: Site, tables: Tables) -> str:
-    """“written invariably with standard ·Utter·No” (terminal-ent-ance)"""
+    """“Written invariably with — ·Utter·No followed by a penlift” (terminal-ent-ance)"""
     match = ENT.search(site.latin)
     if not match or LAND.search(site.latin) or not site.reducible_ending:
         return ""
-    shape = ("No", "Tea") if match.group(1) in {"ent", "ant"} else ("No", "See")
-    if not _tail(site, *shape):
+    ending_letters = (
+        ("No", "Tea") if match.group(1) in {"ent", "ant"} else ("No", "See")
+    )
+    if not _tail(site, *ending_letters):
         return ""
-    before = _before(site.spelled, shape)
+    before = _before(site.spelled, ending_letters)
     return f"·{before} before ·No, not ·Utter" if before not in {"Utter", ""} else ""
 
 
@@ -148,18 +154,28 @@ def land_ment_vowel_omitted(site: Site, tables: Tables) -> str:
     if not match or not site.reducible_ending:
         return ""
     ending = match.group(1)
-    shape = {"land": ("No", "Day"), "ment": ("No", "Tea"), "man": ("No",)}[ending]
+    ending_letters = {
+        "land": ("No", "Day"),
+        "ment": ("No", "Tea"),
+        "man": ("No",),
+    }[ending]
     consonant = {"land": "Low", "ment": "May", "man": "May"}[ending]
     if site.latin.endswith("s") and site.spelled[-1:] == ("Zoo",):
         spelled = site.spelled[:-1]
     else:
         spelled = site.spelled
-    if spelled[-len(shape) :] != shape:
+    if spelled[-len(ending_letters) :] != ending_letters:
         return ""
-    vowel = spelled[-len(shape) - 1] if len(spelled) > len(shape) else ""
+    vowel = (
+        spelled[-len(ending_letters) - 1] if len(spelled) > len(ending_letters) else ""
+    )
     if vowel not in REDUCIBLE:
         return ""
-    keeps = spelled[-len(shape) - 2] if len(spelled) > len(shape) + 1 else ""
+    keeps = (
+        spelled[-len(ending_letters) - 2]
+        if len(spelled) > len(ending_letters) + 1
+        else ""
+    )
     if keeps != consonant:
         return ""
     return f"·{vowel} kept between ·{consonant} and the -{ending}"
@@ -168,7 +184,7 @@ def land_ment_vowel_omitted(site: Site, tables: Tables) -> str:
 def men_keeps_a_vowel(site: Site, tables: Tables) -> str:
     """“The unstressed vowel is omitted for convenient joining except in -men.”
 
-    The Manual says the vowel is kept, not which vowel it is, and ReadLex writes both: seamen ˈsiːmen gives ·May·Et·No, dutchmen ˈdʌtʃmən gives ·May·Utter·No. Either keeps seamen apart from seaman, which is what the exception is for; demanding ·Et would be inventing a sound the corpus does not record. (terminal-land-ment)
+    The Manual says the vowel is kept but not which vowel, and ReadLex writes both. seamen ˈsiːmen gives ·May·Et·No, and dutchmen ˈdʌtʃmən gives ·May·Utter·No. Either vowel keeps seamen distinct from seaman, which is the purpose of the exception. Requiring ·Et would add a sound the corpus does not record. (terminal-land-ment)
     """
     if not MEN.search(site.latin) or not _tail(site, "No"):
         return ""
@@ -179,7 +195,7 @@ def men_keeps_a_vowel(site: Site, tables: Tables) -> str:
 
 
 def initial_ex_et(site: Site, tables: Tables) -> str:
-    """“·Et·Excite for Excite, Extreme, Expect, with an initial vowel ·Et easier than ·It.” (section-2)"""
+    """“·Et·Excite for Excite, Extreme, Expect with an initial vowel ·Et easier than ·It.” (section-2)"""
     spelled = site.x_spelled
     if not site.latin.startswith("ex") or len(spelled) < 2:
         return ""
@@ -200,7 +216,7 @@ def x_letter_only_with_x(site: Site, tables: Tables) -> str:
 CHECKS: tuple[Check, ...] = (
     Check(
         "terminal-ing-vowel-omitted",
-        "an -ing affix is written ·Oolong with no ·It before it",
+        "an -ing affix is written ·-ing with no ·It before it",
         ing_vowel_omitted,
     ),
     Check(
@@ -220,7 +236,7 @@ CHECKS: tuple[Check, ...] = (
     ),
     Check(
         "terminal-men-keeps-a-vowel",
-        "-men is the one ending that keeps its vowel",
+        "-men keeps its vowel",
         men_keeps_a_vowel,
     ),
     Check(
@@ -238,13 +254,13 @@ CHECKS: tuple[Check, ...] = (
 CHECK_IDS = tuple(check.id for check in CHECKS)
 
 
-def load_pragmas(path: Path | None = None) -> dict[tuple[str, str], str]:
-    """The words a check is allowed to fire on, and why each is allowed.
+def load_exemptions(path: Path | None = None) -> dict[tuple[str, str], str]:
+    """The rows of `lint-exemptions.tsv`, as (check, word) mapped to the reason.
 
-    Every row records a defect and says what it is, so that the table cannot quietly become the bare exception list this project keeps refusing to write.
+    Each row exempts one word from one lint check because of a known defect tracked in another issue. Every row must give the reason `known-defect` and a note that describes the defect, so the table cannot become a list of unexplained exceptions.
     """
-    pragmas: dict[tuple[str, str], str] = {}
-    for lineno, source, row in rows_of(path, PRAGMAS_FILE, PRAGMAS_HEADER):
+    exemptions: dict[tuple[str, str], str] = {}
+    for lineno, source, row in rows_of(path, EXEMPTIONS_FILE, EXEMPTIONS_HEADER):
         check, word, reason, note = row
         if check not in CHECK_IDS:
             raise ValueError(f"{source}:{lineno}: {check!r} is not a check")
@@ -257,16 +273,16 @@ def load_pragmas(path: Path | None = None) -> dict[tuple[str, str], str]:
                 f"{source}:{lineno}: a known defect needs a note saying what it is"
             )
         key = (check, word)
-        if key in pragmas:
-            raise ValueError(f"{source}:{lineno}: duplicate pragma for {key}")
-        pragmas[key] = reason
-    return pragmas
+        if key in exemptions:
+            raise ValueError(f"{source}:{lineno}: duplicate exemption for {key}")
+        exemptions[key] = reason
+    return exemptions
 
 
 def sites(word: str, spelling: str, x_letter: str, ipa: str) -> tuple[Site, ...]:
-    """One Site per element, cut where `qslex.elements` cuts.
+    """One Site per element, split where `qslex.elements` splits.
 
-    Where the Latin, the spelling and the IPA do not agree about how many pieces an entry has, the entry is treated as one element — the same conservatism that keeps to-day and dhs intact.
+    If the Latin parts and the spelling’s runs do not line up one for one, the whole entry is treated as one element. If the IPA does not split into one chunk per word, each element gets the whole IPA string.
     """
     letters = parse(spelling)
     pairs = elements(word, letters)
@@ -280,11 +296,11 @@ def sites(word: str, spelling: str, x_letter: str, ipa: str) -> tuple[Site, ...]
         if x_elements is not None and len(x_elements) == len(pairs)
         else [()] * len(runs)
     )
-    said = chunks(ipa, len(words))
+    ipa_chunks = chunks(ipa, len(words))
     return tuple(
         Site(word, latin, run, tuple(other), chunk, index == len(words) - 1)
         for index, (latin, run, other, chunk) in enumerate(
-            zip(words, runs, x_letter_runs, said, strict=True)
+            zip(words, runs, x_letter_runs, ipa_chunks, strict=True)
         )
     )
 
@@ -300,7 +316,7 @@ def lint(
     out: list[tuple[str, str, str]] = []
     for site in sites(word, spelling, x_letter, ipa):
         for check in CHECKS:
-            complaint = check.test(site, tables)
-            if complaint:
-                out.append((check.id, site.latin, complaint))
+            problem = check.test(site, tables)
+            if problem:
+                out.append((check.id, site.latin, problem))
     return tuple(out)

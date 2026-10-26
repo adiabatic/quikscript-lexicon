@@ -1,8 +1,8 @@
-"""The shipped tables, the corpus and the artifacts, built once for the whole session.
+"""The shipped tables, the corpus and the build artifacts, loaded once per test session.
 
-Every module that spells a word wants the same tables and the same rows, and holding them per module read readlex.json once per module. The artifacts are here for the same reason: more than one module reads them, and spelling the corpus twice is the most expensive thing the suite could do.
+Every test module that spells words uses the same tables and rows. Loading them here reads readlex.json once per session instead of once per module. The artifacts are here for the same reason: more than one module reads them, and spelling the corpus is the most expensive step in the suite.
 
-Spelling it even once is expensive enough to be worth deferring, so the artifacts are cached factories rather than constants. Every module pays for the tables on import; only the two that read the build pay to run it.
+The artifacts come from cached functions rather than module constants, so the corpus is spelled only if a test module calls one of them. The tables are loaded in every session, because pytest imports this file first.
 """
 
 import functools
@@ -35,13 +35,13 @@ ADDED = load_added_words()
 
 @functools.cache
 def entries() -> tuple[Entry, ...]:
-    """Every kept row spelled, built on first ask and held for the rest of the run."""
+    """Every kept corpus row and added word, spelled on the first call and cached for the rest of the session."""
     return convert(KEPT + added_rows(ADDED), MAPPING)
 
 
 @functools.cache
 def built() -> dict[str, str]:
-    """Every artifact, from the same spelled rows, likewise built once."""
+    """Every artifact, built from `entries()` on the first call and cached."""
     return artifacts(entries(), MAPPING, len(ADDED))
 
 

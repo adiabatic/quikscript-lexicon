@@ -32,9 +32,9 @@ terminal-ess-est	harvest	skip	not-the-terminal	the -est is the root
 terminal-ess-est	honest	skip	not-the-terminal	the -est is the root
 terminal-ess-est	immodest	skip	not-the-terminal	modest with a prefix
 terminal-ess-est	interest	skip	not-the-terminal	the -est is the root
-terminal-ess-est	mattress	apply	orthographic	no -ess morpheme, but Read keys this terminal to the Orthodox spelling, so it is written ·Et·See like fortress and burgess; ReadLex’s ·It in spring-mattress is what asks for the ruling
+terminal-ess-est	mattress	apply	orthographic	no -ess morpheme, but Read keys this terminal to the Orthodox spelling, so it is written ·Et·See like fortress and burgess; ReadLex’s ·It in spring-mattress is why this row is needed
 terminal-ess-est	modest	skip	not-the-terminal	an adjective in its own right, not a superlative
-terminal-ess-est	nighest	apply	superlative	a genuine superlative that ReadLex tags AV0/PRP, never AJS — the reason this rule is not gated on the AJS tag
+terminal-ess-est	nighest	apply	superlative	a genuine superlative that ReadLex tags AV0/PRP, never AJS — the reason this rule is not restricted to the AJS tag
 terminal-ess-est	overmodest	skip	not-the-terminal	modest with a prefix
 terminal-ess-est	rainforest	skip	not-the-terminal	forest in a compound
 terminal-ess-est	reforest	skip	not-the-terminal	forest with a prefix
@@ -262,7 +262,7 @@ terminal-ing	swing	skip	root	unanalyzable noun and verb root
 terminal-ing	swingeing	apply	stem	stem swinge, to strike hard; lexicalized as an adjective
 terminal-ing	swings	skip	root	unanalyzable noun and verb root
 terminal-ing	thing	skip	root	base of the Manual’s things, an unanalyzable root
-terminal-ing	things	skip	manual	the Manual gives ·Thaw·It·Oolong·Zoo
+terminal-ing	things	skip	manual	the Manual gives ·Thaw·It·-ing·Zoo
 terminal-ing	ting	skip	root	onomatopoeic root, no stem to strip
 terminal-ing	tings	skip	root	onomatopoeic root, no stem to strip
 terminal-ing	tring	skip	placename	Hertfordshire town
@@ -278,17 +278,17 @@ terminal-ing	vikings	skip	placename	proper noun for the Norse raiders; no verb s
 terminal-ing	wapping	skip	placename	London district
 terminal-ing	weakling	skip	ling-suffix	weak + -ling, not the -ing affix
 terminal-ing	weaklings	skip	ling-suffix	weak + -ling, not the -ing affix
-terminal-ing	wellbeing	apply	stem	final element being = be + -ing; the Manual gives ·Bay·Oolong
+terminal-ing	wellbeing	apply	stem	final element being = be + -ing; the Manual gives ·Bay·-ing
 terminal-ing	whiting	skip	root	opaque fish name, no longer read as white + -ing
 terminal-ing	wigging	apply	stem	stem wig, to scold; the doubled g marks the affix, as in the Manual’s canning
 terminal-ing	wiggings	apply	stem	stem wig, to scold; the doubled g marks the affix, as in the Manual’s canning
-terminal-ing	wing	skip	manual	the Manual gives ·Way·It·Oolong
+terminal-ing	wing	skip	manual	the Manual gives ·Way·It·-ing
 terminal-ing	wings	skip	root	plural of the Manual’s root wing
 terminal-ing	worthing	skip	placename	West Sussex town
 terminal-ing	wring	skip	root	unanalyzable verb root
 terminal-ing	wrings	skip	root	unanalyzable verb root
-terminal-ing	wrongdoing	apply	stem	final element doing = do + -ing; the Manual gives ·Day·Oolong
-terminal-ing	wrongdoings	apply	stem	final element doing = do + -ing; the Manual gives ·Day·Oolong
+terminal-ing	wrongdoing	apply	stem	final element doing = do + -ing; the Manual gives ·Day·-ing
+terminal-ing	wrongdoings	apply	stem	final element doing = do + -ing; the Manual gives ·Day·-ing
 terminal-ing	wyoming	skip	placename	US state
 terminal-ing	yearling	skip	ling-suffix	year + -ling, not the -ing affix
 terminal-ing	yearlings	skip	ling-suffix	year + -ling, not the -ing affix
@@ -425,7 +425,7 @@ terminal-y	specie	apply	orthographic	no -y or -ee morpheme, but Read keys this t
 terminal-y	species	apply	orthographic	no -y or -ee morpheme, but Read keys this terminal to the Orthodox spelling, as -ess is keyed at burgess and mattress
 terminal-y	spondee	apply	loan	a loanword whose terminal is no compound element and carries no stress, so ·It
 terminal-y	spondees	apply	loan	as spondee
-terminal-y	squeegee	skip	readlex-stress-defect	every other -ee verb in ReadLex with a syllable before the terminal is final-stressed (agree, decree, disagree, foresee, fricassee, guarantee, oversee, referee, unsee); ˈskwiːdʒiː is the outlier, and squeegeed and squeegeeing carry the same mark where no terminal reaches it, so its ·Eat stands
+terminal-y	squeegee	skip	readlex-stress-defect	every other -ee verb in ReadLex with a syllable before the terminal is final-stressed (agree, decree, disagree, foresee, fricassee, guarantee, oversee, referee, unsee); ˈskwiːdʒiː is the outlier, and squeegeed and squeegeeing have the same stress mark where no terminal reaches it, so its ·Eat stands
 terminal-y	squeegees	skip	readlex-stress-defect	as squeegee
 terminal-y	stelae	apply	latin-plural	the Latin -ae plural of stela; the terminal is unstressed, so ·It
 terminal-y	subspecies	apply	orthographic	as species

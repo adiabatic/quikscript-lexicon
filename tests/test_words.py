@@ -72,18 +72,18 @@ def test_core_eight_are_single_signs() -> None:
         ("for", "PRP", "F"),
     ],
 )
-def test_upstream_capitals_deliver_five_of_them(
+def test_five_of_the_core_eight_have_a_capital_letter_as_their_ipa(
     word: str, pos: str, capital: str
 ) -> None:
     assert ROWS[(word, pos)].ipa == capital
 
 
 @pytest.mark.parametrize(("word", "pos"), [("it", "PNP"), ("is", "VBZ"), ("be", "VBI")])
-def test_the_other_three_carry_ordinary_ipa(word: str, pos: str) -> None:
+def test_the_other_three_have_ordinary_ipa(word: str, pos: str) -> None:
     assert ROWS[(word, pos)].ipa in {"ɪt", "ɪz", "biː"}
 
 
-def test_abbreviations_beat_the_expanded_pronunciation() -> None:
+def test_an_abbreviation_sign_replaces_the_expanded_pronunciation() -> None:
     assert senior("mr", "NP0") == "·May·Roe"
     assert senior("mrs", "NP0") == "·May·Zoo"
     assert senior("dr", "NP0") == "·Day·Utter·Roe"
@@ -99,7 +99,7 @@ def test_junior_diverges_only_for_a_row_or_the_senior_only_elision() -> None:
     assert spelling("isn't", "VBZ+XX0") == ("·It·Zoo·No·Tea", "·It·Zoo·Utter·No·Tea")
 
 
-def test_the_was_outline_reaches_inside_both_its_contractions() -> None:
+def test_the_was_outline_applies_inside_both_its_contractions() -> None:
     for pos in ("VBD+XX0", "VM0+XX0"):
         assert spelling("wasn't", pos) == (
             "·Way·Utter·Zoo·No·Tea",
@@ -138,11 +138,11 @@ def test_a_phrase_does_not_take_its_own_tag_for_a_word_inside_it() -> None:
     assert senior("that is", "AV0").startswith("·They·At·Tea")
 
 
-def test_standard_outline_overrules_a_weak_vowel() -> None:
+def test_a_standard_outline_replaces_a_weak_vowel() -> None:
     assert senior("at-home", "NN1") == "·At·Tea-·He·Owe·May"
 
 
-def test_a_part_of_speech_row_beats_the_general_one() -> None:
+def test_a_part_of_speech_row_takes_precedence_over_the_general_one() -> None:
     assert sign_for(SIGNS, "use", "NN1") is not None
     assert sign_for(SIGNS, "use", "NN1") != sign_for(SIGNS, "use", "VVB")
     assert senior("use", "NN1") == "·Ye·Ooze·See"
@@ -157,7 +157,9 @@ def test_components_splits_on_spaces_and_hyphens() -> None:
     assert senior("after-", "PRE") == "·At·Fee·Tea·Utter·Roe-"
 
 
-def test_signs_are_skipped_when_the_word_and_the_ipa_disagree_on_shape() -> None:
+def test_signs_are_skipped_when_the_word_and_the_ipa_disagree_on_word_boundaries() -> (
+    None
+):
     context = context_of("to-day", ROWS[("to-day", "NN1")])
     assert spell(context, TABLES).signed == ()
 
@@ -210,12 +212,12 @@ def test_junior_repeating_senior_is_rejected(tmp_path: Path) -> None:
         load_word_signs(signs_file(tmp_path, extra))
 
 
-def test_an_unreachable_part_of_speech_row_is_rejected(tmp_path: Path) -> None:
+def test_a_part_of_speech_row_after_a_general_row_is_rejected(tmp_path: Path) -> None:
     extra = [
         ["also", "", "standard", "·Awe·Low·See", "", "", "common-words", ""],
         ["also", "AV0", "standard", "·Awe·Low", "", "", "common-words", ""],
     ]
-    with pytest.raises(ValueError, match="can never be reached"):
+    with pytest.raises(ValueError, match="already has a general row"):
         load_word_signs(signs_file(tmp_path, extra))
 
 
@@ -225,7 +227,7 @@ def test_a_missing_core_sign_is_rejected(tmp_path: Path) -> None:
         load_word_signs(path)
 
 
-def test_signs_do_not_shadow_one_another(tmp_path: Path) -> None:
+def test_a_duplicate_sign_row_is_rejected(tmp_path: Path) -> None:
     with pytest.raises(ValueError, match="duplicate row"):
         load_word_signs(signs_file(tmp_path, CORE_ROWS[:1]))
 
@@ -237,17 +239,25 @@ def test_every_manual_contraction_is_loaded() -> None:
     assert {entry.kind for entry in CONTRACTIONS} == {"word", "clitic"}
 
 
-def test_a_listed_contraction_does_not_reach_the_senior_column() -> None:
+def test_a_listed_contraction_is_not_in_the_senior_column() -> None:
     assert senior("often", "AV0") == "·Ox·Fee·Utter·No"
     assert senior("people", "NN0") == "·Pea·Eat·Pea·Low"
 
 
-def test_doing_is_carried_under_the_terminal_ing_anchor() -> None:
+def test_doing_is_listed_under_the_terminal_ing_anchor() -> None:
     doing = [entry for entry in CONTRACTIONS if entry.word == "doing"]
     assert [(e.contraction, e.authority) for e in doing] == [
-        ("·Day·Oolong", "terminal-ing")
+        ("·Day·-ing", "terminal-ing")
     ]
-    assert senior("doing", "VDG") == "·Day·Ooze·Oolong"
+    assert senior("doing", "VDG") == "·Day·Ooze·-ing"
+
+
+def test_done_is_listed_under_the_no_how_anchor() -> None:
+    done = [entry for entry in CONTRACTIONS if entry.word == "done"]
+    assert [(e.contraction, e.authority) for e in done] == [("·Day·No", "no-how")]
+    assert not done[0].transliterated
+    assert all(e.transliterated for e in CONTRACTIONS if e.word != "done")
+    assert senior("done", "VDN") == "·Day·Utter·No"
 
 
 def test_unknown_contraction_kind(tmp_path: Path) -> None:
@@ -271,7 +281,7 @@ def test_a_clitic_needs_a_note(tmp_path: Path) -> None:
         load_contractions(path)
 
 
-def test_apply_signs_leaves_an_unaligned_spelling_alone() -> None:
+def test_apply_signs_does_not_change_an_unaligned_spelling() -> None:
     letters = parse("·Tea·Utter·Day·Eight")
     out, _, applied, consulted = apply_signs("to-day", "NN1", letters, SIGNS)
     assert out == letters
@@ -279,7 +289,9 @@ def test_apply_signs_leaves_an_unaligned_spelling_alone() -> None:
     assert consulted == ()
 
 
-def test_a_latin_hyphen_facing_a_spelled_space_is_not_aligned() -> None:
+def test_apply_signs_does_not_change_a_spelling_with_spaces_where_the_latin_has_hyphens() -> (
+    None
+):
     letters = parse("·At·Zoo ·It ·Way·Utter·Roe")
     out, _, applied, consulted = apply_signs("as-it-were", "AV0", letters, SIGNS)
     assert out == letters

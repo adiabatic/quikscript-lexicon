@@ -30,7 +30,7 @@ MANUAL_ANCHORED = [
 ]
 
 MANUAL_MODERNIZED = [
-    ("visual", "ˈvɪʒuəl", "·Vie·It·Zhivago·Ooze·Utter·Low"),
+    ("visual", "ˈvɪʒuəl", "·Vie·It·J’ai·Ooze·Utter·Low"),
 ]
 
 RULE_EDGES = [
@@ -54,7 +54,7 @@ RULE_EDGES = [
     ("yeah", "ˈjeə", "·Ye·Et·Utter"),
     ("koch", "kɒx", "·Key·Ox·Loch"),
     ("kisses", "ˈkɪsƏz", "·Key·It·See·Utter·Zoo"),
-    ("banquet", "ˈbæŋkwIt", "·Bay·At·Oolong·Key·Way·It·Tea"),
+    ("banquet", "ˈbæŋkwIt", "·Bay·At·-ing·Key·Way·It·Tea"),
     ("bath-broad", "bⱭːθ", "·Bay·Ah·Thaw"),
     ("bath-flat", "bÆθ", "·Bay·At·Thaw"),
     ("the", "Ð", "·They"),
@@ -62,7 +62,7 @@ RULE_EDGES = [
 ]
 
 HIATUS_IS_NOT_SPELLED = [
-    ("angrier", "ˈæŋɡrɪ+əR", "·At·Oolong·Gay·Roe·It·Utter·Roe"),
+    ("angrier", "ˈæŋɡrɪ+əR", "·At·-ing·Gay·Roe·It·Utter·Roe"),
     ("courtship", "ˈkɔːRt+ʃɪp", "·Key·Awe·Roe·Tea·She·It·Pea"),
 ]
 

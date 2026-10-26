@@ -1,0 +1,23 @@
+{
+  "name": "quikscript-lsp",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Quikscript spelling language server",
+  "license": "MIT",
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "check": "tsc --noEmit",
+    "test": "node --test",
+    "bundle": "node bundle.js dist/quikscript-lsp"
+  },
+  "dependencies": {
+    "vscode-languageserver": "^10.1.0"
+  },
+  "devDependencies": {
+    "@types/node": "^26.2.0",
+    "esbuild": "^0.28.2",
+    "typescript": "^7.0.2"
+  }
+}

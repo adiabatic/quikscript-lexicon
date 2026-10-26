@@ -1,4 +1,3 @@
-import dataclasses
 import html
 import json
 import shutil
@@ -8,6 +7,15 @@ from pathlib import Path
 import pytest
 
 from qslex.build import HUNSPELL_AFF, HUNSPELL_DIC
+from qslex.checker_data import (
+    artifact,
+    confusions,
+    contracted,
+    load_records,
+    payload,
+    replacements,
+    word_list,
+)
 from qslex.desk import (
     CORE,
     MARKED_JS,
@@ -18,29 +26,21 @@ from qslex.desk import (
     SITE,
     WEB,
     PageError,
-    artifact,
     asset,
     build,
-    confusions,
-    contracted,
-    crosscheck,
-    load_records,
     main,
-    payload,
-    replacements,
     sample,
     substitute,
-    word_list,
 )
 from qslex.hunspell import X_LETTERS, by_frequency
 from qslex.letters import parse, render_qs
 from qslex.readlex import repo_root
-from qslex.words import Contraction, load_contractions
+from qslex.words import load_contractions
 
 ROOT = repo_root()
 RECORDS = load_records(ROOT)
-BUILT, COVERAGE = build()
-LEXICON = COVERAGE.lexicon
+BUILT, SUMMARY = build()
+LEXICON = SUMMARY.lexicon
 
 CONTRACTIONS = load_contractions()
 MATCHED = contracted(CONTRACTIONS, RECORDS)
@@ -52,7 +52,7 @@ QUIKSCRIPT = SAMPLE.splitlines()[-1].split(" ")
 
 NODE = shutil.which("node")
 HERE = Path(__file__).resolve().parent
-CORE_TESTS, CORE_CHECKS = "desk_core.js", 40
+CORE_TESTS, CORE_CHECKS = "desk_core.js", 42
 PAGE_TESTS, PAGE_CHECKS = "desk_page.js", 36
 
 
@@ -90,13 +90,13 @@ def test_the_replacement_table_is_the_affix_files_own() -> None:
 
 
 def test_the_confusion_group_is_the_vowels() -> None:
-    """Pinned to the codepoint block, not re-derived from the names the builder uses."""
+    """Compared with the codepoint block directly, rather than derived from the letter names as the builder does."""
     assert confusions() == ("".join(map(chr, range(0xE670, 0xE67F))),)
     assert json.loads(payload(LEXICON))["confusions"] == list(confusions())
 
 
 def test_both_forms_of_a_divergent_row_are_accepted() -> None:
-    """The toggle swaps the face alone, so neither grade narrows the word set."""
+    """The grade toggle switches only the font face, so both grades accept the same word set."""
     accepted = frozenset(LEXICON.union)
     assert {row.latin for row in DIVERGENT} == {
         "always",
@@ -123,23 +123,23 @@ def test_both_forms_of_a_divergent_row_are_accepted() -> None:
         assert row.junior in accepted
 
 
-def test_the_page_carries_the_dictionary_and_the_senior_contractions() -> None:
+def test_the_pages_word_set_is_the_dictionary_and_the_senior_contractions() -> None:
     assert LEXICON.union == tuple(sorted(frozenset(LEXICON.listed) | CONTRACTED))
-    assert len(LEXICON.listed) == 75583
-    assert len(CONTRACTED) == 74
-    assert len(LEXICON.union) == 75651
+    assert len(LEXICON.listed) == 75605
+    assert len(CONTRACTED) == 75
+    assert len(LEXICON.union) == 75674
 
 
-def test_the_contractions_the_dictionary_already_lists_widen_nothing() -> None:
-    """Six of the 74 are spellings the columns carry anyway, for six reasons.
+def test_six_contractions_are_already_in_the_dictionary() -> None:
+    """Six of the 75 contractions are spellings the dictionary already lists.
 
-    be and that are Manual word signs the senior column already writes, cannot is spelled as the list spells it, and do, think and she collide with an unrelated entry each — the ordinals nd/rd and th, and the interjection sh. Set arithmetic gets all six right; a count of rows would not.
+    be and that are Manual word signs that the senior column already writes. cannot has the same spelling in the list and in its own row. do, think and she share a spelling with unrelated entries: the ordinals nd and rd, the ordinal th, and the interjection sh. The test compares sets of spellings rather than counting rows, because some of these spellings belong to more than one row. do has the spelling of both nd and rd, and be has two rows (VBI and VBB).
     """
     assert len(CONTRACTED & frozenset(LEXICON.listed)) == 6
-    assert len(LEXICON.union) - len(LEXICON.listed) == 68
+    assert len(LEXICON.union) - len(LEXICON.listed) == 69
 
 
-def test_only_the_word_rows_of_the_contraction_list_reach_the_page() -> None:
+def test_only_the_word_rows_of_the_contraction_list_are_in_the_pages_word_set() -> None:
     clitics = [entry for entry in CONTRACTIONS if entry.kind == "clitic"]
     assert {entry.word for entry in clitics} == {"'ll", "n't"}
     assert {
@@ -156,12 +156,6 @@ def test_a_contraction_takes_the_frequency_of_the_word_it_writes() -> None:
         assert LEXICON.frequency[written] >= row.frequency
 
 
-def test_a_contraction_matching_no_lexicon_row_is_refused() -> None:
-    stray = Contraction("qwertyuiop", "", "word", "·Key", "senior-contractions", "")
-    with pytest.raises(PageError, match="matches no row"):
-        contracted((stray,), RECORDS)
-
-
 def test_a_contraction_tagged_for_a_part_of_speech_matches_only_that_tag() -> None:
     tagged = [entry for entry in CONTRACTIONS if entry.pos]
     assert {entry.word for entry in tagged} == {"that"}
@@ -170,7 +164,7 @@ def test_a_contraction_tagged_for_a_part_of_speech_matches_only_that_tag() -> No
             assert (row.latin.lower(), row.pos) == (entry.word, entry.pos)
 
 
-def test_every_spelling_carries_a_frequency() -> None:
+def test_every_spelling_has_a_frequency() -> None:
     assert set(LEXICON.frequency) == set(LEXICON.union)
 
 
@@ -189,12 +183,6 @@ def test_the_word_list_writes_a_frequency_only_where_there_is_one() -> None:
         assert spelling == word
         counted = LEXICON.frequency[word]
         assert frequency == (str(counted) if counted else "")
-
-
-def test_a_word_set_the_dictionary_does_not_list_is_refused() -> None:
-    doctored = dataclasses.replace(LEXICON, listed=LEXICON.listed[:-1])
-    with pytest.raises(PageError, match="make artifacts"):
-        crosscheck(doctored, ROOT)
 
 
 def test_every_pinned_asset_verifies() -> None:
@@ -220,7 +208,7 @@ def test_a_missing_asset_is_refused(tmp_path: Path) -> None:
 
 
 def test_a_chunk_that_could_close_its_own_script_is_refused() -> None:
-    with pytest.raises(PageError, match="truncate"):
+    with pytest.raises(PageError, match="end the script element early"):
         substitute("__QS_APP__", {"__QS_APP__": "if (a </SCRIPT> b) {}"})
 
 
@@ -239,13 +227,13 @@ def test_the_sample_spells_every_word_the_way_the_lexicon_does() -> None:
     assert QUIKSCRIPT[: len(SAMPLE_WORDS)] == [spelled[key] for key in SAMPLE_WORDS]
 
 
-def test_the_sample_carries_exactly_one_word_the_lexicon_does_not() -> None:
+def test_the_sample_has_exactly_one_word_the_lexicon_does_not_list() -> None:
     accepted = frozenset(LEXICON.union)
     assert len(QUIKSCRIPT) == len(SAMPLE_WORDS) + 1
     assert [word for word in QUIKSCRIPT if word not in accepted] == [QUIKSCRIPT[-1]]
 
 
-def test_the_sample_opens_the_textarea() -> None:
+def test_the_textarea_initially_contains_the_sample() -> None:
     assert f">{html.escape(SAMPLE)}</textarea>" in BUILT
 
 
@@ -263,7 +251,7 @@ def test_no_injected_chunk_closes_a_script_element_early() -> None:
     assert BUILT.count("<script>") == BUILT.lower().count("</script") == 4
 
 
-def test_the_page_carries_its_data_as_one_json_object() -> None:
+def test_the_page_contains_its_data_as_one_json_object() -> None:
     written = payload(LEXICON)
     assert written in BUILT
     assert sorted(json.loads(written)) == ["confusions", "rep", "try_order", "words"]
@@ -297,9 +285,9 @@ def test_check_fails_on_a_page_that_has_been_edited(
 
 @pytest.fixture(scope="module")
 def written(tmp_path_factory: pytest.TempPathFactory) -> Path:
-    """This module’s own build, on disk where node can read it.
+    """This module’s own build, written to disk for node to read.
 
-    A fresh build rather than the committed `site/index.html`, so that the page’s JavaScript is held to what the builder emits now: whether what is committed matches that is `--check`’s question, and the tests above already ask it. It also keeps a test run from depending on `make site` having been run, or from leaving anything behind in the tree.
+    The node tests use a fresh build rather than the committed `site/index.html`, so they test the page as the builder writes it now. `python -m qslex.desk --check`, which `make check` runs, checks that the committed file matches a fresh build. The tests above test that option. A fresh build also means a test run does not depend on `make site` and leaves nothing in the tree.
     """
     out = tmp_path_factory.mktemp(SITE) / PAGE
     out.write_text(BUILT, encoding="utf-8", newline="\n")
@@ -307,9 +295,9 @@ def written(tmp_path_factory: pytest.TempPathFactory) -> Path:
 
 
 def under_node(script: str, *arguments: Path) -> str:
-    """A JavaScript test file run to the end, with everything it said on failure.
+    """Runs a JavaScript test file and fails with its output if it exits non-zero.
 
-    node exits non-zero on the first failed assertion and each file logs the checks that had passed before it, so the report pytest prints is the same one the file prints when it is run by hand.
+    node exits non-zero on the first failed assertion. Each file logs the checks that passed before the failure, so pytest prints the same report the file prints when run by hand.
     """
     assert NODE is not None
     finished = subprocess.run(
@@ -326,7 +314,7 @@ def under_node(script: str, *arguments: Path) -> str:
 
 
 @pytest.mark.skipif(NODE is None, reason="node is not on PATH")
-def test_the_pages_logic_holds_against_the_lexicon_it_carries(written: Path) -> None:
+def test_the_pages_core_passes_against_its_inlined_lexicon(written: Path) -> None:
     logged = under_node(CORE_TESTS, WEB / CORE, written)
     assert logged.splitlines()[-1] == f"{CORE_CHECKS} checks passed", logged
 

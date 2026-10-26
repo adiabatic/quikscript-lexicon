@@ -1,8 +1,8 @@
 # The build, the row policy, and the artifacts
 
-This is the spec for [`src/qslex/build.py`](../src/qslex/build.py), [`src/qslex/variants.py`](../src/qslex/variants.py), [`src/qslex/added.py`](../src/qslex/added.py), [`src/qslex/converter.py`](../src/qslex/converter.py) and [`src/qslex/hunspell.py`](../src/qslex/hunspell.py) — the layer that runs after the segment mapping ([`docs/ipa-to-qs.md`](ipa-to-qs.md)), the orthographic rules ([`docs/orthographic-rules.md`](orthographic-rules.md)) and the word signs ([`docs/word-signs.md`](word-signs.md)) have decided how a word is spelled, and turns the spelled rows into files.
+This is the spec for [`src/qslex/build.py`](../src/qslex/build.py), [`src/qslex/variants.py`](../src/qslex/variants.py), [`src/qslex/added.py`](../src/qslex/added.py), [`src/qslex/converter.py`](../src/qslex/converter.py) and [`src/qslex/hunspell.py`](../src/qslex/hunspell.py). This layer runs after the segment mapping ([`docs/ipa-to-qs.md`](ipa-to-qs.md)), the orthographic rules ([`docs/orthographic-rules.md`](orthographic-rules.md)) and the word signs ([`docs/word-signs.md`](word-signs.md)) have decided how a word is spelled. It writes the spelled rows to files.
 
-It decides nothing about spelling. Everything below is about which rows are carried, what shape they are written in, and how the result is kept honest.
+It makes no spelling decisions. This document covers which corpus rows are included, the format of each output file, and how the result is checked.
 
 ## Artifacts
 
@@ -10,71 +10,85 @@ Everything is generated into [`lexicon/`](../lexicon) and committed, so the file
 
 | File                          | What it is                                                                                               |
 | ----------------------------- | -------------------------------------------------------------------------------------------------------- |
-| `quikscript-lexicon.json`     | The master, and the only JSON. Every entry, grouped by headword.                                         |
-| `quikscript-lexicon.tsv`      | The flat projection, one row an entry, deduplicated.                                                     |
+| `quikscript-lexicon.json`     | The source JSON, and the only JSON. Every entry, grouped by headword.                                    |
+| `quikscript-lexicon.tsv`      | The same entries as a flat table, one row per entry, deduplicated.                                       |
 | `qs_converter_phrases.txt`    | The entries a tokenizer must match whole.                                                                |
-| `en-Qaas.dic` / `en-Qaas.aff` | The Hunspell spelling dictionary: every unspaced spelling the three columns ship.                        |
+| `en-Qaas.dic` / `en-Qaas.aff` | The Hunspell spelling dictionary: every unspaced spelling in the three spelling columns.                 |
 
-**How many of each there are is not written here**, or anywhere else in this file. A corpus bump moves all of those numbers at once, and prose that restates them is prose that goes quietly wrong. `meta.counts` in the master carries the headword, entry and phrase counts; the pins in `src/qslex/validate.py` and `src/qslex/readlex.py` carry what it does not; and anything neither names is held by the freshness byte-compare in `make check`.
+**This file gives no counts for the artifacts.** A corpus update changes all of them at once, and prose that states them becomes wrong without any check failing. `meta.counts` in the lexicon JSON has the headword, entry, phrase and added-word counts. The expected counts in `src/qslex/validate.py` and `src/qslex/readlex.py` cover what it does not. Anything neither names is covered by `make check`, which fails when a committed artifact differs from a fresh build.
 
-**JSON-primary, and strictly so.** `quikscript-lexicon.json` is built first and everything else is projected from it in one reshape. Nothing is emitted in parallel, because parallel generation is what produced upstream’s duplicate-row TSV ([Shavian-info/readlex#124](https://github.com/Shavian-info/readlex/pull/124)) — the exact bug this arrangement makes structurally impossible. There is one master per layer: `readlex.json` upstream, the rule and override tables in `src/qslex/data/`, `quikscript-lexicon.json` out. Nothing downstream of the build is hand-edited.
+**One set of entries.** `build.artifacts()` generates every artifact from the same list of spelled entries in one call, and the lexicon JSON contains everything the other artifacts are derived from. This rules out the kind of generation bug that gave upstream’s TSV duplicate rows ([Shavian-info/readlex#124](https://github.com/Shavian-info/readlex/pull/124)). Each stage has one source file. Upstream edits `readlex.json`. This repository edits the rule and override tables in `src/qslex/data/`. The build writes `quikscript-lexicon.json`. Nothing the build writes is edited by hand.
 
-**One JSON, and only one.** A second JSON was shipped until it was measured: `qs_converter.json` covered the same words, carried the same spelling in every one of the three columns, and differed only in writing a Penn tag where the master writes the C5 tag it is a rename of. Nine megabytes to say what the master already said. It is [rebuilt, not shipped](#the-converter-shape) — the master now carries the tag map it is keyed by, so the file it used to be comes back byte for byte from the master alone. The other three artifacts stay committed because they are formats, not restatements: a spreadsheet reads the TSV and hunspell reads the `.dic`, and neither can read JSON.
+**One JSON file.** The repository used to commit a second JSON file, `qs_converter.json`. It covered the same words and had the same spelling in each of the three columns. It differed only in writing a Penn tag where the lexicon JSON writes the C5 tag that maps to it. It was 9 MB. It is no longer committed. The lexicon JSON now includes the tag map, so the file the build used to write can be [rebuilt from the lexicon JSON alone](#the-converter-table). The other three artifacts stay committed because they are in formats other tools read. A spreadsheet reads the TSV and hunspell reads the `.dic`, and neither reads JSON.
 
 ## Encoding
 
-Every QS column is [PUA](https://www.quikscript.net/csur/) U+E650–U+E67E, one codepoint per letter, with the corpus’s own separators (space, hyphen, apostrophe) passed through as themselves. See [what we conform to](conformance.md) for the caveat about that block’s status and for language tagging.
+Every QS column uses [PUA](https://www.quikscript.net/csur/) U+E650–U+E67E, one codepoint per letter. The corpus’s spaces and hyphens are kept as they are. See [what we conform to](conformance.md) for the caveat about that block’s status and for language tagging.
 
 ## Source of truth: readlex.json, not the TSV
 
-Upstream hand-edits `readlex.json` and generates everything else from it by script. This is stated nowhere in their repo — only in pull request comments ([#124](https://github.com/Shavian-info/readlex/pull/124): “I generate these files from readlex.json, which is the only file I manually edit”; [#70](https://github.com/Shavian-info/readlex/pull/70): the JSON “is more data rich”). Three reasons to follow it rather than read the convenient flat file:
+Upstream edits `readlex.json` by hand and generates everything else from it by script. Upstream’s repository does not document this. It is stated only in pull request comments ([#124](https://github.com/Shavian-info/readlex/pull/124): “I generate these files from readlex.json, which is the only file I manually edit”; [#70](https://github.com/Shavian-info/readlex/pull/70): the JSON “is more data rich”). This repository reads the JSON instead of the flat TSV, for three reasons:
 
-1. **The generated TSV has carried generation bugs** — duplicate rows, PR #124.
-2. **The `var` tags the row policy needs exist only in the JSON.** The TSV is five bare columns with no variant field.
-3. **It is verifiable, and was verified.** Flattening `readlex.json`, dropping every row whose `var` is not `RRP` or `TrapBath`, and deduplicating on the five-tuple reproduces the vendored TSV **exactly** — all 110,056 rows, nothing left over on either side. So the TSV is a lossy projection of the JSON and the switch loses nothing.
+1. **The generated TSV has had generation bugs**, such as the duplicate rows in PR #124.
+2. **The `var` tags the row policy needs are only in the JSON.** The TSV has five columns and no variant field.
+3. **The TSV was checked against the JSON.** Flattening `readlex.json`, dropping every row whose `var` is not `RRP` or `TrapBath`, and deduplicating on the five columns reproduces upstream’s TSV at the vendored commit exactly: all 110,056 rows, with nothing extra on either side. So the TSV is the JSON with information removed, and reading the JSON loses nothing.
 
-The corpus is vendored at a pinned commit with its SHA-256 recorded, and the loader verifies the digest before use ([provenance](../data/readlex/README.md)). 27 MB is a lot to check in; offline, reproducible builds and a diff that shows exactly what an upstream bump changed are worth it.
+The corpus is vendored at a pinned commit with its SHA-256 recorded, and the loader verifies the digest before use ([provenance](../data/readlex/README.md)). The file is 27 MB. Committing it makes builds reproducible offline, and a diff shows what a corpus update changed.
 
 ## Row policy: the RRP family only
 
-ReadLex carries four accents. This lexicon spells one: **rhotic RP**, which is the standard the corpus is transcribed in and the one Read’s own rules assume. `src/qslex/data/var-tags.tsv` states the policy tag by tag and pins the row count for each, and is the only place to read those counts; the validator fails on a count that has drifted.
+ReadLex has rows for four accents. This lexicon spells one: **rhotic RP**. The corpus is transcribed in it, and Read’s own rules assume it. `src/qslex/data/var-tags.tsv` gives the policy for each tag and the expected row count for each. It is the only place those counts are written. The validator fails when a tag’s row count changes.
 
 | Policy                    | Tags                                           |
 | ------------------------- | ---------------------------------------------- |
 | keep, normalized to `RRP` | `RRP`, `RRPVar`, `RRPvar`                      |
 | drop                      | `TrapBath`, `GenAm`, `Gen Am`, `GenAus`, `SSB` |
 
-Four of them are malformed — `RRPVar`/`RRPvar` are the same tag under two capitalizations, `Gen Am` is `GenAm` with a space, and `SSB` is an accent label nothing else in the corpus uses. They are enumerated in [#7](https://github.com/adiabatic/quikscript-lexicon/issues/7); normalizing them is done here rather than there because the filter cannot run without it. Every tag outside upstream’s documented four must declare the words it covers, and the validator holds it to that list, so an upstream fix shows up as a rule that stopped matching rather than as a silent change of contents.
+Four of the tags are malformed:
 
-Two of those rulings deserve their reasoning on the record:
+- `RRPVar` and `RRPvar` are the same tag with two capitalizations.
+- `Gen Am` is `GenAm` with a space.
+- `SSB` is an accent label that no other corpus row uses.
 
-- **`RRPVar`/`RRPvar` are kept**, normalized to `RRP`. They are second RRP pronunciations, not second accents: again `əˈɡeɪn` beside `əˈɡen`, stance `stɑːns` beside `stæns`, mushy `ˈmʊʃi` beside `ˈmʌʃi`. Upstream’s own TSV drops them; we do not, because a variant pronunciation within the accent we spell is a spelling we should carry. Note what is lost by normalizing: the artifacts no longer say which of a word’s spellings was upstream’s primary. With `var` collapsing anyway that information had nowhere to go, and the converter’s `⬌` join preserves corpus order, which puts the primary first.
-- **`SSB` is dropped.** Its one row is pasta `ˈpæstə`, against the RRP row’s `ˈpɑːstə` — a TRAP-BATH variant wearing an accent label instead of the `Æ` capital, so the TrapBath ruling covers it.
+[#7](https://github.com/adiabatic/quikscript-lexicon/issues/7) lists them. They are normalized here rather than upstream because the filter cannot run without it. Every tag outside upstream’s four documented tags must list the words it covers, and the validator checks the tag’s rows against that list. If upstream fixes a tag, the validator fails because a listed word no longer has that tag.
 
-With only RRP surviving, the `var` field carries no information and is dropped from the artifacts. The dual `Ɑː`/`Æ` rows in the segment mapping stay, which keeps TrapBath cheap to revisit.
+Two of these decisions need explanation:
 
-Every headword keeps at least one row, so the filter loses no words — only alternative pronunciations of words it also keeps.
+- **`RRPVar`/`RRPvar` are kept**, normalized to `RRP`. They are second RRP pronunciations, not second accents: again `əˈɡeɪn` beside `əˈɡen`, stance `stɑːns` beside `stæns`, mushy `ˈmʊʃi` beside `ˈmʌʃi`. Upstream’s own TSV drops them. This lexicon keeps them, because a variant pronunciation within the accent it spells is a spelling it should include. Normalizing them loses one piece of information: the artifacts no longer mark which of a word’s spellings was upstream’s primary. The `var` field is dropped anyway, so that information has nowhere to go. The lexicon JSON and the TSV keep corpus order, and in the corpus each word’s `RRP` row comes before its `RRPVar` or `RRPvar` row. The converter’s `⬌` join sorts by codepoint instead.
+- **`SSB` is dropped.** Its one row is pasta `ˈpæstə`, against the RRP row’s `ˈpɑːstə`. It is a TRAP-BATH variant tagged with an accent label instead of written with the `Æ` capital, so the TrapBath decision covers it.
+
+With only RRP rows left, the `var` field has no information and is dropped from the artifacts. The segment mapping keeps its dual `Ɑː`/`Æ` rows, so the TrapBath decision is easy to revisit.
+
+Every headword keeps at least one row, so the filter removes no words, only alternative pronunciations of words it keeps.
 
 ### Where the validator runs, and why it splits
 
-[`src/qslex/validate.py`](../src/qslex/validate.py) makes one pass over the corpus but holds two different row sets to account:
+[`src/qslex/validate.py`](../src/qslex/validate.py) makes one pass over the corpus but checks two different sets of rows:
 
-- **The segment layer sees every row in the corpus.** Mapping-row coverage, quirk rules, stress overrides, token counts, raw-pattern counts and the Shavian EAR oracle all run over the whole of it. They have to: the `Æ` mapping row and the `hɪəˈrÆftəR` stress override are exercised *only* by TrapBath rows, so scoping this layer to what we ship would put two correct, still-present rows out of reach of their own never-exercised checks. It also means the tokenizer is proved against the General American rows — which it passes, with zero unmapped residue and no quirk rule of its own.
-- **The spelling layer sees only the corpus rows the lexicon spells.** Rules, word signs, the junior and X-letter columns, and the Manual fixtures are all counted over those. Scoping this layer to everything was tried and rejected: the GenAm rows make `new` and `news` rewrite 14 rows apiece (GenAm `nuː` where RRP `njuː` already gives ·No·Ye·Ooze), and the validator would then demand Manual fixtures justifying spellings that never ship.
+- **The segment layer checks every row in the corpus.** Mapping-row coverage, quirk rules, stress overrides, token counts, raw-pattern counts and the Shavian EAR cross-check all run over every row. The `Æ` mapping row and the `hɪəˈrÆftəR` stress override are used *only* by TrapBath rows. If this layer checked only the rows the lexicon spells, the validator would report those two correct rows as unused. Checking every row also tests the tokenizer against the General American rows. It tokenizes them with no unmapped IPA and no quirk rule of their own.
+- **The spelling layer checks only the corpus rows the lexicon spells.** Rules, word signs, the junior and X-letter columns, and the Manual examples are counted over those rows. Running this layer over every row was tried and rejected. The GenAm rows have `nuː` where RRP’s `njuː` already gives ·No·Ye·Ooze, so the `new` and `news` word signs would rewrite 14 GenAm rows between them. The validator requires a `manual-spellings.tsv` row for every word sign that rewrites a row, so it would then require Manual examples for spellings the lexicon does not contain.
 
-The [added words](#words-the-corpus-lacks) are outside both, and held separately to a stricter standard.
+The [added words](#words-the-corpus-lacks) are in neither set. They are checked separately, against stricter requirements.
 
-One consequence is worth stating plainly, because it looks like a regression and is not. Two of the Manual’s own example words, **contrast** and **example**, are spelled in this lexicon with ·Ah where the Manual writes ·At. Both fixtures were derived from ReadLex’s TrapBath row, which the row policy drops; re-derived from the surviving BATH row they give ·Key·Ox·No·Tea·Roe·**Ah**·See·Tea and ·It·Gay·Zoo·**Ah**·May·Pea·Low. The Manual’s vowel is recorded in the note on each fixture row. This is the TRAP-BATH split itself, and it is the price of the RRP-only ruling.
+One consequence looks like a regression but is not. Two of the Manual’s own example words, **contrast** and **example**, are spelled in this lexicon with ·Ah where the Manual writes ·At. Their expected spellings in `manual-spellings.tsv` were first derived from ReadLex’s TrapBath row, which the row policy drops. Derived from the remaining BATH row, they are ·Key·Ox·No·Tea·Roe·**Ah**·See·Tea and ·It·Gay·Zoo·**Ah**·May·Pea·Low. The note on each of those rows records the Manual’s vowel. This is the TRAP-BATH split itself, and it follows from the RRP-only row policy.
 
 ## Words the corpus lacks
 
-ReadLex is a lexicon of English, and there are words this one needs that English lexicography has not got to. The first of them is the alphabet’s own name: a Quikscript lexicon with no entry for **Quikscript** is a gap a reader finds immediately, and the corpus has no row to give.
+ReadLex does not have every word this lexicon needs. The first missing word is the alphabet’s own name. A Quikscript lexicon with no entry for **Quikscript** has an obvious gap, and the corpus has no row for it.
 
-[`src/qslex/data/added-words.tsv`](../src/qslex/data/added-words.tsv) is where those go, and [`src/qslex/added.py`](../src/qslex/added.py) loads it. A row declares exactly what a corpus row declares — `word`, `pos`, `ipa`, `shavian`, `freq` — and is appended after the row policy has run, then spelled by the identical `convert()`. Nothing about the spelling machinery knows the difference, which is the point: an added word is spelled by Read’s rules or it is not in the lexicon.
+[`src/qslex/data/added-words.tsv`](../src/qslex/data/added-words.tsv) lists those words, and [`src/qslex/added.py`](../src/qslex/added.py) loads it. A row has the same fields as a corpus row: `word`, `pos`, `ipa`, `shavian`, `freq`. The build appends the added rows after the row policy has run and spells them with the same `convert()`. The spelling code does not distinguish them from corpus rows, so an added word is either spelled by Read’s rules or left out of the lexicon.
 
-Two fields are the table’s own. `source` names where the word comes from, on the rule [`shavian-divergences.tsv`](../src/qslex/data/shavian-divergences.tsv) sets that a hand-written row cites an authority. `qs` is the finished spelling, and it is a **fixture rather than an input** — the build never reads it, and the validator fails if the rules stop producing it, which is the arrangement [`manual-spellings.tsv`](../src/qslex/data/manual-spellings.tsv) already uses.
+Two fields are specific to this table. `source` says where the word comes from, following the requirement in [`shavian-divergences.tsv`](../src/qslex/data/shavian-divergences.tsv) that a hand-written row cites an authority. `qs` is the expected spelling, not an input. The build never reads it, and the validator fails if the rules stop producing it. [`manual-spellings.tsv`](../src/qslex/data/manual-spellings.tsv) works the same way.
 
-Every row in the table today is the alphabet’s name:
+The table’s rows fall into seven groups:
+
+- Six rows are the alphabet’s name.
+- Eight rows are three products of one family, of which the corpus has a single row.
+- Four rows are two compounds whose parts the corpus spells.
+- Nine rows are a verb, its inflections and its noun, whose parts the corpus spells.
+- Four rows are an Italian loan, under its two plurals and its Italian singular.
+- Three rows are an adjective with its comparative and superlative, where the corpus has the noun and verb.
+- Three rows are a trade name, its plural and its possessive, whose parts the corpus spells.
 
 | word | pos | ipa | qs |
 | --- | --- | --- | --- |
@@ -84,28 +98,84 @@ Every row in the table today is the alphabet’s name:
 | quickscript | `NP0` | ˈkwɪkskrɪpt | ·Key·Way·It·Key·See·Key·Roe·It·Pea·Tea |
 | quickscript | `AJ0` | ˈkwɪkskrɪpt | ·Key·Way·It·Key·See·Key·Roe·It·Pea·Tea |
 | quickscript's | `NP0+POS` | ˈkwɪkskrɪpts | ·Key·Way·It·Key·See·Key·Roe·It·Pea·Tea·See |
+| ipad | `NP0` | ˈaɪpæd | ·I·Pea·At·Day |
+| ipads | `NN2` | ˈaɪpædz | ·I·Pea·At·Day·Zoo |
+| ipad's | `NP0+POS` | ˈaɪpædz | ·I·Pea·At·Day·Zoo |
+| iphone | `NP0` | ˈaɪfəʊn | ·I·Fee·Owe·No |
+| iphones | `NN2` | ˈaɪfəʊnz | ·I·Fee·Owe·No·Zoo |
+| iphone's | `NP0+POS` | ˈaɪfəʊnz | ·I·Fee·Owe·No·Zoo |
+| ipods | `NN2` | ˈaɪpɒdz | ·I·Pea·Ox·Day·Zoo |
+| ipod's | `NP0+POS` | ˈaɪpɒdz | ·I·Pea·Ox·Day·Zoo |
+| eggnog | `NN1` | ˈeɡnɒɡ | ·Et·Gay·No·Ox·Gay |
+| eggnogs | `NN2` | ˈeɡnɒɡz | ·Et·Gay·No·Ox·Gay·Zoo |
+| ligate | `VVI` | laɪˈɡeɪt | ·Low·I·Gay·Eight·Tea |
+| ligate | `VVB` | laɪˈɡeɪt | ·Low·I·Gay·Eight·Tea |
+| ligates | `VVZ` | laɪˈɡeɪts | ·Low·I·Gay·Eight·Tea·See |
+| ligated | `VVN` | laɪˈɡeɪtƏd | ·Low·I·Gay·Eight·Tea·Day |
+| ligated | `VVD` | laɪˈɡeɪtƏd | ·Low·I·Gay·Eight·Tea·Day |
+| ligated | `AJ0` | laɪˈɡeɪtƏd | ·Low·I·Gay·Eight·Tea·Day |
+| ligating | `VVG` | laɪˈɡeɪtɪŋ | ·Low·I·Gay·Eight·Tea·-ing |
+| ligating | `AJ0` | laɪˈɡeɪtɪŋ | ·Low·I·Gay·Eight·Tea·-ing |
+| ligation | `NN1` | laɪˈɡeɪʃən | ·Low·I·Gay·Eight·She·No |
+| blueberry | `NN1` | ˈbluːbəri | ·Bay·Low·Ooze·Bay·Utter·Roe·It |
+| blueberries | `NN2` | ˈbluːbəriz | ·Bay·Low·Ooze·Bay·Utter·Roe·It·Zoo |
+| cannoli | `NN1` | kəˈnəʊli | ·Key·Utter·No·Owe·Low·It |
+| cannoli | `NN2` | kəˈnəʊli | ·Key·Utter·No·Owe·Low·It |
+| cannolis | `NN2` | kəˈnəʊliz | ·Key·Utter·No·Owe·Low·It·Zoo |
+| cannolo | `NN1` | kəˈnəʊləʊ | ·Key·Utter·No·Owe·Low·Owe |
+| crispy | `AJ0` | ˈkrɪspi | ·Key·Roe·It·See·Pea·It |
+| crispier | `AJC` | ˈkrɪspɪəR | ·Key·Roe·It·See·Pea·It·Utter·Roe |
+| crispiest | `AJS` | ˈkrɪspiəst | ·Key·Roe·It·See·Pea·It·Et·See·Tea |
+| ziploc | `NP0` | ˈzɪplɒk | ·Zoo·It·Pea·Low·Ox·Key |
+| ziplocs | `NN2` | ˈzɪplɒks | ·Zoo·It·Pea·Low·Ox·Key·See |
+| ziploc's | `NP0+POS` | ˈzɪplɒks | ·Zoo·It·Pea·Low·Ox·Key·See |
 
-Both spellings of the name are carried because both are used: the Manual writes **Quickscript** throughout — “even writers of Junior Quickscript should soon contract to single letters” ([p.12](https://adiabatic.github.io/abbots-morton-spaceport/the-manual.html#junior-contractions)) — and [quikscript.net](https://www.quikscript.net/) and this repository write **Quikscript**. They are one word, and share one Quikscript spelling.
+Both spellings of the name are included because both are used. The Manual writes **Quickscript** throughout: “even writers of Junior Quickscript should soon contract to single letters” ([p.12](https://adiabatic.github.io/abbots-morton-spaceport/the-manual.html#junior-contractions)). [quikscript.net](https://www.quikscript.net/) and this repository write **Quikscript**. They are one word, and they share one Quikscript spelling.
 
-Nothing in the table is invented, and each field says where it came from:
+No field in the table is invented. For the name’s rows, each field follows the corpus:
 
-- **The Latin stays lowercase**, as every corpus row is, `unicode` and `shaw` included.
-- **The IPA is upstream’s own**, `quick` and `script` joined the way upstream joins them for quicksand `ˈkwɪksænd` and quickstep `ˈkwɪkstep`.
-- **The Shavian likewise** — the corpus spells quick 𐑒𐑢𐑦𐑒 and script 𐑕𐑒𐑮𐑦𐑐𐑑, so the compound is a concatenation rather than an assertion about a script this repository has no authority over.
-- **`freq` is 0**, the value the corpus itself carries for a word its frequency data does not reach: `unicode` `NP0`, `esperanto` `NP0`.
-- **`NP0`, `AJ0` and `NP0+POS`** are the tags ReadLex gives a named writing system and its possessive — `shavian` and `esperanto` for the first two, `guy's`, `lloyd's` and `parkinson's` for the third. There is no plural row, because nobody writes one.
+- **The Latin is lowercase**, as in every corpus row, including `unicode` and `shaw`.
+- **The IPA is upstream’s own.** It joins `quick` and `script` the way upstream joins them for quicksand `ˈkwɪksænd` and quickstep `ˈkwɪkstep`.
+- **The Shavian is joined the same way.** The corpus spells quick 𐑒𐑢𐑦𐑒 and script 𐑕𐑒𐑮𐑦𐑐𐑑, and the compound is their concatenation, so the row makes no claim of its own about Shavian spelling.
+- **`freq` is 0**, the value the corpus gives a word outside its frequency data: `unicode` `NP0`, `esperanto` `NP0`.
+- **`NP0`, `AJ0` and `NP0+POS`** are the tags ReadLex gives a named writing system and its possessive. `esperanto` has `NP0` and `AJ0` rows, and `shavian` has an `AJ0` row. `guy's`, `lloyd's` and `parkinson's` have `NP0+POS` rows. There is no plural row, because the name is not used in the plural.
 
-**The possessive earns its own row.** The transliterator already builds it from the bare word — the possessive `'s` is [written solid with the apostrophe dropped](latin2qs.md#apostrophes) and voiced by the final letter’s class, so it devoices to ·See after voiceless ·Tea — but a spell checker can only accept a string some column ships. Most words never need the row, because the plural is homographic with the possessive and the corpus carries it: jack's and jacks are both ·Jay·At·Key·See. With no plural here, nothing else in the lexicon would carry ·Key·Way·It·Key·See·Key·Roe·It·Pea·Tea·See, and the Desk would underline a word this repository writes constantly.
+**The possessive needs its own row.** The transliterator already builds the possessive from the bare word. It writes `'s` [solid, with the apostrophe dropped](latin2qs.md#apostrophes), and voices it by the class of the final letter, so it becomes ·See after voiceless ·Tea. But a spell checker accepts only strings that some column contains. Most words do not need the row, because the plural has the same spelling as the possessive and the corpus has the plural: jack's and jacks are both ·Jay·At·Key·See. The name has no plural row, so without the possessive row no entry would contain ·Key·Way·It·Key·See·Key·Roe·It·Pea·Tea·See, and the Desk would flag a word this repository uses constantly.
 
-Both possessives land on the [phrase list](#qs_converter_phrasestxt) automatically, because a single word containing an apostrophe never composes — which is why upstream’s `guy's`, `lloyd's` and `parkinson's` are on it already.
+Both possessives are added to the [phrase list](#qs_converter_phrasestxt) automatically, because a single word containing an apostrophe never composes. That is also why upstream’s `guy's`, `lloyd's` and `parkinson's` are on the list.
 
-**What the validator demands** is stricter than what it demands of the corpus, because a row we wrote ourselves has no excuse for needing latitude. Each added row must produce the `qs` it declares, break no lint check, read back to its own IPA exactly, and reach no word sign — absolutes rather than pinned tolerances, since a table this small can be held to them. It also fails if ReadLex grows the word, so that upstream carrying it becomes a change someone reconciles rather than a second spelling that ships in silence. Holding this pass separately from the corpus pass is also what leaves every corpus invariant where it was, so an upstream bump still diffs against ReadLex alone.
+**iPad and iPhone** follow the same pattern with a different source. ReadLex has `ipod` `NP0` ˈaɪpɒd 𐑲𐑐𐑪𐑛 at `freq` 0, and neither sibling. Each name takes that row’s `NP0` tag and `freq` of 0, and joins upstream’s aɪ to its pad pæd 𐑐𐑨𐑛 or phone fəʊn 𐑓𐑴𐑯, as `ipod` joins it to pod. The corpus has only the bare name, so `ipod` also gets the plural and possessive rows its siblings have. The Latin is lowercase, as `ipod` is. The row does not add the namer dot. The transliterator adds it when spaCy marks the word as the start of a named entity ([The namer dot](latin2qs.md#the-namer-dot)). The plural takes `NN2`, the tag ReadLex gives the plural of a trade name (`biros`, `hoovers`, `macs`). The possessive takes `NP0+POS`, as the name’s possessive does. The plural and the possessive share one spelling, because `'s` voices to ·Zoo after ·Day or ·No as the plural does. So here the possessive row adds no new spelling to the dictionary. It adds an entry with an apostrophe to the phrase list.
 
-## Artifact shapes
+**Eggnog** is an ordinary compound that ReadLex does not have. It follows upstream’s `eggplant` `NN1` ˈeɡplⱭːnt 𐑧𐑜𐑐𐑤𐑭𐑯𐑑: unhyphenated and stressed on the first element. It joins upstream’s egg eɡ 𐑧𐑜 to nog, which upstream’s `noggin` ˈnɒɡɪn 𐑯𐑪𐑜𐑦𐑯 and `snog` snɒɡ 𐑕𐑯𐑪𐑜 already spell ·No·Ox·Gay. The plural takes the `NN2` tag of `eggplants` and the voiced ending of `eggs` eɡz 𐑧𐑜𐑟, ·Zoo after ·Gay. No possessive row is needed, because the plural has the same spelling.
+
+**Ligate** is a verb that ReadLex does not have, though it has `ligature`. It follows upstream’s `negate` `VVI` nɪˈɡeɪt 𐑯𐑦𐑜𐑱𐑑, which is stressed on the -gate, as `migrate` maɪˈɡreɪt 𐑥𐑲𐑜𐑮𐑱𐑑 and `dilate` daɪˈleɪt 𐑛𐑲𐑤𐑱𐑑 are. It joins upstream’s lie laɪ 𐑤𐑲 to its gate ɡeɪt 𐑜𐑱𐑑. It has both a `VVI` and a `VVB` row, because ReadLex gives every such verb both. The third-person singular takes `VVZ` and the voiceless ending of `negates` nɪˈɡeɪts 𐑯𐑦𐑜𐑱𐑑𐑕, ·See after ·Tea. The inflections and the noun follow the same family row for row:
+
+- `ligated` takes the `VVN`, `VVD` and `AJ0` rows and the tagged -Əd ending of `negated` nɪˈɡeɪtƏd 𐑯𐑦𐑜𐑱𐑑𐑩𐑛. The Ə marks the vowel the Manual says must be spoken between T and D (its TD pair), which Quikscript does not write.
+- `ligating` takes the `VVG` and `AJ0` rows of `negating` nɪˈɡeɪtɪŋ 𐑯𐑦𐑜𐑱𐑑𐑦𐑙.
+- `ligation` takes the `NN1` row and the -ʃən ending of `negation` nɪˈɡeɪʃən 𐑯𐑦𐑜𐑱𐑖𐑩𐑯 and `dilation` daɪˈleɪʃən 𐑛𐑲𐑤𐑱𐑖𐑩𐑯.
+
+**Blueberry** is built like eggnog, from a different family. It follows upstream’s `blackberry` `NN1` ˈblækbəri 𐑚𐑤𐑨𐑒𐑚𐑼𐑦, and its `cranberry`, `raspberry` and `strawberry`, all stressed on the first element. It joins upstream’s blue bluː 𐑚𐑤𐑵 to the -berry those rows share. The plural takes `NN2` and the voiced ending of `blackberries` ˈblækbəriz 𐑚𐑤𐑨𐑒𐑚𐑼𐑦𐑟. There is no possessive row, because ReadLex has no possessive for any berry.
+
+**Cannoli** is an Italian loan that the corpus does not have. It follows ReadLex’s rows for similar loans. The English singular follows upstream’s `ravioli` `NN1` ˌrævɪˈəʊli 𐑮𐑨𐑝𐑦𐑴𐑤𐑦, an Italian plural that English uses as a singular. It joins the unstressed kə of `canal` kəˈnæl 𐑒𐑩𐑯𐑨𐑤 to ravioli’s -oli. The word has a second row as `NN2`, because it is also its own plural, as ReadLex does for `graffiti` and `paparazzi` beside their -o singulars. `cannolis` is the English plural, following `raviolis` ˌrævɪˈəʊliz 𐑮𐑨𐑝𐑦𐑴𐑤𐑦𐑟. **Cannolo**, the Italian singular, follows the `NN1` rows of `graffito` ɡrəˈfiːtəʊ 𐑜𐑮𐑩𐑓𐑰𐑑𐑴 and `paparazzo`. Its final -o is the əʊ of `polo` ˈpəʊləʊ 𐑐𐑴𐑤𐑴.
+
+**Crispy** is missing although the corpus has the word it comes from. ReadLex has `crisp` krɪsp 𐑒𐑮𐑦𐑕𐑐 as adjective, noun and verb, and `crispness`, but not the -y adjective. It follows the `AJ0` rows of `wispy` ˈwɪspi 𐑢𐑦𐑕𐑐𐑦 and `frisky` ˈfrɪski 𐑓𐑮𐑦𐑕𐑒𐑦: upstream’s crisp plus the terminal -y those rows end in, which the rules write ·It. Its comparative and superlative follow `risky` ˈrɪski 𐑮𐑦𐑕𐑒𐑦. Upstream’s `riskier` ˈrɪskɪəR 𐑮𐑦𐑕𐑒𐑦𐑼 and `riskiest` ˈrɪskiəst 𐑮𐑦𐑕𐑒𐑦𐑩𐑕𐑑 give the `AJC` and `AJS` rows their endings. ReadLex writes the comparative’s vowel ɪə and the superlative’s iə, and the rules write the -est terminal ·Et. The corpus’s own `crisper` and `crispest` are unchanged. They are the comparative and superlative of crisp.
+
+**Ziploc** is a trade name that follows the iPad pattern, spelled from parts the corpus has. It follows upstream’s `ipod` `NP0` ˈaɪpɒd 𐑲𐑐𐑪𐑛 row at `freq` 0. It joins ReadLex’s zip zɪp 𐑟𐑦𐑐 to its lock lɒk 𐑤𐑪𐑒, stressed on the first element as upstream’s `zip code` ˈzɪp kəʊd is. So the -loc of the trademark is spelled as the lock it is pronounced as. The plural takes `NN2` and the voiceless ending of `locks` lɒks 𐑤𐑪𐑒𐑕, ·See after ·Key. The possessive takes `NP0+POS` and has the same spelling, so like `ipad's` it adds an entry with an apostrophe to the phrase list. As with iPad, the transliterator adds the namer dot, not the row.
+
+**What the validator requires of added words** is stricter than what it requires of corpus rows, because rows we wrote ourselves get no per-row tolerances. Each added row must:
+
+- produce the `qs` it lists;
+- pass every lint check;
+- read back to its own IPA using only the allowed differences in [`roundtrip.EDITS`](../src/qslex/roundtrip.py);
+- not be rewritten by any word sign.
+
+These are absolute requirements, not expected counts, because the table is small. The differences in `roundtrip.EDITS` are the only exceptions, and they apply to every word, not to one row. For example, `ligated` drops the schwa of its -Əd ending because Quikscript writes every such -ted ending that way. A hand-written row cannot be required to read back without that difference. The validator also fails if ReadLex adds the word. The added row must then be removed or its reason for staying recorded, so the lexicon cannot gain a second row for the word without a check failing. Checking added words in a separate pass leaves every corpus check unchanged, so a corpus update is still compared against ReadLex alone.
+
+## Artifact formats
 
 ### quikscript-lexicon.json
 
-Five top-level keys, of which `entries` is very nearly the whole file:
+The file has five top-level keys, and `entries` is almost all of it:
 
 ```json
 {
@@ -114,133 +184,157 @@ Five top-level keys, of which `entries` is very nearly the whole file:
              "counts": {"headwords": 12345, "entries": 12345, "phrases": 12345, "added": 12345}},
     "letters": [{"codepoint": "U+E650", "qs": "…", "name": "Pea", "class": "consonant", "ipa": "p"}],
     "c5_to_penn": {"AJ0": "JJ", "AJC": "JJR"},
-    "phrases": ["&amp;", "'em", "'neath"],
+    "phrases": ["&amp;", "&gt;", "&lt;"],
     "entries": {
         "again_AV0_𐑩𐑜𐑧𐑯": [{"Latn": "again", "qs": "…", "Shaw": "𐑩𐑜𐑧𐑯", "pos": "AV0", "ipa": "əˈɡen", "freq": 12345}]
     }
 }
 ```
 
-The four small keys are what makes this the only file a consumer needs. `letters` is the decoder ring, without which every QS string is a row of boxes: `codepoint`, `qs`, `name`, `class`, `ipa` for all 44 letters, derived from `src/qslex/csur.py` and the segment mapping. The `name` is the letter’s own example word, which is how [the CSUR proposal](https://www.quikscript.net/csur/) names them; the `ipa` lists every mapping token that produces the letter, and is empty for ·Excite and ·Exam, which no segment mapping can reach. `c5_to_penn` is the tag map the converter shape’s rows are keyed by. `phrases` is the one projection no property of the entries can reveal, because it is the orthographic rules and not the data that decide what fails to compose. `meta` says which corpus commit the file came from and how much of it there is.
+With the four small keys, a consumer needs no other file:
 
-`counts.added` is how many entries are *not* that corpus’s, per [Words the corpus lacks](#words-the-corpus-lacks), and it is why the schema is at version 2: `meta.source` no longer accounts for every row, and a consumer pinned to version 1 should be made to notice rather than quietly receive entries the commit it names does not contain. Which entries they are is `added-words.tsv`; whether there are any at all is this number.
+- `letters` maps each codepoint to its letter name, class and IPA. Without a Quikscript font, QS text displays as empty boxes, and this table is what lets a consumer decode it. It lists `codepoint`, `qs`, `name`, `class` and `ipa` for all 44 letters, derived from `src/qslex/csur.py` and the segment mapping. The `name` is the letter’s example word, which is how [the CSUR proposal](https://www.quikscript.net/csur/) names the letters. The `ipa` lists every mapping token that produces the letter. It is empty for ·Excite and ·Exam, which no segment mapping produces.
+- `c5_to_penn` is the tag map that the converter table’s tagged rows are keyed by.
+- `phrases` is the phrase list. Part of it comes from `phrase-exceptions.tsv`, which cannot be derived from the entries.
+- `meta` says which corpus commit the file came from and how many headwords, entries, phrases and added words it has.
 
-Two of the three duplicate a file that also ships: `src/qslex/data/c5-to-penn.tsv` and `qs_converter_phrases.txt`. Duplication is normally how two copies drift, and it cannot here: all three are written by the same pass of `build.artifacts()`, and `make check` rebuilds and byte-compares every one of them. `letters` ships nowhere else — the master is the only place the alphabet is named.
+`counts.added` is the number of entries that do not come from that corpus commit (see [Words the corpus lacks](#words-the-corpus-lacks)). It is the reason the schema is version 2. `meta.source` no longer accounts for every row, and a consumer written for version 1 should notice the change instead of receiving entries that the named commit does not contain. `added-words.tsv` lists which entries they are. This number says whether there are any.
 
-The `entries` key is upstream’s headword key, verbatim, mapping to the entries under it. The key is treated as an opaque upstream identifier, not as data — it is kept so that every group is traceable to the group it came from and an upstream bump diffs cleanly. It is *not* re-derived: upstream’s own keys can be stale with respect to the entries under them (`'twas_PNP+VBD_𐑑𐑢𐑪𐑟` heads an entry whose Shavian is 𐑑𐑢𐑳𐑟), which is a further reason to carry it rather than to compute one.
+Two of the small keys duplicate other files:
 
-`Shaw` is kept. It costs little, it is what the validator’s EAR oracle reads, and it makes a row diffable against upstream. `var` is dropped, per the row policy. `qs_junior` and `qs_x` are **absent unless they differ** from `qs` — the sparse encoding, so that the delta stays obvious and a diff stays small.
+- `phrases` duplicates `qs_converter_phrases.txt`. The same call to `build.artifacts()` writes both, and `make check` rebuilds and byte-compares both.
+- `c5_to_penn` duplicates `src/qslex/data/c5-to-penn.tsv`, which is a hand-edited input that the build reads. `test_the_lexicon_jsons_tag_map_equals_c5_to_penn_tsv` in `tests/test_build.py` checks that the two are equal.
 
-`ipa` is the **quirk-normalized** string, not the corpus’s own, so that every row explains its own spelling rather than the one upstream’s unrepaired IPA would have produced. It differs from upstream’s on every row `ipa-quirks.tsv` fires on; upstream’s original is in the vendored corpus, which is where a diff against ReadLex should read from.
+`letters` appears in no other file. The lexicon JSON is the only place the alphabet is named.
 
-**One headword to a line**, and one letter and one phrase to a line likewise; `meta` and `c5_to_penn` are small enough to indent four spaces in the ordinary way. The file is generated, so the diff worth reading is which entries moved, and that reads as one changed line each rather than as a field adrift in a nine-line block. It costs ten megabytes less than a field to a line did. `ensure_ascii=False`, LF, trailing newline, headwords in corpus order.
+Each key in `entries` is upstream’s headword key, copied verbatim, and maps to the entries under it. The key is treated as an opaque upstream identifier. It is kept so that every group can be traced to the upstream group it came from, and so that a corpus update diffs cleanly. It is *not* re-derived. Upstream’s keys do not always match the entries under them: `bevel_VVI_𐑚𐑧𐑝𐑩𐑤𐑟` heads a group whose `bevel` rows have the Shavian 𐑚𐑧𐑝𐑩𐑤. That is another reason to copy the key instead of computing one.
+
+`Shaw` is kept. It adds little to the file, the validator’s Shavian EAR cross-check reads it, and it lets a row be compared with upstream. `var` is dropped, per the row policy. `qs_junior` and `qs_x` are **omitted unless they differ** from `qs`. This sparse encoding makes the differences easy to see and keeps diffs small.
+
+`ipa` is the **quirk-normalized** string, not the corpus’s own, so that each row has the IPA its spelling was made from. It differs from upstream’s IPA on every row that an `ipa-quirks.tsv` rule changes. Upstream’s original is in the vendored corpus, so a diff against ReadLex should read from there.
+
+The file has **one headword per line**, and likewise one letter and one phrase per line. `meta` and `c5_to_penn` are small, so they use ordinary four-space indentation. The file is generated, so the useful diff shows which entries changed, and each changed entry is one changed line. With one field per line, the same change would be one line inside a nine-line block. The file is also ten megabytes smaller than it was with one field per line. It is written with `ensure_ascii=False`, LF line endings and a trailing newline. Headwords are in corpus order, and the added words come last.
 
 ### quikscript-lexicon.tsv
 
-`Latn`, `qs`, `qs_junior`, `qs_x`, `Shaw`, `pos`, `ipa`, `freq` — upstream’s five columns with the Quikscript spelling taking the position the Shavian one held, and the Shavian pushed right rather than dropped. Unlike upstream’s, it carries a header row, because eight columns of which two are usually empty are not self-describing.
+The columns are `Latn`, `qs`, `qs_junior`, `qs_x`, `Shaw`, `pos`, `ipa`, `freq`. These are upstream’s five columns, with the Quikscript spelling in the position the Shavian spelling had and the Shavian moved to the right. Unlike upstream’s TSV, it has a header row, because eight columns, two of them usually empty, need labels.
 
-Sparse columns are empty strings on the rows that do not diverge. Those bounds are checked, not assumed — `qs_x` may differ only on a word with an `x` in it, and `qs_junior` only on the word-level cases [#3](https://github.com/adiabatic/quikscript-lexicon/issues/3) enumerates plus the rows whose linking vowel [`terminal-nt`](orthographic-rules.md#decisions) elides in senior alone.
+The sparse columns are empty strings on rows where they do not differ from `qs`. The limits on them are checked. `qs_x` may differ only on a word with an `x` in it. `qs_junior` may differ only on the word-level cases [#3](https://github.com/adiabatic/quikscript-lexicon/issues/3) lists, plus the rows whose linking vowel [`terminal-nt`](orthographic-rules.md#decisions) elides in senior only.
 
-The projection **deduplicates**. Two headwords can list the same inflected form — ax and axe both own axed — and flattening without collapsing them is precisely upstream’s #124 bug.
+The TSV **is deduplicated**. Two headwords can list the same inflected form (ax and axe both list axed). Flattening them without removing the duplicate is upstream’s #124 bug.
 
-### The converter shape
+### The converter table
 
-Not an artifact. It is built on the way to the phrase list, handed to the transliterator, and never written — but it is still a shape this repository specifies, because [#6](https://github.com/adiabatic/quikscript-lexicon/issues/6)’s transliterator is a port of `latin2shaw.py` and the shape is what makes the port a port.
+The converter table is not an artifact. The build computes it to derive the phrase list, and the transliterator computes it again from the lexicon JSON when it starts. Neither writes it to a file. This repository still specifies its format, because the transliterator from [#6](https://github.com/adiabatic/quikscript-lexicon/issues/6) is a port of `latin2shaw.py`, and the port depends on using upstream’s format.
 
-Latin → a list of rows:
+It maps each Latin word to a list of rows:
 
 ```json
 "absent": [
     {"qs": "…", "tag": "JJ"},
     {"qs": "…", "tag": "NN"},
     {"qs": "…", "tag": "VB"},
+    {"qs": "…", "tag": "VBP"},
     {"qs": "…⬌…", "tag": "0"}
 ]
 ```
 
-The shape is upstream’s, and it is upstream’s for a good reason: `latin2shaw.py` looks a token up by `token.lower_`, walks the rows, and takes the first whose `tag` matches spaCy’s Penn `token.tag_`, with `"0"` as the universal fallback. Porting that logic wholesale is the point of matching the shape.
+The format is upstream’s. `latin2shaw.py` looks a token up by `token.lower_`, walks the rows, and takes the first row whose `tag` matches spaCy’s Penn `token.tag_`, with `"0"` as the fallback for any tag. Using the same format lets the transliterator port that lookup unchanged.
 
-- **Tagged rows appear only where they can settle something** — a word needs both more than one spelling and more than one Penn tag before a part of speech can choose between them.
-- **The `0` row is always present and always last**, its `qs` the `⬌`-joined distinct spellings sorted by codepoint. `⬌` is a “pick one” marker the consumer never splits; upstream punts on disambiguation here and so, for now, do we.
-- **`qs_junior` and `qs_x` ride along**, sparse as elsewhere, with their alternatives in the same order as `qs` so the three columns line up positionally.
+- **Tagged rows are written only where a tag can choose between spellings.** The word needs more than one spelling and more than one Penn tag.
+- **The `0` row is always present and always last.** Its `qs` is the word’s distinct spellings, sorted by codepoint and joined with `⬌`. `⬌` is a “pick one” marker. The table does not choose between the alternatives. `latin2shaw.py` writes a `⬌`-joined row out as is, and for now this repository’s transliterator does the same.
+- **`qs_junior` and `qs_x` are included in each row**, sparse as elsewhere. Their alternatives are in the same order as those in `qs`, so the three columns line up position by position.
 
-The C5 → Penn table this needs is `src/qslex/data/c5-to-penn.tsv`. It was not guessed: reimplementing upstream’s generator and reproducing `readlex_converter.json` **byte for byte** (9,565,065 bytes) forces a unique Penn tag on every C5 tag that file can settle. The rest are marked `standard` and say why — either upstream’s file cannot separate them (`VVI`/`VVB` and `VVD`/`VVN` have identical spellings for every key) or upstream never reaches them. Only heteronyms consult the table, so the corpus’s remaining C5 tags need no Penn equivalent and are given none; the build raises rather than guessing if a bump ever makes one relevant.
+The C5-to-Penn table this needs is `src/qslex/data/c5-to-penn.tsv`. It was not guessed. Reimplementing upstream’s generator and reproducing `readlex_converter.json` **byte for byte** (9,565,065 bytes) determines a unique Penn tag for every C5 tag that file can distinguish. The rest are marked `standard`, and their notes say why. Either upstream’s file cannot separate them (`VVI`/`VVB` and `VVD`/`VVN` have identical spellings for every key), or upstream never uses them. Only heteronyms and the tagged rows of `contractions.tsv` (`AJ0`, `AV0`, `CJT`) use the table, so the corpus’s other C5 tags need no Penn equivalent and have none. If a corpus update makes one of them necessary, the build raises an error instead of guessing.
 
-Two deliberate departures from upstream’s file:
+Two differences from upstream’s file:
 
-- **Row order puts `NNP` first**, then the rest alphabetically. Upstream writes `NN` before `NNP`, and because its consumer’s fallback from `NNP` to the `NN` row is tested per row, that fallback fires before the exact `NNP` row is ever reached — making the proper-noun spelling unreachable for every key that also carries an `NN` row, among them derby, reading and slough. Writing `NNP` first fixes it in the data, with no change needed in any consumer.
-- **The row set is our row policy’s, not upstream’s.** Upstream’s converter keeps `var == "RRP"` strictly, so it drops the `RRPVar`/`RRPvar` rows its own TSV also drops. We keep them, so a handful of keys carry one more alternative than upstream’s file does.
+- **Row order puts `NNP` first**, then the rest alphabetically. Upstream writes `NN` before `NNP`. Its consumer checks each row in turn and accepts the `NN` row as a fallback for `NNP`, so it takes the `NN` row before it reaches the exact `NNP` row. That makes the proper-noun spelling unreachable for every key whose `NN` row is spelled differently, among them derby, reading and slough. Writing `NNP` first fixes this in the data, with no change needed in any consumer.
+- **The row set follows this repository’s row policy.** Upstream’s converter keeps only rows with `var == "RRP"`, so it drops the `RRPVar`/`RRPvar` rows that its own TSV also drops. This repository keeps them, so a few keys have one more alternative than they do in upstream’s file.
 
-Quikscript also makes heteronyms Shavian does not. `that` is one spelling in ReadLex and two here — ·They·Tea for the conjunction against ·They·At·Tea for the demonstrative — which is why `CJT` and `DT0` need Penn equivalents that upstream’s file never forced.
+Quikscript also has heteronyms that Shavian does not. `that` has one spelling in ReadLex and two here: ·They·Tea for the conjunction and ·They·At·Tea for the demonstrative. That is why `CJT` and `DT0` need Penn equivalents that upstream’s file never required.
 
-**Rebuilding it.** Every input is in the master: the five fields `converter()` reads are `entries`, and the tag map is `c5_to_penn`. Nothing else is opened.
+**Rebuilding it.** Every input is in the lexicon JSON. The five fields `converter()` reads are in `entries`, and the tag map is `c5_to_penn`. No other file is opened.
 
 ```python
 import json
 from qslex.converter import TagMap, converter
 
-master = json.load(open("lexicon/quikscript-lexicon.json", encoding="utf-8"))
+lexicon_json = json.load(open("lexicon/quikscript-lexicon.json", encoding="utf-8"))
 rows = converter(
     (
         (e["Latn"], e["pos"], e["qs"], e.get("qs_junior", ""), e.get("qs_x", ""))
-        for group in master["entries"].values()
+        for group in lexicon_json["entries"].values()
         for e in group
     ),
-    {c5: TagMap(c5, penn, "upstream", "") for c5, penn in master["c5_to_penn"].items()},
+    {
+        c5: TagMap(c5, penn, "upstream", "")
+        for c5, penn in lexicon_json["c5_to_penn"].items()
+    },
 )
 ```
 
-That reproduces the 9 MB file this repository used to commit byte for byte, and a test holds it to the rows the build derives in memory, so the shape cannot quietly stop being recoverable.
+Written out with `json.dumps(rows, ensure_ascii=False, indent=4)` and a trailing newline, that gives the same bytes the build used to write as `qs_converter.json`. `test_the_converter_table_can_be_rebuilt_from_the_lexicon_json` in `tests/test_build.py` checks that this rebuild equals the table the build computes in memory. It fails if the lexicon JSON stops containing what the rebuild needs.
 
 ### qs_converter_phrases.txt
 
-The entries a tokenizer must match as one unit before it splits the text, because splitting them first would spell their pieces and get a different answer.
+These are the entries a tokenizer must match as one unit before it splits the text. Splitting them first would spell their pieces and give a different spelling.
 
-**Regenerated, not copied.** Upstream ships this list twice, as `readlex_converter_phrases.json` and `.csv`, and the two disagree by 17 lines: the `.csv` tracks the corpus, while the `.json` has not been touched since June 2025 — and the `.json` is the one `latin2shaw.py` actually opens. Neither file is JSON or CSV; both are CRLF plain text. So “reuse the phrase list” has no single referent, and the honest move is to derive it, from our own spellings, under an honest extension.
+**Derived here, not copied.** Upstream ships this list twice, as `readlex_converter_phrases.json` and `.csv`, and the two differ by 17 lines. The `.csv` follows the corpus. The `.json` has not changed since June 2025, and it is the one `latin2shaw.py` opens. Neither file is JSON or CSV; both are CRLF plain text. So “reuse the phrase list” has no single meaning, and this repository derives the list from its own spellings and gives it a `.txt` extension.
 
-The predicate is compositionality, not a character test: an entry is listed when spelling its pieces separately and rejoining them does not reproduce the entry’s own spelling, when a piece is not in the lexicon at all, or — for a single word — when it contains an apostrophe, which a tokenizer splits at. On top of that sit the declared exceptions in `src/qslex/data/phrase-exceptions.tsv`: HTML entities that are not lexicon entries at all, and words spaCy’s tokenizer splits, which no property of the lexicon can reveal.
+An entry is listed by a compositionality test, not a character test. It is listed when any of these holds:
 
-The list comes out longer than upstream’s, and the reason is real: Quikscript’s terminal and prefix conventions are genuinely more context-sensitive than Shavian’s, so hundreds of compounds legitimately fail to compose where their Shavian spellings do. It was longer still — 2,171 entries — until the rules learned to see inside a compound ([#9](https://github.com/adiabatic/quikscript-lexicon/issues/9)); 571 of those were on it only because their elements were spelled one way alone and another way in the compound. The list is regenerated from the spellings either way, so it cannot disagree with them.
+- spelling its pieces separately and joining them does not give the entry’s own spelling;
+- a piece is not in the lexicon;
+- it is a single word that contains an apostrophe, which a tokenizer splits at.
 
-It is also *shorter* in places, and those are real: at-home, lean-to, set-to, aged care and school-aged all compose in Quikscript because a standard word-outline collapses a stressed/unstressed pair that Shavian spells two ways.
+`src/qslex/data/phrase-exceptions.tsv` adds more entries: HTML entities, which are not lexicon entries, and words that spaCy’s tokenizer splits, which no property of the lexicon shows.
+
+The list is longer than upstream’s. Quikscript’s terminal and prefix conventions depend more on context than Shavian’s spelling does, so hundreds of compounds fail to compose in Quikscript where their Shavian spellings compose. The list was longer still, at 2,171 entries, until the rules were applied to each element of a compound ([#9](https://github.com/adiabatic/quikscript-lexicon/issues/9)). 571 of those entries were listed only because an element was spelled one way alone and another way in the compound. The list is regenerated from the spellings either way, so it always matches them.
+
+In some places it is *shorter* than upstream’s. at-home, lean-to, set-to, aged care and school-aged compose in Quikscript, because a standard word-outline gives one spelling to a stressed/unstressed pair that Shavian spells two ways.
 
 ### en-Qaas.dic / en-Qaas.aff
 
-A [Hunspell](https://github.com/hunspell/hunspell) dictionary, named for [the language tag](conformance.md#the-language-tag) Quikscript text is written under. Point a checker at it with `hunspell -i utf-8 -d lexicon/en-Qaas`. The `-i` is not optional. hunspell decodes its input in the locale’s encoding and every Quikscript letter is outside ASCII, so under `LC_ALL=C` a line of Quikscript is skipped in silence — nothing accepted, nothing flagged, the same failure mode `WORDCHARS` fixes from the other side — and with no locale set at all hunspell errors out of iconv and prints mangled tokens instead. Naming the input encoding is correct in every locale.
+This is a [Hunspell](https://github.com/hunspell/hunspell) dictionary, named for [the language tag](conformance.md#the-language-tag) that Quikscript text is written under. Point a checker at it with `hunspell -i utf-8 -d lexicon/en-Qaas`. The `-i` is required. hunspell decodes its input in the locale’s encoding, and every Quikscript letter is outside ASCII. Under `LC_ALL=C`, hunspell skips a line of Quikscript silently: it accepts nothing and flags nothing. This is the same failure that `WORDCHARS` fixes from the other side. With no locale set at all, hunspell gets an error from iconv and prints garbled tokens. Naming the input encoding works in every locale.
 
-The `.dic` is **every distinct spelling any of the three columns ships**, one per line, sorted by codepoint, counted on the first line as the format wants. All three go in, so the dictionary accepts Senior, Junior and the X-letter form alike; a spelling several rows share is listed once.
+The `.dic` lists **every distinct spelling in any of the three columns**, one per line, sorted by codepoint, with the count on the first line as the format requires. All three columns are included, so the dictionary accepts Senior, Junior and the X-letter form. A spelling that several rows share is listed once.
 
-Two rulings shape it:
+Two decisions shape it:
 
-- **Spaced entries are dropped.** A tokenizer splits at a space before it consults a dictionary, so no such string can ever reach hunspell, and listing one would be a line that cannot match. Hyphenated entries are kept whole, and are reachable — see `WORDCHARS` below.
-- **No word carries an affix flag.** ReadLex lists every inflected form as a row of its own, so the affix machinery would encode nothing the word list does not already state, and a flag standing for no rule is a flag that can only go wrong. The `.aff` declares no `PFX` or `SFX` at all.
+- **Spaced entries are dropped.** A tokenizer splits at a space before it consults a dictionary, so hunspell never receives such a string, and a listed one could never match. Hyphenated entries are kept whole, and hunspell can match them because of `WORDCHARS` (below).
+- **No word has an affix flag.** ReadLex lists every inflected form as its own row, so affix rules would add nothing the word list does not already have, and a flag with no rule behind it could only cause errors. The `.aff` has no `PFX` or `SFX` at all.
 
-The `.aff` is four directives, all of them derived:
+The `.aff` has four directives, all of them derived:
 
-- **`SET UTF-8`**, because the spellings are.
-- **`WORDCHARS`**, all 44 letters and the hyphen. Without it hunspell’s own tokenizer takes PUA codepoints for punctuation and skips every Quikscript word silently — neither accepted nor flagged. The hyphen is in it against the en_US precedent, which leaves it out: hundreds of the hyphenated entries have a non-empty piece that is not itself an entry — papier-mache, bob-omb, terra-cotta — and without it the tokenizer splits them and flags the pieces. Prefix-style entries that end in a hyphen, pre- among them, are not among those, because the empty piece an edge hyphen leaves is nothing to look up and they pass either way. Nothing is lost by including it, because hunspell’s default `BREAK` still checks the pieces of a hyphenated word the dictionary does not carry whole. The cost is that a bare hyphen run becomes a token of its own and is flagged — a spaced dash, `--` or `---` between spaces, the `- ` opening a Markdown-style bullet — though a hyphen run inside a word is still accepted. Recorded and not fixed: that same default `BREAK` accepts any hyphenated join of two entries whether or not the join is a word, and with single-letter entries in the `.dic` that reaches down to ·Zoo-·Vie.
-- **`TRY`**, the 44 letters ordered by how often each occurs across the word list, commonest first, ties by codepoint. hunspell walks it in order when it tries one letter in place of another, so it is counted off the list rather than chosen.
-- **`REP`**, bridging ·Excite to ·Key·See and ·Exam to ·Gay·Zoo, in both directions. Both directions earn their place, because the letters around an X-letter change with it: expect is ·It·Key·See·Pea·Et·Key·Tea in `qs` and ·Et·Excite·Pea·Et·Key·Tea in `qs_x`, so neither form is a single-letter edit from the other. Without the table the ngram suggester still turns the other form up about half the time, but buried in a list and effectively never first; with it, writing either an X-letter or the pair it stands for gets exactly one suggestion and it is the right form. A `MAP` table over the same two pairs was tried and dropped: on its own it works, and beside `REP` it changed no suggestion.
+- **`SET UTF-8`**, because the spellings are UTF-8.
+- **`WORDCHARS`**, all 44 letters and the hyphen. Without it, hunspell’s own tokenizer treats PUA codepoints as punctuation and skips every Quikscript word silently, neither accepting nor flagging it.
+  - The hyphen is included, unlike in en_US. Hundreds of the hyphenated entries have a non-empty piece that is not itself an entry (papier-mache, bob-omb, terra-cotta). Without the hyphen, the tokenizer splits them and flags the pieces. Some entries with a hyphen at one edge are among them, such as neo- and ultra-.
+  - Including it loses nothing, because hunspell’s default `BREAK` still checks the pieces of a hyphenated word that the dictionary does not list whole.
+  - The downside is that a bare run of hyphens becomes a token of its own and is flagged: a spaced dash, `--` or `---` between spaces, or the `- ` that opens a Markdown-style bullet. A run of hyphens inside a word is still accepted.
+  - A known problem, not fixed: the default `BREAK` accepts any hyphenated join of two entries, whether or not the join is a word. The `.dic` has single-letter entries, so this accepts even ·Zoo-·Vie.
+- **`TRY`**, the 44 letters ordered by how often each occurs across the word list, most frequent first, with ties broken by codepoint. hunspell tries TRY letters in order when it substitutes one letter for another, so the order is computed from letter frequency in the word list.
+- **`REP`**, which maps ·Excite to ·Key·See and ·Exam to ·Gay·Zoo, and each pair back to its X-letter. Both directions are needed, because the letters around an X-letter change with it. expect is ·It·Key·See·Pea·Et·Key·Tea in `qs` and ·Et·Excite·Pea·Et·Key·Tea in `qs_x`, so neither form is a single-letter edit from the other. Without the table, the ngram suggester still finds the other form about half the time, but low in the list and almost never first. With it, writing either an X-letter or the pair it stands for gets exactly one suggestion, and it is the right form. A `MAP` table over the same two pairs was tried and removed. It works on its own, but beside `REP` it changed no suggestion.
 
-**The apostrophe stays out of `WORDCHARS`**, and that is a ruling rather than an omission. No spelling column carries an apostrophe anywhere, so no `.dic` entry can: the corpus spells they'll solid, ·They·Eight·Low. The transliterator does write one — [`src/qslex/latin2qs.py`](../src/qslex/latin2qs.py) reinserts U+2019 before a kept clitic’s letters at either grade, giving the Manual’s ·They·Eight’·Low ([Apostrophes](latin2qs.md#apostrophes)) — and against this `.aff` hunspell splits at it, passes the host word and flags the clitic half ·Low alone. Putting ’ in `WORDCHARS` would be strictly worse: the whole token would then be looked up, no entry carries an apostrophe, and default `BREAK` does not break at one, so the entire word would be flagged instead of just the clitic. Clitic-bearing transliterator output is outside what a dictionary generated from the columns can bless, and the cheaper failure is the one that still blesses the host word.
+**The apostrophe is not in `WORDCHARS`.** No spelling column contains an apostrophe, so no `.dic` entry can: the corpus spells they'll solid, ·They·Eight·Low. The transliterator does write one. [`src/qslex/latin2qs.py`](../src/qslex/latin2qs.py) inserts U+2019 before a kept clitic’s letters at either grade, giving the Manual’s ·They·Eight’·Low ([Apostrophes](latin2qs.md#apostrophes)). With this `.aff`, hunspell splits at it, accepts the host word, and flags the clitic ·Low alone. Putting ’ in `WORDCHARS` would be worse. hunspell would then look up the whole token, no entry has an apostrophe, and the default `BREAK` does not break at one, so it would flag the whole word instead of just the clitic. A dictionary generated from the columns cannot accept transliterator output that contains clitics, and this setup at least still accepts the host word.
 
-This word set, this `TRY` order and this `REP` table are also what the desk checks against in a browser — widened only by the §III contractions its checker adds, which no column and so no `.dic` entry can carry — re-derived from the master and asserted against these two files on every build of it.
+The Desk page and `editor/server/payload.json` (the language server’s data) use the same word set, `TRY` order and `REP` table. The only addition is the §III contractions that their shared checker adds, which no column contains and so no `.dic` entry can. `qslex.checker_data` re-derives the word set and the `TRY` order from the lexicon JSON and checks them against the `.dic` and `.aff` on every build of the page and of the payload. `tests/test_desk.py` and `tests/test_payload.py` check the `REP` table against the `.aff`. The payload also contains two lookup maps for the server’s hover and completions, derived from the same lexicon JSON rows. `latin_by_spelling` maps each accepted spelling to the Latin word, tag and column of each entry with that spelling. `spellings_by_latin` maps each lowercased Latin word to its entries’ tags, frequencies and three spelling columns.
 
 ## Regenerating
 
 ```sh
 make artifacts     # rewrite lexicon/
-make check         # lint, types, tests, validator, and artifact freshness
+make check         # lint, type checks, tests, the validator, and a rebuild compared with every committed artifact
 ```
 
-`make check`’s last step rebuilds every artifact in memory and fails if what is on disk differs, so a stale `lexicon/` cannot be committed. Combined with a clean `git diff` after `make artifacts`, that is the byte-identical-regeneration proof: same checkout, same bytes, every time.
+The last step of `make check`, `make freshness`, rebuilds every artifact in memory and fails if a file on disk differs, so an out-of-date `lexicon/` does not pass. Together with a clean `git diff` after `make artifacts`, that is the regeneration check: the same checkout produces the same bytes every time.
 
-To bump the corpus, replace `data/readlex/readlex.json`, update the commit and digest in [`data/readlex/README.md`](../data/readlex/README.md) and `src/qslex/readlex.py`, then run `make check` and reconcile every invariant that moves. There will be several, and that is the design: a corpus bump is meant to be a reviewable change, not a silent one.
+To update the corpus, replace `data/readlex/readlex.json`. Update the commit, digest, headword count and entry count in [`data/readlex/README.md`](../data/readlex/README.md) and in `src/qslex/readlex.py` (`CORPUS_COMMIT`, `CORPUS_SHA256`, `CORPUS_HEADWORDS`, `CORPUS_ROWS`). Then run `make check` and fix every check that fails. Several will. The loader checks the file’s SHA-256, so replacing the file fails the build until the recorded SHA-256 is updated to match.
 
-Almost every invariant that moves fails loudly and says what it wanted: the counts pinned in `src/qslex/validate.py`, the row counts in `src/qslex/data/var-tags.tsv`, and the artifacts themselves. Prose cannot, which is why this file, the [README](../README.md) and [`lexicon/README.md`](../lexicon/README.md) state no count of the lexicon at all — see [Artifacts](#artifacts) for what holds each one instead. What is still written out by hand is the provenance table in [`data/readlex/README.md`](../data/readlex/README.md), which describes the pinned snapshot and so moves only when the pin does, and whatever each other spec counts over the corpus.
+Most of the checks that fail report the value they expected: the headword and row counts in `src/qslex/readlex.py`, the expected counts in `src/qslex/validate.py`, the row counts in `src/qslex/data/var-tags.tsv`, and the artifacts themselves. Prose has no such check. That is why this file, the [README](../README.md) and [`lexicon/README.md`](../lexicon/README.md) give no counts for the lexicon. See [Artifacts](#artifacts) for where each count is checked instead. Two kinds of count are still written by hand. The provenance table in [`data/readlex/README.md`](../data/readlex/README.md) describes the pinned snapshot, so it changes only when the pin does. The other specs also give some counts over the corpus.
 
-## Declined, deliberately
+## Upstream files not built
 
-**`readlex.dict` and `addendum.dict`.** Upstream ships these for [Dave Coffin’s Dechifro scripts](https://www.dechifro.org/shavian/), which render Shavian. Nothing in the Quikscript ecosystem consumes the format, and its `^prefix`/`$suffix` affix machinery encodes Shavian’s affixes rather than Read’s. Recorded as a decision rather than left as an omission; if a QS toolchain ever wants it, it projects from the JSON like everything else.
+**`readlex.dict` and `addendum.dict`.** Upstream ships these for [Dave Coffin’s Dechifro scripts](https://www.dechifro.org/shavian/), which render Shavian. Not built: nothing in the Quikscript ecosystem reads this format, and its `^prefix`/`$suffix` affix rules encode Shavian’s affixes, not Read’s. If a Quikscript tool ever needs it, it can be derived from the JSON like the other artifacts.
 
-**`readlex_search.json`.** 29 MB serving [readlex.pythonanywhere.com](https://readlex.pythonanywhere.com/). Worth building if and when a search site for Quikscript exists.
+**`readlex_search.json`.** A 29 MB file used by [readlex.pythonanywhere.com](https://readlex.pythonanywhere.com/). Not built; it would be needed only by a Quikscript search site.

@@ -87,10 +87,10 @@ class Entry:
 
 
 @dataclass(frozen=True)
-class Coverage:
-    """What the build touched, for the log.
+class BuildSummary:
+    """Counts printed after a build.
 
-    Every number is pinned and adjudicated in qslex.validate, so this is a convenience for whoever is watching a change land rather than a check of its own. The tally is done in `report`, so a build that prints nothing counts nothing.
+    They are informational. `qslex.readlex` checks the corpus row count when it loads the corpus, and qslex.validate checks the kept rows and the junior rows. Nothing checks the X-letter row count or the number of added words. `report` does the counting, so a build that prints nothing (`--check`) counts nothing.
     """
 
     read: int
@@ -109,11 +109,11 @@ class Coverage:
 
 
 def convert(rows: Iterable[Row], mapping: Mapping) -> tuple[Entry, ...]:
-    """Every kept row spelled, in the order it is given.
+    """Spells each row it is given, in order.
 
-    Nothing here decides how a word is spelled: the mapping, the rules and the word signs have all already run by the time `spell` returns, and this only renders what they produced into the PUA encoding the artifacts carry.
+    This function makes no spelling decisions. The mapping, the rules and the word signs have all run by the time `spell` returns, and this function renders their result in the PUA encoding the artifacts use.
 
-    The IPA carried out is the quirk-normalized string, not the corpus’s own, so that every row explains its own spelling. Upstream’s unrepaired IPA stays available in the vendored corpus, which is where anyone diffing against ReadLex should look.
+    The IPA written out is the quirk-normalized string rather than the corpus’s, so that each row’s IPA matches its spelling. Upstream’s unrepaired IPA is in the vendored corpus. Compare against that when diffing with ReadLex.
     """
     quirks = load_quirks()
     overrides = load_overrides(mapping)
@@ -141,12 +141,12 @@ def convert(rows: Iterable[Row], mapping: Mapping) -> tuple[Entry, ...]:
 
 
 def _nested(value: object) -> str:
-    """A small top-level value, its own lines pushed in by one step."""
+    """A small top-level value as indented JSON, with every line after the first indented one more level."""
     return json.dumps(value, ensure_ascii=False, indent=4).replace("\n", "\n    ")
 
 
 def _per_line(items: Iterable[str], brackets: str) -> str:
-    """A large top-level collection, one element to a line."""
+    """A large top-level collection, one element per line."""
     body = ",\n".join(f"        {item}" for item in items)
     if not body:
         return brackets
@@ -160,15 +160,15 @@ def lexicon_json(
     listed: Iterable[str],
     added: int,
 ) -> str:
-    """The master, and the only JSON this repository ships.
+    """`lexicon/quikscript-lexicon.json`, the only JSON file in `lexicon/`.
 
-    Everything else in `lexicon/` is a projection of this file, so it carries the three things a projection needs that the entries alone cannot give: the letter table the PUA text is read with, the C5-to-Penn map the converter shape’s tagged rows are keyed by, and the phrase list, which no property of the entries can reveal because it is the orthographic rules, not the data, that decide what fails to compose. Holding this one file is holding the lexicon.
+    Every other generated file in `lexicon/` can be derived from this one, because it also contains three things the entries do not. These are the letter table for reading the PUA text, the C5-to-Penn map that keys the converter table’s tagged rows, and the phrase list. The phrase list depends on `phrase-exceptions.tsv` as well as the entries, so it cannot be rebuilt from the entries alone.
 
-    Two of the three duplicate `c5-to-penn.tsv` and the phrases file. They cannot drift from them: all three are written by this one pass, and `make check` rebuilds and byte-compares every one of them. The letter table ships nowhere else.
+    Two of the three have copies elsewhere. `c5_to_penn` is built from `src/qslex/data/c5-to-penn.tsv`, a hand-edited input that the build reads, and tests/test_build.py checks that the two are equal. `phrases` has the same lines as `qs_converter_phrases.txt`, which this build writes from the same list. The letter table is in no other file.
 
-    `meta.counts` carries the added-word count beside the totals, because `meta.source` names the corpus and the corpus no longer accounts for every entry. A consumer that wants to know which entries those are reads `added-words.tsv`; one that only wants to know whether there are any reads this number.
+    `meta.counts` includes the number of added words, because `meta.source` names the corpus and the corpus no longer accounts for every entry. `added-words.tsv` lists which entries they are.
 
-    One headword to a line, rather than a field to a line. The file is generated, so the useful diff is which entries moved, and that reads as one changed line each.
+    The file has one headword per line rather than one field per line. A diff of the generated file then shows one changed line per changed headword.
     """
     grouped: dict[str, list[dict[str, str | int]]] = {}
     for entry in entries:
@@ -227,9 +227,9 @@ def lexicon_json(
 
 
 def lexicon_tsv(entries: Iterable[Entry]) -> str:
-    """The flat projection, deduplicated.
+    """`lexicon/quikscript-lexicon.tsv`, one line per entry, with duplicate lines removed.
 
-    Two headwords can list the same inflected form — ax and axe both own axed — so the flattening has to collapse them. Upstream’s own TSV shipped those rows twice (Shavian-info/readlex#124); this is the single place where that can happen, because every artifact is projected from the grouped form rather than emitted beside it.
+    Two headwords can list the same inflected form (ax and axe both list axed), so identical rows are written once. Upstream’s own TSV listed such rows twice (Shavian-info/readlex#124).
     """
     lines = ["\t".join(TSV_HEADER)]
     seen: set[tuple[str, ...]] = set()
@@ -243,7 +243,7 @@ def lexicon_tsv(entries: Iterable[Entry]) -> str:
 
 
 def letters_rows(mapping: Mapping) -> tuple[tuple[str, ...], ...]:
-    """The decoder ring: PUA text is opaque without a Quikscript font, so name it."""
+    """The rows of the lexicon JSON’s `letters` table, which maps each codepoint to its letter name, class and IPA, so PUA text can be read without a Quikscript font."""
     sources: dict[str, list[str]] = {name: [] for name in CODEPOINT_OF}
     for entry in mapping.entries:
         for name in entry.letters:
@@ -272,9 +272,9 @@ def letters_rows(mapping: Mapping) -> tuple[tuple[str, ...], ...]:
 def artifacts(
     entries: tuple[Entry, ...], mapping: Mapping, added: int
 ) -> dict[str, str]:
-    """The five files, every one of them a projection of the same entries.
+    """The five files, all generated from the same entries.
 
-    The converter shape is built here and not written: `phrases` is derived from it, and the master carries everything the shape itself is rebuilt from, so shipping it as a second JSON would only be shipping the master’s own data twice.
+    The converter table (Latin word to tagged spellings, in readlex_converter.json’s format) is built here but not written. `phrases` is derived from it. The lexicon JSON contains everything needed to rebuild it, so writing it as a second JSON file would repeat the lexicon JSON’s data.
     """
     penn = load_penn()
     rows = converter(
@@ -293,16 +293,16 @@ def artifacts(
 
 def build(
     path: Path | None = None, verify: bool = True
-) -> tuple[dict[str, str], Coverage]:
-    """The corpus the row policy keeps, then the words the corpus lacks.
+) -> tuple[dict[str, str], BuildSummary]:
+    """The corpus rows the row policy keeps, followed by the added words.
 
-    Appended rather than interleaved, so the master’s headwords stay in corpus order and an upstream bump diffs cleanly; the added ones land together at the end, where they are easy to find.
+    The added words go after the corpus rows rather than among them. The lexicon JSON’s headwords then stay in corpus order, an upstream update diffs cleanly, and the added headwords are together at the end.
     """
     mapping = load_mapping()
     rows = load_rows(path, verify=verify)
     added = added_rows(load_added_words())
     entries = convert(select(load_var_tags(), rows) + added, mapping)
-    return artifacts(entries, mapping, len(added)), Coverage(
+    return artifacts(entries, mapping, len(added)), BuildSummary(
         len(rows), len(added), entries
     )
 
@@ -321,14 +321,14 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--no-verify-digest", action="store_true")
     args = parser.parse_args(argv)
 
-    built, coverage = build(args.readlex, verify=not args.no_verify_digest)
+    built, summary = build(args.readlex, verify=not args.no_verify_digest)
     if not args.check:
         args.out.mkdir(parents=True, exist_ok=True)
         for name, text in built.items():
             (args.out / name).write_text(text, encoding="utf-8", newline="\n")
             print(f"wrote {args.out / name}")
         print()
-        print(coverage.report())
+        print(summary.report())
         return 0
 
     stale: list[str] = []

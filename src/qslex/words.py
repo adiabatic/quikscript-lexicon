@@ -15,9 +15,11 @@ SIGN_AUTHORITIES = {"junior-contractions", "common-words"}
 CONTRACTIONS_FILE = "contractions.tsv"
 CONTRACTIONS_HEADER = ["word", "pos", "kind", "contraction", "authority", "note"]
 KINDS = {"word", "clitic"}
-CONTRACTION_AUTHORITIES = {"senior-contractions", "terminal-ing"}
+CONTRACTION_AUTHORITIES = {"senior-contractions", "terminal-ing", "no-how"}
+# Rows whose only source is a specimen passage, not a list or rule in the Manual. The spell checkers accept these forms, but the transliterator does not write them.
+ACCEPT_ONLY_AUTHORITIES = frozenset({"no-how"})
 
-# The core eight the Manual sanctions for Junior writing too, in its own order.
+# The core eight, which the Manual says Junior writers should use too, in the order the Manual lists them.
 CORE_EIGHT = ("the", "of", "and", "to", "it", "is", "for", "be")
 
 
@@ -41,6 +43,11 @@ class Contraction:
     contraction: str
     authority: str
     note: str
+
+    @property
+    def transliterated(self) -> bool:
+        """Whether the transliterator writes this form. The spell checkers accept every row either way."""
+        return self.authority not in ACCEPT_ONLY_AUTHORITIES
 
 
 Signs = dict[tuple[str, str], Sign]
@@ -91,8 +98,8 @@ def load_word_signs(path: Path | None = None) -> Signs:
             raise ValueError(f"{source}:{lineno}: duplicate row for {key}")
         if sign.pos and (sign.word, "") in known:
             raise ValueError(
-                f"{source}:{lineno}: {sign.word!r} already has a row for every "
-                f"part of speech, so a {sign.pos} row can never be reached"
+                f"{source}:{lineno}: {sign.word!r} already has a general row; add "
+                f"part-of-speech rows only for words without one"
             )
         known[key] = sign
     missing = [word for word in CORE_EIGHT if (word, "") not in known]
@@ -133,21 +140,21 @@ def load_contractions(path: Path | None = None) -> tuple[Contraction, ...]:
 
 
 def sign_for(signs: Signs, word: str, pos: str) -> Sign | None:
-    """The row governing this word, preferring one tagged for its part of speech."""
+    """The row for this word, preferring one tagged with its part of speech."""
     return signs.get((word, pos)) or signs.get((word, ""))
 
 
 def _lookup(signs: Signs, part: str, pos: str, single: bool) -> Sign | None:
-    """A phrase entry’s tag belongs to the phrase, so only general rows apply inside."""
+    """A phrase entry’s tag applies to the whole phrase, so only rows with an empty `pos` apply to the words inside it."""
     return sign_for(signs, part, pos) if single else signs.get((part, ""))
 
 
 def apply_signs(
     latin: str, pos: str, letters: Letters, signs: Signs
 ) -> tuple[Letters, Letters, tuple[str, ...], tuple[tuple[str, str], ...]]:
-    """Substitute the Manual’s word signs and standard outlines into a spelling.
+    """Substitute the Manual’s word signs and standard word-outlines into a spelling.
 
-    A single-word entry consults its own part-of-speech tag; a phrase entry is matched word by word, at the boundaries `qslex.elements` finds. Nothing is substituted unless the Latin words and the spelling’s runs are the same shape, which is what keeps to-day (one run, three Latin parts) and dhs (one Latin part, seven runs) intact. Both columns come out of one alignment, because a row with no junior form of its own writes its senior spelling into both. Returns the two spellings, the words the senior one changed, and the rows it consulted.
+    A single-word entry uses the row for its own part-of-speech tag. A phrase entry is matched word by word, at the boundaries `qslex.elements` finds. Nothing is substituted when `qslex.elements.elements` finds that the Latin parts and the spelling’s runs do not line up one for one. Both columns come from the same alignment, because a row with no junior form writes its senior spelling into both. Returns the two spellings, the words whose senior spelling changed, and the rows consulted.
     """
     pairs = elements(latin, letters)
     if pairs is None:

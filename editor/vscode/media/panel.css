@@ -1,0 +1,181 @@
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  padding: 11px;
+  color: var(--vscode-foreground);
+  font-size: var(--vscode-font-size);
+}
+
+main {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  gap: 11px;
+}
+
+section {
+  flex: 1 1 18rem;
+  max-inline-size: 24rem;
+  padding: 11px;
+  border: 1px solid var(--vscode-widget-border, var(--vscode-panel-border));
+  border-radius: 0.25rem;
+  overflow: hidden;
+}
+
+button {
+  display: block;
+  inline-size: 100%;
+  padding: 0 11px;
+  border: 0;
+  border-radius: 0.25rem;
+  background: none;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+button:hover,
+button:focus-visible {
+  background: var(--vscode-list-hoverBackground);
+}
+
+.word {
+  display: flex;
+  align-items: baseline;
+  gap: 11px;
+  margin-block-end: 11px;
+  padding-block-end: 11px;
+  border-block-end: 1px solid var(--vscode-widget-border, var(--vscode-panel-border));
+  border-radius: 0;
+  font-size: 22px;
+  line-height: 33px;
+}
+
+.word .text {
+  overflow: hidden;
+  text-decoration: underline dotted var(--vscode-editorInfo-foreground);
+  text-decoration-thickness: 2px;
+  text-decoration-skip-ink: none;
+  text-underline-offset: 4px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.word .position {
+  margin-inline-start: auto;
+  color: var(--vscode-descriptionForeground);
+  font-size: var(--vscode-font-size);
+  line-height: 1.4;
+  white-space: nowrap;
+}
+
+.suggestion {
+  display: flex;
+}
+
+.suggestion button {
+  inline-size: auto;
+}
+
+.fix {
+  flex: 1;
+  min-inline-size: 0;
+  font-size: 22px;
+  line-height: 33px;
+}
+
+.fix .text {
+  white-space: nowrap;
+}
+
+.fix .gloss {
+  margin-inline-start: 11px;
+  color: var(--vscode-descriptionForeground);
+  font-size: var(--vscode-font-size);
+  line-height: 1.4;
+}
+
+.fix-all {
+  color: var(--vscode-descriptionForeground);
+  font-size: var(--vscode-font-size);
+  line-height: 33px;
+}
+
+.fix-all:hover,
+.fix-all:focus-visible {
+  color: var(--vscode-foreground);
+}
+
+.ignores {
+  margin-block-start: 11px;
+  padding-block-start: 6px;
+  border-block-start: 1px solid var(--vscode-widget-border, var(--vscode-panel-border));
+}
+
+.ignore {
+  min-block-size: 28px;
+  padding: 5px 11px;
+  color: var(--vscode-descriptionForeground);
+  font-size: var(--vscode-font-size);
+  line-height: 1.4;
+}
+
+.ignore:hover,
+.ignore:focus-visible {
+  color: var(--vscode-foreground);
+}
+
+.lookup-form {
+  margin: 0;
+}
+
+.lookup {
+  max-inline-size: 36rem;
+  margin-block-end: 11px;
+}
+
+section .lookup-form {
+  margin-block-start: 11px;
+  padding-block-start: 11px;
+  border-block-start: 1px solid var(--vscode-widget-border, var(--vscode-panel-border));
+}
+
+.latin-input {
+  display: block;
+  inline-size: 100%;
+  min-block-size: 28px;
+  padding: 4px 8px;
+  border: 1px solid var(--vscode-input-border, transparent);
+  border-radius: 2px;
+  background: var(--vscode-input-background);
+  color: var(--vscode-input-foreground);
+  font: inherit;
+}
+
+.latin-input::placeholder {
+  color: var(--vscode-input-placeholderForeground);
+}
+
+.latin-input:focus {
+  outline: 1px solid var(--vscode-focusBorder);
+  outline-offset: -1px;
+}
+
+.lookup-results {
+  overflow: hidden;
+}
+
+.lookup-results:not(:empty) {
+  margin-block-start: 6px;
+}
+
+.note {
+  margin: 0;
+  color: var(--vscode-descriptionForeground);
+  font-size: var(--vscode-font-size);
+  line-height: 1.4;
+}

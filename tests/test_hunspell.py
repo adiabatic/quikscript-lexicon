@@ -47,20 +47,20 @@ def mutate(word: str) -> str:
     )
 
 
-def spell_the_pair_out() -> tuple[str, str]:
+def unlisted_pair_form_and_its_x_letter_word() -> tuple[str, str]:
     for word in WORDS:
         for x_letter, pair in X_LETTERS:
             if x_letter in word and word.replace(x_letter, pair) not in LISTED:
                 return word.replace(x_letter, pair), word
-    raise AssertionError("no X-letter spelling whose pair form is free")
+    raise AssertionError("no X-letter spelling whose pair form is unlisted")
 
 
-def write_the_x_letter_in() -> tuple[str, str]:
+def unlisted_x_letter_form_and_its_pair_word() -> tuple[str, str]:
     for word in WORDS:
         for x_letter, pair in X_LETTERS:
             if pair in word and word.replace(pair, x_letter) not in LISTED:
                 return word.replace(pair, x_letter), word
-    raise AssertionError("no pair spelling whose X-letter form is free")
+    raise AssertionError("no pair spelling whose X-letter form is unlisted")
 
 
 def check(base: Path, text: str, *flags: str) -> list[str]:
@@ -87,7 +87,7 @@ def installed(tmp_path_factory: pytest.TempPathFactory) -> Path:
     return base
 
 
-def test_the_dictionary_counts_its_own_entries() -> None:
+def test_the_first_line_of_the_dic_file_is_the_entry_count() -> None:
     assert str(len(WORDS)) == COUNT
 
 
@@ -111,27 +111,27 @@ def test_the_entries_are_distinct_and_sorted() -> None:
     assert sorted(LISTED) == WORDS
 
 
-def test_no_entry_carries_an_affix_flag() -> None:
+def test_no_entry_has_an_affix_flag() -> None:
     assert [word for word in WORDS if "/" in word] == []
 
 
-def test_the_affix_file_declares_nothing_it_does_not_need() -> None:
+def test_the_affix_file_has_only_the_directives_it_needs() -> None:
     assert KEYWORDS == ["SET", "WORDCHARS", "TRY"] + ["REP"] * 5
     assert directive("SET") == "UTF-8"
 
 
-def test_wordchars_carries_every_letter_and_the_hyphen() -> None:
+def test_wordchars_lists_every_letter_and_the_hyphen() -> None:
     assert directive("WORDCHARS") == WORDCHARS
     assert set(WORDCHARS) == set(ALPHABET) | {HYPHEN}
     assert len(WORDCHARS) == len(CODEPOINT_OF) + 1
 
 
-def test_try_carries_every_letter_and_nothing_else() -> None:
+def test_try_lists_every_letter_and_nothing_else() -> None:
     assert set(directive("TRY")) == set(ALPHABET)
     assert len(directive("TRY")) == len(CODEPOINT_OF)
 
 
-def test_try_runs_from_the_commonest_letter_to_the_rarest() -> None:
+def test_try_lists_letters_from_most_to_least_frequent() -> None:
     counts = collections.Counter(
         character for word in WORDS for character in word if character != HYPHEN
     )
@@ -139,14 +139,14 @@ def test_try_runs_from_the_commonest_letter_to_the_rarest() -> None:
     assert written == sorted(written)
 
 
-def test_the_replacement_table_bridges_each_x_letter_both_ways() -> None:
-    bridges = [
+def test_the_replacement_table_maps_each_x_letter_both_ways() -> None:
+    expected = [
         [written, meant]
         for x_letter, pair in X_LETTERS
         for written, meant in ((x_letter, pair), (pair, x_letter))
     ]
-    assert directive("REP") == str(len(bridges))
-    assert bridges == REPLACEMENTS
+    assert directive("REP") == str(len(expected))
+    assert expected == REPLACEMENTS
 
 
 def test_each_x_letter_stands_for_the_pair_it_is_named_for() -> None:
@@ -164,7 +164,9 @@ def test_hunspell_accepts_every_entry_the_dictionary_ships(installed: Path) -> N
 
 
 @pytest.mark.skipif(HUNSPELL is None, reason="hunspell is not installed")
-def test_hunspell_takes_a_hyphenated_entry_whole(installed: Path) -> None:
+def test_hunspell_accepts_a_hyphenated_entry_with_an_unlisted_part(
+    installed: Path,
+) -> None:
     compounds = [
         word
         for word in WORDS
@@ -175,7 +177,7 @@ def test_hunspell_takes_a_hyphenated_entry_whole(installed: Path) -> None:
 
 
 @pytest.mark.skipif(HUNSPELL is None, reason="hunspell is not installed")
-def test_hunspell_flags_a_mutated_entry_and_offers_the_entry_back(
+def test_hunspell_flags_a_mutated_entry_and_suggests_the_original(
     installed: Path,
 ) -> None:
     word = max(WORDS, key=len)
@@ -185,19 +187,19 @@ def test_hunspell_flags_a_mutated_entry_and_offers_the_entry_back(
 
 
 @pytest.mark.skipif(HUNSPELL is None, reason="hunspell is not installed")
-def test_hunspell_leads_with_the_x_letter_where_the_pair_is_spelled_out(
+def test_hunspell_suggests_the_x_letter_first_where_the_pair_is_spelled_out(
     installed: Path,
 ) -> None:
-    spelled_out, substituted = spell_the_pair_out()
+    spelled_out, substituted = unlisted_pair_form_and_its_x_letter_word()
     reported = check(installed, spelled_out + "\n", "-a")[1:]
     assert suggested(reported[0])[:1] == [substituted]
 
 
 @pytest.mark.skipif(HUNSPELL is None, reason="hunspell is not installed")
-def test_hunspell_leads_with_the_pair_where_the_x_letter_has_no_license(
+def test_hunspell_suggests_the_pair_first_where_no_x_letter_is_allowed(
     installed: Path,
 ) -> None:
-    substituted, spelled_out = write_the_x_letter_in()
+    substituted, spelled_out = unlisted_x_letter_form_and_its_pair_word()
     reported = check(installed, substituted + "\n", "-a")[1:]
     assert suggested(reported[0])[:1] == [spelled_out]
 

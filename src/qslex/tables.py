@@ -27,7 +27,7 @@ def rows_of(
 ) -> Iterator[tuple[int, str, list[str]]]:
     """Every data row of one of this project’s TSV tables, in file order.
 
-    A row comes with the line number and the source name its loader needs to say where a bad row is, so that every table reports a defect the same way.
+    Each row comes with its line number and source name, so every loader reports a bad row’s location in the same format.
     """
     with open_data(path, name) as (f, source):
         reader = csv.reader(f, delimiter="\t")
@@ -42,11 +42,11 @@ def rows_of(
             yield lineno, source, row
 
 
-class Declares:
-    """A table row that names the words its rule is allowed to touch."""
+class HasWordList:
+    """A table row whose `words` column lists, comma-separated, the words the row applies to."""
 
     words: str
 
     @property
-    def declared_words(self) -> tuple[str, ...]:
+    def listed_words(self) -> tuple[str, ...]:
         return tuple(w.strip() for w in self.words.split(",") if w.strip())

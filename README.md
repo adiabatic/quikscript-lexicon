@@ -7,7 +7,7 @@ Now it’s a repository for all kinds of things that depend on knowing how to sp
 The most user-facing things here are:
 
 - the [Quikscript Desk](#desk), a Markdown-aware Quikscript spell checker that runs in your browser (entirely locally if you want, without even a webserver)
-- (coming soon) an LSP for Quikscript that will let you spell-check Quikscript in an LSP-aware editor
+- `quikscript-lsp`, a Quikscript spell-checking language server, with a VS Code extension that uses it ([setup](HACKING.md#the-language-server))
 
 The rest of the README mostly describes things in the order of the underlying data pipeline, which mostly ends up being sorted from “most nerdy” to “least nerdy”.
 
@@ -15,15 +15,15 @@ The rest of the README mostly describes things in the order of the underlying da
 
 Generated into [`lexicon/`](lexicon) and committed, so you can just use them without building anything:
 
-- [`lexicon/quikscript-lexicon.json`](lexicon/quikscript-lexicon.json) — the master, grouped by headword
+- [`lexicon/quikscript-lexicon.json`](lexicon/quikscript-lexicon.json) — every entry, grouped by headword
 
-And then there are more things generated from it:
+The other files are generated in the same build, from the same entries:
 
-- [`lexicon/quikscript-lexicon.tsv`](lexicon/quikscript-lexicon.tsv) — the flat projection
+- [`lexicon/quikscript-lexicon.tsv`](lexicon/quikscript-lexicon.tsv) — one row per entry, with duplicate rows removed
 - [`lexicon/qs_converter_phrases.txt`](lexicon/qs_converter_phrases.txt) — entries a tokenizer must match whole
 - [`lexicon/en-Qaas.dic`](lexicon/en-Qaas.dic) and [`lexicon/en-Qaas.aff`](lexicon/en-Qaas.aff) — a Hunspell spelling dictionary; check Quikscript text with `hunspell -i utf-8 -d lexicon/en-Qaas`
 
-Three spelling columns: **`qs`** is Senior, the default; **`qs_junior`** and **`qs_x`** (the ·Excite/·Exam X-letter form) are populated only where they differ from it. [`lexicon/README.md`](lexicon/README.md) explains the columns; [`docs/pipeline.md`](docs/pipeline.md) specifies the build.
+There are three spelling columns. **`qs`** is Senior, the default. **`qs_junior`** and **`qs_x`** (the ·Excite/·Exam X-letter form) are filled in only where they differ from `qs`. [`lexicon/README.md`](lexicon/README.md) explains the columns, and [`docs/pipeline.md`](docs/pipeline.md) specifies the build.
 
 ## Layout
 
@@ -37,23 +37,29 @@ uv run python -m qslex.latin2qs --junior in.txt          # Junior: neither
 uv run python -m qslex.latin2qs --no-x-letters in.txt # Senior, but without either ·Excite or ·Exam
 ```
 
-Senior is the default and writes both of the Manual’s Senior facilities; `--junior` writes neither. Each is a switch of its own — `--x-letters`/`--no-x-letters` and `--contractions`/`--no-contractions` — so a grade sets the defaults and every combination stays reachable.
+Senior is the default and writes both of the Manual’s Senior facilities. `--junior` writes neither. Each facility also has its own switch, `--x-letters`/`--no-x-letters` and `--contractions`/`--no-contractions`. The grade sets their defaults, and the switches override those defaults.
 
-spaCy tokenizes and tags, the master supplies the spellings, the part of speech settles the heteronyms, and the Manual’s conventions govern namer dots, apostrophes and punctuation. Words the lexicon lacks are constructed from affixes and flagged ⚠️, or passed through flagged ✢. The spec, the grades and every deliberate departure from upstream’s `latin2shaw.py` are in [`docs/latin2qs.md`](docs/latin2qs.md).
+spaCy tokenizes and tags the text, and the spellings come from `lexicon/quikscript-lexicon.json`. The part-of-speech tag chooses between heteronyms. Namer dots, apostrophes and punctuation follow the Manual’s conventions. A word the lexicon lacks is either built from affixes and marked ⚠️, or passed through unchanged and marked ✢. The spec, the grades and the differences from upstream’s `latin2shaw.py` are in [`docs/latin2qs.md`](docs/latin2qs.md).
 
 ## Desk
 
-[`site/index.html`](site/index.html) is the lexicon with a user interface on it: type Markdown in one pane, read it set in Quikscript in the other, and every Quikscript word the lexicon does not accept gets a dotted red underline you can click for suggestions that edit the source back, or to ignore that occurrence or the word from then on. A toggle button switches Junior/Senior, which swaps the face alone — the accepted set is always the whole lexicon plus the Manual’s §III contractions, which no column carries.
+[`site/index.html`](site/index.html) is a spell checker built on the lexicon. You type Markdown in one pane and read it set in Quikscript in the other. Every Quikscript word the lexicon does not accept gets a dotted red underline. Click it for suggestions, which edit the Markdown source. You can also ignore that one occurrence, or ignore the word everywhere. The page remembers ignored words in this browser’s `localStorage` when it is available.
+
+A toggle button switches between the Junior and Senior fonts. It changes only the font. The accepted spellings are always the same: every spelling in the lexicon, plus the Manual’s Senior contractions, which the build does not write into any spelling column.
 
 ```sh
 make site          # rewrite site/index.html
 ```
 
-Then open the file — there is nothing to install, no server to run and no request to anywhere, because the whole word list, [marked](https://github.com/markedjs/marked) and five [Abbots Morton Spaceport](https://github.com/adiabatic/abbots-morton-spaceport) faces are inlined in it. Those faces are pixel fonts, so every font size the page sets is a multiple of 11px.
+Then open the file. There is nothing to install and no server to run, and the page makes no network requests. The word list, [marked](https://github.com/markedjs/marked) and five [Abbots Morton Spaceport](https://github.com/adiabatic/abbots-morton-spaceport) fonts are all inlined in it. Those fonts are pixel fonts, so every font size the page sets is a multiple of 11px.
+
+## Technically-released but unadvertised things
+
+There are other things in this repository too, but I’m not yet ready to put my seal of <del>quality</del> adequacy on them, so I’m not mentioning them in this README.
 
 ## Hacking
 
-How to rewrite `lexicon/`, and what `make check` holds each layer to, are in [`HACKING.md`](HACKING.md).
+[`HACKING.md`](HACKING.md) explains how to regenerate `lexicon/`, what `make check` tests at each layer, and how to run the language server.
 
 ## License
 

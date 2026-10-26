@@ -15,9 +15,9 @@ SHAVIAN_BLOCK = range(0x10450, 0x10480)
 
 @dataclass(frozen=True)
 class AddedWord:
-    """One entry the lexicon carries that ReadLex does not.
+    """An entry the lexicon has that ReadLex does not.
 
-    It declares what a corpus row declares and nothing more, so that the segment mapping and Read’s rules spell it exactly as they spell everything else. The `qs` field is the one addition, and it is a fixture rather than an input: the build never reads it, and the validator fails if the rules stop producing it.
+    It has a corpus row’s word, part-of-speech tag, IPA, Shavian and frequency, plus `qs`, `source` and `note`. The segment mapping and Read’s rules spell it from the corpus-row fields, as they spell every corpus row. `qs` is the expected Senior spelling. The build never reads it, and the validator fails if the rules stop producing it.
     """
 
     word: str
@@ -31,14 +31,14 @@ class AddedWord:
 
     @property
     def headword(self) -> str:
-        """Upstream’s key shape, so a consumer grouping the master sees no seam."""
+        """Upstream’s key format, so a consumer grouping the lexicon JSON cannot tell added entries from corpus entries by their keys."""
         return f"{self.word}_{self.pos}_{self.shavian}"
 
     @property
     def row(self) -> Row:
-        """The same shape a corpus row has, wearing no variant tag.
+        """The entry as a corpus `Row` with an empty `var` tag.
 
-        An added row belongs to no accent, so `var` is empty rather than `RRP`. The row policy has already run by the time one of these reaches the build, and an empty tag is one `variants.kept` raises on, so an added row cannot drift into the corpus accounting unnoticed.
+        An added row belongs to no accent, so `var` is empty rather than `RRP`. The build adds these rows after the row policy has run. `variants.kept` raises on an empty tag, so an added row that reached the row policy would fail the build instead of being counted in the per-tag row counts in var-tags.tsv.
         """
         return Row(
             headword=self.headword,
@@ -80,7 +80,7 @@ def load_added_words(path: Path | None = None) -> tuple[AddedWord, ...]:
             raise ValueError(f"{source}:{lineno}: unknown letter names {unknown}")
         if not authority:
             raise ValueError(
-                f"{source}:{lineno}: a word the corpus does not carry needs a source "
+                f"{source}:{lineno}: a word the corpus does not contain needs a source "
                 f"saying where it comes from"
             )
         if not note:

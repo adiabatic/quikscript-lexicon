@@ -11,7 +11,7 @@ from qslex.letters import (
     render_qs,
     unknown_names,
 )
-from qslex.lint import CHECKS, Check, Site, lint, load_pragmas
+from qslex.lint import CHECKS, Check, Site, lint, load_exemptions
 from qslex.manual import Example, load_examples
 from qslex.mapping import MapEntry, Mapping, load_mapping
 from qslex.overrides import Override, Overrides, load_overrides
@@ -28,10 +28,10 @@ from qslex.rules import (
     Spelling,
     Tables,
     Terminal,
-    XLetterRule,
+    XLetterDecision,
     load_rule_words,
     load_tables,
-    load_x_rulings,
+    load_x_decisions,
     naive,
     spell,
     split,
@@ -62,7 +62,7 @@ __all__ = [
     "Example",
     "Letter",
     "Letters",
-    "XLetterRule",
+    "XLetterDecision",
     "MapEntry",
     "Mapping",
     "NAME_OF",
@@ -97,17 +97,17 @@ __all__ = [
     "load_contractions",
     "load_divergences",
     "load_examples",
+    "load_exemptions",
     "load_mapping",
     "load_overrides",
     "load_passages",
-    "load_pragmas",
     "load_quirks",
     "load_rows",
     "load_rule_words",
     "load_tables",
     "load_var_tags",
     "load_word_signs",
-    "load_x_rulings",
+    "load_x_decisions",
     "naive",
     "names",
     "normalize",

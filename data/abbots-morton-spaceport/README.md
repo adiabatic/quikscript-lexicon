@@ -1,12 +1,12 @@
 # Vendored Abbots Morton Spaceport fonts
 
-The five `.woff2` files are vendored verbatim from [adiabatic/abbots-morton-spaceport](https://github.com/adiabatic/abbots-morton-spaceport) so that [`site/index.html`](../../site/index.html) is reproducible from a clean checkout, with no network access. The page inlines each one as a `data:` URI, which is also what lets it work from a `file:` URL with nothing else installed.
+The five `.woff2` files are unmodified copies from [adiabatic/abbots-morton-spaceport](https://github.com/adiabatic/abbots-morton-spaceport). They are vendored so that [`site/index.html`](../../site/index.html) and the VS Code extension’s stylesheets can be rebuilt from a clean checkout without network access. The page inlines each font as a `data:` URI, so the page also works from a `file:` URL with nothing else installed.
 
 |          |                                                                                                                                                    |
 | -------- | -------------------------------------------------------------------------------------------------------------------------------------------------- |
 | Upstream | <https://github.com/adiabatic/abbots-morton-spaceport>                                                                                             |
 | Release  | [`release/16.000`](https://github.com/adiabatic/abbots-morton-spaceport/releases/tag/release%2F16.000), asset `abbots-morton-spaceport-16.000.zip` |
-| Licence  | SIL OFL 1.1, © Nathan Galt, with glyphs from Departure Mono © 2022–2024 Helena Zhang — see [`LICENSE-OFL-1.1.txt`](LICENSE-OFL-1.1.txt)            |
+| License  | SIL OFL 1.1, © Nathan Galt, with glyphs from Departure Mono © 2022–2024 Helena Zhang. See [`LICENSE-OFL-1.1.txt`](LICENSE-OFL-1.1.txt).            |
 
 | File                                            | SHA-256                                                            |
 | ----------------------------------------------- | ------------------------------------------------------------------ |
@@ -16,12 +16,25 @@ The five `.woff2` files are vendored verbatim from [adiabatic/abbots-morton-spac
 | `AbbotsMortonSpaceportSansSenior-Bold.woff2`    | `088af65711523d3220e3449659f7404c4110bdefde7dd980bd6fa48d66eae316` |
 | `AbbotsMortonSpaceportMono-Regular.woff2`       | `b4e9223937997b78ece9dcecbb3cfd8b4e0d1a9eaecde9316d74f8ae621e1a59` |
 
-## Which face is which
+## Which font is used where
 
-Sans **Junior** is unligated and Sans **Senior** joins its letters, which is the grade the lexicon's `qs_junior` column records from the other side — the desk's Junior/Senior toggle switches between the two faces, and the face alone. **Mono** bundles the whole of [Departure Mono](https://departuremono.com/) alongside the Quikscript letters, so it stands alone as the textarea's face and sits behind Sans as its Latin fallback. Only the five faces the page loads are vendored; the release also ships `.otf`s and a Mono Bold, which nothing here uses.
+- **Sans Junior** draws each letter separately. **Sans Senior** joins letters. The Desk’s Junior/Senior toggle switches the preview and the fix popover between these two fonts. It does not change the spellings.
+- **Sans Senior** is also the font the VS Code extension bundles for Markdown previews and the Fixes panel (see `src/qslex/preview.py`).
+- **Mono** includes all of [Departure Mono](https://departuremono.com/) as well as the Quikscript letters. The Desk uses it on its own for the text area and for code. It is also the fallback after each Sans font in the Desk’s `font-family` lists, for characters the Sans fonts do not have.
 
-Two rules from upstream's README that the page follows rather than reinvents: **every font size on Quikscript-bearing text is a multiple of 11px**, because the glyphs are pixels and anything else blurs them, and font smoothing is turned off with all three of `-webkit-font-smoothing: none`, `-moz-osx-font-smoothing: unset` and `font-smooth: never`. The Bold weight is a half-pixel overstrike of the Regular, which needs 22px or better to read — the size the page sets.
+Only these five files are vendored. The release also contains `.otf` files and a Mono Bold, which nothing here uses.
+
+The page follows two rules from upstream’s README:
+
+- Every font size on text that contains Quikscript is a multiple of 11px. The glyphs are pixel art, and other sizes blur them.
+- Font smoothing is turned off with all three of `-webkit-font-smoothing: none`, `-moz-osx-font-smoothing: unset` and `font-smooth: never`.
+
+The Bold weight is the Regular with a half-pixel overstrike. Upstream recommends 22px or larger for it, and the page uses Bold only at 22px or larger.
 
 ## Bumping it
 
-`src/qslex/desk.py` pins each digest above and verifies it before inlining, so a font bump is a deliberate, reviewable change rather than a silent one: replace the files, update the digests here and in that module, then run `make site` and `make check`.
+`src/qslex/desk.py` records each file’s SHA-256 and checks it before inlining the file, so replacing the file fails the build until the recorded SHA-256 is updated to match. To bump the fonts:
+
+1. Replace the files.
+2. Update the digests here and in `src/qslex/desk.py`.
+3. Run `make site` and `make preview`, then `make check`.

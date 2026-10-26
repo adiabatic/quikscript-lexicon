@@ -1,19 +1,30 @@
-const TOKEN = /[\uE650-\uE66C\uE670-\uE67E][\uE650-\uE66C\uE670-\uE67E-]*/g;
+const TOKEN =
+  /[\uE650-\uE66C\uE670-\uE67E](?:[\p{Cf}\uFE00-\uFE0F]*[\uE650-\uE66C\uE670-\uE67E-])*/gu;
+const INVISIBLE = /[\p{Cf}\uFE00-\uFE0F]/u;
 const HYPHEN = "-";
+const NAMER = "·";
 const SPACE = " ";
-const OFFERS = 10;
-const DISTANT = 3;
+const MAX_SUGGESTIONS = 10;
+const MAX_DISTANCE = 3;
 const FRONT_MATTER = /^---\r?\n(?:[\s\S]*?\r?\n)?---[ \t]*\r?\n?/;
 
 function stripFrontMatter(text) {
   return text.replace(FRONT_MATTER, "");
 }
 
+function afterNamerDot(text, at) {
+  let back = at - 1;
+  while (back >= 0 && INVISIBLE.test(text[back])) back -= 1;
+  return text[back] === NAMER;
+}
+
 function tokens(text) {
   const found = [];
   TOKEN.lastIndex = 0;
   for (let match = TOKEN.exec(text); match !== null; match = TOKEN.exec(text)) {
-    found.push({ word: match[0], start: match.index, end: TOKEN.lastIndex });
+    const word = match[0].split(INVISIBLE).join("");
+    if (word.length === 1 && afterNamerDot(text, match.index)) continue;
+    found.push({ word, start: match.index, end: TOKEN.lastIndex });
   }
   return found;
 }
@@ -24,7 +35,7 @@ function accepts(active, word) {
   return word.split(HYPHEN).every((piece) => piece === "" || active.has(piece));
 }
 
-function offered(active, candidate) {
+function allPiecesAccepted(active, candidate) {
   return candidate.split(SPACE).every((piece) => accepts(active, piece));
 }
 
@@ -40,7 +51,7 @@ function ranked(candidates, score) {
     .map((entry) => entry.candidate);
 }
 
-function bridged(word, rep) {
+function repSubstitutions(word, rep) {
   const out = [];
   for (const [written, meant] of rep) {
     for (let at = word.indexOf(written); at >= 0; at = word.indexOf(written, at + 1)) {
@@ -50,7 +61,7 @@ function bridged(word, rep) {
   return out;
 }
 
-function confused(word, groups) {
+function confusionSwaps(word, groups) {
   const out = [];
   for (const group of groups) {
     for (let i = 0; i < word.length; i += 1) {
@@ -63,7 +74,7 @@ function confused(word, groups) {
   return out;
 }
 
-function nearby(word, letters) {
+function singleEdits(word, letters) {
   const out = [];
   for (let i = 0; i < word.length; i += 1) {
     out.push(word.slice(0, i) + word.slice(i + 1));
@@ -107,7 +118,7 @@ function distance(a, b, cap) {
   return previous1[b.length];
 }
 
-function distant(word, active, cap) {
+function withinDistance(word, active, cap) {
   const out = [];
   for (const candidate of active) {
     if (candidate === word) continue;
@@ -117,7 +128,7 @@ function distant(word, active, cap) {
   return out;
 }
 
-function halves(word) {
+function splits(word) {
   const out = [];
   for (let i = 1; i < word.length; i += 1) {
     out.push([word.slice(0, i), word.slice(i)]);
@@ -128,43 +139,43 @@ function halves(word) {
 function suggest(word, ctx) {
   const active = ctx.active;
   const counts = ctx.freq;
-  const limit = ctx.limit || OFFERS;
+  const limit = ctx.limit || MAX_SUGGESTIONS;
   const out = [];
   const seen = new Set([word]);
   const take = (candidates) => {
     for (const candidate of candidates) {
       if (out.length >= limit) return;
-      if (seen.has(candidate) || !offered(active, candidate)) continue;
+      if (seen.has(candidate) || !allPiecesAccepted(active, candidate)) continue;
       seen.add(candidate);
       out.push(candidate);
     }
   };
 
-  take(bridged(word, ctx.rep));
+  take(repSubstitutions(word, ctx.rep));
   take(
     ranked(
-      confused(word, ctx.groups).filter((candidate) => offered(active, candidate)),
+      confusionSwaps(word, ctx.groups).filter((candidate) => allPiecesAccepted(active, candidate)),
       (candidate) => frequency(counts, candidate),
     ),
   );
   take(
     ranked(
-      nearby(word, ctx.letters).filter((candidate) => offered(active, candidate)),
+      singleEdits(word, ctx.letters).filter((candidate) => allPiecesAccepted(active, candidate)),
       (candidate) => frequency(counts, candidate),
     ),
   );
-  const far = distant(word, active, DISTANT);
-  for (let edits = 1; edits <= DISTANT; edits += 1) {
+  const matches = withinDistance(word, active, MAX_DISTANCE);
+  for (let edits = 1; edits <= MAX_DISTANCE; edits += 1) {
     take(
       ranked(
-        far.filter((hit) => hit.edits === edits).map((hit) => hit.candidate),
+        matches.filter((hit) => hit.edits === edits).map((hit) => hit.candidate),
         (candidate) => frequency(counts, candidate),
       ),
     );
   }
   take(
     ranked(
-      halves(word).filter((pair) => accepts(active, pair[0]) && accepts(active, pair[1])),
+      splits(word).filter((pair) => accepts(active, pair[0]) && accepts(active, pair[1])),
       (pair) => Math.min(frequency(counts, pair[0]), frequency(counts, pair[1])),
     ).map((pair) => pair.join(SPACE)),
   );

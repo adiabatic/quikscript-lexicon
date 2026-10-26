@@ -1,6 +1,6 @@
-"""The Quikscript Desk page, projected from the lexicon like every artifact.
+"""Builds the Quikscript Desk page, site/index.html, from the lexicon.
 
-site/index.html is generated, never hand-edited: the word set it checks against, the suggestion tables it offers, the fonts it renders in and the Markdown parser it runs are all inlined here from the committed master and the pinned vendored assets. That makes the page a single file that works from a file: URL with no request to anywhere, and it makes a page that disagrees with lexicon/ a freshness failure rather than a discovery.
+site/index.html is generated and never edited by hand. Its word set, suggestion tables, fonts and Markdown parser are all inlined from the committed lexicon JSON and the pinned vendored assets. The page is a single file that works from a file: URL and makes no network requests. `make check` runs `python -m qslex.desk --check`, which fails whenever the committed page differs from a rebuild.
 """
 
 from __future__ import annotations
@@ -9,19 +9,23 @@ import argparse
 import base64
 import hashlib
 import html
-import json
 import re
 import sys
 from collections.abc import Iterable, Mapping
 from dataclasses import dataclass
 from pathlib import Path
 
-from qslex.build import ARTIFACTS, HUNSPELL_AFF, HUNSPELL_DIC, LEXICON_JSON
-from qslex.csur import CODEPOINT_OF
-from qslex.hunspell import X_LETTERS, by_frequency, spellings
-from qslex.letters import VOWELS, parse, render_qs
+from qslex.checker_data import (
+    CheckerDataError,
+    Lexicon,
+    Record,
+    crosscheck,
+    derive,
+    load_records,
+    payload,
+)
 from qslex.readlex import repo_root
-from qslex.words import Contraction, load_contractions
+from qslex.words import load_contractions
 
 SITE = "site"
 PAGE = "index.html"
@@ -31,8 +35,6 @@ TEMPLATE = "template.html"
 STYLESHEET = "app.css"
 CORE = "core.js"
 APP = "app.js"
-
-WORD_ROW = "word"
 
 FONTS = {
     "SANS_JUNIOR_REGULAR": "AbbotsMortonSpaceportSansJunior-Regular.woff2",
@@ -67,7 +69,7 @@ SAMPLE_WORDS = (("hello", "ITJ"), ("world", "NN1"), ("quick", "AJ0"), ("script",
 SAMPLE_HEADING = "# Quikscript Desk"
 SAMPLE_PROSE = (
     "Write Markdown on the left and read it on the right. A Quikscript word the "
-    "lexicon does not carry gets a dotted red underline; click an underlined word "
+    "lexicon does not list gets a dotted red underline; click an underlined word "
     "for the spellings it is nearest to."
 )
 
@@ -75,40 +77,15 @@ CLOSING_SCRIPT = "</script"
 PLACEHOLDER = re.compile(r"__QS_[A-Z_]+__")
 
 
-class PageError(RuntimeError):
+class PageError(CheckerDataError):
     pass
 
 
 @dataclass(frozen=True)
-class Record:
-    latin: str
-    pos: str
-    qs: str
-    junior: str
-    x_letter: str
-    frequency: int
+class PageSummary:
+    """Counts printed after a build.
 
-    def columns(self) -> tuple[str, str, str]:
-        return (self.qs, self.junior, self.x_letter)
-
-
-@dataclass(frozen=True)
-class Lexicon:
-    """Everything the page checks a word against, derived from the master alone.
-
-    `listed` is what the hunspell dictionary carries — the three columns and nothing else — and `union` is that plus the §III Senior contractions, which reach no column but are correct writing all the same. Everything held against the shipped `.dic` and `.aff` is held against `listed`; the one set the page checks against is `union`. The Junior/Senior toggle swaps the face alone, so neither grade needs a word set of its own.
-    """
-
-    listed: tuple[str, ...]
-    union: tuple[str, ...]
-    frequency: Mapping[str, int]
-
-
-@dataclass(frozen=True)
-class Coverage:
-    """What the page carries, for the log.
-
-    Every number is pinned in tests/test_desk.py, so this is a convenience for whoever is watching a change land rather than a check of its own.
+    They are informational. tests/test_desk.py checks the spelling counts. Nothing checks the page size.
     """
 
     lexicon: Lexicon
@@ -124,17 +101,10 @@ class Coverage:
         )
 
 
-def artifact(name: str, root: Path) -> str:
-    path = root / ARTIFACTS / name
-    if not path.is_file():
-        raise PageError(f"{path} not found; run `make artifacts` first")
-    return path.read_text(encoding="utf-8")
-
-
 def asset(name: Path, root: Path) -> bytes:
-    """A vendored file’s bytes, verified against the digest pinned above before use.
+    """A vendored file’s bytes, after checking them against its SHA-256 digest in `SHA256`.
 
-    The page inlines every one of these, so a font or a parser that had drifted would be baked into a generated file and shipped without a diff anyone could read. Provenance for both directories is in their own READMEs.
+    The page inlines each of these files, so a changed font or parser would otherwise end up in the generated page with no readable diff. Each vendored directory’s README records where its files came from.
     """
     path = root / name
     if not path.is_file():
@@ -147,146 +117,10 @@ def asset(name: Path, root: Path) -> bytes:
     if actual != SHA256[name]:
         raise PageError(
             f"{path} has SHA-256 {actual}, expected {SHA256[name]}. The digest is "
-            f"pinned in src/qslex/desk.py and in that directory’s README; "
-            f"bump both together."
+            f"pinned in src/qslex/desk.py and in that directory’s README. "
+            f"Update the digest in both places together."
         )
     return data
-
-
-def load_records(root: Path) -> tuple[Record, ...]:
-    """Every entry of the master, flattened in file order.
-
-    The committed JSON is read rather than the corpus respelled: the page is projected from the artifact it ships beside, so a stale lexicon shows up as a stale page rather than as a page that quietly checks against a different word set than the hunspell dictionary next to it.
-    """
-    master = json.loads(artifact(LEXICON_JSON, root))
-    return tuple(
-        Record(
-            latin=entry["Latn"],
-            pos=entry["pos"],
-            qs=entry["qs"],
-            junior=entry.get("qs_junior", ""),
-            x_letter=entry.get("qs_x", ""),
-            frequency=entry["freq"],
-        )
-        for group in master["entries"].values()
-        for entry in group
-    )
-
-
-def contracted(
-    contractions: Iterable[Contraction], records: Iterable[Record]
-) -> tuple[tuple[str, Record], ...]:
-    """Each §III Senior contraction written out, beside every row it stands for.
-
-    Only the `word` rows are taken. The two `clitic` rows stay out because neither can ever be a token the page checks: `n't` attaches solid, so it is never written on its own, and a bare `'ll` after an apostrophe is flagged here for the same reason the dictionary flags it, the apostrophe being deliberately outside `WORDCHARS` (docs/pipeline.md). A row’s part-of-speech tag narrows the match to the rows carrying that tag; where it carries none, every row for the headword counts, and the rows are what the frequency the contraction inherits comes from.
-    """
-    rows: dict[str, list[Record]] = {}
-    for record in records:
-        rows.setdefault(record.latin.lower(), []).append(record)
-    out: list[tuple[str, Record]] = []
-    for entry in contractions:
-        if entry.kind != WORD_ROW:
-            continue
-        matched = [
-            record
-            for record in rows.get(entry.word, ())
-            if not entry.pos or record.pos == entry.pos
-        ]
-        if not matched:
-            raise PageError(
-                f"the contraction for {entry.word!r} ({entry.pos or 'any pos'}) "
-                f"matches no row of {LEXICON_JSON}, so the page would carry a "
-                f"spelling with no word to take a frequency from"
-            )
-        written = render_qs(parse(entry.contraction))
-        out.extend((written, record) for record in matched)
-    return tuple(out)
-
-
-def derive(records: Iterable[Record], contractions: Iterable[Contraction]) -> Lexicon:
-    """The one word set and the frequencies the page needs.
-
-    A spelling’s frequency is the highest any row writing it carries, in any column: an X-letter or junior form is the same word as the row’s own spelling, so it inherits that row’s count rather than falling to zero and sorting last in a suggestion list.
-
-    The §III contractions join the union outright, which is what a Tier 2 facility is (docs/word-signs.md): correct writing the checker accepts whichever face is showing, never the spelling a column carries. Each takes the frequency of the word it contracts, so the suggester ranks it as common as that word.
-    """
-    rows = tuple(records)
-    matched = contracted(contractions, rows)
-    carried = frozenset(spellings((written, "", "") for written, _ in matched))
-
-    frequency: dict[str, int] = {}
-    for row in rows:
-        for word in spellings((row.columns(),)):
-            frequency[word] = max(frequency.get(word, 0), row.frequency)
-    for written, row in matched:
-        if written in carried:
-            frequency[written] = max(frequency.get(written, 0), row.frequency)
-
-    listed = spellings(row.columns() for row in rows)
-    return Lexicon(
-        listed=listed,
-        union=tuple(sorted(frozenset(listed) | carried)),
-        frequency=frequency,
-    )
-
-
-def crosscheck(lexicon: Lexicon, root: Path) -> None:
-    """The page’s word set and its TRY order, held to the shipped hunspell files.
-
-    Both are re-derived here from the master rather than read out of the `.dic` and the `.aff`, so that the page and the dictionary cannot disagree quietly. They are the same two derivations `qslex.hunspell` makes for hunspell, so a mismatch means one of the two artifacts is stale, not that the page wants a wider set.
-
-    What is held to the `.dic` is `listed`, the three columns alone. The page accepts the §III contractions on top of that, and its letter order stays the `.aff`’s TRY over the dictionary’s own word set rather than one recounted over the wider one: the suggester is walking hunspell’s alphabet, and 68 more spellings would not move it far enough to be worth two orders that have to be kept apart.
-    """
-    lines = artifact(HUNSPELL_DIC, root).splitlines()
-    count, words = lines[0], tuple(lines[1:])
-    if count != str(len(words)):
-        raise PageError(f"{HUNSPELL_DIC} counts {count} entries and lists {len(words)}")
-    if words != lexicon.listed:
-        raise PageError(
-            f"the page’s {len(lexicon.listed)} listed spellings are not the "
-            f"{len(words)} {HUNSPELL_DIC} lists; run `make artifacts`"
-        )
-
-    written = [
-        line.removeprefix("TRY ")
-        for line in artifact(HUNSPELL_AFF, root).splitlines()
-        if line.startswith("TRY ")
-    ]
-    if len(written) != 1:
-        raise PageError(f"{HUNSPELL_AFF} declares {len(written)} TRY lines, wanted 1")
-    if written[0] != by_frequency(lexicon.listed):
-        raise PageError(f"the page’s letter order is not {HUNSPELL_AFF}’s TRY order")
-
-
-def word_list(lexicon: Lexicon) -> str:
-    """The word set and its frequencies as one string, one spelling to a line.
-
-    A JSON object of 75,649 short keys is several hundred kilobytes of quoting and punctuation in a file that is fetched whole; a tab-separated block costs one split at startup and nothing else. The frequency is left off where it is zero, which is most of the list.
-    """
-    return "\n".join(
-        f"{word}\t{lexicon.frequency[word]}" if lexicon.frequency[word] else word
-        for word in lexicon.union
-    )
-
-
-def replacements() -> tuple[tuple[str, str], ...]:
-    """Each X-letter bridged to the letter pair it stands for, both ways.
-
-    The table the `.aff` writes as REP, and for the same reason: the letters around an X-letter change with it, so neither form of a word is a single-letter edit from the other and no edit-distance suggester alone will turn it up.
-    """
-    return tuple(
-        (written, meant)
-        for x_letter, pair in X_LETTERS
-        for written, meant in ((x_letter, pair), (pair, x_letter))
-    )
-
-
-def confusions() -> tuple[str, ...]:
-    """The letter groups a writer mistakes within, one group to a string.
-
-    A phonemic script invites a particular misspelling: the right consonant skeleton around the wrong vowel, because the writer heard a vowel the accent or the schwa reduced to something else. So the suggester offers a candidate that stays inside a group ahead of every other single edit, however rare the word — a frequency rank alone buries a common word’s contraction under consonant swaps that happen to be commoner. The vowels are the one group so far; a set of frequently confused consonants would be one more string here, sorted the same way.
-    """
-    return ("".join(sorted(chr(CODEPOINT_OF[name]) for name in VOWELS)),)
 
 
 def variants(word: str) -> tuple[str, ...]:
@@ -297,9 +131,9 @@ def variants(word: str) -> tuple[str, ...]:
 
 
 def sample(records: Iterable[Record], lexicon: Lexicon) -> str:
-    """The document the page opens with, built from the lexicon rather than typed.
+    """The document the page opens with, built from the lexicon.
 
-    Every Quikscript spelling in it is looked up by (Latn, pos), so the sample cannot quietly stop being spelled the way the lexicon spells it. The one misspelling is the first candidate variant of the first sample word that the word set rejects, so the page opens with exactly one underline and something to click.
+    Each Quikscript word in it is looked up by (Latn, pos), so the sample always uses the lexicon’s current spellings. The misspelling is the first candidate variant of the first sample word that the word set rejects. The page therefore opens with one underlined word to click.
     """
     spelled = {(row.latin.lower(), row.pos): row.qs for row in records}
     missing = [key for key in SAMPLE_WORDS if not spelled.get(key)]
@@ -314,32 +148,21 @@ def sample(records: Iterable[Record], lexicon: Lexicon) -> str:
     return "\n".join((SAMPLE_HEADING, "", SAMPLE_PROSE, "", line, ""))
 
 
-def payload(lexicon: Lexicon) -> str:
-    """Everything the page’s JavaScript reads, as one JSON object.
-
-    Sorted keys and a list of pairs for the replacement table, so that a rebuilt page differs only where the lexicon did.
-    """
-    data = {
-        "confusions": list(confusions()),
-        "rep": [list(pair) for pair in replacements()],
-        "try_order": by_frequency(lexicon.listed),
-        "words": word_list(lexicon),
-    }
-    return json.dumps(data, ensure_ascii=False, sort_keys=True)
-
-
 def data_uri(raw: bytes) -> str:
     return "data:font/woff2;base64," + base64.b64encode(raw).decode("ascii")
 
 
 def substitute(text: str, chunks: Mapping[str, str]) -> str:
-    """Every placeholder filled, and nothing that could close the script it sits in.
+    """Fills every placeholder, and fails if a chunk contains `</script`.
 
-    A chunk carrying `</script` would end its own element wherever the browser’s tokenizer found the string, so the page would truncate quietly rather than fail to build. None of the inputs contains one; this is what keeps it that way.
+    A chunk containing `</script` would end its script element wherever the browser’s HTML tokenizer found the string. Without this check, the page would be truncated and the build would still pass. No input contains the string now.
     """
     for token, chunk in chunks.items():
         if CLOSING_SCRIPT in chunk.lower():
-            raise PageError(f"{token} carries a {CLOSING_SCRIPT}, which would truncate")
+            raise PageError(
+                f"{token} contains {CLOSING_SCRIPT}, which would end the script "
+                f"element early"
+            )
         if token not in text:
             raise PageError(f"{token} is not in the template")
         text = text.replace(token, chunk)
@@ -349,7 +172,7 @@ def substitute(text: str, chunks: Mapping[str, str]) -> str:
     return text
 
 
-def build(root: Path | None = None) -> tuple[str, Coverage]:
+def build(root: Path | None = None) -> tuple[str, PageSummary]:
     root = root if root is not None else repo_root()
     records = load_records(root)
     lexicon = derive(records, load_contractions())
@@ -373,7 +196,7 @@ def build(root: Path | None = None) -> tuple[str, Coverage]:
             "__QS_APP__": (WEB / APP).read_text(encoding="utf-8"),
         },
     )
-    return page, Coverage(lexicon, len(page.encode("utf-8")))
+    return page, PageSummary(lexicon, len(page.encode("utf-8")))
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -388,13 +211,13 @@ def main(argv: list[str] | None = None) -> int:
     )
     args = parser.parse_args(argv)
 
-    page, coverage = build()
+    page, summary = build()
     if not args.check:
         args.out.parent.mkdir(parents=True, exist_ok=True)
         args.out.write_text(page, encoding="utf-8", newline="\n")
         print(f"wrote {args.out}")
         print()
-        print(coverage.report())
+        print(summary.report())
         return 0
 
     stale = ""

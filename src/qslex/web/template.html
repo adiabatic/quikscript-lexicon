@@ -31,7 +31,7 @@ __QS_CSS__
 <h1>Quikscript Desk</h1>
 <div id="controls">
 <button type="button" id="undo" disabled>Undo</button>
-<button type="button" id="ignored" hidden></button>
+<button type="button" id="unignore" hidden></button>
 <button type="button" id="grade" aria-pressed="true">Senior</button>
 </div>
 </header>
@@ -39,7 +39,7 @@ __QS_CSS__
 <textarea id="source" spellcheck="false" autocapitalize="off" autocorrect="off" autocomplete="off" wrap="soft" aria-label="Markdown source">__QS_SAMPLE__</textarea>
 <div id="preview" lang="en-Qaas" aria-label="Rendered preview"></div>
 </main>
-<div id="fixer" popover="auto" lang="en-Qaas"></div>
+<div id="popover" popover="auto" lang="en-Qaas"></div>
 <script>__QS_MARKED__</script>
 <script>const QS = __QS_DATA__;</script>
 <script>__QS_CORE__</script>

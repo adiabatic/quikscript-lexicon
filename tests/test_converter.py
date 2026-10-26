@@ -141,7 +141,7 @@ def test_an_entry_whose_parts_spell_something_else_is_listed() -> None:
     assert "at home" in phrases(LEXICON, ())
 
 
-def test_declared_exceptions_are_listed_however_they_compose() -> None:
+def test_a_phrase_exception_is_listed_however_it_composes() -> None:
     exceptions = (PhraseException("cat", "html-entity", "note"),)
     assert phrases(LEXICON, exceptions) == ("at home", "cat", "don't", "ice-box")
 

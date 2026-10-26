@@ -5,18 +5,18 @@ from dataclasses import dataclass
 from pathlib import Path
 
 from qslex.readlex import Row
-from qslex.tables import Declares, rows_of
+from qslex.tables import HasWordList, rows_of
 
 TAGS_FILE = "var-tags.tsv"
 TAGS_HEADER = ["tag", "canonical", "policy", "rows", "words", "note"]
 POLICIES = {"keep", "drop"}
 
-# The four tags upstream’s README and data model actually sanction. Anything else is a defect, so it has to enumerate the words it touches: that bounds the damage, gives the upstream report its row list, and makes an upstream fix show up here as a rule that stopped matching rather than as a silent change of contents.
+# The four tags that upstream’s README and data model document. Any other tag is a defect, so its row must list the words it covers. The validator fails if the tag appears on a word the row does not list. The list also gives the upstream bug report its words. When upstream fixes the tag, the validator fails on the listed words it no longer covers.
 DOCUMENTED = frozenset({"RRP", "TrapBath", "GenAm", "GenAus"})
 
 
 @dataclass(frozen=True)
-class VarTag(Declares):
+class VarTag(HasWordList):
     tag: str
     canonical: str
     policy: str
@@ -52,10 +52,10 @@ def load_var_tags(path: Path | None = None) -> Tags:
         entry = VarTag(tag, canonical, policy, count, words, note)
         if tag in known:
             raise ValueError(f"{source}:{lineno}: duplicate row for {tag!r}")
-        if tag not in DOCUMENTED and not entry.declared_words:
+        if tag not in DOCUMENTED and not entry.listed_words:
             raise ValueError(
                 f"{source}:{lineno}: {tag!r} is not one of upstream’s documented "
-                f"tags {sorted(DOCUMENTED)}, so it must declare the words it covers"
+                f"tags {sorted(DOCUMENTED)}, so it must list the words it covers"
             )
         if not note:
             raise ValueError(f"{source}:{lineno}: every tag needs a note")
@@ -75,15 +75,15 @@ def load_var_tags(path: Path | None = None) -> Tags:
 
 
 def kept(tags: Tags, tag: str) -> bool:
-    """Whether a row wearing this tag belongs to the RRP family the lexicon spells.
+    """Whether a row with this tag belongs to the RRP family the lexicon spells.
 
-    A tag and the tag it normalizes to are forbidden to disagree on policy, so the row’s own policy is the canonical one.
+    `load_var_tags` fails if a tag and the tag it normalizes to have different policies, so the row’s own policy is also the canonical tag’s policy.
     """
     entry = tags.get(tag)
     if entry is None:
         raise ValueError(
-            f"{TAGS_FILE} has no policy for the variant tag {tag!r}; the corpus has "
-            f"grown a tag nobody has ruled on"
+            f"{TAGS_FILE} has no policy for the variant tag {tag!r}, which appears "
+            f"in the corpus"
         )
     return entry.kept
 

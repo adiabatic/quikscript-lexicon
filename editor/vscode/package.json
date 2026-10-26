@@ -1,0 +1,74 @@
+{
+  "name": "quikscript-vscode",
+  "displayName": "Quikscript",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Quikscript spelling for VS Code",
+  "license": "MIT",
+  "publisher": "adiabatic",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/adiabatic/quikscript-lexicon.git"
+  },
+  "categories": ["Linters"],
+  "engines": {
+    "node": ">=20",
+    "vscode": "^1.91.0"
+  },
+  "main": "./extension.js",
+  "activationEvents": ["onLanguage:markdown", "onLanguage:plaintext"],
+  "contributes": {
+    "markdown.previewStyles": ["./media/quikscript-preview.css"],
+    "viewsContainers": {
+      "panel": [
+        {
+          "id": "quikscript",
+          "title": "Quikscript",
+          "icon": "media/quikscript.svg"
+        }
+      ]
+    },
+    "views": {
+      "quikscript": [
+        {
+          "type": "webview",
+          "id": "quikscript.fixes",
+          "name": "Fixes"
+        }
+      ]
+    },
+    "configuration": {
+      "title": "Quikscript",
+      "properties": {
+        "quikscript.completions": {
+          "type": "string",
+          "enum": ["off", "onDemand", "auto"],
+          "enumDescriptions": [
+            "No Latin-to-Quikscript completions.",
+            "Completions only when explicitly invoked.",
+            "Completions as you type."
+          ],
+          "default": "off",
+          "description": "When to offer Latin-to-Quikscript completions."
+        },
+        "quikscript.serverPath": {
+          "type": "string",
+          "default": "",
+          "description": "Path to the language server. Empty means the bundle shipped with this extension, then the checkout beside it."
+        }
+      }
+    }
+  },
+  "scripts": {
+    "check": "tsc --noEmit",
+    "test": "node --test"
+  },
+  "dependencies": {
+    "vscode-languageclient": "^10.1.0"
+  },
+  "devDependencies": {
+    "@types/node": "^26.2.0",
+    "@types/vscode": "^1.91.0",
+    "typescript": "^7.0.2"
+  }
+}

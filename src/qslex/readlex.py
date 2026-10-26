@@ -68,7 +68,7 @@ def _entry(source: str, headword: str, index: int, entry: Any) -> Row:
 def load_rows(path: Path | None = None, verify: bool = True) -> tuple[Row, ...]:
     """Every entry of readlex.json, flattened in file order.
 
-    The JSON is the master upstream hand-edits; its flat TSV is generated from it and has carried generation bugs, and the `var` tags the row policy needs exist only here. Headword grouping is kept on each row rather than discarded, so the build can reassemble it without a second pass over the file.
+    readlex.json is the file upstream edits by hand. Upstream’s flat TSV is generated from it and has had generation bugs, and the `var` tags the row policy needs are only in the JSON. Each row keeps its headword, so the build can regroup the rows without a second pass over the file.
     """
     path = path if path is not None else default_corpus_path()
     if not path.is_file():
@@ -82,8 +82,8 @@ def load_rows(path: Path | None = None, verify: bool = True) -> tuple[Row, ...]:
         if actual != CORPUS_SHA256:
             raise CorpusError(
                 f"{path} has SHA-256 {actual}, expected {CORPUS_SHA256} "
-                f"({CORPUS_URL} @ {CORPUS_COMMIT[:7]}). Every corpus invariant in "
-                f"validate.py is pinned to that snapshot; bump both together."
+                f"({CORPUS_URL} @ {CORPUS_COMMIT[:7]}). The expected counts in "
+                f"validate.py are for that snapshot; update both together."
             )
 
     source = str(path)

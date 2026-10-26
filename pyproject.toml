@@ -1,7 +1,7 @@
 [project]
 name = "qslex"
 version = "0.1.0"
-description = "IPA-to-Quikscript segment mapping and tokenizer for the Quikscript lexicon"
+description = "Quikscript lexicon build, validator and transliterator"
 authors = [
     { name = "Nathan Galt", email = "adiabatic@users.noreply.github.com" }
 ]
@@ -11,7 +11,7 @@ requires-python = ">=3.13"
 dependencies = []
 
 [build-system]
-requires = ["uv_build>=0.11.31,<0.12.0"]
+requires = ["uv_build>=0.11.31,<0.13.0"]
 build-backend = "uv_build"
 
 [project.optional-dependencies]
@@ -41,7 +41,7 @@ line-length = 88
 
 [tool.ruff.lint]
 select = ["E", "F", "I", "UP", "B", "SIM"]
-# Prose is not hard-wrapped; the formatter still holds code to line-length.
+# Prose is not hard-wrapped. The formatter still wraps code at line-length.
 ignore = ["E501"]
 
 [tool.ruff.lint.isort]
