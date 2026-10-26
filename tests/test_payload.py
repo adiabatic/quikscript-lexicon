@@ -145,7 +145,7 @@ def test_every_latin_and_tag_in_latin_by_spelling_is_in_spellings_by_latin() -> 
         assert (latin, pos) in tagged
 
 
-def test_spellings_by_latin_lists_every_row_that_spells_a_token() -> None:
+def test_spellings_by_latin_has_the_expected_line_and_latin_word_counts() -> None:
     assert len(SPELLINGS_BY_LATIN_LINES) == 107755
     assert len({line.split("\t")[0] for line in SPELLINGS_BY_LATIN_LINES}) == 77561
 
@@ -212,9 +212,9 @@ def test_a_spaced_spelling_is_in_neither_map() -> None:
 
 
 def test_a_word_set_the_dictionary_does_not_list_is_refused() -> None:
-    doctored = dataclasses.replace(LEXICON, listed=LEXICON.listed[:-1])
+    without_last_spelling = dataclasses.replace(LEXICON, listed=LEXICON.listed[:-1])
     with pytest.raises(CheckerDataError, match="make artifacts"):
-        crosscheck(doctored, ROOT)
+        crosscheck(without_last_spelling, ROOT)
 
 
 def test_a_contraction_matching_no_lexicon_row_is_refused() -> None:

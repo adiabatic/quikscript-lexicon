@@ -74,7 +74,9 @@ def test_use_splits_noun_from_verb(t: Transliterator) -> None:
     assert verb == qs("·Ye·Ooze·Zoo")
 
 
-def test_an_ambiguity_no_tag_settles_stays_joined(t: Transliterator) -> None:
+def test_an_ambiguity_no_tag_resolves_is_written_as_both_spellings_joined(
+    t: Transliterator,
+) -> None:
     out = words(t, "They fought against the king.")[2]
     assert out == qs("·Utter·Gay·Et·No·See·Tea") + "⬌" + qs(
         "·Utter·Gay·Eight·No·See·Tea"
@@ -134,7 +136,7 @@ def test_verbal_s_attaches_solid(t: Transliterator) -> None:
     assert words(t, "It's here.", contractions=False)[0] == qs("·It·Tea·See")
 
 
-def test_a_tolerated_contraction_is_never_written(t: Transliterator) -> None:
+def test_an_accept_only_contraction_is_not_transliterated(t: Transliterator) -> None:
     assert t.transliterate("It is done.", Options(junior=False)).strip() == (
         "\ue670 \ue65b \ue653\ue67a\ue666."
     )
@@ -155,8 +157,8 @@ def test_the_grade_sets_the_facility_defaults_and_explicit_options_override_them
     assert (Options().x_letters, Options().contractions) == (True, True)
     junior = Options(junior=True)
     assert (junior.x_letters, junior.contractions) == (False, False)
-    asked = Options(junior=True, x_letters=True, contractions=True)
-    assert (asked.x_letters, asked.contractions) == (True, True)
+    explicit = Options(junior=True, x_letters=True, contractions=True)
+    assert (explicit.x_letters, explicit.contractions) == (True, True)
     assert Options(contractions=False).x_letters is True
 
 
@@ -206,9 +208,7 @@ def test_junior_diverges_at_word_level_only(t: Transliterator) -> None:
     assert junior[5].rstrip(".") == qs("·Way·Ox·Zoo")
 
 
-def test_senior_takes_the_x_letters_and_no_x_letters_backs_them_out(
-    t: Transliterator,
-) -> None:
+def test_senior_writes_x_letters_unless_x_letters_is_false(t: Transliterator) -> None:
     senior = words(t, "We expect taxes.")
     plain = words(t, "We expect taxes.", x_letters=False)
     assert senior[1] == qs("·Et·Excite·Pea·Et·Key·Tea")
@@ -217,11 +217,13 @@ def test_senior_takes_the_x_letters_and_no_x_letters_backs_them_out(
     assert plain[2].rstrip(".") == qs("·Tea·At·Key·See·Zoo")
 
 
-def test_junior_takes_no_x_letters_until_it_asks(t: Transliterator) -> None:
+def test_junior_writes_x_letters_only_when_x_letters_is_true(
+    t: Transliterator,
+) -> None:
     junior = words(t, "We expect taxes.", junior=True)
-    asked = words(t, "We expect taxes.", junior=True, x_letters=True)
+    with_x_letters = words(t, "We expect taxes.", junior=True, x_letters=True)
     assert junior[1] == qs("·It·Key·See·Pea·Et·Key·Tea")
-    assert asked[1] == qs("·Et·Excite·Pea·Et·Key·Tea")
+    assert with_x_letters[1] == qs("·Et·Excite·Pea·Et·Key·Tea")
 
 
 def test_the_junior_and_x_letter_columns_compose(t: Transliterator) -> None:
@@ -268,7 +270,9 @@ def test_an_initialism_no_entity_tags_takes_its_dot(t: Transliterator) -> None:
     assert words(t, "I watched TV last night.")[2] == "·" + qs("·Tea·Eat·Vie·Eat")
 
 
-def test_shouting_is_not_an_initialism(t: Transliterator) -> None:
+def test_an_all_caps_word_that_is_not_an_initialism_takes_no_dot(
+    t: Transliterator,
+) -> None:
     assert words(t, "PLEASE STOP")[0] == qs("·Pea·Low·Eat·Zoo")
 
 
@@ -281,7 +285,7 @@ def test_brackets_are_angled(t: Transliterator) -> None:
     assert "(" not in out and ")" not in out
 
 
-def test_double_quotes_demote_to_single(t: Transliterator) -> None:
+def test_double_quotes_are_changed_to_single_quotes(t: Transliterator) -> None:
     out = convert(t, '"yes," he said')
     assert "‘" in out and "’" in out
     assert "“" not in out and "”" not in out
@@ -425,7 +429,7 @@ def test_a_pseudo_tag_gains_no_closing_tag(t: Transliterator) -> None:
 
 # --- the Manual’s specimen passages -------------------------------------------
 
-# Expected output for passage words the transliterator cannot write as the Manual does. no-how 38: done is a tolerated contraction, which the checker accepts but the transliterator never writes. parental-advice 11: the phrase “a little” matches first, so the word-level contraction layer never sees little. gown-shop 24: Read writes whatever as the what-sign plus ever, a contraction his own list does not have. marys-lamb 30: manual-passages.tsv cannot record the leading apostrophe of 'twas. marys-lamb 32: the row policy keeps both RRPVar pronunciations of against, so the output joins both spellings with ⬌.
+# Expected output for passage words the transliterator cannot write as the Manual does. no-how 38: the passage writes done as ·Day·No, an accept-only contraction, which the checker accepts but the transliterator does not write. parental-advice 11: the phrase “a little” matches first, so the word-level contraction layer never sees little. gown-shop 24: Read writes whatever as the what-sign plus ever, a contraction his own list does not have. marys-lamb 30: manual-passages.tsv cannot record the leading apostrophe of 'twas. marys-lamb 32: the row policy keeps both RRPVar pronunciations of against, so the output joins both spellings with ⬌.
 PASSAGE_EXPECTED_OUTPUTS = {
     ("no-how", 38): "·Day·Utter·No",
     ("parental-advice", 11): "·Low·It·Tea·Low",
