@@ -53,6 +53,10 @@ make site          # rewrite site/index.html
 
 Then open the file. There is nothing to install and no server to run, and the page makes no network requests. The word list, [marked](https://github.com/markedjs/marked) and five [Abbots Morton Spaceport](https://github.com/adiabatic/abbots-morton-spaceport) fonts are all inlined in it. Those fonts are pixel fonts, so every font size the page sets is a multiple of 11px.
 
+## Technically-released but unadvertised things
+
+There are other things in this repository too, but I’m not yet ready to put my seal of <del>quality</del> adequacy on them, so I’m not mentioning them in this README.
+
 ## Hacking
 
 [`HACKING.md`](HACKING.md) explains how to regenerate `lexicon/`, what `make check` tests at each layer, and how to run the language server.
