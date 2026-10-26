@@ -29,11 +29,11 @@
 }
 
 :root {
-  --paper: light-dark(#fff, #18181b);
+  --background: light-dark(#fff, #18181b);
   --rule: light-dark(#d4d4d8, #3f3f46);
   --chrome: light-dark(#f4f4f5, #27272a);
-  --ink: light-dark(#18181b, #f4f4f5);
-  --quiet: light-dark(#71717a, #a1a1aa);
+  --text: light-dark(#18181b, #f4f4f5);
+  --muted: light-dark(#71717a, #a1a1aa);
   --miss: light-dark(red, #f87171);
   --shadow: light-dark(rgb(0 0 0 / 0.15), rgb(0 0 0 / 0.4));
   --junior: 'Abbots Morton Spaceport Sans Junior', 'Abbots Morton Spaceport Mono', monospace;
@@ -54,8 +54,8 @@ body {
   -webkit-font-smoothing: none;
   -moz-osx-font-smoothing: unset;
   font-smooth: never;
-  color: var(--ink);
-  background: var(--paper);
+  color: var(--text);
+  background: var(--background);
 }
 
 header {
@@ -90,8 +90,8 @@ h1 {
   padding: 0.25rem 0.75rem;
   border: 1px solid var(--rule);
   border-radius: 0.25rem;
-  background: var(--paper);
-  color: var(--ink);
+  background: var(--background);
+  color: var(--text);
   font: inherit;
   cursor: pointer;
 }
@@ -107,20 +107,20 @@ h1 {
 
 #undo:disabled {
   opacity: 0.5;
-  background: var(--paper);
+  background: var(--background);
   cursor: default;
 }
 
 #grade[aria-pressed="true"] {
-  border-color: var(--quiet);
-  background: var(--quiet);
-  color: var(--paper);
+  border-color: var(--muted);
+  background: var(--muted);
+  color: var(--background);
 }
 
 #grade[aria-pressed="true"]:hover,
 #grade[aria-pressed="true"]:focus-visible {
-  border-color: color-mix(in srgb, var(--quiet) 65%, var(--ink) 35%);
-  background: color-mix(in srgb, var(--quiet) 65%, var(--ink) 35%);
+  border-color: color-mix(in srgb, var(--muted) 65%, var(--text) 35%);
+  background: color-mix(in srgb, var(--muted) 65%, var(--text) 35%);
 }
 
 #copy {
@@ -131,7 +131,7 @@ h1 {
   padding: 0.25rem 0.75rem;
   border: 1px solid var(--rule);
   border-radius: 0.25rem;
-  background: var(--paper);
+  background: var(--background);
   cursor: pointer;
 }
 
@@ -163,7 +163,7 @@ main {
   resize: none;
   outline: none;
   color: inherit;
-  background: var(--paper);
+  background: var(--background);
   font-family: 'Abbots Morton Spaceport Mono', monospace;
 }
 
@@ -271,8 +271,8 @@ main {
   box-shadow: 0 4px 16px var(--shadow);
   overflow: auto;
   overscroll-behavior: contain;
-  color: var(--ink);
-  background: var(--paper);
+  color: var(--text);
+  background: var(--background);
   font-family: var(--junior);
   font-size: 22px;
   line-height: 33px;
@@ -332,19 +332,19 @@ main {
 }
 
 #popover .fix-all {
-  color: var(--quiet);
+  color: var(--muted);
 }
 
 #popover .fix-all:hover,
 #popover .fix-all:focus-visible {
-  color: var(--ink);
+  color: var(--text);
 }
 
 #popover .none {
   margin: 0;
   font-size: 11px;
   line-height: 1.4;
-  color: var(--quiet);
+  color: var(--muted);
 }
 
 #popover .ignore {
@@ -352,7 +352,7 @@ main {
   padding: 11px 11px 0;
   border-top: 1px solid var(--rule);
   border-radius: 0;
-  color: var(--quiet);
+  color: var(--muted);
 }
 
 #popover .ignore + .ignore {
@@ -364,7 +364,7 @@ main {
 #popover .ignore:hover,
 #popover .ignore:focus-visible {
   background: none;
-  color: var(--ink);
+  color: var(--text);
 }
 
 @media (max-width: 800px) {

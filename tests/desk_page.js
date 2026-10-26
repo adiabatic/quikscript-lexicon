@@ -520,18 +520,18 @@ check("occurrence indices count every token, code spans included", () => {
   assert.deepEqual(
     spans().map((span) => span.dataset.occ),
     ["0", "1", "2"],
-    "a flat shim sees one text node, so every occurrence is numbered in order",
+    "withFlatInnerHTML puts the preview in one text node, so every occurrence is flagged and numbered in order",
   );
 });
 
 check("YAML front matter is not rendered in the preview", () => {
   source.value = `---\ntitle: ${misspelled}\n---\n\n# heading\n\n${misspelled}\n`;
   box.render();
-  assert.ok(!preview.html.includes("title:"), "the front matter block was never handed to marked");
+  assert.ok(!preview.html.includes("title:"), "the front matter block is not in the preview HTML");
   assert.deepEqual(
     spans().map((span) => span.dataset.occ),
     ["0"],
-    "the body's occurrence is the only one the preview ever sees",
+    "the body's occurrence is the only one in the preview, so it is numbered 0",
   );
 });
 

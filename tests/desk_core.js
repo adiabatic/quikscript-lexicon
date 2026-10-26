@@ -213,7 +213,7 @@ check("a Quikscript word inside front matter is not tokenized", () => {
 const SHORT = UNION.find((word) => word.length === 3);
 const HYPHENATED = UNION.filter((word) => word.includes("-") && word.length > 3);
 
-check("a listed spelling is accepted and a doctored one is not", () => {
+check("a listed spelling is accepted, and that spelling doubled and the empty string are not", () => {
   const word = UNION[1000];
   assert.equal(accepts(ACCEPTED, word), true);
   assert.equal(accepts(ACCEPTED, word + word), false);
@@ -321,7 +321,7 @@ const FULL = "\uE665\uE673\uE654";
 check("a \u00A7III contraction and its full spelling are both accepted at once", () => {
   assert.equal(accepts(ACCEPTED, CONTRACTION), true, show(CONTRACTION));
   assert.equal(accepts(ACCEPTED, FULL), true, show(FULL));
-  assert.equal(freq(CONTRACTION), freq(FULL), "it is as common as the word it writes");
+  assert.equal(freq(CONTRACTION), freq(FULL), "the contraction has the frequency of its full spelling");
 });
 
 const SAMPLE = page.slice(page.indexOf("<textarea"), page.indexOf("</textarea>"));
@@ -333,7 +333,7 @@ check("the sample has exactly one word the lexicon does not list", () => {
   assert.equal(WRONG.length, 1);
 });
 
-check("the sample's misspelling is an edit away from the word it was made from", () => {
+check("the sample's misspelling gets 1 to 10 suggestions, and the word it was made from is one of them", () => {
   const suggestions = suggest(WRONG[0], suggestContext());
   assert.ok(suggestions.length > 0);
   assert.ok(suggestions.length <= 10);
@@ -344,7 +344,7 @@ check("the sample's misspelling is an edit away from the word it was made from",
   );
 });
 
-check("vowel swaps come first, then suggestions by edit distance, each group most frequent first", () => {
+check("for a word with no REP substitution, vowel swaps come first, then suggestions by edit distance, each group most frequent first", () => {
   const suggestions = suggest(WRONG[0], suggestContext());
   const single = suggestions.filter((suggestion) => !suggestion.includes(" "));
   const hasRepSubstitution = QS.rep.some(([written]) => WRONG[0].includes(written));

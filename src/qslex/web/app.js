@@ -135,12 +135,12 @@ function markMisspellings() {
   for (const text of texts) {
     const found = tokens(text.data);
     if (found.length === 0) continue;
-    const quoted = skipped(text);
+    const inCodeOrPopover = skipped(text);
     const flagged = [];
     for (const hit of found) {
       const occurrence = seen.get(hit.word) || 0;
       seen.set(hit.word, occurrence + 1);
-      if (quoted || ignored.has(hit.word)) continue;
+      if (inCodeOrPopover || ignored.has(hit.word)) continue;
       if (ignoredOccurrences.has(occurrenceKey(hit.word, occurrence))) continue;
       if (!accepts(ACCEPTED, hit.word)) {
         flagged.push([hit, occurrence]);
@@ -202,13 +202,13 @@ function dismiss() {
 }
 
 function placePopover(span) {
-  const box = span.getBoundingClientRect();
-  const own = popover.getBoundingClientRect();
-  const rightmost = window.innerWidth - own.width - EDGE;
-  const lowest = window.innerHeight - own.height - EDGE;
-  const under = box.bottom + GAP;
-  const over = box.top - own.height - GAP;
-  popover.style.left = `${Math.max(EDGE, Math.min(box.left, rightmost))}px`;
+  const spanRect = span.getBoundingClientRect();
+  const popoverRect = popover.getBoundingClientRect();
+  const rightmost = window.innerWidth - popoverRect.width - EDGE;
+  const lowest = window.innerHeight - popoverRect.height - EDGE;
+  const under = spanRect.bottom + GAP;
+  const over = spanRect.top - popoverRect.height - GAP;
+  popover.style.left = `${Math.max(EDGE, Math.min(spanRect.left, rightmost))}px`;
   popover.style.top = `${under <= lowest ? under : Math.max(EDGE, Math.min(over, lowest))}px`;
 }
 
@@ -278,8 +278,8 @@ function undo() {
 function showSuggestions(span) {
   const word = span.dataset.w;
   const occurrence = Number(span.dataset.occ);
-  const everywhere = misses.get(word) || [occurrence];
-  const others = everywhere.length - 1;
+  const flaggedOccurrences = misses.get(word) || [occurrence];
+  const others = flaggedOccurrences.length - 1;
   const rest = others === 1 ? "the 1 other" : `the ${others} others`;
   const suggestions = suggest(word, suggestContext());
 
@@ -308,7 +308,7 @@ function showSuggestions(span) {
       fixAllButton.className = "fix-all";
       fixAllButton.textContent = `(${others})`;
       fixAllButton.title = `Correct this misspelling and ${rest} written the same way`;
-      fixAllButton.addEventListener("click", () => chooseAll(word, everywhere, fix));
+      fixAllButton.addEventListener("click", () => chooseAll(word, flaggedOccurrences, fix));
       row.append(fixAllButton);
     }
     popover.append(row);
