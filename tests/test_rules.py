@@ -85,7 +85,7 @@ def test_es_ed_drops_the_epenthetic_vowel() -> None:
     assert senior("fitted", "AJ0") == "·Fee·It·Tea·Day"
 
 
-def test_es_ed_catches_sites_upstream_wrote_with_a_plain_schwa() -> None:
+def test_es_ed_drops_the_vowel_where_readlex_wrote_a_plain_schwa() -> None:
     assert all("Ə" not in row.ipa for row in BY_WORD["englishes"])
     assert senior("englishes") == "·It·-ing·Gay·Low·It·She·Zoo"
     assert all("Ə" not in row.ipa for row in BY_WORD["cashboxes"])

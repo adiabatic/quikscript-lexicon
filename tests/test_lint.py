@@ -23,7 +23,7 @@ def exemption_file(tmp_path: Path, rows: list[list[str]]) -> Path:
     return write_tsv(tmp_path / "e.tsv", EXEMPTIONS_HEADER, rows)
 
 
-def test_every_check_says_what_the_manual_requires() -> None:
+def test_every_check_has_a_unique_id_and_a_nonempty_requires_field() -> None:
     assert len(set(CHECK_IDS)) == len(CHECKS)
     assert all(check.requires for check in CHECKS)
 
@@ -141,7 +141,7 @@ def test_an_exemption_for_an_unknown_check_is_rejected(tmp_path: Path) -> None:
         load_exemptions(exemption_file(tmp_path, rows))
 
 
-def test_a_known_defect_must_say_what_it_is(tmp_path: Path) -> None:
+def test_a_known_defect_exemption_needs_a_note(tmp_path: Path) -> None:
     rows = [["initial-ex-et", "pre-exist", "known-defect", ""]]
     with pytest.raises(ValueError, match="needs a note"):
         load_exemptions(exemption_file(tmp_path, rows))

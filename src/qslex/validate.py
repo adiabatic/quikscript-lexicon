@@ -303,18 +303,18 @@ def added(
                 f"{where} is rewritten by the word sign {result.signed}, which the "
                 f"added row and the sign table disagree about"
             )
-        for check_id, part, complaint in lint(
+        for check_id, part, problem in lint(
             entry.word, result.senior, result.x_letter, ipa, tables
         ):
-            failures.append(f"{where} breaks lint {check_id} on {part!r}: {complaint}")
+            failures.append(f"{where} breaks lint {check_id} on {part!r}: {problem}")
         for spelling in dict.fromkeys(
             s for s in (result.senior, result.junior, result.x_letter) if s
         ):
-            said = source_phonemes(tokens)
-            written = spelled_phonemes(spelling, read_back)
-            if said != written and align(said, written) is None:
+            source = source_phonemes(tokens)
+            spelled = spelled_phonemes(spelling, read_back)
+            if source != spelled and align(source, spelled) is None:
                 failures.append(
-                    f"{where} spelled {spelling} reads back as {' '.join(written)}, "
+                    f"{where} spelled {spelling} reads back as {' '.join(spelled)}, "
                     f"not {ipa}"
                 )
     return failures
@@ -374,7 +374,7 @@ def main(argv: list[str] | None = None) -> int:
     unreadable: list[str] = []
     core_misses: list[str] = []
     undecided: dict[str, set[str]] = collections.defaultdict(set)
-    stray_x_letters: list[str] = []
+    x_letters_without_x: list[str] = []
     unsubstituted: list[str] = []
     spellings: dict[str, dict[tuple[str, str], set[str]]] = {
         "senior": collections.defaultdict(set),
@@ -468,16 +468,18 @@ def main(argv: list[str] | None = None) -> int:
                         f"but is spelled {spelling}"
                     )
             if result.x_letter and "x" not in word:
-                stray_x_letters.append(f"{word!r} has no x but got {result.x_letter}")
+                x_letters_without_x.append(
+                    f"{word!r} has no x but got {result.x_letter}"
+                )
             for touched in dict.fromkeys(result.signed):
                 sign_changes[touched] += 1
             sign_hits.update(result.signs)
             if word in core_signs and result.senior != core_signs[word]:
                 core_misses.append(
-                    f"{word!r} [{row.pos}] is a core word sign, wanted "
+                    f"{word!r} [{row.pos}] is a core word sign, expected "
                     f"{core_signs[word]}, got {result.senior}"
                 )
-            for check_id, part, complaint in lint(
+            for check_id, part, problem in lint(
                 word, result.senior, result.x_letter, ipa, tables
             ):
                 if (check_id, word) in exemptions:
@@ -486,32 +488,32 @@ def main(argv: list[str] | None = None) -> int:
                 lint_hits[check_id] += 1
                 if len(lint_examples[check_id]) < 5:
                     lint_examples[check_id].append(
-                        f"{part!r} in {word!r} [{row.pos}] {result.senior}: {complaint}"
+                        f"{part!r} in {word!r} [{row.pos}] {result.senior}: {problem}"
                     )
 
             if result.signed:
                 roundtrip_skipped += 1
             else:
-                said = source_phonemes(tuple(tokens))
+                source = source_phonemes(tuple(tokens))
                 for spelling in dict.fromkeys(
                     s for s in (result.senior, result.junior, result.x_letter) if s
                 ):
-                    written = spelled_phonemes(spelling, read_back)
-                    if said == written:
+                    spelled = spelled_phonemes(spelling, read_back)
+                    if source == spelled:
                         roundtrip_identical += 1
                         continue
-                    edits = align(said, written)
+                    edits = align(source, spelled)
                     if edits is None:
                         unreadable.append(
                             f"{word!r} [{row.pos}] {ipa} spelled {spelling} reads back "
-                            f"as {' '.join(written)}"
+                            f"as {' '.join(spelled)}"
                         )
                         continue
                     roundtrip.update(edits)
             if result.junior:
                 junior_rows += 1
-                bare = spell(context, unsigned)
-                plain = bare.junior or bare.senior
+                unsigned_result = spell(context, unsigned)
+                plain = unsigned_result.junior or unsigned_result.senior
                 if result.junior != plain:
                     junior_mismatches.append(
                         f"{word!r} [{row.pos}] lists Junior {result.junior}, but "
@@ -581,11 +583,11 @@ def main(argv: list[str] | None = None) -> int:
     )
     if rrp_rows != spelled_rows:
         failures.append(
-            f"{rrp_rows} rows survive the row policy, expected {spelled_rows}"
+            f"the row policy keeps {rrp_rows} rows, expected {spelled_rows}"
         )
     if len(rrp_headwords) != CORPUS_HEADWORDS:
         failures.append(
-            f"{len(rrp_headwords)} headwords survive the row policy, "
+            f"{len(rrp_headwords)} headwords have a row the row policy keeps, "
             f"expected {CORPUS_HEADWORDS}"
         )
 
@@ -759,11 +761,11 @@ def main(argv: list[str] | None = None) -> int:
     print(f"  {len(tables.x_decisions)} rows, {len(x_decision_hits)} used")
     if unused_x_decisions:
         failures.append(f"x-decisions.tsv rows never used: {unused_x_decisions}")
-    print(f"  x-letters on words with no x: {len(stray_x_letters)}")
-    for line in stray_x_letters[:10]:
+    print(f"  x-letters on words with no x: {len(x_letters_without_x)}")
+    for line in x_letters_without_x[:10]:
         print(f"    {line}")
-    if stray_x_letters:
-        failures.append(f"{len(stray_x_letters)} x-letters on words without an x")
+    if x_letters_without_x:
+        failures.append(f"{len(x_letters_without_x)} x-letters on words without an x")
     print(
         f"  words with no X-letter in x-decisions.tsv that keep a pair: "
         f"{len(unsubstituted)}"
@@ -816,7 +818,9 @@ def main(argv: list[str] | None = None) -> int:
     if core_misses:
         failures.append(f"{len(core_misses)} rows spell a core word sign in full")
 
-    print(f"\nJunior divergences: {junior_rows} (want {EXPECTED_JUNIOR_DIVERGENCES})")
+    print(
+        f"\nJunior divergences: {junior_rows} (expected {EXPECTED_JUNIOR_DIVERGENCES})"
+    )
     for line in junior_mismatches[:10]:
         print(f"    {line}")
     if junior_rows != EXPECTED_JUNIOR_DIVERGENCES:
@@ -858,7 +862,7 @@ def main(argv: list[str] | None = None) -> int:
             continue
         if not any(example.matches(value) for value in candidates):
             unreproduced.append(
-                f"{example.word!r} [{example.rule}] wants {example.kind} "
+                f"{example.word!r} [{example.rule}] expected {example.kind} "
                 f"{example.spelling}, got {sorted(candidates)}"
             )
     print(f"\nManual example words: {len(examples)}")

@@ -68,12 +68,14 @@ class Check:
     test: Callable[[Site, Tables], str]
 
 
-def _tail(site: Site, *shape: str) -> bool:
-    return site.spelled[-len(shape) :] == shape
+def _tail(site: Site, *ending_letters: str) -> bool:
+    return site.spelled[-len(ending_letters) :] == ending_letters
 
 
-def _before(spelled: tuple[str, ...], shape: tuple[str, ...]) -> str:
-    return spelled[-len(shape) - 1] if len(spelled) > len(shape) else ""
+def _before(spelled: tuple[str, ...], ending_letters: tuple[str, ...]) -> str:
+    return (
+        spelled[-len(ending_letters) - 1] if len(spelled) > len(ending_letters) else ""
+    )
 
 
 def _ing_affix(latin: str) -> str:
@@ -83,7 +85,7 @@ def _ing_affix(latin: str) -> str:
     return ""
 
 
-ING_SHAPES = {
+ING_ENDING_LETTERS = {
     "ing": ("-ing",),
     "ings": ("-ing", "Zoo"),
     "ingly": ("-ing", "Low", "It"),
@@ -102,10 +104,12 @@ def ing_vowel_omitted(site: Site, tables: Tables) -> str:
         return ""
     if tables.has_decision("terminal-ing", site.latin):
         return ""
-    shape = ING_SHAPES[affix]
-    if not _tail(site, *shape):
+    ending_letters = ING_ENDING_LETTERS[affix]
+    if not _tail(site, *ending_letters):
         return ""
-    return "·It before the -ing" if _before(site.spelled, shape) == "It" else ""
+    return (
+        "·It before the -ing" if _before(site.spelled, ending_letters) == "It" else ""
+    )
 
 
 def al_vowel_omitted(site: Site, tables: Tables) -> str:
@@ -132,10 +136,12 @@ def ent_ance_utter(site: Site, tables: Tables) -> str:
     match = ENT.search(site.latin)
     if not match or LAND.search(site.latin) or not site.reducible_ending:
         return ""
-    shape = ("No", "Tea") if match.group(1) in {"ent", "ant"} else ("No", "See")
-    if not _tail(site, *shape):
+    ending_letters = (
+        ("No", "Tea") if match.group(1) in {"ent", "ant"} else ("No", "See")
+    )
+    if not _tail(site, *ending_letters):
         return ""
-    before = _before(site.spelled, shape)
+    before = _before(site.spelled, ending_letters)
     return f"·{before} before ·No, not ·Utter" if before not in {"Utter", ""} else ""
 
 
@@ -148,18 +154,28 @@ def land_ment_vowel_omitted(site: Site, tables: Tables) -> str:
     if not match or not site.reducible_ending:
         return ""
     ending = match.group(1)
-    shape = {"land": ("No", "Day"), "ment": ("No", "Tea"), "man": ("No",)}[ending]
+    ending_letters = {
+        "land": ("No", "Day"),
+        "ment": ("No", "Tea"),
+        "man": ("No",),
+    }[ending]
     consonant = {"land": "Low", "ment": "May", "man": "May"}[ending]
     if site.latin.endswith("s") and site.spelled[-1:] == ("Zoo",):
         spelled = site.spelled[:-1]
     else:
         spelled = site.spelled
-    if spelled[-len(shape) :] != shape:
+    if spelled[-len(ending_letters) :] != ending_letters:
         return ""
-    vowel = spelled[-len(shape) - 1] if len(spelled) > len(shape) else ""
+    vowel = (
+        spelled[-len(ending_letters) - 1] if len(spelled) > len(ending_letters) else ""
+    )
     if vowel not in REDUCIBLE:
         return ""
-    keeps = spelled[-len(shape) - 2] if len(spelled) > len(shape) + 1 else ""
+    keeps = (
+        spelled[-len(ending_letters) - 2]
+        if len(spelled) > len(ending_letters) + 1
+        else ""
+    )
     if keeps != consonant:
         return ""
     return f"·{vowel} kept between ·{consonant} and the -{ending}"
@@ -280,11 +296,11 @@ def sites(word: str, spelling: str, x_letter: str, ipa: str) -> tuple[Site, ...]
         if x_elements is not None and len(x_elements) == len(pairs)
         else [()] * len(runs)
     )
-    said = chunks(ipa, len(words))
+    ipa_chunks = chunks(ipa, len(words))
     return tuple(
         Site(word, latin, run, tuple(other), chunk, index == len(words) - 1)
         for index, (latin, run, other, chunk) in enumerate(
-            zip(words, runs, x_letter_runs, said, strict=True)
+            zip(words, runs, x_letter_runs, ipa_chunks, strict=True)
         )
     )
 
@@ -300,7 +316,7 @@ def lint(
     out: list[tuple[str, str, str]] = []
     for site in sites(word, spelling, x_letter, ipa):
         for check in CHECKS:
-            complaint = check.test(site, tables)
-            if complaint:
-                out.append((check.id, site.latin, complaint))
+            problem = check.test(site, tables)
+            if problem:
+                out.append((check.id, site.latin, problem))
     return tuple(out)

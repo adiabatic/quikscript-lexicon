@@ -85,7 +85,7 @@ def test_the_possessives_are_listed_as_phrases() -> None:
 
 
 @pytest.mark.parametrize(
-    ("field", "value", "complaint"),
+    ("field", "value", "message"),
     [
         (0, "", "word, pos and ipa are all required"),
         (0, "Quikscript", "must be lowercase"),
@@ -101,11 +101,11 @@ def test_the_possessives_are_listed_as_phrases() -> None:
     ],
 )
 def test_a_malformed_row_is_rejected(
-    tmp_path: Path, field: int, value: str, complaint: str
+    tmp_path: Path, field: int, value: str, message: str
 ) -> None:
     row = list(GOOD)
     row[field] = value
-    with pytest.raises(ValueError, match=complaint):
+    with pytest.raises(ValueError, match=message):
         load_added_words(added_file(tmp_path, [row]))
 
 

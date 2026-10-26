@@ -144,17 +144,17 @@ def _reducible(letters: Letters, index: int, among: frozenset[str] = REDUCIBLE) 
 def _set_vowel_before(
     letters: Letters,
     offset: int,
-    shape: tuple[str, ...],
+    ending_letters: tuple[str, ...],
     want: str,
     among: frozenset[str] = REDUCIBLE,
 ) -> Letters:
-    """Rewrite the unstressed vowel before `shape` at the end of the word to `want`.
+    """Rewrite the unstressed vowel before `ending_letters` at the end of the word to `want`.
 
     `among` lists the vowels the rule may rewrite. Only terminal -y passes a set with ·Eat in it. Read reserves ·Eat “for distinction where the terminal is stressed”, so an unstressed ·Eat at that terminal is rewritten. Every other caller keeps a full ·Eat as the vowel ReadLex intends. (-ia/-ea and -ier/-ior do not call this function. `_set_vowel_by_stress` chooses between ·It and ·Eat by stress for them.) docs/orthographic-rules.md gives the same reason for ·Et in the paragraph **·Et is not a reducible vowel**.
     """
-    if not _ends(letters, offset, *shape):
+    if not _ends(letters, offset, *ending_letters):
         return letters
-    index = _vowel_at(letters, offset, len(shape))
+    index = _vowel_at(letters, offset, len(ending_letters))
     if index is None or not _reducible(letters, index, among):
         return letters
     return _rename(letters, index, want)
@@ -168,11 +168,11 @@ def _element_follows(context: Context) -> bool:
     return not context.final
 
 
-def _omit(letters: Letters, offset: int, shape: tuple[str, ...]) -> Letters:
-    """Drop an unstressed ·It or ·Utter before `shape`, unless the letter before it is also a vowel."""
-    if not _ends(letters, offset, *shape):
+def _omit(letters: Letters, offset: int, ending_letters: tuple[str, ...]) -> Letters:
+    """Drop an unstressed ·It or ·Utter before `ending_letters`, unless the letter before it is also a vowel."""
+    if not _ends(letters, offset, *ending_letters):
         return letters
-    index = _vowel_at(letters, offset, len(shape))
+    index = _vowel_at(letters, offset, len(ending_letters))
     if index is None or not _reducible(letters, index):
         return letters
     if letters[index - 1].is_vowel:
@@ -419,16 +419,16 @@ def apply_tion(context: Context, letters: Letters, match: re.Match[str]) -> Lett
 
 
 def apply_ess(context: Context, letters: Letters, match: re.Match[str]) -> Letters:
-    shape = ("See", "Tea") if match.group(1) == "est" else ("See",)
-    return _set_vowel_before(letters, _offset(match, letters), shape, "Et")
+    ending_letters = ("See", "Tea") if match.group(1) == "est" else ("See",)
+    return _set_vowel_before(letters, _offset(match, letters), ending_letters, "Et")
 
 
 def apply_land(context: Context, letters: Letters, match: re.Match[str]) -> Letters:
     if match.group(1) == "men":
         return letters
     offset = _offset(match, letters)
-    for shape in (("No", "Day"), ("No", "Tea"), ("No",)):
-        after = _omit(letters, offset, shape)
+    for ending_letters in (("No", "Day"), ("No", "Tea"), ("No",)):
+        after = _omit(letters, offset, ending_letters)
         if after != letters:
             return after
     return letters
@@ -444,8 +444,8 @@ def apply_nt(context: Context, letters: Letters, match: re.Match[str]) -> Letter
 
 def apply_ent(context: Context, letters: Letters, match: re.Match[str]) -> Letters:
     offset = _offset(match, letters)
-    for shape in (("No", "Tea"), ("No", "See")):
-        after = _set_vowel_before(letters, offset, shape, "Utter")
+    for ending_letters in (("No", "Tea"), ("No", "See")):
+        after = _set_vowel_before(letters, offset, ending_letters, "Utter")
         if after != letters:
             return after
     return letters
@@ -465,20 +465,20 @@ def apply_ier(context: Context, letters: Letters, match: re.Match[str]) -> Lette
 
 def apply_ia(context: Context, letters: Letters, match: re.Match[str]) -> Letters:
     offset = _offset(match, letters)
-    for shape in (("Utter", "No"), ("Utter",)):
-        after = _set_vowel_by_stress(letters, offset, shape)
+    for ending_letters in (("Utter", "No"), ("Utter",)):
+        after = _set_vowel_by_stress(letters, offset, ending_letters)
         if after != letters:
             return after
     return letters
 
 
 def _set_vowel_by_stress(
-    letters: Letters, offset: int, shape: tuple[str, ...]
+    letters: Letters, offset: int, ending_letters: tuple[str, ...]
 ) -> Letters:
     """The -ia/-ier vowel: ·It when unstressed, ·Eat when stressed."""
-    if not _ends(letters, offset, *shape):
+    if not _ends(letters, offset, *ending_letters):
         return letters
-    index = _vowel_at(letters, offset, len(shape))
+    index = _vowel_at(letters, offset, len(ending_letters))
     if index is None or letters[index].name not in {"It", "Eat"}:
         return letters
     return _rename(letters, index, "Eat" if letters[index].stressed else "It")
@@ -524,10 +524,10 @@ def apply_ward(context: Context, letters: Letters, match: re.Match[str]) -> Lett
 
 def apply_ful(context: Context, letters: Letters, match: re.Match[str]) -> Letters:
     offset = _offset(match, letters)
-    shape = ("Low", "It") if match.group(1) else ("Low",)
-    if not _ends(letters, offset, *shape):
+    ending_letters = ("Low", "It") if match.group(1) else ("Low",)
+    if not _ends(letters, offset, *ending_letters):
         return letters
-    index = _vowel_at(letters, offset, len(shape))
+    index = _vowel_at(letters, offset, len(ending_letters))
     if index is None or letters[index - 1].name != "Fee":
         return letters
     if letters[index].stressed or letters[index].name not in {"Utter", "Foot"}:
@@ -778,11 +778,11 @@ def undecided_ess(context: Context, letters: Letters, tables: Tables) -> bool:
     match = ESS.search(context.latin)
     if match is None:
         return False
-    shape = ("See", "Tea") if match.group(1) == "est" else ("See",)
+    ending_letters = ("See", "Tea") if match.group(1) == "est" else ("See",)
     offset = _offset(match, letters)
-    if not _ends(letters, offset, *shape):
+    if not _ends(letters, offset, *ending_letters):
         return False
-    index = _vowel_at(letters, offset, len(shape))
+    index = _vowel_at(letters, offset, len(ending_letters))
     if index is None or not _reducible(letters, index):
         return False
     return letters[index].name == "It"
