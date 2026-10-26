@@ -11,6 +11,7 @@ const BAD = "\uE651\uE657\uE65A";
 const GOOD = "\uE651\uE657\uE65B";
 const OTHER = "\uE66A\uE657";
 const NO_SUGGESTIONS = "\uE65C\uE664\uE652";
+const THIS_SPELLING = "\uE657\uE670\uE65A";
 const CSP = "vscode-webview://host";
 
 /**
@@ -262,17 +263,17 @@ test("an out-of-range flag or suggestion index returns null", () => {
 
 test("lookupRows glosses each form, and a phrase whose every word has a spelling gets a phrase row first", () => {
   const read = { latin: "read", items: [{ label: GOOD, detail: "verb" }, { label: OTHER, detail: "noun" }] };
-  const this_ = { latin: "this", items: [{ label: NO_SUGGESTIONS, detail: "determiner" }] };
+  const this_ = { latin: "this", items: [{ label: THIS_SPELLING, detail: "determiner" }] };
   const none = { latin: "zzxq", items: [] };
   assert.deepEqual(lookupRows([read]), [
     { kind: "form", fix: GOOD, gloss: "verb" },
     { kind: "form", fix: OTHER, gloss: "noun" },
   ]);
   assert.deepEqual(lookupRows([read, this_]), [
-    { kind: "phrase", fix: `${GOOD} ${NO_SUGGESTIONS}` },
+    { kind: "phrase", fix: `${GOOD} ${THIS_SPELLING}` },
     { kind: "form", fix: GOOD, gloss: "read — verb" },
     { kind: "form", fix: OTHER, gloss: "read — noun" },
-    { kind: "form", fix: NO_SUGGESTIONS, gloss: "this — determiner" },
+    { kind: "form", fix: THIS_SPELLING, gloss: "this — determiner" },
   ]);
   assert.deepEqual(lookupRows([read, none]), [
     { kind: "form", fix: GOOD, gloss: "read — verb" },

@@ -3,7 +3,7 @@ const { test } = require("node:test");
 const data = require("../payload.json");
 const { lexicon } = require("../lib/lexicon.js");
 const { parseLatinBySpelling, parseSpellingsByLatin } = require("../lib/lookup.js");
-const { glossed, hoverAt, hoverMarkdown, listed } = require("../lib/hover.js");
+const { glossFor, hoverAt, hoverMarkdown, suggestionLines } = require("../lib/hover.js");
 const { accepts, suggest } = require("../../../src/qslex/web/core.js");
 
 const LATIN_BY_SPELLING = parseLatinBySpelling(data);
@@ -179,28 +179,28 @@ test("no spelling in a hover renders outside a fence", () => {
 test("suggestions are listed in the order suggest() returns, each glossed", () => {
   const suggestions = suggest(misspelled(READ_EAT), suggestContext());
   assert.ok(suggestions.length > 0);
-  const lines = listed(suggestions, LATIN_BY_SPELLING);
+  const lines = suggestionLines(suggestions, LATIN_BY_SPELLING);
   assert.equal(lines.length, suggestions.length);
   for (const [at, suggestion] of suggestions.entries()) assert.ok(lines[at].startsWith(suggestion));
   assert.ok(lines.some((line) => line.includes(" — ")));
 });
 
 test("a misspelling with no suggestions lists none", () => {
-  assert.deepEqual(listed([], LATIN_BY_SPELLING), []);
+  assert.deepEqual(suggestionLines([], LATIN_BY_SPELLING), []);
 });
 
 test("a suggestion outside the senior column names its column", () => {
   assert.equal(
-    glossed(COULDNT_JUNIOR, LATIN_BY_SPELLING),
+    glossFor(COULDNT_JUNIOR, LATIN_BY_SPELLING),
     "couldn't — modal verb + not (Junior)",
   );
-  assert.equal(glossed(EXPECT_X, LATIN_BY_SPELLING), "expect — verb, infinitive (X-letter)");
-  assert.equal(glossed(PERHAPS, LATIN_BY_SPELLING), "perhaps — adverb (Senior contraction)");
+  assert.equal(glossFor(EXPECT_X, LATIN_BY_SPELLING), "expect — verb, infinitive (X-letter)");
+  assert.equal(glossFor(PERHAPS, LATIN_BY_SPELLING), "perhaps — adverb (Senior contraction)");
 });
 
 test("a suggestion the lexicon does not list is glossed from its pieces", () => {
-  assert.equal(glossed(`${READ_EAT}-${READ_ET}`, LATIN_BY_SPELLING), "read/reade/reed-read/red");
-  assert.equal(glossed(`${READ_EAT} ${READ_ET}`, LATIN_BY_SPELLING), "read/reade/reed read/red");
-  assert.equal(glossed(`${BAD}-${READ_ET}`, LATIN_BY_SPELLING), "read/red");
-  assert.equal(glossed(BAD, LATIN_BY_SPELLING), "");
+  assert.equal(glossFor(`${READ_EAT}-${READ_ET}`, LATIN_BY_SPELLING), "read/reade/reed-read/red");
+  assert.equal(glossFor(`${READ_EAT} ${READ_ET}`, LATIN_BY_SPELLING), "read/reade/reed read/red");
+  assert.equal(glossFor(`${BAD}-${READ_ET}`, LATIN_BY_SPELLING), "read/red");
+  assert.equal(glossFor(BAD, LATIN_BY_SPELLING), "");
 });

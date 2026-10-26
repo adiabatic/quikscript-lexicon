@@ -31,8 +31,8 @@ function section(word, latin, entries, spellingsByLatin) {
   /** @type {string[]} */
   const labels = [];
   for (const entry of entries) {
-    const named = label(entry.pos);
-    if (!labels.includes(named)) labels.push(named);
+    const posLabel = label(entry.pos);
+    if (!labels.includes(posLabel)) labels.push(posLabel);
   }
   const rows = spellingsByLatin.get(latin) || [];
   /** @type {Map<string, Map<string, Set<string>>>} */
@@ -128,7 +128,7 @@ function hoverMarkdown(word, latinBySpelling, spellingsByLatin) {
  * @param {LatinEntry[]} entries
  * @returns {string}
  */
-function named(entries) {
+function glossForEntries(entries) {
   /** @type {Map<string, LatinEntry[]>} */
   const grouped = new Map();
   for (const entry of entries) {
@@ -199,9 +199,9 @@ function glossFromPieces(word, latinBySpelling) {
  * @param {Map<string, LatinEntry[]>} latinBySpelling
  * @returns {string}
  */
-function glossed(word, latinBySpelling) {
+function glossFor(word, latinBySpelling) {
   const entries = latinBySpelling.get(word);
-  return entries ? named(entries) : glossFromPieces(word, latinBySpelling);
+  return entries ? glossForEntries(entries) : glossFromPieces(word, latinBySpelling);
 }
 
 /**
@@ -209,9 +209,9 @@ function glossed(word, latinBySpelling) {
  * @param {Map<string, LatinEntry[]>} latinBySpelling
  * @returns {string[]}
  */
-function listed(suggestions, latinBySpelling) {
+function suggestionLines(suggestions, latinBySpelling) {
   return suggestions.map((fix) => {
-    const gloss = glossed(fix, latinBySpelling);
+    const gloss = glossFor(fix, latinBySpelling);
     return gloss ? `${fix}${GAP}${gloss}` : fix;
   });
 }
@@ -238,4 +238,4 @@ function hoverAt(text, offset, latinBySpelling, spellingsByLatin) {
   return value ? { value, start: token.start, end: token.end } : null;
 }
 
-module.exports = { glossed, hoverAt, hoverMarkdown, listed };
+module.exports = { glossFor, hoverAt, hoverMarkdown, suggestionLines };

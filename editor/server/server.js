@@ -36,7 +36,7 @@ const {
 } = require("./lib/ignores.js");
 const { skipRanges } = require("./lib/markdown.js");
 const { parseLatinBySpelling, parseSpellingsByLatin } = require("./lib/lookup.js");
-const { glossed, hoverAt, listed } = require("./lib/hover.js");
+const { glossFor, hoverAt, suggestionLines } = require("./lib/hover.js");
 const { completions, lookupSpellings } = require("./lib/complete.js");
 
 const DELAY = 200;
@@ -113,8 +113,8 @@ function localPath(uri) {
 function projectRoot(uri) {
   const file = localPath(uri);
   if (!file) return roots[0] || null;
-  const owned = roots.find((root) => file === root || file.startsWith(root + path.sep));
-  return owned || path.dirname(file);
+  const containingRoot = roots.find((root) => file === root || file.startsWith(root + path.sep));
+  return containingRoot || path.dirname(file);
 }
 
 /** @param {string} uri */
@@ -126,15 +126,15 @@ function directoryOf(uri) {
 /** @param {string} uri */
 function ignoreScopesFor(uri) {
   const root = projectRoot(uri);
-  const home = directoryOf(uri);
-  return { directory: home !== null && home !== root, project: root !== null };
+  const fileDirectory = directoryOf(uri);
+  return { directory: fileDirectory !== null && fileDirectory !== root, project: root !== null };
 }
 
 /** @param {string} uri */
 function ignoredWordsFor(uri) {
   const file = localPath(uri);
-  const home = file ? path.dirname(file) : roots[0];
-  const sources = home ? ancestorIgnorePaths(home) : [];
+  const startDirectory = file ? path.dirname(file) : roots[0];
+  const sources = startDirectory ? ancestorIgnorePaths(startDirectory) : [];
   return files.read([...sources, userFile]);
 }
 
@@ -180,22 +180,22 @@ function checkDocument(uri) {
  */
 function rangesByWord(flags) {
   /** @type {Map<string, import("./lib/check.js").Span[]>} */
-  const everywhere = new Map();
+  const spansByWord = new Map();
   for (const flag of flags) {
-    const spans = everywhere.get(flag.word);
+    const spans = spansByWord.get(flag.word);
     if (spans) spans.push(flag.range);
-    else everywhere.set(flag.word, [flag.range]);
+    else spansByWord.set(flag.word, [flag.range]);
   }
-  return everywhere;
+  return spansByWord;
 }
 
 /**
  * @param {string} uri
  * @param {import("./lib/actions.js").Flag[]} flags
- * @param {Map<string, import("./lib/check.js").Span[]>} everywhere
+ * @param {Map<string, import("./lib/check.js").Span[]>} spansByWord
  * @returns {import("./lib/actions.js").Action[][]}
  */
-function buildCodeActions(uri, flags, everywhere) {
+function buildCodeActions(uri, flags, spansByWord) {
   const scopes = ignoreScopesFor(uri);
   const started = Date.now();
   /** @type {import("./lib/actions.js").Action[][]} */
@@ -206,7 +206,7 @@ function buildCodeActions(uri, flags, everywhere) {
     const built = actions(
       uri,
       flag,
-      everywhere.get(flag.word) || [],
+      spansByWord.get(flag.word) || [],
       suggestionsFor(flag.word),
       scopes,
     );
@@ -221,10 +221,10 @@ function buildCodeActions(uri, flags, everywhere) {
 /**
  * @param {string} uri
  * @param {import("./lib/actions.js").Flag[]} flags
- * @param {Map<string, Span[]>} everywhere
+ * @param {Map<string, Span[]>} spansByWord
  * @returns {FixListEntry[]}
  */
-function buildFixList(uri, flags, everywhere) {
+function buildFixList(uri, flags, spansByWord) {
   const scopes = ignoreScopesFor(uri);
   const started = Date.now();
   /** @type {FixListEntry[]} */
@@ -234,14 +234,14 @@ function buildFixList(uri, flags, everywhere) {
     if (work >= MAX_ACTION_WORK || Date.now() - started >= TIME_LIMIT_MS) break;
     const fixes = suggestionsFor(flag.word).map((fix) => ({
       fix,
-      gloss: glossed(fix, getLatinBySpelling()),
+      gloss: glossFor(fix, getLatinBySpelling()),
       edit: { changes: { [uri]: [{ range: flag.range, newText: fix }] } },
     }));
     out.push({
       word: flag.word,
       occurrence: flag.occurrence,
       range: flag.range,
-      spans: everywhere.get(flag.word) || [],
+      spans: spansByWord.get(flag.word) || [],
       fixes,
       ignore: {
         occurrence: {
@@ -272,7 +272,7 @@ function appendSuggestionsToMessages(found, flags) {
   let lookedUpCount = 0;
   for (const [at, flag] of flags.entries()) {
     if (Date.now() - started >= TIME_LIMIT_MS) break;
-    const lines = listed(suggestionsFor(flag.word), getLatinBySpelling());
+    const lines = suggestionLines(suggestionsFor(flag.word), getLatinBySpelling());
     if (lines.length > 0) found[at].message = [found[at].message, ...lines].join("\n");
     lookedUpCount += 1;
   }
@@ -488,29 +488,30 @@ connection.onRequest(
   },
 );
 
-connection.onRequest("quikscript/spellings", (/** @type {{text?: unknown}} */ asked) => {
-  const text = typeof asked?.text === "string" ? asked.text.slice(0, MAX_LOOKUP_TEXT) : "";
+connection.onRequest("quikscript/spellings", (/** @type {{text?: unknown}} */ params) => {
+  const text = typeof params?.text === "string" ? params.text.slice(0, MAX_LOOKUP_TEXT) : "";
   return { words: lookupSpellings(text, getSpellingsByLatin()) };
 });
 
 connection.onExecuteCommand(({ command, arguments: args }) => {
-  const asked = /** @type {{uri?: unknown, word?: unknown, occurrence?: unknown}} */ (
+  const argument = /** @type {{uri?: unknown, word?: unknown, occurrence?: unknown}} */ (
     (args && args[0]) || {}
   );
-  const uri = typeof asked.uri === "string" && documents.has(asked.uri) ? asked.uri : null;
-  const word = typeof asked.word === "string" && isSingleToken(asked.word) ? asked.word : null;
+  const uri = typeof argument.uri === "string" && documents.has(argument.uri) ? argument.uri : null;
+  const word =
+    typeof argument.word === "string" && isSingleToken(argument.word) ? argument.word : null;
   const count =
-    typeof asked.occurrence === "number" &&
-    Number.isInteger(asked.occurrence) &&
-    asked.occurrence >= 0
-      ? asked.occurrence
+    typeof argument.occurrence === "number" &&
+    Number.isInteger(argument.occurrence) &&
+    argument.occurrence >= 0
+      ? argument.occurrence
       : null;
   if (command === OCCURRENCE && uri && word && count !== null) {
     ignoredOccurrencesFor(uri).add(occurrenceKey(word, count));
   } else if (command === DIRECTORY && uri && word) {
-    const home = directoryOf(uri);
-    if (!home) return null;
-    files.append(projectIgnorePath(home), word);
+    const fileDirectory = directoryOf(uri);
+    if (!fileDirectory) return null;
+    files.append(projectIgnorePath(fileDirectory), word);
   } else if (command === PROJECT && uri && word) {
     const root = projectRoot(uri);
     if (!root) return null;

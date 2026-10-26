@@ -29,9 +29,9 @@ function span(line, from, to) {
 
 test("each suggestion becomes a quickfix with an edit, the first preferred", () => {
   const flag = { word: BAD, occurrence: 0, range: span(0, 0, 9) };
-  const everywhere = [span(0, 0, 9), span(2, 4, 13), span(5, 1, 10)];
+  const occurrenceSpans = [span(0, 0, 9), span(2, 4, 13), span(5, 1, 10)];
   const suggestions = [GOOD, `${GOOD}-${GOOD}`];
-  const out = actions(URI, flag, everywhere, suggestions, { directory: true, project: true });
+  const out = actions(URI, flag, occurrenceSpans, suggestions, { directory: true, project: true });
   assert.deepEqual(
     out.map((action) => action.title),
     [
@@ -55,7 +55,7 @@ test("each suggestion becomes a quickfix with an edit, the first preferred", () 
     title: `${GOOD} — and the 2 others written the same way`,
     kind: "quickfix",
     edit: {
-      changes: { [URI]: everywhere.map((span) => ({ range: span, newText: GOOD })) },
+      changes: { [URI]: occurrenceSpans.map((span) => ({ range: span, newText: GOOD })) },
     },
   });
   assert.equal("isPreferred" in out[2], false);

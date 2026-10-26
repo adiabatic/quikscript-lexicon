@@ -37,15 +37,15 @@ function items(senses) {
     for (const column of [SENIOR, JUNIOR, X]) {
       const form = spellingIn(sense, column);
       if (!form) continue;
-      const named = label(sense.pos);
+      const posLabel = label(sense.pos);
       const entry = merged.get(form);
       if (entry) {
-        if (!entry.labels.includes(named)) entry.labels.push(named);
+        if (!entry.labels.includes(posLabel)) entry.labels.push(posLabel);
         entry.frequency = Math.max(entry.frequency, sense.frequency);
         entry.columns.add(column);
       } else {
         merged.set(form, {
-          labels: [named],
+          labels: [posLabel],
           frequency: sense.frequency,
           columns: new Set([column]),
         });

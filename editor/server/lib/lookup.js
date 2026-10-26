@@ -9,7 +9,7 @@ const CONTRACTION = "contraction";
 /** @type {Record<string, string>} */
 const COLUMN_LABEL = { [SENIOR]: "Senior", [JUNIOR]: "Junior", [X]: "X-letter" };
 
-const NAMED = {
+const POS_LABEL = {
   AJ0: "adjective",
   AJC: "comparative adjective",
   AJS: "superlative adjective",
@@ -76,7 +76,7 @@ const NAMED = {
 function label(pos) {
   return pos
     .split("+")
-    .map((tag) => /** @type {Record<string, string>} */ (NAMED)[tag] || tag)
+    .map((tag) => /** @type {Record<string, string>} */ (POS_LABEL)[tag] || tag)
     .join(" + ");
 }
 

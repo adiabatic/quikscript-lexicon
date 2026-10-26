@@ -96,7 +96,7 @@ test("a Latin phrase is looked up one word at a time, and an unknown word gets n
   assert.deepEqual(lookupSpellings("  , - ''", SPELLINGS_BY_LATIN), []);
 });
 
-test("an unlisted hyphenation is written piece by piece", () => {
+test("an unlisted hyphenation is looked up one piece at a time, and an unknown piece gets no items", () => {
   const found = lookupSpellings("read-zzxq", SPELLINGS_BY_LATIN);
   assert.deepEqual(
     found.map((word) => [word.latin, word.items.length > 0]),

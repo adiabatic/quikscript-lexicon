@@ -52,15 +52,15 @@ function commandAction(title, command, args) {
 /**
  * @param {string} uri
  * @param {Flag} flag
- * @param {Span[]} everywhere
+ * @param {Span[]} occurrenceSpans
  * @param {string[]} suggestions
  * @param {{directory: boolean, project: boolean}} scopes
  * @returns {Action[]}
  */
-function actions(uri, flag, everywhere, suggestions, scopes) {
+function actions(uri, flag, occurrenceSpans, suggestions, scopes) {
   /** @type {Action[]} */
   const out = [];
-  const others = everywhere.length - 1;
+  const others = occurrenceSpans.length - 1;
   const rest = others === 1 ? "the 1 other" : `the ${others} others`;
   for (const [at, fix] of suggestions.entries()) {
     /** @type {Action} */
@@ -76,7 +76,7 @@ function actions(uri, flag, everywhere, suggestions, scopes) {
         title: `${fix} — and ${rest} written the same way`,
         kind: QUICKFIX,
         edit: {
-          changes: { [uri]: everywhere.map((span) => ({ range: span, newText: fix })) },
+          changes: { [uri]: occurrenceSpans.map((span) => ({ range: span, newText: fix })) },
         },
       });
     }
