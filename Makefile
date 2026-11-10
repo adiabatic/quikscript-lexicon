@@ -9,6 +9,7 @@ artifacts:
 
 site:
 	uv run python -m qslex.desk
+	uv run python -m qslex.lookup_page
 
 payload:
 	uv run python -m qslex.payload
@@ -42,5 +43,6 @@ validate:
 freshness:
 	uv run python -m qslex.build --check
 	uv run python -m qslex.desk --check
+	uv run python -m qslex.lookup_page --check
 	uv run python -m qslex.payload --check
 	uv run python -m qslex.preview --check

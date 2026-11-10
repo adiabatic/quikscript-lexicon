@@ -163,6 +163,19 @@ h1 {
   background: var(--chrome);
 }
 
+footer {
+  padding: 0.25rem 0.75rem;
+  border-top: 1px solid var(--rule);
+  background: var(--chrome);
+  font-size: 11px;
+  line-height: 22px;
+  text-align: center;
+}
+
+#lookup {
+  color: inherit;
+}
+
 main {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -428,6 +441,7 @@ Write Markdown on the left and read it on the right. A Quikscript word the lexic
 </textarea>
 <div id="preview" lang="en-Qaas" aria-label="Rendered preview"></div>
 </main>
+<footer><a href="lookup.html" id="lookup">Look up Quikscript spellings</a></footer>
 <div id="popover" popover="auto" lang="en-Qaas"></div>
 <script>/**
  * marked v18.0.7 - a markdown parser

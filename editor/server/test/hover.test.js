@@ -2,7 +2,7 @@ const assert = require("node:assert/strict");
 const { test } = require("node:test");
 const data = require("../payload.json");
 const { lexicon } = require("../lib/lexicon.js");
-const { parseLatinBySpelling, parseSpellingsByLatin } = require("../lib/lookup.js");
+const { parseLatinBySpelling, parseSpellingsByLatin } = require("../../../src/qslex/web/lookup.js");
 const { glossFor, hoverAt, hoverMarkdown, suggestionLines } = require("../lib/hover.js");
 const { accepts, suggest } = require("../../../src/qslex/web/core.js");
 

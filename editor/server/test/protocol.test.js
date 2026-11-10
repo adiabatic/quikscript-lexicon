@@ -15,7 +15,7 @@ const { pathToFileURL } = require("node:url");
 const { bundle } = require("../bundle.js");
 const data = require("../payload.json");
 const { lexicon } = require("../lib/lexicon.js");
-const { parseLatinBySpelling } = require("../lib/lookup.js");
+const { parseLatinBySpelling } = require("../../../src/qslex/web/lookup.js");
 const { glossFor } = require("../lib/hover.js");
 const core = require("../../../src/qslex/web/core.js");
 

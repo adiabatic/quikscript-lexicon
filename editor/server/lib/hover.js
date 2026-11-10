@@ -1,5 +1,13 @@
 const { tokens } = require("../../../src/qslex/web/core.js");
-const { COLUMN_LABEL, CONTRACTION, JUNIOR, SENIOR, X, label, spellingIn } = require("./lookup.js");
+const {
+  COLUMN_LABEL,
+  CONTRACTION,
+  JUNIOR,
+  SENIOR,
+  X,
+  label,
+  spellingIn,
+} = require("../../../src/qslex/web/lookup.js");
 
 const HYPHEN = "-";
 const SPACE = " ";
@@ -9,8 +17,8 @@ const TAG = "plaintext";
 /** @type {Record<string, string>} */
 const GLOSS_COLUMN_LABEL = { ...COLUMN_LABEL, [CONTRACTION]: "Senior contraction" };
 
-/** @typedef {import("./lookup.js").LatinEntry} LatinEntry */
-/** @typedef {import("./lookup.js").SpellingEntry} SpellingEntry */
+/** @typedef {import("../../../src/qslex/web/lookup.js").LatinEntry} LatinEntry */
+/** @typedef {import("../../../src/qslex/web/lookup.js").SpellingEntry} SpellingEntry */
 
 /**
  * @param {string[]} lines

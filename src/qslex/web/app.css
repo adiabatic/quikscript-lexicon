@@ -139,6 +139,19 @@ h1 {
   background: var(--chrome);
 }
 
+footer {
+  padding: 0.25rem 0.75rem;
+  border-top: 1px solid var(--rule);
+  background: var(--chrome);
+  font-size: 11px;
+  line-height: 22px;
+  text-align: center;
+}
+
+#lookup {
+  color: inherit;
+}
+
 main {
   display: grid;
   grid-template-columns: 1fr 1fr;

@@ -1,6 +1,6 @@
 # Vendored Abbots Morton Spaceport fonts
 
-The five `.woff2` files are unmodified copies from [adiabatic/abbots-morton-spaceport](https://github.com/adiabatic/abbots-morton-spaceport). They are vendored so that [`site/index.html`](../../site/index.html) and the VS Code extension’s stylesheets can be rebuilt from a clean checkout without network access. The page inlines each font as a `data:` URI, so the page also works from a `file:` URL with nothing else installed.
+The five `.woff2` files are unmodified copies from [adiabatic/abbots-morton-spaceport](https://github.com/adiabatic/abbots-morton-spaceport). They are vendored so that the pages in [`site/`](../../site) and the VS Code extension’s stylesheets can be rebuilt from a clean checkout without network access. Each page inlines the fonts it uses as `data:` URIs, so the pages also work from a `file:` URL with nothing else installed.
 
 |          |                                                                                                                                                    |
 | -------- | -------------------------------------------------------------------------------------------------------------------------------------------------- |

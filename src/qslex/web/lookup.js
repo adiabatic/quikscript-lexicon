@@ -1,11 +1,18 @@
 /** @typedef {{latin_by_spelling: string, spellings_by_latin: string}} LookupMaps */
 /** @typedef {{latin: string, pos: string, column: string}} LatinEntry */
 /** @typedef {{pos: string, frequency: number, senior: string, junior: string, x: string}} SpellingEntry */
+/** @typedef {{label: string, detail: string, sortText: string}} Item */
 
 const SENIOR = "senior";
 const JUNIOR = "junior";
 const X = "x";
 const CONTRACTION = "contraction";
+const LETTER = /[A-Za-z]/;
+const CURLY = /’/g;
+const TRAILING = /'+$/;
+const HYPHEN = "-";
+const RUN = /[A-Za-z'’-]+/g;
+const MAX_LOOKUP_WORDS = 20;
 /** @type {Record<string, string>} */
 const COLUMN_LABEL = { [SENIOR]: "Senior", [JUNIOR]: "Junior", [X]: "X-letter" };
 
@@ -127,14 +134,84 @@ function parseSpellingsByLatin(data) {
   return out;
 }
 
-module.exports = {
-  COLUMN_LABEL,
-  CONTRACTION,
-  JUNIOR,
-  SENIOR,
-  X,
-  label,
-  parseLatinBySpelling,
-  parseSpellingsByLatin,
-  spellingIn,
-};
+/**
+ * @param {SpellingEntry[]} senses
+ * @returns {Item[]}
+ */
+function items(senses) {
+  /** @type {Map<string, {labels: string[], frequency: number, columns: Set<string>}>} */
+  const merged = new Map();
+  for (const sense of senses) {
+    for (const column of [SENIOR, JUNIOR, X]) {
+      const form = spellingIn(sense, column);
+      if (!form) continue;
+      const posLabel = label(sense.pos);
+      const entry = merged.get(form);
+      if (entry) {
+        if (!entry.labels.includes(posLabel)) entry.labels.push(posLabel);
+        entry.frequency = Math.max(entry.frequency, sense.frequency);
+        entry.columns.add(column);
+      } else {
+        merged.set(form, {
+          labels: [posLabel],
+          frequency: sense.frequency,
+          columns: new Set([column]),
+        });
+      }
+    }
+  }
+  const ranked = [...merged].sort(
+    ([oneForm, one], [otherForm, other]) =>
+      other.frequency - one.frequency ||
+      Number(!one.columns.has(SENIOR)) - Number(!other.columns.has(SENIOR)) ||
+      (oneForm < otherForm ? -1 : 1),
+  );
+  return ranked.map(([form, entry], at) => ({
+    label: form,
+    detail: entry.columns.has(SENIOR)
+      ? entry.labels.join(", ")
+      : `${entry.labels.join(", ")} — ${[...entry.columns]
+          .map((column) => COLUMN_LABEL[column])
+          .join(", ")} form`,
+    sortText: String(at).padStart(4, "0"),
+  }));
+}
+
+/**
+ * @param {string} text
+ * @param {Map<string, SpellingEntry[]>} spellingsByLatin
+ * @returns {{latin: string, items: Item[]}[]}
+ */
+function lookupSpellings(text, spellingsByLatin) {
+  /** @type {{latin: string, items: Item[]}[]} */
+  const out = [];
+  for (const [run] of text.matchAll(RUN)) {
+    if (!LETTER.test(run)) continue;
+    const key = run.toLowerCase().replace(CURLY, "'").replace(TRAILING, "");
+    const senses = spellingsByLatin.get(key);
+    const pieces = senses || !key.includes(HYPHEN) ? [key] : key.split(HYPHEN);
+    for (const piece of pieces) {
+      if (out.length >= MAX_LOOKUP_WORDS) return out;
+      if (!LETTER.test(piece)) continue;
+      const matches = spellingsByLatin.get(piece);
+      out.push({ latin: piece, items: matches ? items(matches) : [] });
+    }
+  }
+  return out;
+}
+
+if (typeof module !== "undefined") {
+  module.exports = {
+    COLUMN_LABEL,
+    CONTRACTION,
+    JUNIOR,
+    SENIOR,
+    X,
+    items,
+    label,
+    lookupSpellings,
+    parseLatinBySpelling,
+    parseSpellingsByLatin,
+    spellingIn,
+  };
+}
