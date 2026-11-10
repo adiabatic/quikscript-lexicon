@@ -1,8 +1,8 @@
 const assert = require("node:assert/strict");
 const { test } = require("node:test");
 const data = require("../payload.json");
-const { parseSpellingsByLatin } = require("../lib/lookup.js");
-const { completions, latinWordAt, lookupSpellings } = require("../lib/complete.js");
+const { lookupSpellings, parseSpellingsByLatin } = require("../../../src/qslex/web/lookup.js");
+const { completions, latinWordAt } = require("../lib/complete.js");
 
 const SPELLINGS_BY_LATIN = parseSpellingsByLatin(data);
 const READ_EAT = "\uE668\uE671\uE653";

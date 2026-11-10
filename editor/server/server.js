@@ -35,9 +35,13 @@ const {
   userIgnorePath,
 } = require("./lib/ignores.js");
 const { skipRanges } = require("./lib/markdown.js");
-const { parseLatinBySpelling, parseSpellingsByLatin } = require("./lib/lookup.js");
+const {
+  lookupSpellings,
+  parseLatinBySpelling,
+  parseSpellingsByLatin,
+} = require("../../src/qslex/web/lookup.js");
 const { glossFor, hoverAt, suggestionLines } = require("./lib/hover.js");
-const { completions, lookupSpellings } = require("./lib/complete.js");
+const { completions } = require("./lib/complete.js");
 
 const DELAY = 200;
 const MAX_ACTION_WORK = 10000;
@@ -66,9 +70,9 @@ let roots = [];
 let inlineCodeActions = false;
 let completionMode = MODES[0];
 let canPullConfiguration = false;
-/** @type {Map<string, import("./lib/lookup.js").LatinEntry[]> | null} */
+/** @type {Map<string, import("../../src/qslex/web/lookup.js").LatinEntry[]> | null} */
 let latinBySpelling = null;
-/** @type {Map<string, import("./lib/lookup.js").SpellingEntry[]> | null} */
+/** @type {Map<string, import("../../src/qslex/web/lookup.js").SpellingEntry[]> | null} */
 let spellingsByLatin = null;
 const pending = debouncer(DELAY, publish);
 

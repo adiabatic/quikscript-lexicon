@@ -7,6 +7,7 @@ Now it’s a repository for all kinds of things that depend on knowing how to sp
 The most user-facing things here are:
 
 - the [Quikscript Desk](#desk), a Markdown-aware Quikscript spell checker that runs in your browser (entirely locally if you want, without even a webserver)
+- the [Quikscript Lookup](#lookup), a page where you type words in Latin letters and get their Quikscript spellings
 - `quikscript-lsp`, a Quikscript spell-checking language server, with a VS Code extension that uses it ([setup](HACKING.md#the-language-server))
 
 The rest of the README mostly describes things in the order of the underlying data pipeline, which mostly ends up being sorted from “most nerdy” to “least nerdy”.
@@ -43,15 +44,21 @@ spaCy tokenizes and tags the text, and the spellings come from `lexicon/quikscri
 
 ## Desk
 
-[`site/index.html`](site/index.html) is a spell checker built on the lexicon. You type Markdown in one pane and read it set in Quikscript in the other. Every Quikscript word the lexicon does not accept gets a dotted red underline. Click it for suggestions, which edit the Markdown source. You can also ignore that one occurrence, or ignore the word everywhere. The page remembers ignored words in this browser’s `localStorage` when it is available.
+[`site/index.html`](site/index.html), also published at <https://adiabatic.github.io/quikscript-lexicon/>, is a spell checker built on the lexicon. You type Markdown in one pane and read it set in Quikscript in the other. Every Quikscript word the lexicon does not accept gets a dotted red underline. Click it for suggestions, which edit the Markdown source. You can also ignore that one occurrence, or ignore the word everywhere. The page remembers ignored words in this browser’s `localStorage` when it is available.
 
 A toggle button switches between the Junior and Senior fonts. It changes only the font. The accepted spellings are always the same: every spelling in the lexicon, plus the Manual’s Senior contractions, which the build does not write into any spelling column.
 
 ```sh
-make site          # rewrite site/index.html
+make site          # rewrite site/index.html and site/lookup.html
 ```
 
 Then open the file. There is nothing to install and no server to run, and the page makes no network requests. The word list, [marked](https://github.com/markedjs/marked) and five [Abbots Morton Spaceport](https://github.com/adiabatic/abbots-morton-spaceport) fonts are all inlined in it. Those fonts are pixel fonts, so every font size the page sets is a multiple of 11px.
+
+## Lookup
+
+[`site/lookup.html`](site/lookup.html), also published at <https://adiabatic.github.io/quikscript-lexicon/lookup.html>, looks up Quikscript spellings. Type a word or phrase in Latin letters, and it lists every spelling the lexicon has for each word, most frequent first, with the parts of speech each one spells. When every word has a spelling, the first row spells the whole phrase. Click a spelling to copy it, or press Enter to copy the first one. It is the box at the top of the VS Code extension’s Quikscript panel, on its own page, and it runs the same lookup code as the language server.
+
+Like the Desk, it is one file that makes no network requests. The Latin-to-spellings map and four of the fonts are inlined in it, so it is about 5 MB.
 
 ## Technically-released but unadvertised things
 

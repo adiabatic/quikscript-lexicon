@@ -4,12 +4,14 @@
 
 ```sh
 make artifacts     # rewrite lexicon/
-make site          # rewrite site/index.html
+make site          # rewrite site/index.html and site/lookup.html
 make payload       # rewrite editor/server/payload.json
 make preview       # rewrite the VS Code client's generated stylesheets
 ```
 
 [`docs/pipeline.md`](docs/pipeline.md#regenerating) explains how `make check` catches an out-of-date `lexicon/`, and what a corpus bump involves.
+
+Every push to `master` publishes the committed `site/` directory to GitHub Pages ([`.github/workflows/pages.yml`](.github/workflows/pages.yml)). The workflow does not rebuild the pages, so it publishes whatever `make site` last wrote.
 
 ## Checks
 

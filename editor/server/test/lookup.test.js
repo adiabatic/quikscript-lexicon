@@ -6,7 +6,7 @@ const {
   parseLatinBySpelling,
   parseSpellingsByLatin,
   spellingIn,
-} = require("../lib/lookup.js");
+} = require("../../../src/qslex/web/lookup.js");
 
 const LATIN_BY_SPELLING = parseLatinBySpelling(data);
 const SPELLINGS_BY_LATIN = parseSpellingsByLatin(data);
